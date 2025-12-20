@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using EntityManager :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Using EntityManager</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>EntityManager</code> is the standard JPA interface for loading and saving entities. It can also run native SQL queries.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+We recommend using <a class="xref page" href="data-manager.html">DataManager</a> for working with entities and fall back to <code>EntityManager</code> only if you really need it.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For information on the <code>EntityManager</code> methods refer to the <a href="https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/entitymanager" rel="noopener" target="_blank">jakarta.persistence.EntityManager</a> API documentation.</p>
+</div>
+<div class="paragraph">
+<p>You can use <code>EntityManager</code> in Jmix applications for working with <a class="xref page" href="../data-model/entities.html#jpa">JPA entities</a> mostly in the same way as in any Spring application. However, Jmix provides its own implementation of the standard interface, which has some specific features.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="obtaining-entity-manager"><a class="anchor" href="#obtaining-entity-manager"></a>Obtaining EntityManager</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can inject an instance of <code>EntityManager</code> in any Spring bean with the help of the <code>@PersistenceContext</code> annotation. To use the <code>EntityManager</code> instance, you should have an open <a class="xref page" href="transactions.html">transaction</a>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@PersistenceContext
+private EntityManager entityManager;
+
+@Transactional
+public Customer createCustomer() {
+    Customer customer = metadata.create(Customer.class);
+    customer.setName("Bob");
+    entityManager.persist(customer);
+    return customer;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need to work with entities from an <a class="xref page" href="../data-model/data-stores.html#additional">additional data store</a>, obtain the <code>EntityManager</code> instance for this data store by specifying the data store name in the <code>unitName</code> parameter of the <code>@PersistenceContext</code> annotation, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@PersistenceContext(unitName = "db1")
+private EntityManager entityManagerForDb1;
+
+@Transactional("db1TransactionManager")
+public Foo createFoo() {
+    Foo foo = metadata.create(Foo.class);
+    foo.setName("foo1");
+    entityManagerForDb1.persist(foo);
+    return foo;
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>EntityManager</code> cannot be injected in UI controllers.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fetch-plans"><a class="anchor" href="#fetch-plans"></a>Using Fetch Plans</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, when you use <code>EntityManager</code> for loading entities by id or by JPQL query, it returns all local (immediate) attributes and eagerly fetched references by the rules of the JPA specification. Other references are loaded lazily while in the same transaction.</p>
+</div>
+<div class="paragraph">
+<p>You can use <a class="xref page" href="fetching.html#fetch-plan">fetch plans</a> to optimize loading of the needed object graph regardless of <code>FetchType.LAZY</code> fetch instructions in your entity attribute annotations. The fetch plan should be specified in the properties map. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@PersistenceContext
+private EntityManager entityManager;
+
+@Autowired
+private FetchPlans fetchPlans;
+
+@Transactional
+public Order findOrder(UUID orderId) {
+    FetchPlan fetchPlan = fetchPlans.builder(Order.class)
+            .add("customer")
+            .build();
+
+    Map&lt;String, Object&gt; properties = PersistenceHints.builder()
+            .withFetchPlan(fetchPlan)
+            .build();
+
+    return entityManager.find(Order.class, orderId, properties);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the above example, all local attributes of the <code>Order</code> and the related <code>Customer</code> entity will be loaded, even though they are not included in the fetch plan explicitly. If you want to load only a subset of local attributes, build a "partial" fetch plan. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Transactional
+public Order loadGraphOfPartialEntities(UUID orderId) {
+    FetchPlan fetchPlan = fetchPlans.builder(Order.class)
+            .addAll("number", "date", "customer.name")
+            .partial()
+            .build();
+
+    Map&lt;String, Object&gt; properties = PersistenceHints.builder()
+            .withFetchPlan(fetchPlan)
+            .build();
+
+    return entityManager.find(Order.class, orderId, properties);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="soft-deletion"><a class="anchor" href="#soft-deletion"></a>Soft Deletion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>EntityManager</code> supports <a class="xref page" href="../data-model/soft-deletion.html">soft deletion</a>. When you invoke the <code>remove()</code> method for an entity with the <a class="xref page" href="../data-model/entities.html#soft-delete-trait">Soft Delete trait</a>, it updates the <code>@DeletedDate</code> and <code>@DeletedBy</code> attributes instead of removing the record from the database.</p>
+</div>
+<div class="paragraph">
+<p>You can turn soft deletion off for a particular transaction to hard delete entities with Soft Delete trait and be able to load instances marked as deleted, by specifying the <code>PersistenceHints.SOFT_DELETION</code> property. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Transactional
+public void hardDelete(Product product) {
+    entityManager.setProperty(PersistenceHints.SOFT_DELETION, false);
+    entityManager.remove(product);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="limitations"><a class="anchor" href="#limitations"></a>Limitations of EntityManager</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="entity-events.html#saving-loading-events">EntitySavingEvent and EntityLoadingEvent</a> are not sent when saving and loading entities with <code>EntityManager</code>.</p>
+</li>
+<li>
+<p><a class="xref page" href="fetching.html#lazy-loading">Lazy loading</a> of references outside of the transaction loaded the root entity doesn’t work. You will get a "java.lang.IllegalStateException: Cannot get unfetched attribute …​'’ exception if you access such a reference.</p>
+</li>
+<li>
+<p><a class="xref page" href="../data-model/entities.html#cross-data-store-ref">Cross-datastore references</a> are not maintained.</p>
+</li>
+<li>
+<p><a class="xref page" href="../security/authorization.html#data-access-checks">Data access checks</a> are bypassed.</p>
+</li>
+<li>
+<p>The following JPA features are not supported: named queries, <code>CriteriaBuilder</code>, <code>EntityGraph</code>, <code>EntityTransaction</code>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

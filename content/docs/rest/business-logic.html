@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Logic :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Business Logic</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>When interacting with the REST API it is oftentimes needed to have an application-level layer of business logic in place that represents the invocation point for the API. It can be used for orchestration, validation, or other tasks that should happen when the API client interacts with the system. The <a class="xref page" href="entities-api.html">Entities API</a> does not allow placing additional orchestration business logic when interacting with the API. Instead, the API client directly interacts with the <a class="xref page" href="../data-access/index.html">Data Access Layer</a> of Jmix.</p>
+</div>
+<div class="paragraph">
+<p>For exposing business logic to the API client, Jmix provides two ways:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Services API</p>
+</li>
+<li>
+<p>Custom controllers</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>In the next section, we will take a look at both options to understand where the difference between those approaches is.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="services-api"><a class="anchor" href="#services-api"></a>Services API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s look at the first approach to expose business logic to the API client: the Services API.</p>
+</div>
+<div class="paragraph">
+<p>The Services API allows exposing an arbitrary Spring bean as an HTTP endpoint. In this case, Jmix will take care of the HTTP interactions like providing HTTP response codes, perform error handling, etc.</p>
+</div>
+<div class="paragraph">
+<p>In this overview you can see the interaction between the API client and the Jmix application when using the Services API:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="business logic diagram" src="_images/business-logic-diagram.svg"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="exposing-a-service"><a class="anchor" href="#exposing-a-service"></a>Exposing a Service</h3>
+<div class="paragraph">
+<p>To use a Spring bean as part of the Jmix Services API, it needs to meet one of the following conditions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Annotation-Based Approach</strong>: The Spring bean must be created using the <code>@RestService</code> annotation-based method.</p>
+</li>
+<li>
+<p><strong>XML-based Approach</strong>: The Spring bean must fulfill these criteria:</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The Spring bean needs to be annotated with Spring’s <code>@Service</code> annotation (a specialized version of the <code>@Component</code> annotation).</p>
+</li>
+<li>
+<p>The Spring bean needs to be registered in the <code>rest-services.xml</code> configuration file.</p>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Let’s examine these two methods in more detail.</p>
+</div>
+<div class="sect3">
+<h4 id="using-annotations"><a class="anchor" href="#using-annotations"></a>Using Annotations</h4>
+<div class="paragraph">
+<p>Create the Spring bean and annotate it with the <code>@RestService</code> annotation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.rest.annotation.RestMethod;
+import io.jmix.rest.annotation.RestService;
+
+import java.math.BigDecimal;
+
+@RestService("sample_OrderService") <i class="conum" data-value="1"></i><b>(1)</b>
+public class OrderService {
+
+    @RestMethod <i class="conum" data-value="2"></i><b>(2)</b>
+    public BigDecimal calculateTotalAmount(int orderId) {
+        // ...
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@RestService</code> annotation is used to mark a service class that should be accessible through a REST API.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>@RestMethod</code> annotation is used to configure the mapping between a service method and a specific REST endpoint. You can pass the <code>httpMethods</code> parameter, which accepts a list of possible HTTP methods for invoking services through the Generic REST API. By default, it includes <code>GET</code> and <code>POST</code>.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="using-rest-services"><a class="anchor" href="#using-rest-services"></a>Using rest-services.xml</h4>
+<div class="paragraph">
+<p>Let’s look at the first part with this example:</p>
+</div>
+<div class="listingblock">
+<div class="title">CalculationServiceBean.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.springframework.stereotype.Service;
+
+@Service("sample_OrderService") <i class="conum" data-value="1"></i><b>(1)</b>
+public class OrderService {
+
+    public BigDecimal calculateTotalAmount(int orderId) {
+        // ...
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>OrderServiceBean</code> is registered as the Spring <code>@Service</code> with the name <code>sample_OrderService</code>.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If the service name is not specified explicitly in the annotation, it is assumed to be equal to the simple class name with the first letter in lowercase. In the example above it would be <code>orderService</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The second part is to mention all Service methods as API endpoints. This happens via an XML configuration file, normally called <code>rest-services.xml</code>. You need to create this new file in your Jmix application as part of <code>src/main/resources</code>. It lists all service methods with information about the parameters that you want to expose.</p>
+</div>
+<div class="listingblock">
+<div class="title">rest-services.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;services xmlns="http://jmix.io/schema/rest/services"&gt;
+    &lt;service name="sample_OrderService"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;method name="calculateTotalAmount"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+            &lt;param name="orderId"/&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+        &lt;/method&gt;
+    &lt;/service&gt;
+&lt;/services&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>You register the Service by its Spring component name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Each method that you want to expose needs to be mentioned here.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The parameter needs to be described by its name and optionally by its type.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After the file has been created, and the services have been defined, the last part is to register the <code>rest-services.xml</code> configuration in the <code>application.properties</code> of your Jmix application:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.rest.services-config = rest-services.xml</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The value of the <code>serviceConfig</code> is a reference to the file within the classpath. In this case, the file is located directly in the classpath root under <code>src/main/resources</code>. If you for example put the file in the <code>src/resources/com/example/rest-services.xml</code> package, the value would be: <code>com/example/rest-services.xml</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-the-services-api"><a class="anchor" href="#using-the-services-api"></a>Using the Services API</h3>
+<div class="paragraph">
+<p>Once we have exposed the Service through the Services API, you can invoke it from an API client. This is possible by HTTP GET or HTTP POST.</p>
+</div>
+<div class="sect3">
+<h4 id="invoke-a-service-via-get"><a class="anchor" href="#invoke-a-service-via-get"></a>Invoke a Service via GET</h4>
+<div class="paragraph">
+<p>In the case of HTTP GET, you need to provide the method parameter values as URL query parameters:</p>
+</div>
+<div class="listingblock">
+<div class="title">Calculate Total Order Amount via HTTP GET</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /services
+            /sample_OrderService
+            /calculateTotalAmount?orderId=123
+Authorization: Bearer {{access_token}}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">450.0</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When using GET for invoking a service through the Services API, the OAuth access token still needs to be provided by the HTTP Authorization header. It is not possible to append the access token as a URL query parameter.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A service method may return a result of a simple data type, an entity, an entity collection, or a serializable POJO. In our case, the service method returns an <code>int</code>, so the response body contains just a number.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="invoke-a-service-via-post"><a class="anchor" href="#invoke-a-service-via-post"></a>Invoke a Service via POST</h4>
+<div class="paragraph">
+<p>Alternatively, it is also possible to invoke the Service via HTTP POST. This is in particularly useful, when the Service method has one of the following parameter types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Entities</p>
+</li>
+<li>
+<p>Entity Collections</p>
+</li>
+<li>
+<p>Serializable POJOs</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Suppose we added a new method to the OrderService created in the previous part:</p>
+</div>
+<div class="listingblock">
+<div class="title">OrderServiceBean.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Service("sales_OrderService")
+public class OrderService {
+
+    public OrderValidationResult validateOrder(Order order, Date validationDate){
+        OrderValidationResult result = new OrderValidationResult();
+        result.setSuccess(false);
+        result.setErrorMessage("Validation of order " + order.getNumber() + " failed. validationDate parameter is: " + validationDate);
+        return result;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With the following structure for the <code>OrderValidationResult</code> POJO as the result object:</p>
+</div>
+<div class="listingblock">
+<div class="title">OrderValidationResult.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import java.io.Serializable;
+
+public class OrderValidationResult implements Serializable {
+
+    private boolean success;
+
+    private String errorMessage;
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The new method has an Order entity in the arguments list and returns a POJO. Before the invocation of the REST API, the new method also must be registered in the <code>rest-services.xml</code>. Once you exposed the method you can perform the API call:</p>
+</div>
+<div class="listingblock">
+<div class="title">Invoke Order Validation via HTTP POST</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/services/sales_OrderService/validateOrder
+
+{
+  "order" : {
+    "number": "00050",
+    "date" : "2016-01-01"
+  },
+  "validationDate": "2016-10-01"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The REST API method returns a serialized <code>OrderValidationResult</code> POJO:</p>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "success": false,
+  "errorMessage": "Validation of order 00050 failed. validationDate parameter is: 2016-10-01"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="service-parameters"><a class="anchor" href="#service-parameters"></a>Service Parameter Formats</h4>
+<div class="paragraph">
+<p>Parameter values must be passed in a format defined for the corresponding <a class="xref page" href="../data-model/datatype.html">datatype</a>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the parameter type is <code>java.util.Date</code>, then the value is handled by <code>DateTimeDatatype</code>. This datatype implementation uses the <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/format/DateTimeFormatter.html#ISO_DATE_TIME" rel="noopener" target="_blank">ISO_DATE_TIME</a> format where the date and time parts are separated with <code>T</code>, for example <code>2011-12-03T10:15:30</code>.</p>
+</li>
+<li>
+<p>Parameters of <code>java.sql.Date</code> type are handled by <code>DateDatatype</code> which uses <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/format/DateTimeFormatter.html#ISO_DATE" rel="noopener" target="_blank">ISO_DATE</a> format, for example <code>2011-12-03</code>.</p>
+</li>
+<li>
+<p>Parameters of <code>java.sql.Time</code> type are handled by <code>TimeDatatype</code> which uses <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/format/DateTimeFormatter.html#ISO_TIME" rel="noopener" target="_blank">ISO_TIME</a> format, for example <code>10:15:30</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="using-dto-parameters"><a class="anchor" href="#using-dto-parameters"></a>Using DTOs as Request Parameters</h4>
+<div class="paragraph">
+<p>When using a structured request object as a method parameter, the JSON request body must include the parameter name as the top-level key.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public Owner registerOwner(OwnerRegistration registration) {
+    return dataManager.create(Owner.class);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With the following DTO definition:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public record OwnerRegistration(String firstName, String lastName) {}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The request must follow this structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "registration": {
+    "firstName": "John",
+    "lastName": "Doe"
+  }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note" id="recommended-dto-usage">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Instead of using POJOs as parameter objects, it is recommended to use <a class="xref page" href="../data-model/entities.html#dto">DTO Entities</a>. This provides several advantages like correct OpenAPI Schema Generation and better support for Bean Validation to validate the request parameters.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-controller"><a class="anchor" href="#custom-controller"></a>Custom Controller</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The second way of exposing business logic as an API is the ability to use custom HTTP controllers. The main difference is that in this case, it is also possible to influence the HTTP interactions (like status codes, security, etc.) on your own. Jmix uses the default mechanisms from Spring MVC for creating HTTP endpoints.</p>
+</div>
+<div class="paragraph">
+<p>Use-cases for custom controllers could be:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>explicitly define HTTP status codes</p>
+</li>
+<li>
+<p>use other request &amp; response content type than JSON</p>
+</li>
+<li>
+<p>set custom response headers (e.g. for caching)</p>
+</li>
+<li>
+<p>create custom error messages from exceptions</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In these situations, the generic Services API might be not flexible enough to accomplish your goals. Therefore Jmix allows natively integrate Spring MVC controllers into a Jmix application.</p>
+</div>
+<div class="sect2">
+<h3 id="creating-custom-controllers"><a class="anchor" href="#creating-custom-controllers"></a>Creating Custom Controllers</h3>
+<div class="paragraph">
+<p>To create a Spring MVC controller, it is only required to create a Spring bean in the Jmix application annotated as a Spring MVC controller. Jmix itself does not have any further requirements over Spring MVC. Let’s look at an example Controller:</p>
+</div>
+<div class="listingblock">
+<div class="title">OrderController.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@RestController <i class="conum" data-value="1"></i><b>(1)</b>
+@RequestMapping("/orders")  <i class="conum" data-value="2"></i><b>(2)</b>
+public class OrderController {
+    // ...
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The custom controller is marked as <code>@RestController</code> to indicate to Spring that this bean contains HTTP endpoints.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The request mapping defines the base path for this Controller.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now that the Spring controller is registered, we can create a method exposing a particular HTTP endpoint with it:</p>
+</div>
+<div class="listingblock">
+<div class="title">OrderController.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+
+    @GetMapping("/calculateTotalAmount") <i class="conum" data-value="1"></i><b>(1)</b>
+    public ResponseEntity&lt;OrderTotalAmount&gt; calculateTotalAmount(
+            @RequestParam int orderId  <i class="conum" data-value="2"></i><b>(2)</b>
+    ) {
+
+        BigDecimal totalAmount = orderService.calculateTotalAmount(orderId);
+
+        return ResponseEntity <i class="conum" data-value="3"></i><b>(3)</b>
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.CACHE_CONTROL, "max-age=31536000")
+                .body(new OrderTotalAmount(totalAmount, orderId));
+
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The method <code>calculateTotalAmount</code> is annotated with <code>@GetMapping</code> indicating that it is accessible via HTTP GET on the subpath <code>/calculateTotalAmount</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The parameter <code>orderId</code> is retrieved via URL query parameters.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>We can use Spring’s <code>ResponseEntity</code> class to indicate a JSON response together with different HTTP aspects.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>More detailed information on the various aspects of how to create Spring MVC controllers can be found in the Spring guide: <a href="https://spring.io/guides/gs/rest-service/">Building a RESTful Web Service</a> as well as the <a href="https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc">reference documentation</a> for Spring MVC.</p>
+</div>
+<div class="paragraph">
+<p>With that controller in place, Jmix can serve this HTTP endpoint. Let’s have a look at how to interact with the controller:</p>
+</div>
+<div class="listingblock">
+<div class="title">Invoke Custom Orders Controller</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/orders/calculateTotalAmount?orderId=123</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result contains the calculation result exposed as JSON as well as the defined HTTP headers:</p>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">HTTP/1.1 200
+Cache-Control: max-age=31536000
+Content-Type: application/json
+
+{
+  "orderId": 123,
+  "totalAmount": 450.0
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="securing-custom-controllers"><a class="anchor" href="#securing-custom-controllers"></a>Securing Custom Controllers</h3>
+<div class="paragraph">
+<p>To secure a custom controller via the same OAuth2 mechanism that the other parts of the Jmix REST APIs use, register the controller’s URL pattern in the <a class="xref page" href="../authorization-server/protecting-resources.html#protecting-rest-api-endpoints">jmix.resource-server.authenticated-url-patterns</a> application property:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.resource-server.authenticated-url-patterns = /rest/**,/orders/**</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here, the <code>/orders/**</code> wildcard indicates to Jmix that all endpoints that start with <code>/orders/</code> should also use the OAuth2 mechanism.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The value can contain a comma-separated list of <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/util/AntPathMatcher.html">Apache Ant style URL patterns</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Trying to invoke the Order Controller now without a valid OAuth2 token will result in an <code>HTTP 401 - Unauthorized</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">Response: 401 - Unauthorized</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">HTTP/1.1 401
+WWW-Authenticate: Bearer realm="oauth2-resource", error="unauthorized", error_description="Full authentication is required to access this resource"
+
+{
+"error": "unauthorized",
+"error_description": "Full authentication is required to access this resource"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Authenticated endpoints can rely on data access control provided by the Jmix <a class="xref page" href="../security/index.html">security</a> subsystem. If your controller uses <a class="xref page" href="../data-access/data-manager.html">DataManager</a> to load or save data, it will check rights of the authenticated user on <a class="xref page" href="../security/resource-roles.html#entity-policy">entity operations</a>. In the following example, the "Access denied" exception will be thrown if the user has no rights to read the <code>Order</code> entity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestController
+@RequestMapping("/orders")
+public class OrderController {
+
+    @Autowired
+    private DataManager dataManager;
+
+    @GetMapping("/all")
+    public List&lt;Order&gt; loadAll() {
+        return dataManager.load(Order.class).all().list();
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to limit access also to entity attributes, use the <code>EntitySerialization</code> bean for serializing entities returned from the endpoint. In the following example, only attributes, permitted by the <a class="xref page" href="../security/resource-roles.html#entity-attribute-policy">entity attribute policy</a> will be returned in JSON to the client:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestController
+@RequestMapping("/orders")
+public class OrderController {
+
+    @Autowired
+    private DataManager dataManager;
+    @Autowired
+    private EntitySerialization entitySerialization;
+
+    @GetMapping("/all")
+    public String loadAll() {
+        List&lt;Order&gt; orders = dataManager.load(Order.class).all().list();
+        return entitySerialization.toJson(
+                orders,
+                null,
+                EntitySerializationOption.DO_NOT_SERIALIZE_DENIED_PROPERTY
+        );
+    }</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

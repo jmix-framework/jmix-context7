@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Themes :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Themes</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Themes are used to manage the visual presentation of the application.</p>
+</div>
+<div class="paragraph">
+<p>A theme consists of CSS files and other resources like images and fonts.</p>
+</div>
+<div class="paragraph">
+<p>Jmix provides <strong>jmix-lumo</strong> theme built on top of Vaadin’s <a href="https://vaadin.com/docs/latest/styling/lumo" rel="noopener" target="_blank">Lumo</a> theme.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="applying-theme"><a class="anchor" href="#applying-theme"></a>Applying a Theme</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The application theme is applied using the <code>@Theme</code> annotation with the name of the theme folder as a parameter. The <code>@Theme</code> annotation must be placed on the class that implements the <code>AppShellConfigurator</code> interface, which is usually the main application class.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Theme(value = "my-theme")
+public class MyProjectApplication implements AppShellConfigurator {
+    ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A theme variant can be specified as an additional parameter, such as <strong>dark</strong> or <strong>light</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Theme(value = "my-theme", variant = "dark")
+public class MyProjectApplication implements AppShellConfigurator {
+    ...
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Themes cannot be switched at runtime. Although a project may have multiple themes, only one can be applied for the UI. However, there are ways to <a href="https://vaadin.com/docs/latest/styling/advanced/runtime-theme-switching" rel="noopener" target="_blank">switch between variants</a> of the same theme and <a href="https://vaadin.com/docs/latest/styling/advanced/loading-styles-dynamically" rel="noopener" target="_blank">load dynamically additional styles</a> on top of a theme.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="application-theme"><a class="anchor" href="#application-theme"></a>Application Theme</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Themes, available to the application, are located inside the <code>src/main/frontend/themes</code> folder. Jmix application projects created using Studio have a predefined theme folder with the same name as the project itself.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">src
+└── main
+    └── frontend
+        └── themes
+            └── my-project
+                ├── my-project.css
+                ├── styles.css
+                ├── theme.json
+                └── view
+                    ├── login-view.css
+                    ├── main-view-top-menu.css
+                    └── main-view.css</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>my-project</code> - the theme folder. Its name is used as the theme name for the <a href="#applying-theme">@Theme</a> annotation.</p>
+</li>
+<li>
+<p><code>my-project.css</code> - a stylesheet for custom styles of this theme.</p>
+</li>
+<li>
+<p><code>styles.css</code> - the main stylesheet, which is the entry point to the styles of this theme.</p>
+</li>
+<li>
+<p><code>theme.json</code> - the theme configuration file. By default, it defines <strong>jmix-lumo</strong> as the parent theme.</p>
+</li>
+<li>
+<p><code>view</code> - this folder contains CSS files that define styles for the login and main views provided by the project template.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>All CSS, including CSS variable values and custom component styles, can be included in the main <code>styles.css</code> file. However, by default, this file contains only import directives, with the actual CSS organized into separate files to make it easier to handle:</p>
+</div>
+<div class="listingblock">
+<div class="title">styles.css</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">@import url('my-project.css');
+@import url('view/main-view.css');
+@import url('view/main-view-top-menu.css');
+@import url('view/login-view.css');</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Place your project’s CSS in the <code>&lt;theme_name&gt;.css</code> file (in this example, it’s <code>my-project.css</code>).</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Use Vaadin’s online <a href="https://demo.vaadin.com/lumo-editor/" rel="noopener" target="_blank">Lumo theme editor</a> to quickly customize the theme of your application.</p>
+</div>
+<div class="paragraph">
+<p>To select the desired appearance of UI-components, use the controls in the right-side panel. Then, click <strong>Download</strong> and insert the generated CSS code, located within the <code>&lt;style&gt;</code> tags, into your <code>&lt;theme_name&gt;.css</code> file.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="reusable-theme"><a class="anchor" href="#reusable-theme"></a>Reusable Theme</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/styling/advanced/multi-app-themes" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>An application theme can be used in multiple applications by packaging it as a JAR dependency.</p>
+</div>
+<div class="paragraph">
+<p>The theme project’s structure looks as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">src
+└── main
+    └── resources
+        └── META-INF
+            └── resources
+                └── themes
+                    └── cobalt
+                        ├── styles.css
+                        └── theme.json</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>cobalt</code> - the theme folder, also used as theme name.</p>
+</li>
+<li>
+<p><code>styles.css</code> - the main stylesheet. Can contain custom styles and imports, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html {
+    --lumo-border-radius: calc(var(--lumo-size-m) / 2);
+
+    --lumo-primary-color: rgb(0, 85, 166);
+    --lumo-primary-color-50pct: rgba(0, 85, 166, 0.5);
+    --lumo-primary-color-10pct: rgba(0, 85, 166, 0.1);
+    --lumo-primary-text-color: rgb(0, 85, 166);
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>theme.json</code> - a theme configuration file. It’s recommended to define <strong>jmix-lumo</strong> as the parent theme, so your custom theme includes <strong>jmix-lumo</strong> styles required for proper work of Jmix UI components and views. For example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "parent": "jmix-lumo",
+  "lumoImports":["typography","color","spacing","badge","utility"]
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>build.gradle</code> file of the theme add-on project may look as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">plugins {
+    id 'java'
+    id 'com.gradle.plugin-publish' version '1.2.1'
+}
+
+group = 'com.company'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://global.repo.jmix.io/repository/public'
+    }
+}
+
+dependencies {
+    implementation 'io.jmix.flowui:jmix-flowui-themes:2.4.0' <i class="conum" data-value="1"></i><b>(1)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Dependency to <code>jmix-flowui-themes</code> that contains <strong>jmix-lumo</strong> theme.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After the theme JAR is added as a dependency to the project, the packaged theme can be used as a standalone theme:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Theme(value = "cobalt")
+public class MyProjectApplication implements AppShellConfigurator {
+    ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or as a parent for the project’s themes, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">theme.json</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "parent": "cobalt",
+  "lumoImports":["typography","color","spacing","badge","utility"]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, the project’s theme will load on top of the base theme, extending it.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="custom theme" src="../_images/themes/custom-theme.png" width="1046"/>
+</div>
+<div class="title">Figure 1. Example of applied custom theme</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="pluggable-styles"><a class="anchor" href="#pluggable-styles"></a>Pluggable Styles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When developing a <a class="xref page" href="../../modularity/creating-add-ons.html">custom add-on</a>, you can create a file with custom styles in the <code>src/main/resources/META-INF/resources/</code> directory. To add these styles to the resulting application, define the <code>jmix.ui.export-styles</code> property in the <code>module.properties</code> file. The value of this property is a path relative to <code>src/main/resources/META-INF/resources/</code>, for example, <code>jmix.ui.export-styles = addon-styles/my-addon-styles.css</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">my-addon-styles.css</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.test {
+    color: red;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Custom styles are added as <code>&lt;style type="text/css"&gt;</code> to the <code>&lt;head&gt;</code> element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;style type="text/css"&gt;
+.test {
+    color: red;
+}
+&lt;/style&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Use this approach only for a small number of styles that cannot be applied to a particular UI component. For example, for CSS utility classes of views inside an add-on.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="changing-theme-variants-at-runtime"><a class="anchor" href="#changing-theme-variants-at-runtime"></a>Changing Theme Variants at Runtime</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To switch between theme variants, e.g. <strong>light</strong> and <strong>dark</strong>, the framework provides a static helper class that works in conjunction with the JavaScript file.</p>
+</div>
+<div class="paragraph">
+<p>The <code>ThemeUtils</code> class provides methods for switching theme variants, which effectively means setting the theme variant in <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage" rel="noopener" target="_blank">Web Local Storage</a> and invoking JavaScript code to apply it.</p>
+</div>
+<div class="paragraph">
+<p>For example, you can add a <a class="xref page" href="../vc/components/dropdownButton.html">dropdownButton</a> to the main view and switch between theme variants:</p>
+</div>
+<div class="listingblock">
+<div class="title">main-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dropdownButton id="themeSwitcher"
+                text="Theme" icon="ADJUST"
+                classNames="ms-auto me-m"
+                dropdownIndicatorVisible="false"&gt;
+    &lt;items&gt;
+        &lt;actionItem id="systemThemeItem"&gt;
+            &lt;action id="systemThemeAction"
+                    text="System" icon="ADJUST"/&gt;
+        &lt;/actionItem&gt;
+        &lt;actionItem id="lightThemeItem"&gt;
+            &lt;action id="lightThemeAction"
+                    text="Light" icon="SUN_O"/&gt;
+        &lt;/actionItem&gt;
+        &lt;actionItem id="darkThemeItem"&gt;
+            &lt;action id="darkThemeAction"
+                    text="Dark" icon="MOON_O"/&gt;
+        &lt;/actionItem&gt;
+    &lt;/items&gt;
+&lt;/dropdownButton&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MainView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("themeSwitcher.systemThemeItem.systemThemeAction")
+public void onThemeSwitcherSystemThemeItemSystemThemeAction(final ActionPerformedEvent event) {
+    ThemeUtils.applySystemTheme();
+}
+
+@Subscribe("themeSwitcher.lightThemeItem.lightThemeAction")
+public void onThemeSwitcherLightThemeItemLightThemeAction(final ActionPerformedEvent event) {
+    ThemeUtils.applyLightTheme();
+}
+
+@Subscribe("themeSwitcher.darkThemeItem.darkThemeAction")
+public void onThemeSwitcherDarkThemeItemDarkThemeAction(final ActionPerformedEvent event) {
+    ThemeUtils.applyDarkTheme();
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="theme switcher" src="../_images/themes/theme-switcher.png" width="173"/>
+</div>
+<div class="title">Figure 2. ThemeSwitcher component</div>
+</div>
+<div class="paragraph">
+<p>The JavaScript file provides code that applies a theme variant to an HTML document depending on the value in the Web Local Storage and subscribes to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme" rel="noopener" target="_blank">prefers-color-scheme</a> to update the theme variant if the user indicates their preference through an operating system setting (e.g., light or dark mode) or the user agent’s settings.</p>
+</div>
+<div class="paragraph">
+<p>You need to import it into the main application class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JsModule("./src/theme/color-scheme-switching-support.js")
+@SpringBootApplication
+public class OnboardingApplication implements AppShellConfigurator {</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="theme switcher" src="../_images/themes/theme-switcher.gif" width="1169"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

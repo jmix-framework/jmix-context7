@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entities :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Entities</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are the following types of entities in Jmix:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#jpa">JPA entities</a> are Java objects stored in a database using <a href="https://en.wikibooks.org/wiki/Java_Persistence" rel="noopener" target="_blank">Java Persistence API</a>.</p>
+</li>
+<li>
+<p><a href="#dto">DTO entities</a> are simple Java objects that are not tied to any specific persistence technology.</p>
+</li>
+<li>
+<p><a href="#key-value">Key-Value Entity</a> is a dynamic entity with an arbitrary number of attributes.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Entities are characterized by their <a href="#attributes">attributes</a>.</p>
+</div>
+<div class="paragraph">
+<p>JPA and DTO entities are defined by Java classes and have some <a href="#jmix-annotations">annotations specific to Jmix</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use <a class="xref page" href="../studio/entity-designer.html">Studio entity designer</a> to create JPA and DTO entities.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Do not implement <code>equals()</code> and <code>hashCode()</code> methods in your entity classes explicitly or by using annotation processors. These methods are <a class="xref page" href="../concepts/features.html#entity-enhancement">generated automatically</a> by Jmix at build time and use entity identifiers for comparison.</p>
+</div>
+<div class="paragraph">
+<p>In particular, never add <code>@EqualsAndHashCode</code> and <code>@Data</code> Lombok annotations  to entity classes.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jpa"><a class="anchor" href="#jpa"></a>JPA Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>JPA entity is a Java class annotated according to JPA rules. JPA entities are stored in a relational database connected as a main or additional <a class="xref page" href="data-stores.html">data store</a>.</p>
+</div>
+<div class="paragraph">
+<p>JPA annotations define mapping between database table fields and entity attributes. Jmix imposes the following restrictions on mapping annotations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Attribute annotations must be placed only on fields (<code>AccessType.FIELD</code>).</p>
+</li>
+<li>
+<p>Not supported: <code>@IdClass</code>, <code>@ElementCollection</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Below is an example of a typical JPA entity class:</p>
+</div>
+<div class="listingblock">
+<div class="title">Customer.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity <i class="conum" data-value="1"></i><b>(1)</b>
+@Table(name = "CUSTOMER") <i class="conum" data-value="2"></i><b>(2)</b>
+@Entity <i class="conum" data-value="3"></i><b>(3)</b>
+public class Customer {
+
+    @JmixGeneratedValue <i class="conum" data-value="4"></i><b>(4)</b>
+    @Id <i class="conum" data-value="5"></i><b>(5)</b>
+    @Column(name = "ID", nullable = false) <i class="conum" data-value="6"></i><b>(6)</b>
+    private UUID id;
+
+    @Version <i class="conum" data-value="7"></i><b>(7)</b>
+    @Column(name = "VERSION")
+    private Integer version;
+
+    @InstanceName <i class="conum" data-value="8"></i><b>(8)</b>
+    @NotNull <i class="conum" data-value="9"></i><b>(9)</b>
+    @Column(name = "NAME", nullable = false)
+    private String name;
+
+    @Email <i class="conum" data-value="9"></i><b>(9)</b>
+    @Column(name = "EMAIL", unique = true) <i class="conum" data-value="10"></i><b>(10)</b>
+    private String email;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    // other getters and setters</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Mandatory <a href="#jmix-entity">@JmixEntity</a> annotation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>@jakarta.persistence.Table</code> annotation specifies the database table name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>@jakarta.persistence.Entity</code> annotation indicates that the class is a JPA entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <a href="#jmix-generated-value">@JmixGeneratedValue</a> annotation indicates that the primary key must be generated and assigned by Jmix when creating entity instance in memory.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><code>@jakarta.persistence.Id</code> annotation indicates the primary key.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td><code>@jakarta.persistence.Column</code> annotation specifies a mapping to a table column. The <code>nullable = false</code> parameter indicates that the <a class="xref page" href="db-migration.html">database migration</a> mechanism should create the column with the <code>NOT NULL</code> constraint.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td><code>@jakarta.persistence.Version</code> indicates that the entity must be optimistically locked using the value of this attribute. The attribute should be of <code>Integer</code> type. Studio creates such an attribute automatically if you select the <em>Versioned</em> trait for the entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>The <a href="#instance-name">@InstanceName</a> annotation here indicates a single attribute chosen as the instance name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="9"></i><b>9</b></td>
+<td><code>@NotNull</code> and <code>@Email</code> annotations from the <code>jakarta.validation.constraints</code> package are the examples of using <a href="https://beanvalidation.org" rel="noopener" target="_blank">Bean Validation</a> annotations in entities.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="10"></i><b>10</b></td>
+<td>The <code>unique = true</code> parameter of the <code>@Column</code> annotation indicates that the database migration mechanism should add the unique constraint to the column.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Both table and entity name can have a prefix to eliminate name conflicts with entities of other modules. Studio inserts this prefix if the project has the <code>jmix.projectId</code> property in <code>build.gradle</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="traits"><a class="anchor" href="#traits"></a>Traits</h3>
+<div class="paragraph">
+<p>A trait is a set of attributes that gives the entity some specific system-level behavior. These attributes are handled by the framework and are not intended to be edited by users or your application code.</p>
+</div>
+<div class="paragraph">
+<p>Studio entity designer helps you assign available traits to an entity. You can also do it manually by creating corresponding attributes and annotating them as described below.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="has-uuid-trait"><a class="anchor" href="#has-uuid-trait"></a>Has UUID Trait</h3>
+<div class="paragraph">
+<p>The <em>Has UUID</em> trait provides a globally unique identifier, assigned automatically when an instance is created in memory. The trait is implemented by an attribute of the <code>UUID</code> type annotated with <a href="#jmix-generated-value">@JmixGeneratedValue</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+When creating an entity in Studio, the Has UUID trait is selected automatically if you choose UUID in <strong>Id type</strong>. Add the Has UUID trait if you choose a different type and <strong>Id value</strong> different from <strong>Generated by Jmix</strong>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This trait does not require an additional attribute if you choose <code>UUID</code> type for the entity identifier.</p>
+</div>
+<div class="paragraph">
+<p>Adding the Has UUID trait is highly recommended if you use an identifier attribute whose value is not assigned right at the creation of entity instance in memory. This is the case for <code>Long</code> or <code>Integer</code> identifiers mapped to an identity column, and for identifiers of any type assigned by users. If such an entity has no <code>@JmixGeneratedValue</code> attribute, its <code>hashCode()</code> method always returns a constant value, which affects the performance of collections based on hash tables.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="versioned-trait"><a class="anchor" href="#versioned-trait"></a>Versioned Trait</h3>
+<div class="paragraph">
+<p>The <em>Versioned</em> trait provides optimistic locking on the JPA level. It is implemented by an integer attribute annotated with <code>@Version</code>.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Never change the value of the <code>@Version</code> attribute in the application code. It will lead to the inability to update the instance in the database.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="audit-traits"><a class="anchor" href="#audit-traits"></a>Audit Traits</h3>
+<div class="paragraph">
+<p>The <em>Audit of creation</em> and <em>Audit of modification</em> traits provide tracking of who and when created and modified an entity instance. They are implemented by attributes of appropriate types annotated with <code>@CreatedBy</code>, <code>@CreatedDate</code>, <code>@LastModifiedBy</code>, <code>@LastModifiedDate</code> annotations from the Spring Data project.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@CreatedBy
+@Column(name = "CREATED_BY")
+private String createdBy;
+
+@CreatedDate
+@Temporal(TemporalType.DATE)
+@Column(name = "CREATED_DATE")
+private Date createdDate;
+
+@LastModifiedBy
+@Column(name = "LAST_MODIFIED_BY")
+private String lastModifiedBy;
+
+@LastModifiedDate
+@Temporal(TemporalType.DATE)
+@Column(name = "LAST_MODIFIED_DATE")
+private Date lastModifiedDate;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Audit attributes are assigned automatically when the framework saves entity instances.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="soft-delete-trait"><a class="anchor" href="#soft-delete-trait"></a>Soft Delete Trait</h3>
+<div class="paragraph">
+<p>The <em>Soft Delete</em> trait provides soft deletion of entity instances. It is implemented by a pair of attributes annotated with <code>@DeletedDate</code> and <code>@DeletedBy</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@DeletedBy
+@Column(name = "DELETED_BY")
+private String deletedBy;
+
+@DeletedDate
+@Temporal(TemporalType.DATE)
+@Column(name = "DELETED_DATE")
+private Date deletedDate;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See more information in the <a class="xref page" href="soft-deletion.html">Soft Deletion</a> section.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="inheritance"><a class="anchor" href="#inheritance"></a>Entity Inheritance</h3>
+<div class="paragraph">
+<p>Jmix framework uses principles of JPA inheritance. Studio entity designer automatically generates the necessary annotations in accordance with the chosen inheritance strategy. The main annotations are listed below.</p>
+</div>
+<div class="sect3">
+<h4 id="discriminator-column-annotation"><a class="anchor" href="#discriminator-column-annotation"></a>@DiscriminatorColumn</h4>
+<div class="paragraph">
+<p>Is used for defining a database column responsible for the distinction of entity types in the cases of <code>SINGLE_TABLE</code> and <code>JOINED</code> inheritance strategies.</p>
+</div>
+<div class="paragraph">
+<p>Parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>name</code> - the discriminator column name.</p>
+</li>
+<li>
+<p><code>discriminatorType</code> - the discriminator column type.</p>
+</li>
+<li>
+<p><code>length</code> - the column length for String-based discriminator types.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@DiscriminatorColumn(name = "TYPE", discriminatorType = DiscriminatorType.INTEGER)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="discriminator-value-annotation"><a class="anchor" href="#discriminator-value-annotation"></a>@DiscriminatorValue</h4>
+<div class="paragraph">
+<p>Defines the discriminator column value for this entity.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@DiscriminatorValue("0")</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="inheritance-annotation"><a class="anchor" href="#inheritance-annotation"></a>@Inheritance</h4>
+<div class="paragraph">
+<p>Defines the inheritance strategy to be used for an entity class hierarchy. It is specified on the entity class that is the root of the entity class hierarchy.</p>
+</div>
+<div class="paragraph">
+<p>Parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>strategy</code> - the inheritance strategy, <code>SINGLE_TABLE</code> by default.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="mapped-superclass"><a class="anchor" href="#mapped-superclass"></a>@MappedSuperclass</h4>
+<div class="paragraph">
+<p>Defines that the class is an ancestor for some entities, and its attributes must be used as part of descendant entities. Such a class is not associated with any particular database table.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="primary-key-join-column"><a class="anchor" href="#primary-key-join-column"></a>@PrimaryKeyJoinColumn</h4>
+<div class="paragraph">
+<p>Is used in the case of <code>JOINED</code> inheritance strategy to specify a foreign key column for the entity, which refers to the primary key of the ancestor entity.</p>
+</div>
+<div class="paragraph">
+<p>Parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>name</code> - the name of the foreign key column of the entity.</p>
+</li>
+<li>
+<p><code>referencedColumnName</code> - the name of a primary key column of the ancestor entity</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@PrimaryKeyJoinColumn(name = "CARD_ID", referencedColumnName = "ID")</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dto"><a class="anchor" href="#dto"></a>DTO Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The data model of your application can contain entities that exist only in memory or are mapped to some external data using mechanisms different from JPA. We call such entities <em>DTO</em> because they are often used as Data Transfer Objects in parameters and return values in <a class="xref page" href="../rest/index.html">REST API</a> and when communicating with external APIs.</p>
+</div>
+<div class="paragraph">
+<p>A DTO entity can be as simple as that:</p>
+</div>
+<div class="listingblock">
+<div class="title">OperationResult.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity <i class="conum" data-value="1"></i><b>(1)</b>
+public class OperationResult {
+
+    private String result; <i class="conum" data-value="2"></i><b>(2)</b>
+
+    private Integer errorCode; <i class="conum" data-value="2"></i><b>(2)</b>
+
+    private String errorMessage; <i class="conum" data-value="2"></i><b>(2)</b>
+
+    public String getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result = result;
+    }
+
+    // other getters and setters</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Mandatory <a href="#jmix-entity">@JmixEntity</a> annotation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>All object properties (fields with accessor methods) become entity attributes.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Entity attributes can have annotations to specify some details about them:</p>
+</div>
+<div class="listingblock">
+<div class="title">ProductPart.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity <i class="conum" data-value="1"></i><b>(1)</b>
+public class ProductPart {
+
+    @JmixProperty(mandatory = true) <i class="conum" data-value="2"></i><b>(2)</b>
+    @InstanceName <i class="conum" data-value="3"></i><b>(3)</b>
+    private String name;
+
+    private Integer quantity; <i class="conum" data-value="4"></i><b>(4)</b>
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <a href="#jmix-entity">@JmixEntity</a> annotation defines the entity name explicitly.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <a href="#jmix-property">@JmixProperty</a> annotation with <code>mandatory = true</code> parameter indicates that the attribute is required, i.e. it must contain a value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <a href="#instance-name">@InstanceName</a> annotation here indicates a single attribute chosen as the instance name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>An attribute without annotations.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>DTO entities can be associated with a <a class="xref page" href="data-stores.html#custom">custom data store</a> for generic CRUD operations via <code>DataManager</code> and automatic resolving of references to the DTO entity from JPA entities.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, you can also see how to exclude some object properties from being entity attributes (more on this in the <a href="#attributes">Entity Attributes</a> section):</p>
+</div>
+<div class="listingblock">
+<div class="title">Metric.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Store(name = "inmem") <i class="conum" data-value="1"></i><b>(1)</b>
+@JmixEntity(annotatedPropertiesOnly = true) <i class="conum" data-value="2"></i><b>(2)</b>
+public class Metric {
+
+    @JmixProperty(mandatory = true) <i class="conum" data-value="3"></i><b>(3)</b>
+    @JmixId <i class="conum" data-value="4"></i><b>(4)</b>
+    @JmixGeneratedValue <i class="conum" data-value="5"></i><b>(5)</b>
+    private UUID id;
+
+    @JmixProperty <i class="conum" data-value="6"></i><b>(6)</b>
+    private String name;
+
+    @JmixProperty <i class="conum" data-value="6"></i><b>(6)</b>
+    private Double value;
+
+    private Object ephemeral; <i class="conum" data-value="7"></i><b>(7)</b>
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    // other getters and setters</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@Store</code> annotation specifies a custom data store.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>annotatedPropertiesOnly = true</code> parameter of <a href="#jmix-entity">@JmixEntity</a> annotation indicates that object properties not annotated with <a href="#jmix-property">@JmixProperty</a> will not be entity attributes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <a href="#jmix-property">@JmixProperty</a> annotation with <code>mandatory = true</code> parameter indicates that the attribute is required, i.e. it must contain a value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <a href="#jmix-id">@JmixId</a> annotation indicates that the attribute is the entity identifier.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The <a href="#jmix-generated-value">@JmixGeneratedValue</a> annotation indicates that the identifier must be generated and assigned by Jmix when creating the entity instance in memory.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The <a href="#jmix-property">@JmixProperty</a> annotation here just indicates that the property is an entity attribute.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Not annotated property is not an entity attribute because of <code>annotatedPropertiesOnly = true</code> parameter of <code>@JmixEntity</code> annotation.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="key-value"><a class="anchor" href="#key-value"></a>Key-Value Entity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>KeyValueEntity</code> lets you represent arbitrary sets of named values as entities and hence work with data that is not directly represented by Java classes (JPA or DTO entities).</p>
+</div>
+<div class="paragraph">
+<p>Consider an example: you have <code>Order</code> entity in your data model, and you need to calculate sum of order amounts aggregated by customers and show this data in UI. Then you can execute a JPQL query and load the result list as a list of <code>KeyValueEntity</code> instances using <code>DataManager</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;KeyValueEntity&gt; entities = dataManager.loadValues(
+            "select e.customer, sum(e.amount) from Order_ e group by e.customer")
+        .properties("customer", "total")
+        .list();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The returned <code>KeyValueEntity</code> instances will have two attributes which you specified in the <code>properties()</code> method: <code>customer</code> with the value of the first field in the query result set, and <code>total</code> with the value of the second field. You can get them as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">for (KeyValueEntity entity : entities) {
+    Customer customer = entity.getValue("customer");
+    BigDecimal totalAmount = entity.getValue("total");
+    // ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Jmix UI has special <a class="xref page" href="../flow-ui/data/key-value-containers.html">key-value data containers</a> for binding UI components to <code>KeyValueEntity</code> instances.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Entity Attributes</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+There is another term for entity attributes: <em>entity properties</em>. It’s often used in the Jmix codebase, for example in annotations: <code>@JmixProperty</code>, <code>@DependsOnProperties</code>, etc.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="attribute-types"><a class="anchor" href="#attribute-types"></a>Attribute Types</h3>
+<div class="paragraph">
+<p>Each entity attribute should have an appropriate type. Jmix supports the following types out-of-the-box:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>java.lang.String</code></p>
+</li>
+<li>
+<p><code>java.lang.Character</code></p>
+</li>
+<li>
+<p><code>java.lang.Boolean</code></p>
+</li>
+<li>
+<p><code>java.lang.Integer</code></p>
+</li>
+<li>
+<p><code>java.lang.Long</code></p>
+</li>
+<li>
+<p><code>java.lang.Double</code></p>
+</li>
+<li>
+<p><code>java.math.BigDecimal</code></p>
+</li>
+<li>
+<p><code>java.util.Date</code></p>
+</li>
+<li>
+<p><code>java.time.LocalDate</code></p>
+</li>
+<li>
+<p><code>java.time.LocalTime</code></p>
+</li>
+<li>
+<p><code>java.time.LocalDateTime</code></p>
+</li>
+<li>
+<p><code>java.time.OffsetTime</code></p>
+</li>
+<li>
+<p><code>java.time.OffsetDateTime</code></p>
+</li>
+<li>
+<p><code>java.sql.Date</code></p>
+</li>
+<li>
+<p><code>java.sql.Time</code></p>
+</li>
+<li>
+<p><code>java.util.UUID</code></p>
+</li>
+<li>
+<p><code>java.net.URI</code></p>
+</li>
+<li>
+<p><code>byte[]</code> (byte array)</p>
+</li>
+<li>
+<p><a class="xref page" href="../files/file-storage.html">io.jmix.core.FileRef</a></p>
+</li>
+<li>
+<p><a class="xref page" href="enumerations.html">Enumeration</a></p>
+</li>
+<li>
+<p>Entity (a <a href="#references">reference</a> attribute)</p>
+</li>
+<li>
+<p><code>List</code> or <code>Set</code> of entities (a reference collection attribute)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can use a type not from the list above if you create an appropriate <a class="xref page" href="datatype.html">Datatype</a> implementation and make sure your type is supported by the underlying <a class="xref page" href="data-stores.html">data store</a>.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Note that Java primitive types (<code>int</code>, <code>boolean</code>, etc.), as well as <code>java.util.Map</code>, cannot be used for entity attributes.</p>
+</div>
+<div class="paragraph">
+<p>However, you still can have fields of these types in entity classes, provided that these fields are not recognized by Jmix as attributes. This is explained in the <a href="#defining-attributes">Defining Attributes</a> section below.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="defining-attributes"><a class="anchor" href="#defining-attributes"></a>Defining Attributes</h3>
+<div class="paragraph">
+<p>In JPA and DTO entities, there are two types of attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>Field-based attribute</em> corresponds to a field and a pair of accessor methods (getter / setter) of the field. The field name becomes the attribute name.</p>
+<div class="paragraph">
+<p>The setter can be omitted, then the attribute is read-only.</p>
+</div>
+<div class="paragraph">
+<p>Example of a field-based attribute:</p>
+</div>
+<div class="listingblock">
+<div class="title">User.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Column(name = "FIRST_NAME")
+protected String firstName;
+
+public String getFirstName() {
+    return firstName;
+}
+
+public void setFirstName(final String firstName) {
+    this.firstName = firstName;
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><em>Method-based attribute</em> corresponds to a method without parameters, returning a supported type, and with a name starting from <code>get</code>, for example <code>getCustomer()</code>. The method name without <code>get</code> with the first letter in lower case becomes the attribute name: <code>getFullName()</code> → <code>fullName</code>.</p>
+<div class="paragraph">
+<p>Example of a method-based attribute:</p>
+</div>
+<div class="listingblock">
+<div class="title">User.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixProperty
+@DependsOnProperties({"firstName", "lastName"})
+public String getFullName() {
+    return this.firstName + " " + this.lastName;
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>An entity class can have properties (field + getter/setter) and methods that are not entity attributes, that is not included in metadata. So you can use such properties and methods in your application code, but the framework will not recognize them and will not display them in UI or transfer through the REST API.</p>
+</div>
+<div class="paragraph">
+<p>Whether a property or a qualifying method becomes an entity attribute is subject to the following rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the <code>annotatedPropertiesOnly</code> parameter of <a href="#jmix-entity">@JmixEntity</a> annotation is <code>false</code> (which is the default), the following object properties become entity attributes:</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>For JPA entities: all properties except annotated with <code>@jakarta.persistence.Transient</code>.</p>
+</li>
+<li>
+<p>For DTO entities: all properties.</p>
+</li>
+<li>
+<p>For both: all properties and methods annotated with <a href="#jmix-property">@JmixProperty</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>If the <code>annotatedPropertiesOnly</code> parameter is set to <code>true</code>, only the properties and methods annotated with <a href="#jmix-property">@JmixProperty</a> become entity attributes.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="attribute-default-values"><a class="anchor" href="#attribute-default-values"></a>Default Values</h3>
+<div class="paragraph">
+<p>Entity attributes can have default values assigned to the fields or set in the <a href="#post-construct">@PostConstruct</a> method. The <a class="xref page" href="../initial-entity-values-guide/index.html">Initial Entity Values</a> guide provides comprehensive information on configuring initial values for entity attributes.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Do not initialize fields of collection attributes with the new <code>ArrayList</code> or <code>HashSet</code> instances. It will break the <a class="xref page" href="../data-access/fetching.html">data fetching</a> functionality. If you want to have default values in the fields, use the special collections provided by Jmix: <code>NotInstantiatedList</code> or <code>NotInstantiatedSet</code>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@OneToMany(mappedBy = "user")
+private List&lt;UserStep&gt; steps = new NotInstantiatedList&lt;&gt;();</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="references"><a class="anchor" href="#references"></a>References</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Reference attributes define relationships between entities. References can be single-value (to-one relationships) or collections (to-many relationships).</p>
+</div>
+<div class="paragraph">
+<p>By default, a relationship is an <em>association</em>, which means that both entities can exist independently of each other, without any ownership. For example, in a Customer - Order relationship, Order has an attribute which is a reference to Customer. Users create customers and orders independently, select a customer for an order, and change the reference to another customer if needed.</p>
+</div>
+<div class="paragraph">
+<p>Jmix also supports a stronger connection between entities called <em>composition</em>. Composition implies ownership, when an entity instance can exist only as a part of its owning entity instance. For example, in a Order - OrderLine relationship, Order has an attribute which is a collection of OrderLine instances. Each OrderLine instance is created for a particular Order and becomes its part, it cannot belong to another Order.</p>
+</div>
+<div class="paragraph">
+<p>Entities belonging to a composition are edited together in UI. For example, a user opens an Order edit screen and can create and edit OrderLines in their separate edit screens, but all changes both for the Order and all its OrderLines are saved to the database together in one transaction, and only after the user confirms saving of the owning entity - Order.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+For a more detailed understanding of compositions, refer to the <a class="xref page" href="../data-modeling-composition-guide/index.html">Data Modeling: Composition</a> guide and explore the collection of online examples in the <a href="https://demo.jmix.io/ui-samples/sample/cookbook" rel="noopener" target="_blank">Cookbook</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Composition relationship is specified by the <a href="#composition">@Composition</a> annotation on the reference attribute.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Studio entity designer allows you to select a relationship type in the <strong>Attribute type</strong> field.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="cross-data-store-ref"><a class="anchor" href="#cross-data-store-ref"></a>Cross-Datastore References</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>DataManager</code> can automatically maintain To-One references between entities from different <a class="xref page" href="data-stores.html">data stores</a>, if they are properly defined.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Studio entity designer automatically defines the set of attributes for cross-datastore references when you select an entity from a different data store as an association.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Let’s take an example: you have <code>Customer</code> entity in the main data store and <code>Address</code> entity in an additional data store, and you want to have a reference from <code>Customer</code> to <code>Address</code>. Then <code>Customer</code> entity should contain the following two attributes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SystemLevel
+@Column(name = "ADDRESS_ID")
+private UUID addressId; <i class="conum" data-value="1"></i><b>(1)</b>
+
+@Transient
+@JmixProperty
+@DependsOnProperties("addressId")
+private Address address; <i class="conum" data-value="2"></i><b>(2)</b>
+
+public UUID getAddressId() {
+    return addressId;
+}
+
+public void setAddressId(UUID addressId) {
+    this.addressId = addressId;
+}
+
+public Address getAddress() {
+    return address;
+}
+
+public void setAddress(Address address) {
+    this.address = address;
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>addressId</code> attribute stores the identifier of <code>Address</code>. This attribute is annotated with <code>@SystemLevel</code> to indicate to the framework that the attribute should not be displayed to users.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>address</code> attribute contains the reference to the <code>Address</code> entity. This attribute is transient (not stored in the database) and annotated with <a href="#depends-on-properties">@DependsOnProperties</a> to indicate to the framework that the attribute value depends on another attribute.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After that, when you load <code>Customer</code> with a fetch plan including <code>address</code> attribute, <code>DataManager</code> automatically loads related <code>Address</code> from the additional data store. The framework optimizes loading of collections for performance: after loading a list of customers, it loads references from the additional data store in batches. The size of the batch is defined by the <a class="xref page" href="../app-properties.html#jmix.core.cross-data-store-reference-loading-batch-size">jmix.core.cross-data-store-reference-loading-batch-size</a> application property.</p>
+</div>
+<div class="paragraph">
+<p>When you save an entity graph which includes <code>Customer</code> with <code>Address</code>, <code>DataManager</code> saves the instances via corresponding <code>DataStore</code> implementations, and then saves the identifier of the address in the customer’s <code>addressId</code> attribute.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="instantiation"><a class="anchor" href="#instantiation"></a>Instantiating Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When creating instances of JPA and DTO entities, use the appropriate framework interface instead of invoking the class constructor with the <code>new</code> operator. Only in this case the framework can initialize fields annotated with <a href="#jmix-generated-value">@JmixGeneratedValue</a> and invoke <a href="#post-construct">@PostConstruct</a> methods.</p>
+</div>
+<div class="paragraph">
+<p>The most common core method for instantiating entities is <code>Metadata.create()</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Metadata metadata;
+
+Order createOrder() {
+    return metadata.create(Order.class);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you write business logic and already have <a class="xref page" href="../data-access/data-manager.html">DataManager</a> in your code, use its <code>create()</code> method, which just saves you from additionally injecting the <code>Metadata</code> bean. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DataManager dataManager;
+
+Order createAndSaveOrder(String number) {
+    Order order = dataManager.create(Order.class);
+    order.setNum(number);
+    dataManager.save(order);
+    return order;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In a UI view, you can use either of two methods described above. But you may also want the created instance to be saved automatically by <a class="xref page" href="../flow-ui/data/data-context.html">DataContext</a> of the view. Then use the <code>DataContext.create()</code> method which creates an instance and immediately merges it to start tracking its changes. In the example below, we create an instance of <code>ProductPart</code> entity, merge it into <code>DataContext</code> and add to a data container to display in a UI table:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataContext dataContext;
+
+@ViewComponent
+private CollectionPropertyContainer&lt;ProductPart&gt; partsDc;
+
+@Subscribe("createProductPart")
+public void onCreateProductPartClick(final ClickEvent&lt;JmixButton&gt; event) {
+    ProductPart part = dataContext.create(ProductPart.class);
+    partsDc.getMutableItems().add(part);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../initial-entity-values-guide/index.html">Initial Entity Values</a> guide for instructions on configuring initial values for entity attributes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="uniqueness"><a class="anchor" href="#uniqueness"></a>Uniqueness</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix relies on database unique constraints for maintaining uniqueness of entity instances. So if you want to make an entity attribute or a set of attributes unique, you should create an appropriate index for the database table.</p>
+</div>
+<div class="paragraph">
+<p>Studio <a class="xref page" href="../studio/entity-designer.html">Entity Designer</a> contains the <strong>Indexes</strong> tab where you can define unique indexes. The index definitions are stored in the <code>@Table</code> annotation of the entity and later used by Liquibase changelog generator for creating indexes in the database schema.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>unique = true</code> attribute of the <code>@Column</code> annotation is not interpreted by Jmix in any way.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you want to define a unique attribute for an entity with the Soft Delete trait, refer to the <a class="xref page" href="soft-deletion.html#unique-constraints">Soft Deletion</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix-annotations"><a class="anchor" href="#jmix-annotations"></a>Jmix Entity Annotations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix entity annotations are described below in alphabetical order.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Jmix entities can also have annotations for JPA mappings, <a href="#audit-traits">audit traits</a> and <a class="xref page" href="soft-deletion.html">soft deletion</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="comment"><a class="anchor" href="#comment"></a>@Comment</h3>
+<div class="paragraph">
+<p><code>@Comment</code> annotation is used to provide a description for data model entities and their attributes, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Comment("""
+        Stores information about locations.
+        Has reference to address""")
+@JmixEntity
+@Table(name = "LOCATION")
+@Entity
+public class Location {
+
+    @Comment("Location zip code")
+    @InstanceName
+    @Column(name = "ZIP_CODE", nullable = false, length = 10)
+    @ValidZipCode
+    private String zipCode;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For all databases except HSQL, Studio generates <code>setTableRemarks</code> and <code>setColumnRemarks</code> Liquibase changelog operations to store the comments in the database schema. So the comments become available through any database inspection tool.</p>
+</div>
+<div class="paragraph">
+<p>You can also extract comments from metadata (or directly from class annotations) to display in the application UI or generate a documentation. Use <code>MetadataTools.getMetaAnnotationValue()</code> methods for convenience.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Studio supports creating comments in the <a class="xref page" href="../studio/entity-designer.html">Entity Designer</a>. See the <strong>Comment</strong> edit links in the lists of entity and attribute parameters. When a comment is set, the link shows its first few words.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="composition"><a class="anchor" href="#composition"></a>@Composition</h3>
+<div class="paragraph">
+<p><code>@Composition</code> annotation on a reference attribute indicates that the relationship is a <a href="#references">composition</a>.
+For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Composition
+@OneToMany(mappedBy = "order")
+private List&lt;OrderLine&gt; lines;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+For a detailed understanding of compositions, refer to the <a class="xref page" href="../data-modeling-composition-guide/index.html">Data Modeling: Composition</a> guide and explore the collection of online examples in the <a href="https://demo.jmix.io/ui-samples/sample/cookbook" rel="noopener" target="_blank">Cookbook</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="db-view"><a class="anchor" href="#db-view"></a>@DbView</h3>
+<div class="paragraph">
+<p><code>@DbView</code> annotation indicates whether a JPA entity is mapped to a database view. Database migration scripts are not generated for such entities.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ddl-generation"><a class="anchor" href="#ddl-generation"></a>@DdlGeneration</h3>
+<div class="paragraph">
+<p><code>@DdlGeneration</code> annotation defines whether development tools should generate DDL scripts for this entity.</p>
+</div>
+<div class="paragraph">
+<p>The scripts generation mode is set with the <code>DbScriptGenerationMode</code> enumeration:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>CREATE_AND_DROP</code> - full generation of initialization and update scripts;</p>
+</li>
+<li>
+<p><code>CREATE_ONLY</code> - full generation of initialization scripts. Update scripts are generated without statements to drop columns;</p>
+</li>
+<li>
+<p><code>DISABLED</code> - initialization and update scripts are not generated.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default value: <code>CREATE_AND_DROP</code>.</p>
+</div>
+<div class="paragraph">
+<p>In addition, you can fine-tune the scripts generation using the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>unmappedColumns</code> - the list of columns that exist in the database but should not be mapped to the entity. Drop scripts for these columns will not be generated;</p>
+</li>
+<li>
+<p><code>unmappedConstraints</code> - the list of constraints and indexes that exist in the database but should not be mapped to the entity. Drop scripts for these columns will not be generated.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="depends-on-properties"><a class="anchor" href="#depends-on-properties"></a>@DependsOnProperties</h3>
+<div class="paragraph">
+<p><code>@DependsOnProperties</code> annotation specifies entity attributes that the annotated attribute depends on. These properties are taken into account when building fetch plans and when loading/saving references to entities from different data stores. Also, if the annotated property is read-only (without a setter), <code>EntityPropertyChangeEvent</code> is sent for this attribute when the specified attributes are changed.</p>
+</div>
+<div class="paragraph">
+<p>You can specify only immediate local and reference properties. Property paths like <code>customer.name</code> are not supported.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="instance-name"><a class="anchor" href="#instance-name"></a>@InstanceName</h3>
+<div class="paragraph">
+<p><em>Instance name</em> is a human-readable text that represents an entity instance. Think of it as of an application-level <code>toString()</code> method. It is used extensively in UI when displaying an entity instance in a single field or table cell. You can also get the instance name programmatically using the <code>MetadataTools.getInstanceName()</code> method.</p>
+</div>
+<div class="paragraph">
+<p>The <code>@InstanceName</code> annotation can be present on a single field or a method of the object.</p>
+</div>
+<div class="paragraph">
+<p>In the former case, the annotated attribute value is used as the instance name. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@InstanceName
+@Column(name = "NAME")
+private String name;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to generate something more complex than a single attribute value, create a method returning <code>String</code> in the entity class. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity(name = "sample_GeoPoint")
+@Embeddable
+public class GeoPointEntity {
+
+    @Column(name = "LAT")
+    protected Double latitude;
+
+    @Column(name = "LON")
+    protected Double longitude;
+
+    @InstanceName
+    @DependsOnProperties({"latitude", "longitude"})
+    public String getDisplayName(Messages messages) {
+        return messages.formatMessage(
+                getClass(), "GeoPointEntity.instanceName", this.latitude, this.longitude);
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The method can accept any Spring beans as parameters. In the example above, the <code>Messages</code> bean is used to format the instance name according to the current user locale.</p>
+</div>
+<div class="paragraph">
+<p>The <a href="#depends-on-properties">@DependsOnProperties</a> annotation on the instance name method is necessary, because it specifies attributes of the built-in <code>_instance_name</code> fetch plan.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix-entity"><a class="anchor" href="#jmix-entity"></a>@JmixEntity</h3>
+<div class="paragraph">
+<p><code>@JmixEntity</code> is a mandatory annotation indicating that the class is a Jmix entity.</p>
+</div>
+<div class="paragraph">
+<p>If the class has <code>@jakarta.persistence.Entity</code> annotation, the framework obtains entity name for the metadata from it, and <code>@JmixEntity</code> should not specify the <code>name</code> parameter. Otherwise, specify the entity name in the <code>name</code> parameter. If neither <code>@JmixEntity</code> nor <code>@jakarta.persistence.Entity</code> have <code>name</code> parameter, the entity name equals the Java class simple name.</p>
+</div>
+<div class="paragraph">
+<p>The <code>annotatedPropertiesOnly</code> parameter specifies what object properties become entity attributes, see <a href="#attributes">Entity Attributes</a> for more details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix-generated-value"><a class="anchor" href="#jmix-generated-value"></a>@JmixGeneratedValue</h3>
+<div class="paragraph">
+<p><code>@JmixGeneratedValue</code> annotation indicates that the entity attribute value must be generated and assigned by the framework when creating entity instance in memory.</p>
+</div>
+<div class="paragraph">
+<p>The annotated attribute must be of <code>Long</code>, <code>Integer</code> or <code>UUID</code> type, and the entity should not have more than one <code>UUID</code> attribute marked with this annotation.</p>
+</div>
+<div class="paragraph">
+<p>For <code>Long</code> and <code>Integer</code> attributes, the value is obtained using the <a class="xref page" href="../features/sequences.html">Sequence Generation</a> feature. You can customize the behavior for a particular entity using the following annotation attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>sequenceName</code> enables you to explicitly specify the name of the sequence. If the sequence does not exist, it will be created automatically on the first request for a new value.</p>
+</li>
+<li>
+<p><code>sequenceCache</code> is taken into account only when <code>sequenceName</code> is set. It allows you to turn on caching of sequence values for this entity. By default, caching is off if the sequence is specified explicitly.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../data-access/data-properties.html#jmix.data.number-id-cache-size">jmix.data.number-id-cache-size</a> for more information on caching sequences.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Note that the <code>@JmixGeneratedValue</code> annotation doesn’t take any effect if you create an entity instance using the <code>new</code> operator. See <a href="#instantiation">instantiating entities</a> for proper methods of creating new instances.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix-id"><a class="anchor" href="#jmix-id"></a>@JmixId</h3>
+<div class="paragraph">
+<p><code>@JmixId</code> annotation specifies an entity identifier for <a href="#dto">DTO entities</a>. You should explicitly choose an identifier if your DTO entity is mapped to some external data and you need to load/save its instances repeatedly, because in this case you need to maintain the object identity through the entity lifecycle.</p>
+</div>
+<div class="paragraph">
+<p>You can use an existing attribute for an identifier if the attribute contains unique values, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixId
+private String code;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If there is no such naturally unique attribute, define one and annotate it also with <a href="#jmix-generated-value">@JmixGeneratedValue</a> to assign a unique value on instance creation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixId
+@JmixGeneratedValue
+private UUID id;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix-property"><a class="anchor" href="#jmix-property"></a>@JmixProperty</h3>
+<div class="paragraph">
+<p><code>@JmixProperty</code> annotation indicates that an object field or method is an entity attribute. See <a href="#attributes">Entity Attributes</a> for more details.</p>
+</div>
+<div class="paragraph">
+<p>Use the <code>mandatory</code> parameter if you want to specify that the attribute requires a value, and the object field has no JPA <code>@Column</code> annotation where you could set <code>nullable = false</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="number-format"><a class="anchor" href="#number-format"></a>@NumberFormat</h3>
+<div class="paragraph">
+<p>Specifies a format for an attribute of the <code>Number</code> type (it can be <code>BigDecimal</code>, <code>Integer</code>, <code>Long</code>, or <code>Double</code>). Values of such attribute will be formatted and parsed throughout the UI according to the provided annotation parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>pattern</code> - the format pattern as described for <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html" rel="noopener" target="_blank">DecimalFormat</a>.</p>
+</li>
+<li>
+<p><code>decimalSeparator</code> - the symbol to use for decimal separator (optional).</p>
+</li>
+<li>
+<p><code>groupingSeparator</code> - the symbol to use for grouping (thousands) separator (optional).</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If <code>decimalSeparator</code> and/or <code>groupingSeparator</code> are not specified, their values are obtained from the <a class="xref page" href="datatype.html#localized-format-strings">current user’s locale</a> for locale-dependent formatting, or from server default locale for locale-independent formatting.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Column(name = "PRECISE_NUMBER", precision = 19, scale = 4)
+@NumberFormat(pattern = "0.0000")
+protected BigDecimal preciseNumber;
+
+@Column(name = "WEIRD_NUMBER", precision = 19, scale = 4)
+@NumberFormat(pattern = "#,##0.0000", decimalSeparator = "_", groupingSeparator = "`")
+protected BigDecimal weirdNumber;
+
+@Column(name = "SIMPLE_NUMBER")
+@NumberFormat(pattern = "#")
+protected Integer simpleNumber;
+
+@Column(name = "PERCENT_NUMBER", precision = 19, scale = 4)
+@NumberFormat(pattern = "#%")
+protected BigDecimal percentNumber;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="on-delete"><a class="anchor" href="#on-delete"></a>@OnDelete</h3>
+<div class="paragraph">
+<p>The <code>@OnDelete</code> annotation can be used on reference attributes of <a class="xref page" href="soft-deletion.html">soft-deleted</a> entities. It specifies what should happen to the referenced entity when the entity instance containing the annotation (<em>this</em> entity) is deleted.</p>
+</div>
+<div class="paragraph">
+<p>The annotation can have one of the following values:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>DeletePolicy.DENY</code> – to throw an exception on attempt to delete the entity if the reference is not null.</p>
+</li>
+<li>
+<p><code>DeletePolicy.CASCADE</code> – to delete the referenced entities together with this entity.</p>
+</li>
+<li>
+<p><code>DeletePolicy.UNLINK</code> – to disconnect the referenced entity by setting the reference attribute to null. Use this value only on the owning side of the relationship (the one with the <code>@JoinColumn</code> annotation).</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="on-delete-inverse"><a class="anchor" href="#on-delete-inverse"></a>@OnDeleteInverse</h3>
+<div class="paragraph">
+<p>The <code>@OnDelete</code> annotation can be used on reference attributes of <a class="xref page" href="soft-deletion.html">soft-deleted</a> and regular hard-deleted entities. It specifies what should happen to the entity instance containing the annotation (<em>this</em> entity) when the referenced entity is deleted.</p>
+</div>
+<div class="paragraph">
+<p>The annotation can have one of the following values:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>DeletePolicy.DENY</code> – to throw an exception on attempt to delete the referenced entity.</p>
+</li>
+<li>
+<p><code>DeletePolicy.CASCADE</code> – to delete this entity together with the referenced entity.</p>
+</li>
+<li>
+<p><code>DeletePolicy.UNLINK</code> – to set the reference attribute to null.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For soft-deleted entities, <code>@OnDeleteInverse</code> is handled by the framework at runtime. The <code>DENY</code> and <code>CASCADE</code> values can be used on both owning (the one with the <code>@JoinColumn</code> annotation) and non-owning (<code>mappedBy</code>) sides of the relationship. The <code>UNLINK</code> value should be used only on the owning side.</p>
+</div>
+<div class="paragraph">
+<p>For regular hard-deleted entities, <code>@OnDeleteInverse</code> with <code>CASCADE</code> and <code>UNLINK</code> values is handled by Studio when generating Liquibase changelogs. It must be used only on the owning (the one with the <code>@JoinColumn</code> annotation) side of the relationship and leads to creating a foreign key constraint with the <code>ON DELETE CASCADE</code> or <code>ON DELETE SET NUll</code> parameters.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="post-construct"><a class="anchor" href="#post-construct"></a>@PostConstruct</h3>
+<div class="paragraph">
+<p>Use <code>jakarta.annotation.PostConstruct</code> annotation on a method that performs initialization of a new entity instance. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@PostConstruct
+void init() {
+    setGrade(CustomerGrade.BRONZE);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The annotated method can accept any Spring beans. In the example below, we use <code>TimeSource</code> bean to initialize a <code>date</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@PostConstruct
+void init(TimeSource timeSource) {
+    setDate(timeSource.now().toLocalDate());
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Note that the <code>@PostConstruct</code> annotated method is not invoked if you create an entity instance using the <code>new</code> operator. See <a href="#instantiation">instantiating entities</a> for proper methods of creating new instances.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="property-datatype"><a class="anchor" href="#property-datatype"></a>@PropertyDatatype</h3>
+<div class="paragraph">
+<p>If you have multiple <a class="xref page" href="datatype.html">datatypes</a> for a Java type of an entity attribute, <code>@PropertyDatatype</code> annotation lets you specify a <code>Datatype</code> implementation explicitly by its id. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@PropertyDatatype("year")
+@Column(name = "YEAR_")
+private Integer productionYear;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="store"><a class="anchor" href="#store"></a>@Store</h3>
+<div class="paragraph">
+<p>Use <code>@Store</code> annotation on an entity class to associate the entity with an additional <a class="xref page" href="data-stores.html">data store</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="system-level"><a class="anchor" href="#system-level"></a>@SystemLevel</h3>
+<div class="paragraph">
+<p><code>@SystemLevel</code> annotation indicates that annotated entity or its attribute is low-level and should not be displayed in UI.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

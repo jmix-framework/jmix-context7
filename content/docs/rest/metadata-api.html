@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metadata API :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Metadata API</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>It is possible to introspect the entity structure and relationships between entities in Jmix via the <a class="xref page" href="../data-model/metadata.html">Metadata</a> mechanism. You can access these capabilities through the REST API endpoints starting with <code>/metadata</code></p>
+</div>
+<div class="paragraph">
+<p>The Metadata API consists of the following endpoints:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#entity-metadata">Entity Metadata</a> information about entities and entity attributes.</p>
+</li>
+<li>
+<p><a href="#fetch-plans">Fetch Plans</a> information about available Fetch Plans.</p>
+</li>
+<li>
+<p><a href="#enum-values">Enum Values</a>  information about available Enums and their possible values.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-metadata"><a class="anchor" href="#entity-metadata"></a>Entity Metadata</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Entity Metadata API consists of two endpoints that allow retrieving information about the entity attributes:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>/metadata/entities</code></dt>
+<dd>
+<p>Metadata descriptions for all entities</p>
+</dd>
+<dt class="hdlist1"><code>/metadata/entities/:entityName</code></dt>
+<dd>
+<p>Metadata descriptions of the given entity</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="title">Order Entity Metadata Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /metadata
+            /entities
+            /rstex11_Order</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "entityName": "rstex11_Order",
+  "ancestor": null,
+  "properties": [
+    {
+      "name": "date",
+      "attributeType": "DATATYPE",
+      "type": "localDate",
+      "cardinality": "NONE",
+      "mandatory": true,
+      "readOnly": false,
+      "description": "Date",
+      "persistent": true,
+      "transient": false
+    },
+    {
+      "name": "amount",
+      "attributeType": "DATATYPE",
+      "type": "decimal",
+      "cardinality": "NONE",
+      "mandatory": true,
+      "readOnly": false,
+      "description": "Amount",
+      "persistent": true,
+      "transient": false
+    },
+    {
+      "name": "id",
+      "attributeType": "DATATYPE",
+      "type": "uuid",
+      "cardinality": "NONE",
+      "mandatory": true,
+      "readOnly": false,
+      "description": "Id",
+      "persistent": true,
+      "transient": false
+    },
+    {
+      "name": "lines",
+      "attributeType": "COMPOSITION",
+      "type": "rstex11_OrderLine",
+      "cardinality": "ONE_TO_MANY",
+      "mandatory": false,
+      "readOnly": false,
+      "description": "Lines",
+      "persistent": true,
+      "transient": false
+    },
+    {
+      "name": "customer",
+      "attributeType": "ASSOCIATION",
+      "type": "rstex11_Customer",
+      "cardinality": "MANY_TO_ONE",
+      "mandatory": true,
+      "readOnly": false,
+      "description": "Customer",
+      "persistent": true,
+      "transient": false
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fetch-plans"><a class="anchor" href="#fetch-plans"></a>Fetch Plans</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Fetch Plan Metadata API exposes information of the structure of the available <a class="xref page" href="../data-access/fetching.html">fetch plans</a> for a given entity. It consists of the two endpoints:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>/metadata/entities/:entityName/fetchPlans</code></dt>
+<dd>
+<p>All available fetch plans of the given entity</p>
+</dd>
+<dt class="hdlist1"><code>/metadata/entities/:entityName/fetchPlans/:fetchPlanName</code></dt>
+<dd>
+<p>Information about a particular fetch plan</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In the following example all fetch plans are requested for the <code>rstex11_Order</code> entity:</p>
+</div>
+<div class="listingblock">
+<div class="title">Available Order Fetch Plans Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /metadata
+            /entities
+            /rstex11_Order
+            /fetchPlans</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    "name": "order-with-details",
+    "entity": "rstex11_Order",
+    "properties": [
+      "date",
+      "amount",
+      "createdDate",
+      "createdBy",
+      "lastModifiedDate",
+      "deletedDate",
+      "lastModifiedBy",
+      "id",
+      "version",
+      "deletedBy",
+      "customer",
+      {
+        "name": "lines",
+        "fetchPlan": {
+          "name": "_base",
+          "properties": [
+            "quantity",
+            "createdDate",
+            "createdBy",
+            "lastModifiedDate",
+            "deletedDate",
+            "lastModifiedBy",
+            "id",
+            "version",
+            "deletedBy",
+            {
+              "name": "product",
+              "fetchPlan": {
+                "name": "_instance_name",
+                "properties": [
+                  "name"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+]</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="enum-values"><a class="anchor" href="#enum-values"></a>Enum Values</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Enum Metadata API provides information about possible values for Enums.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>/metadata/enums</code></dt>
+<dd>
+<p>Names and values of all enums</p>
+</dd>
+<dt class="hdlist1"><code>/metadata/enums/:enumClassName</code></dt>
+<dd>
+<p>Names and values of a given enum</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The parameter <code>:enumClassName</code> should contain the full qualified class name of the enum. Example: <code>rest.sample.entity.CustomerType</code> instead of just <code>CustomerType</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the following example information about the <code>rest.sample.entity.CustomerType</code> enum is requested:</p>
+</div>
+<div class="listingblock">
+<div class="title">Enum Values Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /metadata
+            /enums
+            /rest.sample.entity.CustomerType</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "name": "rest.sample.entity.CustomerType",
+  "values": [
+    {
+      "name": "BUSINESS",
+      "id": "BUSINESS",
+      "caption": "Business"
+    },
+    {
+      "name": "PRIVATE",
+      "id": "PRIVATE",
+      "caption": "Private"
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

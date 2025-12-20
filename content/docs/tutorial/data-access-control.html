@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9. Data Access Control :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">9. Data Access Control</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>So far you entered the application as admin and had full control over data and UI. In this final chapter, you will set up restricted access to the application for HR Managers and Employees.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="employees-resource-role"><a class="anchor" href="#employees-resource-role"></a>Resource Role for Employees</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="create-resource-role"><a class="anchor" href="#create-resource-role"></a>Creating Resource Role</h3>
+<div class="paragraph">
+<p>In the <strong>Jmix</strong> tool window, click <strong>New</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) → <strong>Resource Role</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="employee role 1" src="_images/security/employee-role-1.png" width="348"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>New Resource Role</strong> dialog, enter <code>Employee</code> to <strong>Role name</strong> field and select <code>UI</code> in <strong>Security scope</strong> dropdown:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="employee role 2" src="_images/security/employee-role-2.png" width="662"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will create and open an annotated interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.security;
+
+import io.jmix.security.role.annotation.ResourceRole;
+
+@ResourceRole(name = "Employee", code = EmployeeRole.CODE, scope= "UI")
+public interface EmployeeRole {
+    String CODE = "employee";
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+A role with the <code>UI</code> scope is applied to users only when they enter the system through the UI. If the same user logs in through the REST API, the role is not applied. It is recommended to create a different set of roles for the API, usually with fewer permissions.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Switch to the <strong>User Interface</strong> tab to define permissions to views. Select <code>MyOnboardingView</code> in the menu tree and select <strong>Allow</strong> checkboxes on the right:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="employee role 3" src="_images/security/employee-role-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, switch to the <strong>Entities</strong> tab and select the following permissions:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="employee role 4" src="_images/security/employee-role-4.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>An employee needs to read the <code>Step</code>, <code>User</code> and <code>UserStep</code> entities to view them in UI and update <code>User</code> and <code>UserStep</code> to mark completed steps.</p>
+</div>
+<div class="paragraph">
+<p>Switch back to the <strong>Text</strong> tab. You will see that Studio has generated a few methods with annotations corresponding to granted permissions:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ResourceRole(name = "Employee", code = EmployeeRole.CODE, scope = "UI")
+public interface EmployeeRole {
+    String CODE = "employee";
+
+    @MenuPolicy(menuIds = "MyOnboardingView")
+    @ViewPolicy(viewIds = "MyOnboardingView")
+    void screens();
+
+    @EntityAttributePolicy(entityClass = User.class,
+            attributes = "*",
+            action = EntityAttributePolicyAction.VIEW)
+    @EntityPolicy(entityClass = User.class,
+            actions = {EntityPolicyAction.READ, EntityPolicyAction.UPDATE})
+    void user();
+
+    @EntityAttributePolicy(entityClass = UserStep.class,
+            attributes = "*",
+            action = EntityAttributePolicyAction.VIEW)
+    @EntityPolicy(entityClass = UserStep.class,
+            actions = {EntityPolicyAction.READ, EntityPolicyAction.UPDATE})
+    void userStep();
+
+    @EntityAttributePolicy(entityClass = Step.class,
+            attributes = "*",
+            action = EntityAttributePolicyAction.VIEW)
+    @EntityPolicy(entityClass = Step.class,
+            actions = EntityPolicyAction.READ)
+    void step();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Open <strong>Security</strong> → <strong>Resource roles</strong> view. You will see the new role in the list:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="employee role 5" src="_images/security/employee-role-5.png"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="assign-role"><a class="anchor" href="#assign-role"></a>Assigning Role</h3>
+<div class="paragraph">
+<p>Now let’s assign the role to a user. Open the <strong>Users</strong> list view and create a new user <code>bob</code>. Select the user and click <strong>Role assignments</strong> button:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="assign role 1" src="_images/security/assign-role-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>Role assignments</strong> view, click <strong>Add</strong> button in the <strong>Resource roles</strong> panel.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Select resource roles</strong> dialog, select <code>Employee</code> and <code>UI: minimal access</code> roles:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="assign role 2" src="_images/security/assign-role-2.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Select</strong>. The selected roles will be shown in the <strong>Resource roles</strong> panel:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="assign role 3" src="_images/security/assign-role-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong> to save the role assignments.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The <code>UI: minimal access</code> role is required for the user to log in to the application UI. You can find it in your project and investigate its contents.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Log out using the button next to the current user name:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="assign role 4" src="_images/security/assign-role-4.png" width="414"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Log in as <code>bob</code>. You will see only <code>My onboarding</code> view in the menu:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="assign role 5" src="_images/security/assign-role-5.png"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="managers-resource-role"><a class="anchor" href="#managers-resource-role"></a>Resource Role for HR Managers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the <strong>Jmix</strong> tool window, click <strong>New</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) → <strong>Role</strong>.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>New Role</strong> dialog, enter <code>HR Manager</code> to <strong>Role name</strong> field, set <strong>Role code</strong> to <code>hr-manager</code> and select <code>UI</code> in <strong>Security scope</strong> dropdown:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="manager role 1" src="_images/security/manager-role-1.png" width="667"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will create and open the annotated interface defining the role:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.security;
+
+import io.jmix.security.role.annotation.ResourceRole;
+
+@ResourceRole(name = "HR Manager", code = HRManagerRole.CODE, scope = "UI")
+public interface HRManagerRole {
+    String CODE = "hr-manager";
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Switch to the <strong>User Interface</strong> tab and allow <code>User.list</code> and <code>User.detail</code> views (use the search field on top to filter the tree):</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="manager role 2" src="_images/security/manager-role-2.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Switch to the <strong>Entities</strong> tab and give read permission to <code>Department</code> and <code>Step</code>, and all permissions to <code>User</code> and <code>UserStep</code>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="manager role 3" src="_images/security/manager-role-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Switch back to the <strong>Text</strong> tab and inspect the annotations generated by Studio:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ResourceRole(name = "HR Manager", code = HRManagerRole.CODE, scope = "UI")
+public interface HRManagerRole {
+    String CODE = "hr-manager";
+
+    @MenuPolicy(menuIds = "User.list")
+    @ViewPolicy(viewIds = {"User.detail", "User.list"})
+    void screens();
+
+    @EntityAttributePolicy(entityClass = Department.class,
+            attributes = "*",
+            action = EntityAttributePolicyAction.VIEW)
+    @EntityPolicy(entityClass = Department.class,
+            actions = EntityPolicyAction.READ)
+    void department();
+
+    @EntityAttributePolicy(entityClass = Step.class,
+            attributes = "*",
+            action = EntityAttributePolicyAction.VIEW)
+    @EntityPolicy(entityClass = Step.class,
+            actions = EntityPolicyAction.READ)
+    void step();
+
+    @EntityAttributePolicy(entityClass = User.class,
+            attributes = "*",
+            action = EntityAttributePolicyAction.MODIFY)
+    @EntityPolicy(entityClass = User.class,
+            actions = EntityPolicyAction.ALL)
+    void user();
+
+    @EntityAttributePolicy(entityClass = UserStep.class,
+            attributes = "*",
+            action = EntityAttributePolicyAction.MODIFY)
+    @EntityPolicy(entityClass = UserStep.class,
+            actions = EntityPolicyAction.ALL)
+    void userStep();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Log in as <code>admin</code>. Open <strong>Security</strong> → <strong>Resource roles</strong> view and make sure the new <code>HR Manager</code> role is in the list.</p>
+</div>
+<div class="paragraph">
+<p>Create a new user, say <code>alice</code>.</p>
+</div>
+<div class="paragraph">
+<p>Assign the <code>HR Manager</code> and <code>UI: minimal access</code> roles to <code>alice</code> as you did in the <a href="#assign-role">previous</a> section.</p>
+</div>
+<div class="paragraph">
+<p>Log in as <code>alice</code>. You will see the <code>Users</code> view and will be able to manage users and their onboarding steps:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="manager role 4" src="_images/security/manager-role-4.png"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="managers-row-level-role"><a class="anchor" href="#managers-row-level-role"></a>Row-level Role for HR Managers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Currently, HR managers can create users, assign any department to a user, and see users of all departments.</p>
+</div>
+<div class="paragraph">
+<p>In this section, you will introduce a <em>row-level role</em> which restricts access to departments and other users for an HR manager. They will be able to see and assign only their own department (the one where they are set in the <code>hrManager</code> attribute).</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Jmix</strong> tool window, click <strong>New</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) → <strong>Row-level Role</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="rl role 1" src="_images/security/rl-role-1.png" width="353"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>New Row-level Role</strong> dialog, enter:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Role name</strong>: <code>HR manager’s departments and users</code></p>
+</li>
+<li>
+<p><strong>Role code</strong>: <code>hr-manager-rl</code></p>
+</li>
+<li>
+<p><strong>Class</strong>: <code>com.company.onboarding.security.HrManagerRlRole</code></p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="rl role 2" src="_images/security/rl-role-2.png" width="635"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will create and open an annotated interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.security;
+
+import io.jmix.security.role.annotation.RowLevelRole;
+
+@RowLevelRole(name = "HR manager’s departments and users", code = HrManagerRlRole.CODE)
+public interface HrManagerRlRole {
+    String CODE = "hr-manager-rl";
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add Policy</strong> → <strong>JPQL Policy</strong> in the top actions panel:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="rl role 3" src="_images/security/rl-role-3.png" width="536"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>Add JPQL Policy</strong> dialog, enter:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Entity</strong>: <code>Department</code></p>
+</li>
+<li>
+<p><strong>Where clause</strong>: <code>{E}.hrManager.id = :current_user_id</code></p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="rl role 3 1" src="_images/security/rl-role-3-1.png" width="636"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add Policy</strong> → <strong>JPQL Policy</strong> again and enter:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Entity</strong>: <code>User</code></p>
+</li>
+<li>
+<p><strong>Where clause</strong>: <code>{E}.department.hrManager.id = :current_user_id</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>HrManagerRlRole</code> interface will have the following code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.security;
+
+import com.company.onboarding.entity.Department;
+import com.company.onboarding.entity.User;
+import io.jmix.security.role.annotation.JpqlRowLevelPolicy;
+import io.jmix.security.role.annotation.RowLevelRole;
+
+@RowLevelRole( <i class="conum" data-value="1"></i><b>(1)</b>
+        name = "HR manager's departments and users",
+        code = HrManagerRlRole.CODE)
+public interface HrManagerRlRole {
+    String CODE = "hr-manager-rl";
+
+    @JpqlRowLevelPolicy( <i class="conum" data-value="2"></i><b>(2)</b>
+            entityClass = Department.class, <i class="conum" data-value="3"></i><b>(3)</b>
+            where = "{E}.hrManager.id = :current_user_id") <i class="conum" data-value="4"></i><b>(4)</b>
+    void department();
+
+    @JpqlRowLevelPolicy(
+            entityClass = User.class,
+            where = "{E}.department.hrManager.id = :current_user_id")
+    void user();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>@RowLevelRole</code> annotation indicates that the interface defines a row-level role.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>@JpqlRowLevelPolicy</code> defines a policy to be applied on the database level when reading the entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The entity class for which the policy is applied.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <code>where</code> clause to be added for each JPQL select statement for this entity. <code>{E}</code> is used instead of the entity alias in the query. <code>:current_user_id</code> is a predefined parameter set by the framework to the id of the currently logged-in user.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Log in as <code>admin</code>. Open <strong>Security</strong> → <strong>Row-level roles</strong> view and make sure the new <code>HR manager’s departments and users</code> role is in the list.</p>
+</div>
+<div class="paragraph">
+<p>Open <strong>Role assignments</strong> view for <code>alice</code> and add the role to the <strong>Row-level roles</strong> table:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="rl role 4" src="_images/security/rl-role-4.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong> to save the role assignments.</p>
+</div>
+<div class="paragraph">
+<p>Set <code>alice</code> as HR Manager for a Department:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="rl role 5" src="_images/security/rl-role-5.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Log in as <code>alice</code>.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Users</strong> list view, you will see only users of her department:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="rl role 6" src="_images/security/rl-role-6.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>And <code>alice</code> can assign only this department to a user:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="rl role 7" src="_images/security/rl-role-7.png" width="500"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you have created HR Managers and Employees roles to restrict access to the application for different groups of users.</p>
+</div>
+<div class="paragraph">
+<p>You have learned that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A <a class="xref page" href="../security/resource-roles.html">resource role</a> gives users permissions to open views and to work with particular entities.</p>
+</li>
+<li>
+<p>A <a class="xref page" href="../security/row-level-roles.html">row-level role</a>, in contrast, restricts user’s ability to read particular entity instances for an entity permitted by a resource role.</p>
+</li>
+<li>
+<p>Roles are assigned to users at runtime using the <strong>Role assignment</strong> view available from the <code>User.detail</code> view.</p>
+</li>
+<li>
+<p>The <code>UI: minimal access</code> role scaffolded in the project is required for a user to log in to the application UI.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

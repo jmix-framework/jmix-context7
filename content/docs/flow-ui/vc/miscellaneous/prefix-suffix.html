@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prefix & Suffix :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Prefix &amp; Suffix</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Prefix and suffix are additional content slots on either sides of input fields or several other visual components. Such slots can hold visual indicators, such as icons or units, or interactive elements to enhance component’s functionality.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_visual_indicators"><a class="anchor" href="#_visual_indicators"></a>Visual Indicators</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use prefix and suffix to communicate the type of information to be entered. For example, a search icon as a prefix, or "lbs" as a suffix helps users quickly understand the expected format of the input.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="prefix suffix declarative" src="../../_images/visual-components/components/prefix-suffix-declarative.png" width="410"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You can add such elements declaratively as nested XML elements:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField placeholder="Find a product..."&gt;
+    &lt;prefix&gt;
+        &lt;icon icon="SEARCH"/&gt;
+    &lt;/prefix&gt;
+&lt;/textField&gt;
+
+&lt;textField placeholder="Enter amount"&gt;
+    &lt;suffix&gt;
+        &lt;span text="lbs"/&gt;
+    &lt;/suffix&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+To add a prefix or suffix to a component in Jmix Studio, select the component and click the <a class="xref page" href="../../../studio/view-designer.html#component-inspector-add-button">Add</a> button in the <strong>Jmix UI</strong> inspector panel.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_user_interaction"><a class="anchor" href="#_user_interaction"></a>User Interaction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The content within prefix and suffix may respond to user interaction. The following example enhances <a class="xref page" href="../layouts/tabSheet.html">tabSheet</a> by adding a suffix that includes a button for creating new tabs:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="prefix suffix programmatic" src="../../_images/visual-components/components/prefix-suffix-programmatic.png" width="260"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;tabSheet id="tabSheet"&gt;
+    &lt;tab id="tab1" label="Tab 1"&gt;
+        &lt;div/&gt;
+    &lt;/tab&gt;
+    &lt;tab id="tab2" label="Tab 2"&gt;
+        &lt;div/&gt;
+    &lt;/tab&gt;
+    &lt;tab id="tab3" label="Tab 3"&gt;
+        &lt;div/&gt;
+    &lt;/tab&gt;
+&lt;/tabSheet&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixTabSheet tabSheet;
+@Autowired
+private UiComponents uiComponents;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    tabSheet.setSuffixComponent(createAddTabButton()); <i class="conum" data-value="1"></i><b>(1)</b>
+}
+
+protected Component createAddTabButton() {
+    JmixButton button = uiComponents.create(JmixButton.class);
+    button.setIcon(VaadinIcon.PLUS.create());
+    button.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
+
+    button.addClickListener(event -&gt; {
+        int newTabIndex = tabSheet.getOwnComponents().size() + 1;
+        String tabLabel = "Tab " + newTabIndex;
+        tabSheet.add(tabLabel, new Div());
+    });
+    return button;
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Set a suffix. The <code>createAddTabButton()</code> method implements the corresponding logic.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

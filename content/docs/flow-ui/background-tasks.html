@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Background Tasks :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Background Tasks</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The background tasks mechanism is designed to perform tasks asynchronously using the security context of the current user and updating the UI with the results.</p>
+</div>
+<div class="paragraph">
+<p>In comparison to simpler <a class="xref page" href="async-tasks.html">Asynchronous Tasks</a>, the background tasks API provides the following additional features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Ability to visualize the progress of the operation.</p>
+</li>
+<li>
+<p>Ability for the user to interrupt the operation.</p>
+</li>
+<li>
+<p>A ready-made configurable UI dialog for displaying the information about the operation, a progress bar and a cancel button.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To use background tasks, do the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Define a task as a subclass of the <code>BackgroundTask</code> abstract class. In the constructor method for your task, pass a timeout value and the reference to the view controller associated with the task.</p>
+<div class="paragraph">
+<p>Closing the view interrupts the tasks associated with it. Besides, the task is interrupted automatically after the specified timeout.</p>
+</div>
+</li>
+<li>
+<p>Implement the task in the <code>BackgroundTask.run()</code> method.</p>
+</li>
+<li>
+<p>Create an object of <code>BackgroundTaskHandler</code> class controlling the task by passing the task instance to the <code>handle()</code> method of the <code>BackgroundWorker</code> bean. You can obtain a reference to <code>BackgroundWorker</code> by injection in the view controller or via <code>ApplicationContext</code>.</p>
+</li>
+<li>
+<p>Run the task by invoking the <code>execute()</code> method of <code>BackgroundTaskHandler</code>.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Do not read or update the state of UI components and data containers in <code>BackgroundTask.run()</code> method; use <code>done()</code>, <code>progress()</code>, and <code>canceled()</code> callback methods instead. If you try to set a value to a UI component from a background thread, <code>IllegalConcurrentAccessException</code> is thrown.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Below is an example of running a background task and tracking its progress using the <a class="xref page" href="vc/components/progressBar.html">progressBar</a> component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected ProgressBar progressBar; <i class="conum" data-value="1"></i><b>(1)</b>
+@Autowired
+protected BackgroundWorker backgroundWorker;
+
+protected BackgroundTaskHandler&lt;Void&gt; taskHandler;
+
+private static final int ITERATIONS = 6;
+
+@Subscribe
+protected void onInit(InitEvent event) {  <i class="conum" data-value="2"></i><b>(2)</b>
+    taskHandler = backgroundWorker.handle(createBackgroundTask());
+    taskHandler.execute();
+}
+
+protected BackgroundTask&lt;Integer, Void&gt; createBackgroundTask () { <i class="conum" data-value="3"></i><b>(3)</b>
+    return new BackgroundTask&lt;&gt;(100, TimeUnit.SECONDS) {
+        @Override
+        public Void run(TaskLifeCycle&lt;Integer&gt; taskLifeCycle) throws Exception {
+            for (int i=1; i&lt; ITERATIONS; i++) {
+                TimeUnit.SECONDS.sleep(1);
+                taskLifeCycle.publish(i);
+            }
+            return null;
+        }
+
+        @Override
+        public void progress (List&lt;Integer&gt; changes) {
+            double lastValue = changes.get(changes.size() - 1);
+            double value = lastValue/ITERATIONS;
+            progressBar.setValue(value); <i class="conum" data-value="4"></i><b>(4)</b>
+        }
+    };
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A task that takes time to complete. The <code>run()</code> method is executed in a separate thread.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>progress()</code> method is executed in the UI thread, so visual components can be updated here.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="background-task"><a class="anchor" href="#background-task"></a>BackgroundTask Class</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>BackgroundTask&lt;T, V&gt;</code> is a parameterized class:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>T</code> − the type of objects displaying task progress. Objects of this type are passed to the task’s <code>progress()</code> method during an invocation of <code>TaskLifeCycle.publish()</code> in the working thread.</p>
+</li>
+<li>
+<p><code>V</code> − task result type passed to the <code>done()</code> method. You can also obtain the result by invoking <code>BackgroundTaskHandler.getResult()</code> method, which will wait for a task to complete.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The <code>BackgroundTask</code> class is thread-safe and does not define a state. If you don’t create fields for temporary data when implementing task class, you can start several parallel processes using a single task instance.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="background-task-methods"><a class="anchor" href="#background-task-methods"></a>BackgroundTask Methods</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Detailed information about methods is provided in Javadocs for <code>BackgroundTask</code>, <code>TaskLifeCycle</code>, <code>BackgroundTaskHandler</code> classes.</p>
+</div>
+<div class="sect2">
+<h3 id="run"><a class="anchor" href="#run"></a>run()</h3>
+<div class="paragraph">
+<p>This method is executed in a separate background thread to perform the task.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Do not read or update the state of UI components and data containers in this method.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The method should support external interruptions. To ensure this, check the <code>TaskLifeCycle.isInterrupted()</code> flag periodically during long processes and stop execution when needed. Additionally, you should not silently discard <code>InterruptedException</code> (or any other exception) — instead, you should either exit the method correctly or not handle the exception at all.</p>
+</div>
+<div class="paragraph">
+<p>You can also check whether the task was interrupted with <code>cancel()</code> using the <code>isCancelled()</code> method.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="canceled"><a class="anchor" href="#canceled"></a>canceled()</h3>
+<div class="paragraph">
+<p>This method is invoked in a thread that has access to UI components only during a controlled cancellation of a task, for example, when the <code>cancel()</code> method is invoked in the <code>TaskHandler</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="progress"><a class="anchor" href="#progress"></a>progress()</h3>
+<div class="paragraph">
+<p>This method is invoked in a thread that has access to UI components when the progress value changes. For example, after calling the <code>taskLifeCycle.publish()</code> method.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="done"><a class="anchor" href="#done"></a>done()</h3>
+<div class="paragraph">
+<p>This method is invoked in a thread that has access to UI components once the task is complete.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="handle-timeout-exception"><a class="anchor" href="#handle-timeout-exception"></a>handleTimeoutException()</h3>
+<div class="paragraph">
+<p>This method is invoked in a thread that has access to UI components when the task timeout expires. If the window where the task is running closes, the task is stopped without notification.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="handle-exception"><a class="anchor" href="#handle-exception"></a>handleException()</h3>
+<div class="paragraph">
+<p>This method is invoked in a thread that has access to UI components when any exceptions occur.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="notes-and-tips"><a class="anchor" href="#notes-and-tips"></a>Notes &amp; Tips</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/background-task-dialog" target="_blank">LIVE DEMO</a>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Use <code>dialogs.createBackgroundTaskDialog()</code> method to show a modal window with a progress indicator and <strong>Cancel</strong> button. It lets you define progress indication type and allow or prohibit the cancellation of the background task for the window.</p>
+</li>
+<li>
+<p>If you need to use certain values of visual components in the task thread, you should implement their acquisition in the <code>getParams()</code> method, which runs in the UI thread once a task starts. In the <code>run()</code> method, these parameters will be accessible via the <code>getParams()</code> method of the <code>TaskLifeCycle</code> object.</p>
+</li>
+<li>
+<p>Background tasks are affected by <a class="xref page" href="ui-properties.html#jmix.ui.background-task.task-killing-latency">jmix.ui.background-task.task-killing-latency</a>, <a class="xref page" href="ui-properties.html#jmix.ui.background-task.threads-count">jmix.ui.background-task.threads-count</a>, and <a class="xref page" href="ui-properties.html#jmix.ui.background-task.timeout-expiration-check-interval">jmix.ui.background-task.timeout-expiration-check-interval</a> application properties.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="usage-example"><a class="anchor" href="#usage-example"></a>Usage Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Often, when launching a background task, you need to display a simple user interface:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>To show to the user that the requested action is in the process of execution.</p>
+</li>
+<li>
+<p>To allow the user to abort the requested long operation.</p>
+</li>
+<li>
+<p>To show operation progress if progress percent can be determined.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You can do it using the <code>createBackgroundTaskDialog()</code> method of the <a class="xref page" href="dialogs.html">Dialogs</a> interface.</p>
+</div>
+<div class="paragraph">
+<p>To illustrate this, consider the following development task:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A view contains a data grid with a list of users, with multi-selection enabled.</p>
+</li>
+<li>
+<p>On clicking <strong>Send email</strong>, the system sends reminder emails to selected users, without blocking UI and with a possibility to cancel the operation.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p><span class="image"><img alt="emails" src="_images/background-tasks/emails.png" width="842"/></span></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataGrid&lt;User&gt; usersTable;
+
+@Autowired
+private Emailer emailer;
+
+@Autowired
+private Dialogs dialogs;
+
+@Subscribe("sendByEmail")
+public void onSendByEmailClick(ClickEvent event) {
+    Set&lt;User&gt; selected = usersTable.getSelectedItems();
+    if (selected.isEmpty()) {
+        return;
+    }
+    BackgroundTask&lt;Integer, Void&gt; task = new EmailTask(selected);
+    dialogs.createBackgroundTaskDialog(task) <i class="conum" data-value="1"></i><b>(1)</b>
+            .withHeader("Sending reminder emails")
+            .withText("Please wait while emails are being sent")
+            .withTotal(selected.size())
+            .withShowProgressInPercentage(true)
+            .withCancelAllowed(true)
+            .open();
+}
+
+private class EmailTask extends BackgroundTask&lt;Integer, Void&gt; { <i class="conum" data-value="2"></i><b>(2)</b>
+
+    private Set&lt;User&gt; users; <i class="conum" data-value="3"></i><b>(3)</b>
+
+    public EmailTask(Set&lt;User&gt; users) {
+        super(10, TimeUnit.MINUTES, BackgroundTasksView.this); <i class="conum" data-value="4"></i><b>(4)</b>
+        this.users = users;
+    }
+
+    @Override
+    public Void run(TaskLifeCycle&lt;Integer&gt; taskLifeCycle) throws Exception {
+        int i = 0;
+        for (User user : users) {
+            if (taskLifeCycle.isCancelled()) { <i class="conum" data-value="5"></i><b>(5)</b>
+                break;
+            }
+            EmailInfo emailInfo = EmailInfoBuilder.create() <i class="conum" data-value="6"></i><b>(6)</b>
+                    .setAddresses(user.getEmail())
+                    .setSubject("Reminder")
+                    .setBody("Your password expires in 14 days!")
+                    .build();
+            emailer.sendEmail(emailInfo);
+            i++;
+            taskLifeCycle.publish(i); <i class="conum" data-value="7"></i><b>(7)</b>
+        }
+        return null;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Create the task, create progress dialog, and set its options:
+<div class="ulist">
+<ul>
+<li>
+<p>dialog header;</p>
+</li>
+<li>
+<p>dialog text;</p>
+</li>
+<li>
+<p>total number of elements for progress bar;</p>
+</li>
+<li>
+<p>show progress in percent or not;</p>
+</li>
+<li>
+<p>show <strong>Cancel</strong> button or not.</p>
+</li>
+</ul>
+</div></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Task progress unit is <code>Integer</code> - the number of processed table items, and result type is <code>Void</code> because this task doesn’t return a result.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Selected table items are saved into a variable that is initialized in the task constructor. This is necessary because the <code>run()</code> method is executed in a background thread and cannot access UI components.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Set timeout to 10 minutes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Periodically check <code>isCancelled()</code> to stop the task immediately after pressing the <strong>Cancel</strong> dialog button.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Send email. See more about email sending <a class="xref page" href="../email/index.html">here</a>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Update progress bar completion after every email sent.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PivotTable Component :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">PivotTable Component</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/pivot-table-simple" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>The <code>pvttbl</code> element represents a <code>PivotTable</code> UI component. The component provides drag-and-drop functionality that enables turning a data set into a summary table and manipulating it using 2D drag-and-drop UI.</p>
+</div>
+<table class="tableblock frame-all grid-none stretch">
+<colgroup>
+<col style="width: 20%;"/>
+<col style="width: 80%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>pvttbl</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>io.jmix.pivottableflowui.component.PivotTable</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../flow-ui/vc/common-attributes.html#id">id</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#alignSelf">alignSelf</a> -
+<a href="#autoSortUnusedProperties">autoSortUnusedProperties</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#colspan">colspan</a> -
+<a href="#columnOrder">columnOrder</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#css">css</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#dataContainer">dataContainer</a> -
+<a href="#emptyDataMessage">emptyDataMessage</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#height">height</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxWidth">maxWidth</a> -
+<a href="#menuLimit">menuLimit</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minWidth">minWidth</a> -
+<a href="#renderer">renderer</a> -
+<a href="#rowOrder">rowOrder</a> -
+<a href="#showColumnTotals">showColumnTotals</a> -
+<a href="#showRowTotals">showRowTotals</a> -
+<a href="#showUI">showUI</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#visible">visible</a> -
+<a href="#unusedPropertiesVertical">unusedPropertiesVertical</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#width">width</a></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Handlers</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../flow-ui/vc/common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../flow-ui/vc/common-handlers.html#DetachEvent">DetachEvent</a> -
+<a href="#PivotTableCellClickEvent">PivotTableCellClickEvent</a> -
+<a href="#PivotTableRefreshEvent">PivotTableRefreshEvent</a> -</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#aggregation">aggregation</a> -
+<a href="#aggregationProperties">aggregationProperties</a> -
+<a href="#aggregations">aggregations</a> -
+<a href="#columns">columns</a> -
+<a href="#derivedProperties">derivedProperties</a> -
+<a href="#exclusions">exclusions</a> -
+<a href="#filterFunction">filterFunction</a> -
+<a href="#hiddenFromAggregations">hiddenFromAggregations</a> -
+<a href="#hiddenFromDragDrop">hiddenFromDragDrop</a> -
+<a href="#hiddenProperties">hiddenProperties</a> -
+<a href="#inclusions">inclusions</a> -
+<a href="#properties">properties</a> -
+<a href="#rendererOptions">rendererOptions</a> -
+<a href="#renderers">renderers</a> -
+<a href="#rows">rows</a> -
+<a href="#sortersFunction">sortersFunction</a> -</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basic"><a class="anchor" href="#basic"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To create the component, use the <code>pivotTable</code> XML element and bind it to <a class="xref page" href="../flow-ui/data/data-containers.html">data container</a>. To do this, you can use Jmix Studio.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create pivottable component" src="_images/create-pivottable-component.png" width="664"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The new <code>pivotTable</code> element will be added in both the <strong>Jmix UI</strong> structure panel and in the XML. You can configure attributes like <a class="xref page" href="../flow-ui/vc/common-attributes.html#id">id</a>, <a class="xref page" href="../flow-ui/vc/common-attributes.html#height">height</a>, <a class="xref page" href="../flow-ui/vc/common-attributes.html#width">width</a>, etc., in the same way as it is done for other <a class="xref page" href="../flow-ui/vc/components.html">UI components</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;pvttbl:pivotTable id="pivotTable"
+                  height="100%"
+                  width="100%"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you don’t use the view designer, declare the <code>pvttbl</code> namespace in your view’s XML descriptor manually:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:pvttbl="http://jmix.io/schema/pvttbl/ui"
+      title="msg://com.company.ex1.view.pivottable/pivotTableView.title"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="collection-container-example">
+<p>To set up the component, we need to provide a data container and specify the properties we want to show in the table. Here’s how to define data for the component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="tipsDc"
+                class="com.company.ex1.entity.TipInfo"&gt;
+        &lt;fetchPlan extends="_local"/&gt;
+        &lt;loader id="tipsLoader"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from TipInfo e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following example demonstrates how to configure a basic <code>pivotTable</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;pvttbl:pivotTable id="pivotTable"
+                  dataContainer="tipsDc"&gt;
+    &lt;pvttbl:properties&gt;
+        &lt;pvttbl:property name="totalBill"/&gt;
+        &lt;pvttbl:property name="tip"/&gt;
+        &lt;pvttbl:property name="sex"/&gt;
+        &lt;pvttbl:property name="smoker"/&gt;
+        &lt;pvttbl:property name="day"/&gt;
+        &lt;pvttbl:property name="time"/&gt;
+        &lt;pvttbl:property name="size"/&gt;
+    &lt;/pvttbl:properties&gt;
+    &lt;pvttbl:columns&gt;
+        &lt;pvttbl:column value="day"/&gt;
+        &lt;pvttbl:column value="time"/&gt;
+    &lt;/pvttbl:columns&gt;
+    &lt;pvttbl:rows&gt;
+        &lt;pvttbl:row value="sex"/&gt;
+        &lt;pvttbl:row value="smoker"/&gt;
+    &lt;/pvttbl:rows&gt;
+&lt;/pvttbl:pivotTable&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="pivot table basics" src="_images/pivot-table-basics.png" width="748"/>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The <code>pivotTable</code> component is built using the <a href="https://jquery.com/" rel="noopener" target="_blank">jQuery</a> JavaScript library. If you integrate any components that also rely on <code>jQuery</code>, there could be potential conflicts between different versions of the library. To prevent these conflicts, use the <a href="https://api.jquery.com/jQuery.noConflict/#jQuery-noConflict-removeAll" rel="noopener" target="_blank">jQuery.noConflict()</a> approach.</p>
+</div>
+<div class="paragraph">
+<p>You can find an <a href="https://demo.jmix.io/ui-samples/sample/custom-component-js-library" rel="noopener" target="_blank">example</a> of using <code>jQuery.noConflict()</code> in the UI Samples.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="collection-container"><a class="anchor" href="#collection-container"></a>Collection Container</h3>
+<div class="paragraph">
+<p>Typically, you bind a <code>pivotTable</code> to data declaratively in the XML descriptor using the <code>dataContainer</code> attribute. This attribute should refer to a <a class="xref page" href="../flow-ui/data/collection-container.html">collection container</a>, that holds the data you want to display. Please see the relevant <a href="#collection-container-example">example</a> in the previous section.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="custom-data-model"><a class="anchor" href="#custom-data-model"></a>Using Custom Data Model</h3>
+<div class="paragraph">
+<p>You can also define a custom data model and use it within the pivot table component. Here’s how you can achieve this:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Create a simple POJO</strong>:</p>
+<div class="paragraph">
+<p>Start by creating a Plain Old Java Object (POJO) to represent your data structure. This POJO will serve as the foundation for your custom data model.</p>
+</div>
+<details>
+<summary class="title">Show code</summary>
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class Shape {
+
+    private Long id;
+    private String shape;
+    private String color;
+    private String size;
+
+    public Shape(Long id, String shape, String color, String size) {
+        this.id = id;
+        this.shape = shape;
+        this.color = color;
+        this.size = size;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getShape() {
+        return shape;
+    }
+
+    public void setShape(String shape) {
+        this.shape = shape;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</details>
+</li>
+<li>
+<p><strong>Implement JmixPivotTableItems</strong>:</p>
+<div class="paragraph">
+<p>Next, implement the <code>JmixPivotTableItems</code> interface. This interface is crucial for providing the pivot table component with the necessary information about your custom data model.</p>
+</div>
+<div class="paragraph">
+<p>Create a class that implements the <code>JmixPivotTableItems</code> interface. For demonstration purposes, only the primary methods will be implemented. For example:</p>
+</div>
+<details>
+<summary class="title">Show code</summary>
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class ShapeListPivotTableItems implements JmixPivotTableItems&lt;Shape&gt; {
+
+    private List&lt;Shape&gt; items;
+
+    public ShapeListPivotTableItems(List&lt;Shape&gt; items) {
+        this.items = items;
+    }
+
+    @Override
+    public Collection&lt;Shape&gt; getItems() {
+        return items;
+    }
+
+    @Override
+    public Shape getItem(Object itemId) {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Object getItemValue(Shape item, String propertyPath) {
+        if ("shape".equals(propertyPath)) {
+            return item.getShape();
+        } else if ("color".equals(propertyPath)) {
+            return item.getColor();
+        } else if ("size".equals(propertyPath)) {
+            return item.getSize();
+        }
+        return "";
+    }
+
+    @Nullable
+    @Override
+    public Object getItemId(Shape item) {
+        return item.getId();
+    }
+
+    @Override
+    public void setItemValue(Shape item, String propertyPath, @Nullable Object value) {
+    }
+
+    @Override
+    public Shape getItem(String stringId) {
+        return items.stream().filter(i -&gt; i.getId().toString().equals(stringId)).findFirst().orElse(null);
+    }
+
+    @Override
+    public void updateItem(Shape item) {
+    }
+
+    @Override
+    public boolean containsItem(Shape item) {
+        return false;
+    }
+
+    @Override
+    public Registration addItemsChangeListener(Consumer listener) {
+        return null;
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</details>
+</li>
+<li>
+<p><strong>Set Up PivotTable in the Descriptor</strong>:</p>
+<div class="paragraph">
+<p>In view XML descriptor, configure the <code>pivotTable</code> component to use your custom data model. For example:</p>
+</div>
+<details>
+<summary class="title">Show code</summary>
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;pvttbl:pivotTable id="pivotTable" showUI="true"&gt;
+    &lt;pvttbl:properties&gt;
+        &lt;pvttbl:property name="shape" localizedName="Shape"/&gt;
+        &lt;pvttbl:property name="color" localizedName="Color"/&gt;
+        &lt;pvttbl:property name="size" localizedName="Size"/&gt;
+    &lt;/pvttbl:properties&gt;
+    &lt;pvttbl:rows&gt;
+        &lt;pvttbl:row value="shape"/&gt;
+        &lt;pvttbl:row value="color"/&gt;
+    &lt;/pvttbl:rows&gt;
+    &lt;pvttbl:columns&gt;
+        &lt;pvttbl:column value="size"/&gt;
+    &lt;/pvttbl:columns&gt;
+    &lt;pvttbl:hiddenFromAggregations&gt;
+        &lt;pvttbl:property name="size"/&gt;
+    &lt;/pvttbl:hiddenFromAggregations&gt;
+&lt;/pvttbl:pivotTable&gt;</code></pre>
+</div>
+</div>
+</div>
+</details>
+</li>
+<li>
+<p><strong>Create Items and Set to Component</strong>:</p>
+<div class="paragraph">
+<p>Finally, create instances of your custom data objects and set them to the pivot table component.</p>
+</div>
+<details>
+<summary class="title">Show code</summary>
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onInit(final InitEvent event) {
+    pivotTable.setItems(new ShapeListPivotTableItems(List.of(
+            new Shape(1L, "Circle", "Blue", "Middle"),
+            new Shape(2L, "Circle", "Green", "Small"),
+            new Shape(3L, "Ellipse", "Yellow", "Small"),
+            new Shape(4L, "Ellipse", "Green", "Big"),
+            new Shape(5L, "Square", "Blue", "Middle"),
+            new Shape(6L, "Square", "Green", "Big"),
+            new Shape(7L, "Rhombus", "Blue", "Big"),
+            new Shape(8L, "Rhombus", "Yellow", "Small"),
+            new Shape(8L, "Circle", "Yellow", "Small"),
+            new Shape(8L, "Square", "Green", "Small"))));
+}</code></pre>
+</div>
+</div>
+</div>
+</details>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ui-mode"><a class="anchor" href="#ui-mode"></a>UI Mode</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/pivot-table-ui" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph" id="showUI-attr">
+<p>The <code>showUI</code> attribute enables the pivot table to be displayed in UI mode.</p>
+</div>
+<div class="paragraph">
+<p>When the pivot table is in UI mode, users can see the elements for manipulating data.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="pivot table ui mode" src="_images/pivot-table-ui-mode.png" width="1157"/>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Renderer Selector</strong> - specifies how data is displayed in the pivot table.</p>
+</li>
+<li>
+<p><strong>Unused Properties</strong>. Drag and drop these properties to the column or row area, and back again. As you change the table’s structure (by dragging properties), the data automatically re-aggregates and updates to reflect the new arrangement.</p>
+</li>
+<li>
+<p><strong>Column Properties</strong>. Drag properties to this area to use them as columns.</p>
+</li>
+<li>
+<p><strong>Filters</strong>. Use filters to focus on specific subsets of your data. The blue arrow opens a dialog that shows all the values for this property. You can uncheck values to exclude them from the table calculations.</p>
+</li>
+<li>
+<p><strong>Row Properties</strong>. Drag properties to this area to use them as rows.</p>
+</li>
+<li>
+<p><strong>Aggregation Properties</strong> - properties used in aggregation.</p>
+</li>
+<li>
+<p><strong>Aggregation Selector</strong> - select the data aggregation operation, such as count, minimum, maximum, etc.</p>
+</li>
+<li>
+<p><strong>Sorting</strong> within the table: by rows and by columns.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph" id="autoSortUnusedProperties-attr">
+<p>The <code>autoSortUnusedProperties</code> attribute controls whether unused properties are automatically sorted in a predefined order. This attribute is applicable if <code>showUI</code> is set to <code>true</code>.</p>
+</div>
+<div class="paragraph">
+<p>When the attribute is set to <code>true</code>, unused properties displayed in a panel for dragging into the pivot table will be automatically sorted. This helps users quickly find the properties they need.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="auto sort unused properties" src="_images/auto-sort-unused-properties.png" width="646"/>
+</div>
+</div>
+<div class="paragraph" id="unusedPropertiesVertical-attr">
+<p>The <code>unusedPropertiesVertical</code> attribute controls the alignment of the unused properties.</p>
+</div>
+<div class="paragraph">
+<p>When <code>unusedPropertiesVertical</code> is set to <code>true</code>, the unused attributes area is displayed always vertically.</p>
+</div>
+<div class="paragraph">
+<p>When <code>unusedPropertiesVertical</code> is set to <code>false</code>, the unused attributes area is displayed always horizontally.</p>
+</div>
+<div class="paragraph">
+<p>If set to a number (as is the default), the unused attributes are displayed vertically if the combined length of their names in characters exceeds the specified number. Otherwise, they are displayed horizontally.</p>
+</div>
+<div class="paragraph" id="menuLimit-attr">
+<p>The <code>menuLimit</code> attribute controls the number of items displayed in the dropdown menus for row and column selections within the pivot table. This helps manage the size and usability of the menus, especially when dealing with a large number of unique values.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-renderers"><a class="anchor" href="#using-renderers"></a>Using Renderers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Without a renderer, the pivot table uses basic formatting, typically showing numbers or text. A renderer defines how data is displayed within the cells of the pivot table. The add-on provides the following predefined renderers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>TABLE</code>: This is the default renderer, displaying your pivot table data in a standard table format.</p>
+</li>
+<li>
+<p><code>TABLE_BAR_CHART</code>: This renderer combines a table view with a bar chart, providing a more interactive and visual way to present data.</p>
+</li>
+<li>
+<p><code>HEATMAP</code>: This renderer creates a heatmap, where values are represented by colors. It’s great for quickly identifying patterns, trends, or areas of high or low values in your data.</p>
+</li>
+<li>
+<p><code>COL_HEATMAP</code>: This renderer displays a heatmap, but the heatmap coloring is applied across columns, showing the relationship of values within each column. Useful for highlighting trends or outliers within columns.</p>
+</li>
+<li>
+<p><code>ROW_HEATMAP</code>: Similar to <code>COL_HEATMAP</code>, this renderer displays a heatmap, but coloring is applied across rows, emphasizing relationships within rows.</p>
+</li>
+<li>
+<p><code>LINE_CHART</code>: This renderer displays a line chart, connecting data points with lines. It’s perfect for showing trends over time or across continuous data ranges.</p>
+</li>
+<li>
+<p><code>BAR_CHART</code>: This renderer creates a standard bar chart, ideal for comparing values across different categories or groups. The height of each bar represents the value it represents.</p>
+</li>
+<li>
+<p><code>STACKED_BAR_CHART</code>: This renderer creates a stacked bar chart, showing the breakdown of values within each category, with bars stacked on top of each other.</p>
+</li>
+<li>
+<p><code>HORIZONTAL_BAR_CHART</code>: This renderer creates a bar chart with bars oriented horizontally, instead of vertically. This can be useful for improving readability or fitting more labels within a confined space.</p>
+</li>
+<li>
+<p><code>HORIZONTAL_STACKED_BAR_CHART</code>: This renderer creates a stacked bar chart with bars oriented horizontally. It shows the breakdown of values within each category, where the bars stack on top of each other.</p>
+</li>
+<li>
+<p><code>AREA_CHART</code>: This renderer displays your data as an area chart, showing trends over time or across categories. It’s useful for visualizing cumulative values or emphasizing overall growth or decline.</p>
+</li>
+<li>
+<p><code>SCATTER_CHART</code>: This renderer creates a scatter plot, where each data point is represented by a dot. Useful for showing the relationship between two variables and identifying potential correlations.</p>
+</li>
+<li>
+<p><code>TREEMAP</code>: This renderer creates a treemap, where data is represented by rectangles, with the size of each rectangle proportional to the value it represents. Effective for showing hierarchical data or proportions.</p>
+</li>
+<li>
+<p><code>TSV_EXPORT</code>: This is not a visualization renderer but a functionality renderer. It allows users to export the data from the pivot table in a tab-separated value (TSV) format, which is easily importable into other spreadsheet programs.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When the pivot table is in <a href="#ui-mode">UI Mode</a>, you can define a collection of renderers that will be displayed in a dropdown menu of available renderers in the user interface. This is done using the <code>renderers</code> element, which contains inner <code>renderer</code> elements.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;pvttbl:pivotTable id="pivotTable"
+                  dataContainer="tipsDc"
+                  showUI="true"&gt;
+    &lt;pvttbl:properties&gt;
+        &lt;pvttbl:property name="totalBill"/&gt;
+        &lt;pvttbl:property name="tip"/&gt;
+        &lt;pvttbl:property name="sex"/&gt;
+        &lt;pvttbl:property name="smoker"/&gt;
+        &lt;pvttbl:property name="day"/&gt;
+        &lt;pvttbl:property name="time"/&gt;
+        &lt;pvttbl:property name="size"/&gt;
+    &lt;/pvttbl:properties&gt;
+    &lt;pvttbl:columns&gt;
+        &lt;pvttbl:column value="day"/&gt;
+        &lt;pvttbl:column value="time"/&gt;
+    &lt;/pvttbl:columns&gt;
+    &lt;pvttbl:rows&gt;
+        &lt;pvttbl:row value="sex"/&gt;
+        &lt;pvttbl:row value="smoker"/&gt;
+    &lt;/pvttbl:rows&gt;
+    &lt;pvttbl:renderers selected="LINE_CHART"&gt;
+        &lt;pvttbl:renderer type="LINE_CHART"/&gt;
+        &lt;pvttbl:renderer type="AREA_CHART"/&gt;
+        &lt;pvttbl:renderer type="BAR_CHART"/&gt;
+    &lt;/pvttbl:renderers&gt;
+&lt;/pvttbl:pivotTable&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="renderer-attr">
+<p>If the pivot table is not in <a href="#ui-mode">UI Mode</a>, you can declaratively specify a renderer for displaying data in the table using the <code>renderer</code> attribute.</p>
+</div>
+<div class="paragraph" id="columnOrder-attr">
+<p>The <code>columnOrder</code> attribute sets the order in which column data is provided to the renderer. Ordering by value orders by column total.</p>
+</div>
+<div class="paragraph">
+<p>The <code>rowOrder</code> attribute sets the order in which row data is provided to the renderer. Ordering by value orders by row total.</p>
+</div>
+<div class="paragraph">
+<p>Available values:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>KEYS_ASCENDING</code>("key_a_to_z"): This sorting value indicates that you want to sort rows or columns alphabetically in ascending order (A to Z) based on the keys used in the pivot table.</p>
+</li>
+<li>
+<p><code>VALUES_ASCENDING</code>("value_a_to_z"): This sorting value instructs <code>pivotTable</code> to sort rows or columns alphabetically in ascending order (A to Z) based on the values aggregated in each row or column. These values are the results of calculations or aggregations (for example, sum, average, count) applied to your data.</p>
+</li>
+<li>
+<p><code>VALUES_DESCENDING</code>("value_z_to_a"): This sorting value sorts rows or columns alphabetically in descending order (Z to A) based on the aggregated values in each row or column.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-aggregation"><a class="anchor" href="#data-aggregation"></a>Data Aggregation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By using special elements and attributes, the pivot table component allows you to define how data is aggregated within each cell. This functionality combines and summarizes values, providing the foundation for insightful analysis.</p>
+</div>
+<div class="paragraph">
+<p>The add-on provides the following predefined aggregation functions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>COUNT</code>: This function counts the number of non-empty values in a cell.</p>
+</li>
+<li>
+<p><code>COUNT_UNIQUE_VALUES</code>: This function counts the number of distinct (unique) values in a cell.</p>
+</li>
+<li>
+<p><code>LIST_UNIQUE_VALUES</code>: This function returns a list of the unique values in a cell.</p>
+</li>
+<li>
+<p><code>SUM</code>: This function calculates the sum of all values in a cell.</p>
+</li>
+<li>
+<p><code>INTEGER_SUM</code>: This function calculates the sum of all values in a cell, assuming they are integers.</p>
+</li>
+<li>
+<p><code>AVERAGE</code>: This function calculates the average of all values in a cell.</p>
+</li>
+<li>
+<p><code>MINIMUM</code>: This function finds the minimum value in a cell.</p>
+</li>
+<li>
+<p><code>MAXIMUM</code>: This function finds the maximum value in a cell.</p>
+</li>
+<li>
+<p><code>SUM_OVER_SUM</code>: This function calculates the sum of values in a cell divided by the sum of values in a specified second column.</p>
+</li>
+<li>
+<p><code>UPPER_BOUND_80</code>: This function calculates the 80th percentile of values in a cell. It helps identify the upper limit of the distribution.</p>
+</li>
+<li>
+<p><code>LOWER_BOUND_80</code>: This function calculates the 20th percentile of values in a cell. It helps identify the lower limit of the distribution.</p>
+</li>
+<li>
+<p><code>SUM_AS_FRACTION_OF_TOTAL</code>: This function calculates the sum of values in a cell as a percentage of the total sum of values in the entire table.</p>
+</li>
+<li>
+<p><code>SUM_AS_FRACTION_OF_ROWS</code>: This function calculates the sum of values in a cell as a percentage of the total sum of values in the same row.</p>
+</li>
+<li>
+<p><code>SUM_AS_FRACTION_OF_COLUMNS</code>: This function calculates the sum of values in a cell as a percentage of the total sum of values in the same column.</p>
+</li>
+<li>
+<p><code>COUNT_AS_FRACTION_OF_TOTAL</code>: This function calculates the count of values in a cell as a percentage of the total count of values in the entire table.</p>
+</li>
+<li>
+<p><code>COUNT_AS_FRACTION_OF_ROWS</code>: This function calculates the count of values in a cell as a percentage of the total count of values in the same row.</p>
+</li>
+<li>
+<p><code>COUNT_AS_FRACTION_OF_COLUMNS</code>: This function calculates the count of values in a cell as a percentage of the total count of values in the same column.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When the pivot table is in <a href="#ui-mode">UI Mode</a>, you can define a collection of aggregation functions that will be displayed in a dropdown menu of available aggregators in the user interface. This is done using the <a href="#aggregations">aggregations</a> element, which contains inner <code>aggregation</code> elements.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;pvttbl:pivotTable id="pivotTable"
+                   dataContainer="tipsDc"
+                   showUI="true"&gt;
+    &lt;pvttbl:properties&gt;
+        &lt;pvttbl:property name="totalBill"/&gt;
+        &lt;pvttbl:property name="tip"/&gt;
+        &lt;pvttbl:property name="sex"/&gt;
+        &lt;pvttbl:property name="smoker"/&gt;
+        &lt;pvttbl:property name="day"/&gt;
+        &lt;pvttbl:property name="time"/&gt;
+        &lt;pvttbl:property name="size"/&gt;
+    &lt;/pvttbl:properties&gt;
+    &lt;pvttbl:columns&gt;
+        &lt;pvttbl:column value="day"/&gt;
+        &lt;pvttbl:column value="time"/&gt;
+    &lt;/pvttbl:columns&gt;
+    &lt;pvttbl:rows&gt;
+        &lt;pvttbl:row value="sex"/&gt;
+        &lt;pvttbl:row value="smoker"/&gt;
+    &lt;/pvttbl:rows&gt;
+    &lt;pvttbl:aggregations&gt;
+        &lt;pvttbl:aggregation mode="AVERAGE"/&gt;
+        &lt;pvttbl:aggregation mode="COUNT"/&gt;
+        &lt;pvttbl:aggregation mode="SUM"/&gt;
+        &lt;pvttbl:aggregation mode="MAXIMUM"/&gt;
+        &lt;pvttbl:aggregation mode="MINIMUM"/&gt;
+    &lt;/pvttbl:aggregations&gt;
+&lt;/pvttbl:pivotTable&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="aggregationProperties-element">
+<p>You can also set a default aggregation function, as well as the attributes that are used in this aggregation function.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;pvttbl:pivotTable dataContainer="tipsDc"
+                   showUI="true"&gt;
+    &lt;pvttbl:aggregations selected="SUM"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;pvttbl:aggregation mode="AVERAGE"/&gt;
+        &lt;pvttbl:aggregation mode="COUNT"/&gt;
+        &lt;pvttbl:aggregation mode="SUM"/&gt;
+        &lt;pvttbl:aggregation mode="MAXIMUM"/&gt;
+        &lt;pvttbl:aggregation mode="MINIMUM"/&gt;
+    &lt;/pvttbl:aggregations&gt;
+    &lt;pvttbl:aggregationProperties&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+        &lt;pvttbl:property name="size"/&gt;
+    &lt;/pvttbl:aggregationProperties&gt;
+&lt;/pvttbl:pivotTable&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <a href="#aggregations-selected">selected</a> attribute sets the default aggregation function to <code>SUM</code> in the dropdown list.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <a href="#aggregationProperties">aggregationProperties</a> element and its nested <code>property</code> element are used to set the <code>size</code> attribute for use in the aggregation function.</td>
+</tr>
+</table>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="pivot table aggregation defaults" src="_images/pivot-table-aggregation-defaults.png" width="275"/>
+</div>
+</div>
+<div class="paragraph" id="hiddenFromAggregations-element">
+<p>Using <a href="#hiddenFromAggregations">hiddenFromAggregations</a>, you can configure the pivot table to exclude some attributes from aggregation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;pvttbl:pivotTable dataContainer="tipsDc"
+                   showUI="true"&gt;
+    &lt;pvttbl:properties&gt;
+        &lt;pvttbl:property name="totalBill"/&gt;
+        &lt;pvttbl:property name="tip"/&gt;
+        &lt;pvttbl:property name="sex"/&gt;
+        &lt;pvttbl:property name="smoker"/&gt;
+        &lt;pvttbl:property name="day"/&gt;
+        &lt;pvttbl:property name="time"/&gt;
+        &lt;pvttbl:property name="size"/&gt;
+    &lt;/pvttbl:properties&gt;
+    &lt;pvttbl:columns&gt;
+        &lt;pvttbl:column value="day"/&gt;
+        &lt;pvttbl:column value="time"/&gt;
+    &lt;/pvttbl:columns&gt;
+    &lt;pvttbl:rows&gt;
+        &lt;pvttbl:row value="sex"/&gt;
+        &lt;pvttbl:row value="smoker"/&gt;
+    &lt;/pvttbl:rows&gt;
+    &lt;pvttbl:hiddenFromAggregations&gt;
+        &lt;pvttbl:property name="tip"/&gt;
+        &lt;pvttbl:property name="totalBill"/&gt;
+    &lt;/pvttbl:hiddenFromAggregations&gt;
+&lt;/pvttbl:pivotTable&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="aggregation-element-example">
+<p>If the pivot table is not in <a href="#ui-mode">UI Mode</a>, you can declaratively specify an aggregation function for displaying data in the table using the <a href="#aggregation">aggregation</a> element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;pvttbl:pivotTable dataContainer="tipsDc"&gt;
+    &lt;pvttbl:properties&gt;
+        &lt;pvttbl:property name="totalBill"/&gt;
+        &lt;pvttbl:property name="tip"/&gt;
+        &lt;pvttbl:property name="sex"/&gt;
+        &lt;pvttbl:property name="smoker"/&gt;
+        &lt;pvttbl:property name="day"/&gt;
+        &lt;pvttbl:property name="time"/&gt;
+        &lt;pvttbl:property name="size"/&gt;
+    &lt;/pvttbl:properties&gt;
+    &lt;pvttbl:columns&gt;
+        &lt;pvttbl:column value="day"/&gt;
+        &lt;pvttbl:column value="time"/&gt;
+    &lt;/pvttbl:columns&gt;
+    &lt;pvttbl:rows&gt;
+        &lt;pvttbl:row value="sex"/&gt;
+        &lt;pvttbl:row value="smoker"/&gt;
+    &lt;/pvttbl:rows&gt;
+    &lt;pvttbl:aggregation mode="SUM"&gt;
+        &lt;pvttbl:property name="tip"/&gt;
+    &lt;/pvttbl:aggregation&gt;
+&lt;/pvttbl:pivotTable&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-attributes.html">Common attributes</a> serve the same purpose for all components.</p>
+</div>
+<div class="paragraph">
+<p>The following attributes are specific to <code>pivotTable</code>:</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 71.4285%;"/>
+<col style="width: 14.2858%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Default</strong></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="autoSortUnusedProperties"></a>autoSortUnusedProperties</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether unused attributes are kept sorted in the UI. This attribute is applicable if <code>showUI</code> is set to <code>true</code>. See <a href="#autoSortUnusedProperties-attr">UI Mode</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="columnOrder"></a>columnOrder</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the order in which column data is provided to the renderer. Ordering by value orders by column total. See available values in <a href="#columnOrder-attr">Using Renderers</a>. The state of this attribute can be saved in the <a class="xref page" href="../flow-ui/facets/settings.html">user settings</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KEYS_ASCENDING</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="emptyDataMessage"></a>emptyDataMessage</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>emptyDataMessage</code> attribute is used to display a message to the user when the pivot table has no data to show.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="menuLimit"></a>menuLimit</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the maximum number of values to list in the attribute values dialog. This attribute is applicable if <code>showUI</code> is set to <code>true</code>. See <a href="#menuLimit-attr">UI Mode</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>50</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="renderer"></a>renderer</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>renderer</code> attribute allows you setting one of the predefined data <a href="#renderer-attr">renderers</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TABLE</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="rowOrder"></a>rowOrder</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the order in which row data is provided to the renderer. Ordering by value orders by row total. See available values in <a href="#columnOrder-attr">Using Renderers</a>. The state of this attribute can be saved in the <a class="xref page" href="../flow-ui/facets/settings.html">user settings</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KEYS_ASCENDING</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="showUI"></a>showUI</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If the <code>showUI</code> attribute is <code>true</code> the pivot table UI is shown. See <a href="#showUI-attr">UI Mode</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="showColumnTotals"></a>showColumnTotals</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>showColumnTotals</code> attribute controls whether the <code>pivotTable</code> component displays totals for each column. When <code>showColumnTotals</code> is set to <code>true</code>, the pivot table will display a row at the bottom of the table that summarizes the data for each column. This row will typically display the total value (for example, sum, average) of each column. The <code>showColumnTotals</code> attribute works only for table renderers (<code>Table</code>, <code>Table barchart</code>, <code>Heatmap</code>, <code>Row heatmap</code>, <code>Col heatmap</code>). See <a href="https://demo.jmix.io/ui-samples/sample/pivot-table-ui-properties" rel="noopener" target="_blank">live demo</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="showRowTotals"></a>showRowTotals</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>showRowTotals</code> attribute controls whether the pivot table displays totals for each row. When <code>showRowTotals</code> is set to <code>true</code>, the pivot table will display a column at the end of the table that summarizes the data for each row. This row will typically display the total value (for example, sum, average) of each row. The <code>showRowTotals</code> attribute works only for table renderers (<code>Table</code>, <code>Table barchart</code>, <code>Heatmap</code>, <code>Row heatmap</code>, <code>Col heatmap</code>). See <a href="https://demo.jmix.io/ui-samples/sample/pivot-table-ui-properties" rel="noopener" target="_blank">live demo</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="unusedPropertiesVertical"></a>unusedPropertiesVertical</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls the orientation of the unused attributes area in the pivot table. This attribute is applicable if <code>showUI</code> is set to <code>true</code>. See <a href="#unusedPropertiesVertical-attr">UI Mode</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Horizontal alignment (<code>85</code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-handlers.html">Common handlers</a> are configured in the same way for all components.</p>
+</div>
+<div class="paragraph">
+<p>The following handlers are specific to <code>pivotTable</code>:</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="PivotTableCellClickEvent"></a>PivotTableCellClickEvent</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>io.jmix.pivottableflowui.kit.event.PivotTableCellClickEvent</code> is triggered when a user clicks on a cell within the pivot table. Corresponds to the <code>jmix-pivottable:cellclick</code> DOM event.</p>
+<p class="tableblock">The <code>PivotTableCellClickEvent</code> is fired only for table <a href="#using-renderers">renderers</a> (<code>TABLE</code>, <code>HEATMAP</code>, <code>TABLE_BAR_CHART</code>, <code>COL_HEATMAP</code>, <code>ROW_HEATMAP</code>).</p>
+<p class="tableblock">See <a href="https://demo.jmix.io/ui-samples/sample/pivot-table-events" rel="noopener" target="_blank">live demo</a>.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="PivotTableRefreshEvent"></a>PivotTableRefreshEvent</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>io.jmix.pivottableflowui.kit.event.PivotTableRefreshEvent</code> is an event, that is triggered whenever the pivot table’s data is refreshed or recalculated. This event signals that the pivot table’s content has changed and provides the opportunity to react to these updates.
+Corresponds to the <code>jmix-pivottable:refresh</code> DOM event.</p>
+<p class="tableblock">The <code>PivotTableRefreshEvent</code> is fired only for the pivot table in <a href="#ui-mode">UI Mode</a>.</p>
+<p class="tableblock">The following values are available from the <code>PivotTableRefreshEvent</code>: <a href="#aggregation">aggregation</a>, <a href="#aggregationProperties">aggregationProperties</a>, <a href="#columns">columns</a>, <a href="#columnOrder">columnOrder</a>, <a href="#exclusions">exclusions</a>, <a href="#inclusions">inclusions</a>, <a href="#renderer">renderer</a>, <a href="#rowOrder">rowOrder</a>, <a href="#rows">rows</a>.</p>
+<p class="tableblock">See <a href="https://demo.jmix.io/ui-samples/sample/pivot-table-events" rel="noopener" target="_blank">live demo</a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Elements of <code>pivotTable</code> provide a wide range of options to control the appearance, behavior, and functionality of columns and rows both collectively and individually.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To add an element to a selected component click the <a class="xref page" href="../studio/view-designer.html#add-column">Add</a> button in the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="aggregation"><a class="anchor" href="#aggregation"></a>aggregation</h3>
+<div class="paragraph">
+<p>The <code>aggregation</code> element sets up a function which will aggregate results per cell. This element is applicable if <a href="#showUI">showUI</a> is set to <code>false</code>. See <a href="#aggregation-element-example">Data Aggregation</a>.</p>
+</div>
+<table class="tableblock frame-all grid-none stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aggregation</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#caption">caption</a> - <a href="#custom">custom</a> - <a href="#mode">mode</a></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#function">function</a> - <a href="#property">property</a></p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Attributes</caption>
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 71.4285%;"/>
+<col style="width: 14.2858%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Default</strong></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="caption"></a>caption</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">This attribute provides a localized value for display in the user interface.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">–</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="custom"></a>custom</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Setting this to <code>true</code> overrides the <code>mode</code> attribute with the JavaScript code from the enclosed <code>function</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">–</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="mode"></a>mode</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables setting one of the predefined aggregation functions.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>count</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="function"><a class="anchor" href="#function"></a>function</h4>
+<div class="paragraph">
+<p>The <code>function</code> element contains JavaScript code of an aggregation function.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="property"><a class="anchor" href="#property"></a>property</h4>
+<div class="paragraph">
+<p>Specifies the name of the attribute to be used as an input parameter for the selected aggregation function.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="aggregationProperties"><a class="anchor" href="#aggregationProperties"></a>aggregationProperties</h3>
+<div class="paragraph">
+<p>Sets attribute names to prepopulate in the dropdown list of aggregation properties. See <a href="#aggregationProperties-element">Data Aggregation</a>.</p>
+</div>
+<div class="paragraph">
+<p>This element is applicable to pivot tables in <a href="#ui-mode">UI Mode</a>.</p>
+</div>
+<div class="paragraph">
+<p>The state of this element can be saved in the <a class="xref page" href="../flow-ui/facets/settings.html">user settings</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="aggregations"><a class="anchor" href="#aggregations"></a>aggregations</h3>
+<div class="paragraph">
+<p>Defines the collection of aggregation functions that should be displayed in the dropdown list of available aggregators in the UI. This element is applicable if <a href="#showUI">showUI</a> is set to <code>true</code>. See <a href="#data-aggregation">Data Aggregation</a>.</p>
+</div>
+<table class="tableblock frame-all grid-none stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aggregations</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#aggregations-selected">selected</a></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#aggregation-element">aggregation</a></p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Attributes</caption>
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 71.4285%;"/>
+<col style="width: 14.2858%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Default</strong></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="aggregations-selected"></a>selected</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">This attribute allows you to choose one of the predefined <a href="#data-aggregation">aggregation functions</a>. The selected function will be used as the default when the component loads. The state of this attribute can be saved in the <a class="xref page" href="../flow-ui/facets/settings.html">user settings</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">–</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="aggregation-element"><a class="anchor" href="#aggregation-element"></a>aggregation</h4>
+<div class="paragraph">
+<p>This element allows you to specify one of the predefined aggregation functions using its <code>mode</code> attribute. See <a href="#data-aggregation">Data Aggregation</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="columns"><a class="anchor" href="#columns"></a>columns</h3>
+<div class="paragraph">
+<p>A list of attributes to be used as table columns. The value can be either a <a href="#properties">properties</a> key or the name of a generated attribute.</p>
+</div>
+<div class="paragraph">
+<p>The state of this element can be saved in the <a class="xref page" href="../flow-ui/facets/settings.html">user settings</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="derivedProperties"><a class="anchor" href="#derivedProperties"></a>derivedProperties</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/pivot-table-derived-properties" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>It can be used to add new attributes to the original data container derived from the existing ones. This element is a key-value map, where the key is the name of the generated attribute, and the value is the JavaScript function that generates this attribute.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The enclosed <code>derivedProperty</code> elements should have the <code>caption</code> attribute defined, as the caption’s value will be used as the key.</p>
+</li>
+<li>
+<p>The <code>function</code> element is used as the value for the <code>derivedProperty</code>.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;pvttbl:pivotTable id="pivotTable"
+                   dataContainer="tipsDc"
+                   showUI="true"&gt;
+    &lt;pvttbl:properties&gt;
+        &lt;pvttbl:property name="totalBill"/&gt;
+        &lt;pvttbl:property name="tip"/&gt;
+        &lt;pvttbl:property name="sex"/&gt;
+        &lt;pvttbl:property name="smoker"/&gt;
+        &lt;pvttbl:property name="day"/&gt;
+        &lt;pvttbl:property name="time"/&gt;
+        &lt;pvttbl:property name="size"/&gt;
+    &lt;/pvttbl:properties&gt;
+    &lt;pvttbl:derivedProperties&gt;
+        &lt;pvttbl:derivedProperty caption="Derived Property"&gt;
+            &lt;pvttbl:function&gt;
+                function(item) {
+                return item.Size - item.Size % 10;
+                }
+            &lt;/pvttbl:function&gt;
+        &lt;/pvttbl:derivedProperty&gt;
+    &lt;/pvttbl:derivedProperties&gt;
+&lt;/pvttbl:pivotTable&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="exclusions"><a class="anchor" href="#exclusions"></a>exclusions</h3>
+<div class="paragraph">
+<p>A key-value map where the key is the name of an attribute (either a <a href="#properties">properties</a> key or the name of a generated attribute), and the value is a list of attribute values to be excluded from rendering.</p>
+</div>
+<div class="paragraph">
+<p>This element is applicable to pivot tables in <a href="#ui-mode">UI Mode</a>.</p>
+</div>
+<div class="paragraph">
+<p>The state of this element can be saved in the <a class="xref page" href="../flow-ui/facets/settings.html">user settings</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="filterFunction"><a class="anchor" href="#filterFunction"></a>filterFunction</h3>
+<div class="paragraph">
+<p>A JavaScript function that is called for each record. It returns <code>false</code> if the record should be excluded from the input before rendering, or <code>true</code> otherwise.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="hiddenFromAggregations"><a class="anchor" href="#hiddenFromAggregations"></a>hiddenFromAggregations</h3>
+<div class="paragraph">
+<p>The <code>hiddenFromAggregations</code> element is used to specify which attributes should be excluded from <a href="#aggregations">aggregations</a>. The list of attributes is defined using the nested <code>property</code> element. See <a href="#hiddenFromAggregations-element">Data Aggregation</a>.</p>
+</div>
+<div class="paragraph">
+<p>This element is applicable to pivot tables in <a href="#ui-mode">UI Mode</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="hiddenFromDragDrop"><a class="anchor" href="#hiddenFromDragDrop"></a>hiddenFromDragDrop</h3>
+<div class="paragraph">
+<p>The <code>hiddenFromDragDrop</code> element controls which attributes are excluded from the drag-and-drop functionality in the pivot table <a href="#ui-mode">UI</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="hiddenProperties"><a class="anchor" href="#hiddenProperties"></a>hiddenProperties</h3>
+<div class="paragraph">
+<p>This element defines a list of attributes that should not be displayed in the UI. Its value can be either a <code>properties</code> key or the name of a generated attribute, such as a key from the <a href="#derivedProperties">derivedProperties</a> element.</p>
+</div>
+<div class="paragraph">
+<p>This element is applicable when <a href="#showUI">showUI</a> is set to <code>true</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="inclusions"><a class="anchor" href="#inclusions"></a>inclusions</h3>
+<div class="paragraph">
+<p>A key-value map where the key is the name of an attribute (either a <a href="#properties">properties</a> key or a generated attribute’s name), and the value is a list of attribute values to be rendered.</p>
+</div>
+<div class="paragraph">
+<p>This element is applicable when <a href="#showUI">showUI</a> is set to <code>true</code>.</p>
+</div>
+<div class="paragraph">
+<p>The state of this element can be saved in the <a class="xref page" href="../flow-ui/facets/settings.html">user settings</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="properties"><a class="anchor" href="#properties"></a>properties</h3>
+<div class="paragraph">
+<p>A key-value map containing properties to be used in the pivot table. The key is the attribute name from the <a class="xref page" href="../flow-ui/data/data-containers.html">data container</a>, and the value is its localized caption.</p>
+</div>
+<div class="paragraph">
+<p>If the pivot table is in <a href="#ui-mode">UI Mode</a>, the attributes specified in the <code>properties</code> element are used to form the <strong>Column Properties</strong> and <strong>Row Properties</strong>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="rendererOptions"><a class="anchor" href="#rendererOptions"></a>rendererOptions</h3>
+<div class="paragraph">
+<p>The <code>rendererOptions</code> element provides a way to customize the specific settings of the selected renderer. Only two renderer types can be customized:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>All kinds of <code>heatmap</code>. The cell colors can be set by the Javascript code.</p>
+<div class="paragraph">
+<p>The <code>colorScaleGeneratorFunction</code> element is used to set a function that is used in color scale generator of heatmap renderer.</p>
+</div>
+</li>
+<li>
+<p>All kinds of charts. Options can be used to set the chart’s size.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="renderers"><a class="anchor" href="#renderers"></a>renderers</h3>
+<div class="paragraph">
+<p>Controls the dropdown menu of rendering functions presented to users in the UI. This element is applicable if <a href="#showUI">showUI</a> is set to <code>true</code>. See <a href="#using-renderers">Using Renderers</a>.</p>
+</div>
+<table class="tableblock frame-all grid-none stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>renderers</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#selected">selected</a></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#renderer-element">renderer</a></p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Attributes</caption>
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 71.4285%;"/>
+<col style="width: 14.2858%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Default</strong></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="selected"></a>selected</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">This attribute allows you to choose one of the predefined <a href="#using-renderers">renderers</a>. The selected renderer will be used as the default when the component loads. The state of this attribute can be saved in the <a class="xref page" href="../flow-ui/facets/settings.html">user settings</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">–</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="renderer-element"><a class="anchor" href="#renderer-element"></a>renderer</h4>
+<div class="paragraph">
+<p>This element allows you to specify one of the predefined renderers using its <code>type</code> attribute. See <a href="#using-renderers">Using Renderers</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="rows"><a class="anchor" href="#rows"></a>rows</h3>
+<div class="paragraph">
+<p>A list of attributes to be used as table rows. The value can be either a <a href="#properties">properties</a> key or the name of a generated attribute.</p>
+</div>
+<div class="paragraph">
+<p>The state of this element can be saved in the <a class="xref page" href="../flow-ui/facets/settings.html">user settings</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="sortersFunction"><a class="anchor" href="#sortersFunction"></a>sortersFunction</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/pivot-table-sorter-function" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>A JavaScript function that is called with an attribute name and can return a function that can be used as an argument to <code>Array.sort</code> for output purposes. If no function is returned, the default sorting mechanism is a built-in "natural sort" implementation. This is useful for sorting attributes like month names.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See the <a href="https://github.com/nicolaskruchten/pivottable/wiki/UI-Tutorial" rel="noopener" target="_blank">PivotTable Docs</a> for more information.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

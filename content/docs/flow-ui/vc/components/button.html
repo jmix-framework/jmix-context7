@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>button :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">button</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/button-simple" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>A button to trigger an action when a user clicks on it.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>XML element: <code>button</code></p>
+</li>
+<li>
+<p>Java class: <code>JmixButton</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A button can have a text, an icon, or both:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="button 1" src="../../_images/visual-components/components/button-1.png" width="247"/>
+</div>
+</div>
+<div class="paragraph">
+<p>An example of defining a button with text, icon and a tooltip (<code>title</code> attribute) retrieved from the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="toolsButton"
+        text="Tools"
+        title="msg://toolsButton.title"
+        icon="TOOLS"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To handle button clicks, subscribe to the <code>ClickEvent</code> in the view class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "toolsButton", subject = "clickListener")
+public void onToolsButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    // ...
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="action"><a class="anchor" href="#action"></a>Action</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Instead of creating a <a href="#ClickEvent">ClickEvent</a> handler, you can associate the button with an existing <a class="xref page" href="../../actions.html">Action</a>. Using existing actions provides a more efficient approach, as it automatically updates various attributes and behavior of the button. This can include button’s state, visibility, text, title, icon, and user interaction outcome.</p>
+</div>
+<div class="paragraph">
+<p>If the action is defined for the view, specify the action id in the button’s <code>action</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;actions&gt;
+    &lt;action id="helloAction" text="Say Hello"/&gt;
+&lt;/actions&gt;
+&lt;layout&gt;
+    &lt;button id="helloButton" action="helloAction"/&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the action is defined for a component, such as <a class="xref page" href="dataGrid.html">dataGrid</a>, specify the component id and action id separated by the dot in the button’s <code>action</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout&gt;
+    &lt;button id="createButton" action="usersTable.create"/&gt;
+
+    &lt;dataGrid id="usersTable" dataContainer="users"&gt;
+        &lt;actions&gt;
+            &lt;action id="create" type="list_create"/&gt;
+        &lt;/actions&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="variants"><a class="anchor" href="#variants"></a>Variants</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/button-theme-variant" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute allows you to assign a specific button style from the set of predefined variants.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Importance variants:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="button variant 1" src="../../_images/visual-components/components/button-variant-1.png" width="319"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Primary" themeNames="primary"/&gt;
+&lt;button text="Secondary"/&gt;
+&lt;button text="Tertiary" themeNames="tertiary"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Danger or error variants:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="button variant 2" src="../../_images/visual-components/components/button-variant-2.png" width="319"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Primary" themeNames="primary error"/&gt;
+&lt;button text="Secondary" themeNames="error"/&gt;
+&lt;button text="Tertiary" themeNames="tertiary error"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Success variants:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="button variant 3" src="../../_images/visual-components/components/button-variant-3.png" width="319"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Primary" themeNames="primary success"/&gt;
+&lt;button text="Secondary" themeNames="success"/&gt;
+&lt;button text="Tertiary" themeNames="tertiary success"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Contrast variants:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="button variant 4" src="../../_images/visual-components/components/button-variant-4.png" width="319"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Primary" themeNames="primary contrast"/&gt;
+&lt;button text="Secondary" themeNames="contrast"/&gt;
+&lt;button text="Tertiary" themeNames="tertiary contrast"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Size variants:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="button variant 5" src="../../_images/visual-components/components/button-variant-5.png" width="319"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Large" themeNames="large"/&gt;
+&lt;button text="Normal"/&gt;
+&lt;button text="Small" themeNames="small"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Inline variant without any white space around the button text:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="button variant 6" src="../../_images/visual-components/components/button-variant-6.png" width="119"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Tertiary inline" themeNames="tertiary-inline"/&gt;</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The variant theme names are defined in the <a href="https://vaadin.com/api/platform/24.8/com/vaadin/flow/component/button/ButtonVariant.html" rel="noopener" target="_blank">ButtonVariant</a> class. See also <a href="https://vaadin.com/docs/latest/components/button#styles" rel="noopener" target="_blank">Vaadin Docs</a> for more information about button styles.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a href="#action">action</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
+<a class="xref page" href="../common-attributes.html#autofocus">ariaLabelledBy</a> -
+<a class="xref page" href="../common-attributes.html#autofocus">autofocus</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a href="#disable-on-click">disableOnClick</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#focusShortcut">focusShortcut</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a href="#icon">icon</a> -
+<a href="#iconAfterText">iconAfterText</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#tabIndex">tabIndex</a> -
+<a class="xref page" href="../common-attributes.html#text">text</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#title">title</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a href="#whiteSpace">whiteSpace</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+<div class="sect2">
+<h3 id="disable-on-click"><a class="anchor" href="#disable-on-click"></a>disableOnClick</h3>
+<div class="paragraph">
+<p>If the <code>disableOnClick</code> attribute is set to <code>true</code>, the button will be automatically disabled when clicked, typically to prevent (accidental) extra clicks on a button. You can later re-enable the button by invoking the <code>setEnabled(true)</code> method.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="icon"><a class="anchor" href="#icon"></a>icon</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/components/icons" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>Allows to set the <code>Icon</code> component for the button. There are two built-in icon sets:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Lumo Icons. You can set the Lumo icon in XML:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="lumoBtn" icon="lumo:photo"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or in the controller class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected JmixButton lumoBtn;
+
+@Subscribe
+public void onInit(InitEvent event) {
+    Icon lumoIcon = new Icon("lumo", "photo");
+    lumoBtn.setIcon(lumoIcon);
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Vaadin Icons. The icons from this set have constants. You can set the Vaadin icon in XML:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="vaadinBtn" icon="ALARM"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or in the controller class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected JmixButton vaadinBtn;
+
+@Subscribe
+public void onInit(InitEvent event) {
+    Icon vaadinIcon = new Icon(VaadinIcon.PHONE);
+    vaadinBtn.setIcon(vaadinIcon);
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Since button can have <a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix and suffix</a> components, external images can be used instead of icons.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../html-components/image.html">image</a> component as an icon:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="imageIconBtn" text="Image"&gt;
+    &lt;prefix&gt;
+        &lt;image resource="icons/icon.png"
+               width="var(--lumo-icon-size-m)"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+
+    &lt;/prefix&gt;
+&lt;/button&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Set the same width as for <code>VaadinIcon</code></td>
+</tr>
+</table>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="button icon image" src="../../_images/visual-components/components/button-icon-image.png" width="106"/>
+</div>
+</div>
+</li>
+<li>
+<p><code>svgIcon</code> component as an icon:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="svgIconBtn" text="Svg Icon"&gt;
+    &lt;prefix&gt;
+        &lt;svgIcon resource="icons/jmix-icon.svg"/&gt;
+    &lt;/prefix&gt;
+&lt;/button&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="button icon svg" src="../../_images/visual-components/components/button-icon-svg.png" width="124"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="iconAfterText"><a class="anchor" href="#iconAfterText"></a>iconAfterText</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/components/button/#buttons-with-icons" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>If the <code>iconAfterText</code> attribute is set to <code>true</code>, this button’s icon should be positioned after it’s text content.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="whiteSpace"><a class="anchor" href="#whiteSpace"></a>whiteSpace</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="mdn-docs-btn" href="https://developer.mozilla.org/en-US/docs/Web/CSS/white-space" target="_blank">MDN</a>
+</div>
+<div class="paragraph">
+<p>Defines the component’s <code>white-space</code> style value. Possible values are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>NORMAL</code></p>
+</li>
+<li>
+<p><code>NOWRAP</code></p>
+</li>
+<li>
+<p><code>PRE</code></p>
+</li>
+<li>
+<p><code>PRE_WRAP</code></p>
+</li>
+<li>
+<p><code>PRE_LINE</code></p>
+</li>
+<li>
+<p><code>BREAK_SPACES</code></p>
+</li>
+<li>
+<p><code>INHERIT</code></p>
+</li>
+<li>
+<p><code>INITIAL</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
+<a href="#ClickEvent">clickListener</a> -
+<a href="#doubleClickListener">doubleClickListener</a> -
+<a href="#singleClickListener">singleClickListener</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="ClickEvent"><a class="anchor" href="#ClickEvent"></a>clickListener</h3>
+<div class="paragraph">
+<p>Fires the <code>com.vaadin.flow.component.ClickEvent</code> with the <code>click</code> subject. It is triggered whenever the component is clicked.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "clickBtn", subject = "clickListener") <i class="conum" data-value="1"></i><b>(1)</b>
+public void onClickBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    JmixButton button = event.getSource(); <i class="conum" data-value="2"></i><b>(2)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@Subscribe</code> annotation connects the handler method to the component by the component’s id.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>If needed, you can get the clicked button from the event object.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To register the event handler programmatically, use the <code>addClickListener()</code> component method.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="doubleClickListener"><a class="anchor" href="#doubleClickListener"></a>doubleClickListener</h3>
+<div class="paragraph">
+<p>Fires the <code>com.vaadin.flow.component.ClickEvent</code> with the <code>doubleClick</code> subject. It is triggered when the user clicks the button twice within a short time interval.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "clickBtn", subject = "doubleClickListener")
+public void onClickBtnClick1(final ClickEvent&lt;JmixButton&gt; event) {
+    notifications.show("This is doubleClickListener");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To register the event handler programmatically, use the <code>addDoubleClickListener()</code> component method.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="singleClickListener"><a class="anchor" href="#singleClickListener"></a>singleClickListener</h3>
+<div class="paragraph">
+<p>Fires the <code>com.vaadin.flow.component.ClickEvent</code> with the <code>singleClick</code> subject. The event is triggered after a timeout to ensure it is not a double-click.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "clickBtn", subject = "singleClickListener")
+public void onClickBtnClick2(final ClickEvent&lt;JmixButton&gt; event) {
+    notifications.show("This is singleClickListener");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To register the event handler programmatically, use the <code>addSingleClickListener()</code> component method.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="tooltip.html">tooltip</a> -
+<a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a> -
+<a class="xref page" href="../miscellaneous/prefix-suffix.html">suffix</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="https://vaadin.com/docs/latest/components/button" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

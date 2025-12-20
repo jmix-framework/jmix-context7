@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenID Connect :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">OpenID Connect</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Jmix OpenID Connect add-on provides predefined Spring Security configurations and a set of services that allow you to easily implement the following features in your applications:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>User authentication using an external OpenID Provider (e.g., Keycloak).</p>
+</li>
+<li>
+<p>Mapping user attributes and roles from the OpenID Provider user to Jmix user.</p>
+</li>
+<li>
+<p>Persisting user entity and role assignments after the user is successfully authenticated at the OpenID Provider.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The add-on leverages Spring Security support for OAuth2 and OpenID Connect 1.0. You may read about it in <a href="https://docs.spring.io/spring-security/reference/servlet/oauth2/index.html" rel="noopener" target="_blank">Spring Security documentation</a>.</p>
+</div>
+<div class="paragraph">
+<p>The add-on applies <code>OidcAutoConfiguration</code> unless it is explicitly disabled by setting the <code>jmix.oidc.use-default-configuration=false</code> application property. The configuration enables OpenID Connect authentication for UI and REST API URLs.</p>
+</div>
+<div class="paragraph">
+<p>See also the <a class="xref page" href="../restds-oidc-guide/index.html">REST DataStore with External Authentication</a> guide for practical examples.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For automatic installation through Jmix Marketplace, follow instructions in the <a class="xref page" href="../add-ons.html#installation">Add-ons</a> section.</p>
+</div>
+<div class="paragraph">
+<p>For manual installation, add the following dependency to your <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.oidc:jmix-oidc-starter'</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="client-configuration"><a class="anchor" href="#client-configuration"></a>Client Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After including the add-on in your project and before starting the application, you should configure the "client", which is a Jmix application that requires end-user authentication from the OpenID Provider.</p>
+</div>
+<div class="paragraph">
+<p>Use the standard Spring Security approach to configure the client. You can do it by adding the following properties to the <code>application.properties</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.oauth2.client.registration.keycloak.client-id=&lt;client-id&gt;
+spring.security.oauth2.client.registration.keycloak.client-secret=&lt;client-secret&gt;
+spring.security.oauth2.client.registration.keycloak.scope=openid, profile, email
+spring.security.oauth2.client.provider.keycloak.issuer-uri=http://localhost:8180/realms/&lt;realm&gt;
+spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realms/&lt;realm&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>keycloak</code> in the property key is the provider id. It may have any value, for example <code>okta</code>, so the property will be <code>spring.security.oauth2.client.registration.okta.client-id</code>.</p>
+</div>
+<div class="paragraph">
+<p>Client ID and client secret values must be taken from the OpenID provider.</p>
+</div>
+<div class="paragraph">
+<p>The <code>issuer-uri</code> property contains a path to the OpenID Provider <a href="https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig" rel="noopener" target="_blank">Configuration Endpoint</a>.</p>
+</div>
+<div class="paragraph">
+<p>By default, the "sub" claim will be used as a Jmix user username. If you want to change it, use the following application property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.oauth2.client.provider.keycloak.user-name-attribute=preferred_username</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-default-addon-configuration"><a class="anchor" href="#using-default-addon-configuration"></a>Using Default Add-on Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After including the add-on in the project, configuring the client and <a href="#configuring-local-keycloak-instance">setting up Keycloak</a>, you may start the application. In this case, the default add-on configuration will do the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Non-authenticated users will be redirected to OpenID Provider login page.</p>
+</li>
+<li>
+<p>After the user has authenticated in the OpenID Provider, an instance of <code>DefaultJmixOidcUser</code> will be created and set to the security context. No user attributes will be mapped. The user won’t be stored in the database.</p>
+</li>
+<li>
+<p>Collection of user role codes will be taken from the "roles" claim of the ID Token, and then resource and row-level roles with given codes will be set to the user authentication object.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>DefaultJmixOidcUser</code> class implements the <code>JmixOidcUser</code> interface. The user class must always implement this interface because Jmix applications require the <code>UserDetails</code> interface, and Spring Security works with the <code>OidcUser</code> interface. <code>JmixOidcUser</code> just extends both these interfaces.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="mapping-user-attributes-and-roles"><a class="anchor" href="#mapping-user-attributes-and-roles"></a>Mapping User Attributes and Roles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you need to work with an in-memory user but want to fill some user attributes, create a class that extends <code>DefaultJmixOidcUser</code>. In the example below, it has the <code>position</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.oidc.user.DefaultJmixOidcUser;
+
+public class MyUser extends DefaultJmixOidcUser {
+
+    private String position;
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then you need to register an instance of <code>OidcUserMapper</code> as a Spring bean. You can extend the <code>BaseOidcUserMapper</code> and override its methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import examples.oidcex1.entity.MyUser;
+import io.jmix.oidc.claimsmapper.ClaimsRolesMapper;
+import io.jmix.oidc.usermapper.BaseOidcUserMapper;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+
+@Component
+public class MyOidcUserMapper extends BaseOidcUserMapper&lt;MyUser&gt; {
+
+    private ClaimsRolesMapper claimsRolesMapper;
+
+    public MyOidcUserMapper(ClaimsRolesMapper claimsRolesMapper) {
+        this.claimsRolesMapper = claimsRolesMapper;
+    }
+
+    @Override
+    protected String getOidcUserUsername(OidcUser oidcUser) {
+        return oidcUser.getName();
+    }
+
+    @Override
+    protected MyUser initJmixUser(OidcUser oidcUser) {
+        return new MyUser();
+    }
+
+    @Override
+    protected void populateUserAttributes(OidcUser oidcUser, MyUser jmixUser) {
+        jmixUser.setPosition((String) oidcUser.getClaims().get("position"));
+    }
+
+    @Override
+    protected void populateUserAuthorities(OidcUser oidcUser, MyUser jmixUser) {
+        Collection&lt;? extends GrantedAuthority&gt; authorities = claimsRolesMapper.toGrantedAuthorities(oidcUser.getClaims());
+        jmixUser.setAuthorities(authorities);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that in the example above, the mapping of claims from OIDC user to Jmix granted authorities is delegated to the <code>ClaimsRolesMapper</code> interface. The default implementation of <code>ClaimsRolesMapper</code> is <code>DefaultClaimsRolesMapper</code>, which gets the claim with the "roles" name from the ID Token. This claim must contain a collection of role names. Then for each role from the claim value resource role and row-level role are searched in Jmix. If found, corresponding granted authorities will be added to the user. The roles claim name can be configured using the following application property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.oidc.default-claims-roles-mapper.roles-claim-name=myRoles</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If necessary, you can create your own mapper of claims to roles. The easiest way to do it is to extend the <code>BaseClaimsRolesMapper</code> and override its <code>getResourceRolesCodes()</code> and/or <code>getRowLevelRolesCodes()</code> methods. The example below demonstrates how to assign roles based on the "position" claim:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.oidc.claimsmapper.BaseClaimsRolesMapper;
+import io.jmix.security.role.ResourceRoleRepository;
+import io.jmix.security.role.RoleGrantedAuthorityUtils;
+import io.jmix.security.role.RowLevelRoleRepository;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+
+@Component
+public class MyClaimsRoleMapper extends BaseClaimsRolesMapper {
+
+    public MyClaimsRoleMapper(ResourceRoleRepository resourceRoleRepository,
+                              RowLevelRoleRepository rowLevelRoleRepository,
+                              RoleGrantedAuthorityUtils roleGrantedAuthorityUtils) {
+        super(resourceRoleRepository, rowLevelRoleRepository, roleGrantedAuthorityUtils);
+    }
+
+    @Override
+    protected Collection&lt;String&gt; getResourceRolesCodes(Map&lt;String, Object&gt; claims) {
+        Collection&lt;String&gt; jmixRoleCodes = new HashSet&lt;&gt;();
+        String position = (String) claims.get("position");
+        if ("Manager".equals(position)) {
+            jmixRoleCodes.add("edit-contracts");
+            jmixRoleCodes.add("view-archive");
+        } else {
+            jmixRoleCodes.add("view-contracts");
+        }
+        return jmixRoleCodes;
+
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="working-with-user-jpa-entity"><a class="anchor" href="#working-with-user-jpa-entity"></a>Working with User JPA Entity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to work with Jmix OIDC add-on, the <code>User</code> JPA entity must implement the <code>io.jmix.oidc.user.JmixOidcUser</code> interface that in turns implements <code>org.springframework.security.oauth2.core.oidc.user.OidcUser</code> required by Spring Security.</p>
+</div>
+<div class="paragraph">
+<p>The simplest way to make the <code>User</code> entity compatible with the OIDC add-on is to make this class a subclass of the <code>io.jmix.oidc.user.JmixOidcUserEntity</code> abstract class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Entity
+@Table(name = "USER_", indexes = {
+        @Index(name = "IDX_USER__ON_USERNAME", columnList = "USERNAME", unique = true)
+})
+public class User extends JmixOidcUserEntity implements HasTimeZone {
+
+    //...
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>In case of Kotlin project it’s required to make the following additional changes in <code>User</code> entity class:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add annotation <code>@get:JvmName("getEmail_")</code> to <code>email</code> property.</p>
+</li>
+<li>
+<p>Add overridden method <code>override fun getEmail(): String? = email</code></p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To store users in the database after they are logged in using OpenID Provider, you’ll need to register a user mapper that extends the <code>SynchronizingOidcUserMapper</code> class. This superclass contains the behavior that stores/updates the user in the database. Optionally you may also store information about role assignments in the database.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import examples.oidcex1.entity.User;
+import io.jmix.core.UnconstrainedDataManager;
+import io.jmix.core.security.UserRepository;
+import io.jmix.oidc.claimsmapper.ClaimsRolesMapper;
+import io.jmix.oidc.usermapper.SynchronizingOidcUserMapper;
+import io.jmix.security.role.RoleGrantedAuthorityUtils;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MySynchronizingOidcUserMapper extends SynchronizingOidcUserMapper&lt;User&gt; {
+
+    public MySynchronizingOidcUserMapper(UnconstrainedDataManager dataManager,
+                                         UserRepository userRepository,
+                                         ClaimsRolesMapper claimsRolesMapper,
+                                         RoleGrantedAuthorityUtils roleGrantedAuthorityUtils) {
+        super(dataManager, userRepository, claimsRolesMapper, roleGrantedAuthorityUtils);
+
+        //store role assignments in the database (false by default)
+        setSynchronizeRoleAssignments(true);
+    }
+
+    @Override
+    protected Class&lt;User&gt; getApplicationUserClass() {
+        return User.class;
+    }
+
+    @Override
+    protected void populateUserAttributes(OidcUser oidcUser, User jmixUser) {
+        jmixUser.setUsername(oidcUser.getName());
+        jmixUser.setFirstName(oidcUser.getGivenName());
+        jmixUser.setLastName(oidcUser.getFamilyName());
+        jmixUser.setEmail(oidcUser.getEmail());
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="protecting-api"><a class="anchor" href="#protecting-api"></a>Protecting API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix application may work as a resource server. To specify which authorization server to use, define the following application property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realms/&lt;realm&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The value of the property is the URL contained in the <code>iss</code> claim for JWT tokens that the authorization server will issue. See <a href="https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html#_specifying_the_authorization_server" rel="noopener" target="_blank">Spring Security documentation</a> for details.</p>
+</div>
+<div class="paragraph">
+<p>By default, the "sub" claim value is used as a username of Jmix user that is set to security context. If you want to change this, use the following application property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.oidc.jwt-authentication-converter.username-claim=preferred_username</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In most cases the property value should be aligned with the value of the <code>spring.security.oauth2.client.provider.keycloak.user-name-attribute</code> property.</p>
+</div>
+<div class="paragraph">
+<p>Access tokens obtained from OpenID Provider may be used for accessing protected endpoints provided by the REST API add-on.</p>
+</div>
+<div class="paragraph">
+<p>For local Keycloak instance access tokens may be obtained in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -X POST http://localhost:8180/realms/sample1/protocol/openid-connect/token \
+--user &lt;client-id&gt;:&lt;client-secret&gt; \
+-H "Content-Type: application/x-www-form-urlencoded" \
+-d "grant_type=password&amp;scope=openid&amp;username=&lt;username&gt;&amp;password=&lt;password&gt;"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -X POST http://localhost:8180/realms/sample1/protocol/openid-connect/token \
+--user jmix-app:UONXQZf6unxVuWsxXvhMAPv5IxFz5P7D \
+-H "Content-Type: application/x-www-form-urlencoded" \
+-d "grant_type=password&amp;&amp;scope=openid&amp;username=johndoe&amp;password=mypass"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now let’s see how to protect custom MVC controllers, for example the following one:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class GreetingController {
+
+    @GetMapping("/authenticated/hello")
+    public String authenticatedHello() {
+        return "authenticated-hello";
+    }
+
+    @GetMapping("/anonymous/hi")
+    public String anonymousHello() {
+        return "anonymous-hi";
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Imagine that you need all URLs starting with <code>/authenticated/</code> to be protected and all URLs starting with <code>/anonymous/</code> to be available for anonymous access. There are <a class="xref page" href="../security/custom-endpoints.html#token-based-authentication">several ways</a> to achieve this. The simplest approach is to use application properties:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># All endpoints that match the given pattern will require a bearer token
+jmix.resource-server.authenticated-url-patterns = /authenticated/**
+
+# However, endpoints that match the following pattern will be accessible without a token
+jmix.resource-server.anonymous-url-patterns = /anonymous/**</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="oidc-properties"><a class="anchor" href="#oidc-properties"></a>OIDC Properties</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="jmix.oidc.use-default-configuration"><a class="anchor" href="#jmix.oidc.use-default-configuration"></a>jmix.oidc.use-default-configuration</h3>
+<div class="paragraph">
+<p>Defines whether to apply the default auto-configuration. True by default. Set this property to false in case you want to have access to add-on beans and interfaces but don’t want to use predefined Spring security configuration for protecting endpoints. In this case, you’ll have to write your own security configuration.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.oidc.use-default-configuration = false</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.oidc.default-claims-roles-mapper.roles-claim-name"><a class="anchor" href="#jmix.oidc.default-claims-roles-mapper.roles-claim-name"></a>jmix.oidc.default-claims-roles-mapper.roles-claim-name</h3>
+<div class="paragraph">
+<p>Defines a name of the claim in the ID Token that contains a collection of role names. This property is used by <code>DefaultClaimsRolesMapper</code>. The default value is <code>roles</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.oidc.default-claims-roles-mapper.roles-claim-name = myRoles</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuring-local-keycloak-instance"><a class="anchor" href="#configuring-local-keycloak-instance"></a>Configuring Local Keycloak Instance</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One of the most popular OpenID Providers is <a href="https://www.keycloak.org/" rel="noopener" target="_blank">Keycloak</a>. To get familiar with the Jmix OIDC add-on you can run Keycloak locally using Docker.</p>
+</div>
+<div class="sect2">
+<h3 id="starting-keycloak-using-docker"><a class="anchor" href="#starting-keycloak-using-docker"></a>Starting Keycloak Using Docker</h3>
+<div class="paragraph">
+<p>Use the following comment to start Keycloak instance using Docker on the port 8180:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">docker run -p 8180:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin --name keycloak quay.io/keycloak/keycloak:22.0 start-dev</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="https://www.keycloak.org/getting-started/getting-started-docker" rel="noopener" target="_blank">Keycloak documentation</a> for details.</p>
+</div>
+<div class="paragraph">
+<p>Keycloak URL: <a class="bare" href="http://localhost:8180" rel="noopener" target="_blank">http://localhost:8180</a></p>
+</div>
+<div class="paragraph">
+<p>Admin credentials:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Username: admin
+Password: admin</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can read about configuring the Keycloak instance in the <a href="https://www.keycloak.org/docs/latest/server_admin/" rel="noopener" target="_blank">Server Administration Guide</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creating-a-realm"><a class="anchor" href="#creating-a-realm"></a>Creating a Realm</h3>
+<div class="paragraph">
+<p>Login to Keycloak admin console.</p>
+</div>
+<div class="paragraph">
+<p>Open the popup at the top of the left pane.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Create Realm</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create realm 1" src="_images/keycloak/create_realm_1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Give a name to the new realm, e.g. "sample".</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create realm 2" src="_images/keycloak/create_realm_2.png"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creating-client"><a class="anchor" href="#creating-client"></a>Creating a Client</h3>
+<div class="paragraph">
+<p>In order to connect a Jmix application to Keycloak, you need to create a new client <strong>jmix-app</strong> with the Client type <strong>OpenID Connect</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create client 1" src="_images/keycloak/create_client_1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Enable <strong>Client authentication</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create client 2" src="_images/keycloak/create_client_2.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Enter <strong>Valid redirect URIs</strong>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">http://localhost:8080/*</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and <strong>Web origins</strong>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">http://localhost:8080</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create client 3" src="_images/keycloak/create_client_3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Open the just created client and go to the <strong>Credentials</strong> tab. It displays the <strong>Client secret</strong>, which you need in the Jmix project to set up a connection.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="client credentials" src="_images/keycloak/client_credentials.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Client parameters should be used in the <code>application.properties</code> file. See the <a href="#client-configuration">Client Configuration</a> section.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creating-role"><a class="anchor" href="#creating-role"></a>Creating a Role</h3>
+<div class="paragraph">
+<p>Next you should create a new realm role. By default, the role name should match the Jmix role code. Create the <strong>system-full-access</strong> role:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create role" src="_images/keycloak/create_role.png"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creating-user"><a class="anchor" href="#creating-user"></a>Creating a User</h3>
+<div class="paragraph">
+<p>Create a user with <strong>johndoe</strong> username:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create user" src="_images/keycloak/create_user.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>After the user is saved, the <strong>Credentials</strong> tab will appear. There you can set the user password.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create user credentials" src="_images/keycloak/create_user_credentials.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>On the <strong>Role mappings</strong> tab, assign the <strong>system-full-access</strong> role:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="assign role" src="_images/keycloak/assign_role.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to fill in user attributes (e.g. "position"), you can do that in <strong>Attributes</strong> tab in the user editor.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creating-roles-mapper"><a class="anchor" href="#creating-roles-mapper"></a>Creating a Roles Mapper</h3>
+<div class="paragraph">
+<p>In order to return the realm roles information in the ID Token you need to define a mapper for the <strong>jmix-app</strong> client. Open the client editor and switch to the <strong>Client scopes</strong> tab:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create mapper 1" src="_images/keycloak/create_mapper_1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Open the editor of the <strong>jmix-app-dedicated</strong> scope. Add a predefined mapper for the "realm roles" there:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create mapper 2" src="_images/keycloak/create_mapper_2.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Open the just created <strong>realm roles</strong> mapper. Set the <code>roles</code> value to the <strong>Token Claim Name</strong> attribute. By doing this we specify that the name of the token claim containing a list of roles is <code>roles</code>.</p>
+</div>
+<div class="paragraph">
+<p>Select the <strong>Add to userinfo</strong> checkbox.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create mapper 3" src="_images/keycloak/create_mapper_3.png"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

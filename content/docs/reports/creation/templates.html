@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Templates :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Templates</h1>
+<div class="sect1">
+<h2 id="add_template"><a class="anchor" href="#add_template"></a>Adding Template</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can add report templates in the report detail view. Create or edit an existing report in the reports list view and switch to the <strong>Templates</strong> tab:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="template list" src="../_images/template-list.png" width="769"/>
+</div>
+</div>
+<div class="paragraph">
+<p>One report can have multiple templates but one of the templates must be selected as default.</p>
+</div>
+<div class="paragraph">
+<p>Below is the form to add a template:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="report template detail view" src="../_images/report-template-detail-view.png" width="642"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Template code</strong> - identification code for a template.</p>
+</li>
+<li>
+<p><strong>Template file</strong> - loaded from the file system and saved to the database along with the report structure description.</p>
+</li>
+<li>
+<p><strong>Output type</strong> - report output type. It should be consistent with the template file type according to the rules described in <a href="#output_format_compliance">output format compliance</a>.</p>
+</li>
+<li>
+<p><strong>Output name pattern</strong> - optional file name pattern, which will be used to generate the file name for the produced report. It can either be a constant string or contain a report parameter as a variable, for example, <code>${header.authorName}.xlsx</code>. More sophisticated patterns with several parameters and string concatenation can also be created as a script in any band of report structure, for example, <code>${Root.title}.xlsx</code>, where <code>title</code> is a result of the script:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">[['title' : ('Report for '+params['author'].firstName+' '+params['author'].lastName)]]</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Is custom</strong> - the flag to use custom formatting logic not covered by any provided formatter. When it is checked, you need to define two additional fields:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Defined by</strong> - the way the custom template is defined: by <a href="#template_custom">class</a>, script or <a href="#exec_external_report">URL</a>.</p>
+</li>
+<li>
+<p><strong>Custom definition</strong> - the fully qualified name of the Java class, Groovy script content, or the URL used to create the template. If you select <strong>Script</strong>, then in the Groovy script, the parameters below can be used:</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p><code>params</code> - parameters map is available by alias <code>params</code>.</p>
+</li>
+<li>
+<p><code>rootBand</code> - an object of the <code>BandData</code> type that provide access to band datasets.</p>
+</li>
+<li>
+<p><code>applicationContext</code> - an object of the <code>ApplicationContext</code> type that provides access to managed beans.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Is alterable output</strong> - the flag to let the user choose the output type of report at runtime in a dialog window.</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>If the flag is on, a dialog with output type selection will be shown when running a report. If the report has more than one template, the template selection dropdown will be shown as well.</p>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Is default</strong> - when you mark a template as "default" for a specific report, that template is automatically used as the basis for generating the report unless a user explicitly chooses a different template.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="template_types"><a class="anchor" href="#template_types"></a>Template Types</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="template_xls"><a class="anchor" href="#template_xls"></a>XLS(X) Templates</h3>
+<div class="paragraph">
+<p>You can create XLS(X) templates using <strong>Microsoft Office</strong> or <strong>LibreOffice</strong>.</p>
+</div>
+<div class="paragraph" id="template_xls_regions">
+<p>Each <a class="xref page" href="bands.html">report band</a> must have a corresponding region in the template, which is named the same as the band. For instance, a report has two bands - <code>Header</code> and <code>Data</code>. This means that the template should also have <code>Header</code> and <code>Data</code> named ranges. To create named regions, select the desired cell ranges and enter the name in the field in the application’s top left corner. To edit existing named regions, use the <strong>Formulas</strong> → <strong>Name Manager</strong> menu command in Microsoft Office, and the <strong>Insert</strong> → <strong>Names</strong> → <strong>Manage</strong> command in LibreOffice. Vice versa, each part of the sheet you want to show should have a band in a report (at least an empty band).</p>
+</div>
+<div class="paragraph">
+<p>The bands are output in the order specified in the <a class="xref page" href="bands.html">band hierarchy</a>.</p>
+</div>
+<div class="paragraph">
+<p>Bands can be horizontally and vertically oriented. If the band is horizontal, the suitable named region will grow downward, vertical will grow rightward. Horizontal bands may be organized in a tree-like structure and contain sub-bands (nested or children bands). Therefore, for sub-bands, you need to create named regions directly under the regions that correspond to the parent bands.</p>
+</div>
+<div class="paragraph">
+<p>XLSX formatter will render children bands using the following algorithm:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Write the first row of parent band →</p>
+</li>
+<li>
+<p>Write all first row’s children rows →</p>
+</li>
+<li>
+<p>Write the next row of parent band.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The band dataset fields are placed in the template using strings in <code>${field_name}</code> format, where <code>field_name</code> is the corresponding band field name. For example:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="report template xls" src="../_images/report_template_xls.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You can add variables to the reporting template. Variables should be inserted into sheet names or the header/footer of XLSX template having <code>${&lt;BandName&gt;.&lt;variableName&gt;}</code> format.</p>
+</div>
+<div class="paragraph">
+<p>Cells may contain formatting as well as multiple fields inside. To output images or formulas, you need to place them entirely into the corresponding named region linked with the band.</p>
+</div>
+<div class="paragraph">
+<p>Formulas can reference the cells of the same band or another band. To be processed by the formatter, the formulas should use either range of cells in the band, or direct cells coordinates, for example, <code>(A1*B1)</code> or <code>($B:$B)</code>.</p>
+</div>
+<div class="paragraph">
+<p>To process the data as an Excel chart, create an empty band in the report structure and a named region with the same name in the template. Then create a chart inside this named region and refer to related bands using the <strong>Select data</strong> button in the chart context menu. If your chart data is in a continuous range of cells, select any cell in that range. Your chart will include all the data in the range. If your data isn’t in a continuous range, select nonadjacent cells or ranges.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Enabling row auto-height in XLSX templates</strong></p>
+</div>
+<div class="paragraph">
+<p>To activate automatic row height calculation in manually created XLSX templates, you should define a named region that starts with <code>hint_rowAutoHeight</code> and specify the target cell range where the auto-height behavior should be applied.</p>
+</div>
+<div class="paragraph">
+<p>For XLSX reports generated using the <a class="xref page" href="../getting-started.html#creating-report-at-runtime">report wizard</a>, this named region is automatically added for each configured report region.</p>
+</div>
+<div class="paragraph">
+<p>When a report is executed, cell whose content exceeds the available space for a single line will automatically become multi-line, with the row height adjusting accordingly to display the entire contents.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Converting XLSX to PDF and CSV</strong></p>
+</div>
+<div class="paragraph">
+<p>XLSX reports can be automatically converted to CSV and PDF format. <a class="xref page" href="../configuration.html#libre_office">LibreOffice</a> should be installed for PDF conversion.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="template_csv"><a class="anchor" href="#template_csv"></a>CSV Templates</h3>
+<div class="paragraph">
+<p>You can create CSV templates using <strong>Microsoft Office</strong> or <strong>LibreOffice</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Bands in the CSV template should only be horizontally oriented, so the suitably named region will grow downward. Also, bands should belong to the first level of data, that is, be the children of the <code>Root</code> band. In all other respects, the same principles as for <a href="#template_xls">XLS(X) templates</a> should be used.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="csv template" src="../_images/csv_template.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Inline editor</strong></p>
+</div>
+<div class="paragraph">
+<p>CSV templates support inline editing. You can edit the template directly in the <strong>Report template</strong> dialog and see the changes without having to re-upload the template file.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="csv report editor" src="../_images/csv-report-editor.png" width="642"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="template_doc"><a class="anchor" href="#template_doc"></a>DOC(X) Templates</h3>
+<div class="paragraph">
+<p>You can create DOC(X) templates using <strong>Microsoft Office</strong> or <strong>LibreOffice</strong>.</p>
+</div>
+<div class="paragraph">
+<p>A template of DOC(X) type can include document text and optionally one or more tables. The document text outputs the data from the first rows of arbitrary bands. While in a table, you can output an arbitrary number of band rows.</p>
+</div>
+<div class="paragraph">
+<p>To place a field in the document text, you should use a string having <code>${band_name.field_name}</code> format, where <code>band_name</code> is the band name, <code>field_name</code> - name of a band’s field.</p>
+</div>
+<div class="paragraph">
+<p>To output data into a table, you should link it to a band. This is done by specifying <code>##band=band_name</code> in the table’s first cell, where <code>band_name</code> is the band name. The table fields are placed using <code>${field_name}</code> format, where <code>field_name</code> is the field name of the band associated with the table. You can use the band name prefix to access fields of other bands, same as in the document text fields. You can output several fields in a single table cell.</p>
+</div>
+<div class="paragraph">
+<p>Horizontal bands in DOC(X) cannot contain sub-bands. If you need sub-bands, use XLS(X) format.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The table must contain either one or two rows. If the table has two rows, then the corresponding band fields must be in the second row. The first row should contain the marker with the corresponding band name and, if necessary, a static text or other band fields.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Below is an example of a template which outputs a report consisting of two bands, <code>Book</code> and <code>Authors</code>. The first band outputs a book name and genre, and the second outputs a list of authors of this book.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="report template doc" src="../_images/report_template_doc.png"/>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Cells data format is not supported in DOC(X) templates. To avoid numbers or dates formatting problems due to the user’s locale, such as unnecessary numeric separators, try to cast your data to string.
+For example,</p>
+</div>
+<div class="paragraph">
+<p>wrap</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">select e.year as "year"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>into</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">select cast(e.year as varchar(4)) as "year"</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Processing Multi-line Strings in DOCX Templates</strong></p>
+</div>
+<div class="paragraph">
+<p>By default, line breaks in parameter values are ignored when generating a report. To preserve line breaks (e.g., <code>\n</code> or <code>\r\n</code>) in the final DOCX output, you must enable the <a class="xref page" href="../configuration.html#jmix.reports.multilineStringsProcessingEnabled">jmix.reports.multilineStringsProcessingEnabled</a> application property.</p>
+</div>
+<div class="paragraph">
+<p><strong>This feature is exclusive to the DOCX report output format and has no effect on other formats like XLSX or PDF.</strong></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="template_html"><a class="anchor" href="#template_html"></a>HTML Template</h3>
+<div class="paragraph">
+<p>An HTML template is defined in an <code>.html</code> file (<code>UTF-8</code> encoding without <code>BOM</code>). You can use HTML/CSS features of <a href="https://github.com/flyingsaucerproject/flyingsaucer" rel="noopener" target="_blank">Flying Saucer</a> library. Its main guide is available at <a href="http://flyingsaucerproject.github.io/flyingsaucer/r8/guide/users-guide-R8.html" rel="noopener" target="_blank">GitHub page</a>.</p>
+</div>
+<div class="paragraph">
+<p>To control page size, page headers and footers, use special CSS rules and properties.</p>
+</div>
+<div class="paragraph">
+<p>There are two ways to place data in a template:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Using FreeMarker tags.</p>
+</li>
+<li>
+<p>Using Groovy templating engine.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By default, the Report wizard generates an HTML template with FreeMarker tags.</p>
+</div>
+<div class="paragraph">
+<p>Use the <strong>Template type</strong> radio button in the report template dialog to switch between the methods.</p>
+</div>
+<div class="paragraph">
+<p>HTML templates support inline editing. You can edit the template directly in the <strong>Report template</strong> dialog and see the changes without having to re-upload the template file.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="html template editor" src="../_images/html-template-editor.png" width="642"/>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Groovy templating engine</dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>You can preprocess the HTML report template as a Groovy template. It will be processed by <a href="http://docs.groovy-lang.org/latest/html/api/groovy/text/GStringTemplateEngine.html" rel="noopener" target="_blank">GStringTemplateEngine</a>.</p>
+</div>
+<div class="paragraph">
+<p>The template engine uses JSP style <code>&lt;% %&gt;</code> script and <code>&lt;%= %&gt;</code> expression syntax or <code>GString</code> style expressions. The variable <code>out</code> is bound to the writer that the template is being written to. Thus, the template can use any code on Groovy if it is properly defined. <code>GStringTemplateEngine</code> has access to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>external parameters: <code>BandName.fields.ParamName</code>;</p>
+</li>
+<li>
+<p>bands: <code>BandName.bands.ChildBandName</code>;</p>
+</li>
+<li>
+<p>fields: <code>BandName.fields.FieldName</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You may use variables for convenience, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;% def headerRow = Root.bands.HeaderRow %&gt;
+&lt;p&gt;Date: ${headerRow.fields.reportDate}&lt;/p&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Below is an example of a template that outputs a report for a single user.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"&gt;
+&lt;html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru"&gt;
+&lt;head&gt;
+    &lt;title&gt; Report User &lt;/title&gt;
+    &lt;style type="text/css"&gt;
+        body {font-family: 'Charis SIL', sans-serif;} tbody tr {height:20px; min-height:20px}
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;% def user = Root.bands.User %&gt;
+    &lt;p&gt;Login: ${user.fields.login.first()}&lt;/p&gt;
+    &lt;p&gt;Active: ${user.fields.active.first()}&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can find an example of a report with Groovy templating in the <a class="xref page" href="../../reports-guide/index.html#example_html_groovy_template">Groovy Sample Reports</a> section.</p>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1">FreeMarker</dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>FreeMarker documentation is available at <a href="https://freemarker.apache.org/docs/" rel="noopener" target="_blank">freemarker.apache.org</a>.</p>
+</div>
+<div class="paragraph">
+<p>The FreeMarker document model has the following structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">Band {
+      bands [ bandName : [ band, .. ], .. ]
+      fields [ fieldName : fieldValue, .. ]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For example, you should use the following expression to access the <code>name</code> field in a row having index 0 of the <code>band</code> band:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">Root.bands.band[0].fields.name</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You may use variables for convenience, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;#assign headerRow = Root.bands.Header[0]&gt;
+&lt;p&gt;Date: ${headerRow.fields.reportDate}&lt;/p&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also use <code>getMessage()</code> to get localized values:</p>
+</div>
+<div class="paragraph">
+<p><code>getMessage()</code> accept one or two arguments. If only one argument provided, it returns the value from the <a class="xref page" href="../../localization/message-bundles.html">message bundle</a>. If two arguments provided, it will get localized messages from message bundle by using the arguments as message <a class="xref page" href="../../localization/message-bundles.html#group-and-key">group and key</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">${getMessage(order.status)}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Below is an example of a template that outputs a report consisting of two bands, <code>Book</code> and <code>Authors</code>. The first band outputs a book name and genre, and the second outputs a list of authors of this book.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;/head&gt;
+&lt;body&gt;
+    &lt;#assign book = Root.bands.Book[0] /&gt;
+    &lt;#assign authors = Root.bands.Authors /&gt;
+    &lt;p&gt;Name: ${book.fields.name}&lt;/p&gt;
+    &lt;p&gt;Genre: ${book.fields.literatureType.name}&lt;/p&gt;
+    &lt;table border="1" cellpadding="5" cellspacing="0" width="200"&gt;
+        &lt;thead&gt;
+            &lt;tr&gt;
+                &lt;td&gt;First name&lt;/td&gt;
+                &lt;td&gt;Last name&lt;/td&gt;
+            &lt;/tr&gt;
+        &lt;/thead&gt;
+    &lt;tbody&gt;
+        &lt;#list authors as author&gt;
+        &lt;tr&gt;
+            &lt;td&gt;${author.fields.firstName}&lt;/td&gt;
+            &lt;td&gt;${author.fields.lastName}&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;/#list&gt;
+    &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Below is a more complex example. Let’s assume we have the following bands structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">Root {
+    HeaderBand {
+        query = return [[ "name" : "Column1" ],[ "name" : "Column2" ]]
+    }
+    Band1 {
+        query = return [
+                ["field1" : "Value 11", "field2" : "Value 12"],
+                ["field1" : "Value 21" , "field2" : "Value 22"]
+        ]
+    }
+    Band2 {
+        query = return [[ "header" : "Header1" ], [ "header" : "Header2" ]]
+        SubBand1 {
+            query = return [["header" : 'SubHeader1'] , [ "header" : 'SubHeader2' ]]
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Inserting a field:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;!doctype html&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt; Simple template &lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+    &lt;#assign Tree1 = Root.bands.Band2&gt;
+        &lt;h1&gt; Header &lt;/h1&gt;
+        &lt;p&gt;
+            ${Tree1[1].bands.SubBand1[0].fields.header}
+        &lt;/p&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Inserting a list:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;!doctype html&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt; List &lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+    &lt;#assign Table1Header = Root.bands.HeaderBand&gt;
+
+        &lt;#if Table1Header?has_content&gt;
+            &lt;ol&gt;
+                &lt;#list Table1Header as header&gt;
+                    &lt;li&gt; ${header.fields.name} &lt;/li&gt;
+                &lt;/#list&gt;
+            &lt;/ol&gt;
+        &lt;/#if&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Inserting a table:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt; Table &lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;#assign Table1Header = Root.bands.HeaderBand&gt;
+    &lt;#assign Table1 = Root.bands.Band1&gt;
+        &lt;table border="1" cellpadding="5" cellspacing="0" width="200"&gt;
+            &lt;thead&gt;
+            &lt;tr&gt;
+                &lt;#list Table1Header as header&gt;
+                    &lt;td&gt; ${header.fields.name} &lt;/td&gt;
+                &lt;/#list&gt;
+            &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+            &lt;#list Table1 as row&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;
+                        ${row.fields.field1}
+                    &lt;/td&gt;
+                    &lt;td&gt;
+                        ${row.fields.field2}
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/#list&gt;
+            &lt;/tbody&gt;
+        &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Inserting a multi-level list:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt; Multi-level list &lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;#assign Tree1 = Root.bands.Band2&gt;
+    &lt;ul&gt;
+        &lt;#list Tree1 as item&gt;
+            &lt;li&gt;
+                &lt;h2&gt; ${item.fields.header} &lt;/h2&gt;
+                &lt;#if item.bands.SubBand1?has_content&gt;
+                    &lt;ul&gt;
+                        &lt;#list item.bands.SubBand1 as subitem&gt;
+                            &lt;li&gt;
+                                &lt;h3&gt; ${subitem.fields.header} &lt;/h3&gt;
+                            &lt;/li&gt;
+                        &lt;/#list&gt;
+                    &lt;/ul&gt;
+                &lt;/#if&gt;
+            &lt;/li&gt;
+        &lt;/#list&gt;
+    &lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1">Embedded pictures</dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>At the moment, Jmix Reports add-on does not provide means of inserting images into HTML reports similarly to DOCX/XLSX reports. Images still can be embedded with the <code>img</code> tag and the link to the picture in the <code>src</code> attribute. You can add images to the HTML report in one of the following ways.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>by URL</p>
+<div class="paragraph">
+<p>An image can be served statically by the application. For example, the image hosted in the <code>build\resources\static\images\</code> folder can be inserted like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;img src="http://localhost:8080/images/SomeImage.jpg"
+     height="68"
+     width="199"
+     border="0"
+     align="right"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>by Bitmap</p>
+<div class="paragraph">
+<p>An image is added as a byte array within the <code>src</code> attribute. This approach allows you to use variables for the <code>FileRef</code> attributes of the entities. The byte array can even be added directly to the template, even though this approach is not recommended:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;img alt="SomePicture.png"
+     src="data:image/png;base64,iVBORw0K ..... AcEP9PwxD0hNKK1FCAAAAAElFTkSuQmCC"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>by custom prefixes:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>You can use the <code>resource://</code> prefixes to refer image files from the <code>conf</code> directory or classpath. This only works for HTML templates to output the PDF format. For example, the image <code>abc.jpg</code> hosted in the <code>resource\com\company\app\images</code> folder can be inserted like:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;img src="resource://com/company/app/images/abc.jpg"
+    height="68"
+    width="199"
+    border="0"
+    align="right"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>fs://</code> prefix allows inserting an image by specifying <code>FileRef</code> format. For example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;img src="fs://2025/07/08/78c65527-9cb7-ee77-940f-86e31b214f49.jpeg?name=filename.jpeg"
+    height="68"
+    width="199"
+    border="0"
+    align="right"/&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The query parameter <code>?name={original_filename}.{ext}</code> is mandatory. The system relies on this parameter to correctly parse the string and reconstruct the <code>FileRef</code> object.
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="dlist" id="html_to_pdf">
+<dl>
+<dt class="hdlist1">Converting HTML to PDF</dt>
+<dd>
+<p>Reports which have a template in HTML format and the PDF output format do not always properly display fonts. To resolve this, add <code>jmix/fonts</code> subdirectory with required <code>.ttf</code> fonts to the Jmix configuration directory(<code>${user.dir}/.jmix/conf/</code> by default). Additionally, you can use existing operating system fonts by specifying their path in the <a class="xref page" href="../configuration.html#jmix.reports.pdf-fonts-directory">jmix.reports.pdf-fonts-directory</a> application property.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In order to resolve the fonts issue on an Ubuntu server, you should do the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Install the <code>ttf-mscorefonts-installer</code> package:</p>
+<div class="listingblock">
+<div class="content">
+<pre>$ sudo apt-get install ttf-mscorefonts-installer</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Set the <a class="xref page" href="../configuration.html#jmix.reports.pdf-fonts-directory">jmix.reports.pdf-fonts-directory</a> application property:</p>
+<div class="listingblock">
+<div class="content">
+<pre>jmix.reports.pdf-fonts-directory = /usr/share/fonts/truetype/msttcorefonts</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Explicitly specify fonts in HTML templates, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;html&gt;
+&lt;head&gt;
+    &lt;style type="text/css"&gt;
+        * {
+            font-family: Times New Roman;
+        }
+    &lt;/style&gt;</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Another thing to mention is parsing of special characters. To avoid errors when converting HTML to PDF, it is recommended to wrap your fields in <code>&lt;![CDATA[ ]]&gt;</code> construction in your HTML template file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;tr&gt;
+	&lt;td&gt; &lt;![CDATA[${(row.fields('book_name'))!?string!}]]&gt; &lt;/td&gt;
+	&lt;td&gt; &lt;![CDATA[${(row.fields('author'))!?string!}]]&gt; &lt;/td&gt;
+&lt;/tr&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="template_jasper"><a class="anchor" href="#template_jasper"></a>JasperReports Template</h3>
+<div class="paragraph">
+<p>JasperReports formatter allows you to use JasperReports templates to output the information extracted by Jmix reporting. The template will be processed by the report engine, providing an output of the defined type, see <a href="#output_format_compliance">Output Format Compliance Matrix</a>.</p>
+</div>
+<div class="paragraph">
+<p>You can create JRXML templates using JasperReports tools (for example, Jaspersoft Studio) or in a simple text editor. Each <a class="xref page" href="bands.html">report band</a> defined in the report structure must have a corresponding <code>band</code> element in the template which is, in turn, placed within one of the standard JasperReports report sections (which are also named as the bands in JasperReports terms): <code>title</code>, <code>pageHeader</code>, <code>columnHeader</code>, <code>detail</code>, etc.</p>
+</div>
+<div class="paragraph">
+<p>The report engine puts all report band data in one datasource: <code>JRBandDataDataSource</code>, which contains data as a tree with the <code>Root</code> band as the root, and passes the <code>CubaJRFunction</code> instance to the template as the main data source that can be addressed using the <code>REPORTING</code> parameter. Declaring this parameter in the report template is not mandatory, it will be added automatically if omitted, but if you want to compile the template in JasperReports IDE, you need to declare this parameter explicitly.</p>
+</div>
+<div class="paragraph">
+<p>The <code>REPORTING</code> parameter supports two functions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>dataset</code> -  gets the sub-datasource from the main data source that can be used, for example, in tables or in subreports as subDataset. This method searches among the children of the root band for the band with specified name and creates a new data source with this band data as a new root. For example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;subDataset name="Product"&gt;
+	&lt;field name="name" class="java.lang.String"/&gt;
+	&lt;field name="price" class="java.lang.Long"/&gt;
+&lt;/subDataset&gt;
+...
+&lt;dataSourceExpression&gt;&lt;![CDATA[$P{REPORTING}.dataset("Product")]]&gt;&lt;/dataSourceExpression&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>bitmap</code> - transforms the given byte array into <code>ByteArrayInputStream</code> and can be used for embedding images into the report. For example:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;field name="Main.image" class="java.lang.Object"/&gt; //image from DB as byte array
+...
+&lt;imageExpression&gt;&lt;![CDATA[$P{REPORTING}.bitmap($F{Main.image})]]&gt;&lt;/imageExpression&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Each <a class="xref page" href="bands.html">report band</a> can be used in the template only once, so if you need to represent the same data in different forms within one report (for example, as a table and a chart), you need to create as many bands as the <code>band</code> elements in the template. Nested bands are not supported, all bands should be direct children of the <strong>Root</strong> band.</p>
+</div>
+<div class="paragraph">
+<p>The data can be retrieved from the datasource using the following syntax: <code>$F{&lt;field name&gt;}</code>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField&gt;
+    &lt;textFieldExpression&gt;&lt;![CDATA[$F{library_department_name}]]&gt;&lt;/textFieldExpression&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can find an example of a report with JasperReports template in the <a class="xref page" href="../../reports-guide/index.html#example_jasper">Sample Jasper Reports</a> section.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="template_custom"><a class="anchor" href="#template_custom"></a>Class-Defined Template</h3>
+<div class="paragraph">
+<p>Class-defined templates are used when it is too difficult or impossible to select data using SQL, JPQL, or Groovy. They are used, for example, when the report is a result of combining several other reports.</p>
+</div>
+<div class="paragraph">
+<p>Create a class and implement the <code>io.jmix.reports.yarg.formatters.CustomReport</code> interface. Define the <code>createReport()</code> method, which returns an array of bytes and takes the following input parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>report</code> - report descriptor of the <code>io.jmix.reports.yarg.structure.Report</code> type.</p>
+</li>
+<li>
+<p><code>rootBand</code> - root band data of the <code>io.jmix.reports.yarg.structure.BandData</code> type.</p>
+</li>
+<li>
+<p><code>params</code> - a map of external report parameters.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Below is an example of a simple class-defined template. It creates an HTML document showing the name of a book selected as a report parameter:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.library.reports;
+
+import com.company.library.entity.Book;
+import io.jmix.reports.yarg.formatters.CustomReport;
+import io.jmix.reports.yarg.structure.BandData;
+import io.jmix.reports.yarg.structure.Report;
+
+import java.util.Map;
+
+public class BookReport implements CustomReport {
+    @Override
+    public byte[] createReport(Report report, BandData rootBand, Map&lt;String, Object&gt; params) {
+        Book book = (Book) params.get("book");
+        String html = "&lt;html&gt;&lt;body&gt;";
+        html += "&lt;p&gt;Name: " + book.getName() + "&lt;/p&gt;";
+        html += "&lt;/body&gt;&lt;/html&gt;";
+        return html.getBytes();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the report template dialog check the <strong>Is custom</strong> checkbox, select <strong>Class</strong> in the <strong>Defined by</strong> field and set the fully qualified name of the Java class as the custom definition:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="class defined template" src="../_images/class-defined-template.png" width="642"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="table_output"><a class="anchor" href="#table_output"></a>Table Formatter</h3>
+<div class="paragraph">
+<p>When you select table output in the wizard, the system automatically creates a template. When running the report, data will be displayed on a special view of the application.</p>
+</div>
+<div class="paragraph">
+<p>You can also create a template manually for an existing report. To do this, select <strong>Table</strong> as the output type in the report template detail view.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="report template table" src="../_images/report-template-table.png" width="642"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>Band</strong> column, add the names of the bands that you want to display in the resulting table. For each band, set a key-value map, where the key is the name of a dataset property, and the value is its localized caption.</p>
+</div>
+<div class="paragraph">
+<p>The Reports add-on will get the band data and draw a sortable table for each band from the first level of the hierarchy.</p>
+</div>
+<div class="paragraph">
+<p>The table displays columns for all properties for SQL and JPQL datasets. If the Entity/List of Entities dataset is used, the table will display only the columns for selected attributes.</p>
+</div>
+<div class="paragraph">
+<p>The resulting table is displayed in the <strong>Reports → Show tables</strong> view of your web application. The <strong>Excel</strong> button enables you to download the displayed table as an Excel file.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="show report table" src="../_images/show-report-table.png"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="exec_external_report"><a class="anchor" href="#exec_external_report"></a>Executing External Reports</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Reports add-on allows you to run a report of an external service, such as Microsoft Reporting Services, and download its output. To define an external report, follow these steps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In the report template dialog check the <strong>Is custom</strong> checkbox.</p>
+</li>
+<li>
+<p>Select <strong>URL</strong> in the <strong>Defined by</strong> field.</p>
+</li>
+<li>
+<p>In the <strong>Custom definition</strong> field, specify the URL of the external report. Report parameters can be passed to the URL as <code>${param Alias}</code>.</p>
+</li>
+<li>
+<p>Configure <a class="xref page" href="../configuration.html#jmix.reports.curl-path">jmix.reports.curl-path</a> application property, set it the path to the command line <strong>curl</strong> tool.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="output_format_compliance"><a class="anchor" href="#output_format_compliance"></a>Output Format Compliance Matrix</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The table below shows the relationship between input template format and output format, for example, an input XLSX template can output XLSX, CSV, PDF, and HTML formats.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Template / Output</th>
+<th class="tableblock halign-left valign-top">XLSX</th>
+<th class="tableblock halign-left valign-top">XLS</th>
+<th class="tableblock halign-left valign-top">CSV</th>
+<th class="tableblock halign-left valign-top">DOCX</th>
+<th class="tableblock halign-left valign-top">DOC</th>
+<th class="tableblock halign-left valign-top">PDF</th>
+<th class="tableblock halign-left valign-top">HTML</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">XLSX</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+ <sup>1</sup></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+ <sup>1</sup></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">XLS</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+ <sup>1</sup></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CSV</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DOCX</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+ <sup>2</sup></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+ <sup>2</sup></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DOC</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+ <sup>1</sup></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTML</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JRXML</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><sup>1</sup> - LibreOffice must be <a class="xref page" href="../configuration.html#libre_office">installed</a> for output.</p>
+</div>
+<div class="paragraph">
+<p><sup>2</sup> - depending on the <a class="xref page" href="../configuration.html#jmix.reports.use-office-for-document-conversion">jmix.reports.use-office-for-document-conversion</a> application property, the output can be performed with or without LibreOffice. In the latter case, you need to provide required fonts, as described in <a href="#html_to_pdf">HTML to PDF</a>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

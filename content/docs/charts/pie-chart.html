@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pie Chart :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Pie Chart</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a pie chart</p>
+</li>
+<li>
+<p>Add a <code>formatter</code> attribute</p>
+</li>
+<li>
+<p>Bind data through a data provider</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="series"><a class="anchor" href="#series"></a>Pie Chart Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You will integrate a pie chart component to display the distribution of users across different onboarding statuses for a snapshot of the onboarding progress within the organization.</p>
+</div>
+<div class="paragraph">
+<p>Click on the <code>formLayout</code> element in <code>user-list-view.xml</code>.</p>
+</div>
+<div class="paragraph">
+<p>Next, choose <strong>Add Component</strong> in the actions panel, locate and select the <strong>Chart</strong> item. Configure the <code>id</code>, <code>height</code> and <code>width</code> attributes as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:chart id="pie" width="40em" height="80%" minHeight="30em" alignSelf="STRETCH"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To include the <code>pie</code> series to your chart, choose the <code>chart</code> element and pick <strong>Add → Series → Pie</strong>. Add a <code>name</code> attribute for the pie chart: <code>Onboarding Status</code> and add a <code>radius</code> attribute to configure the size of your pie as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:pie name="Onboarding Status" radius="50% 80%"&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="formatter"><a class="anchor" href="#formatter"></a>Formatting Value</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a href="https://echarts.apache.org/en/option.html#series-pie.label.formatter" rel="noopener" target="_blank"><code>formatter</code></a> attribute in the pie series supports string template and callback functions to format data.</p>
+</div>
+<div class="paragraph">
+<p>To display the onboarding status and the percentage of users in that status in each slice of the pie chart, select the <code>label</code> element, then choose <strong>Add → Label</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Set the <code>formatter</code> attribute in the <code>label</code> element to <code>"{b} : %{d}"</code>, where:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>{b}</code>: Represents the name of the data item (category) - in this context, it’s the onboarding status like "Not Started," "In Progress," or "Completed."</p>
+</li>
+<li>
+<p><code>{d}</code>: Represents the percentage of the total that this data item (category) constitutes.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:series&gt;
+    &lt;charts:pie name="Onboarding Status" radius="50% 80%"&gt;
+        &lt;charts:label formatter="{b} : {d}%"/&gt;
+    &lt;/charts:pie&gt;
+&lt;/charts:series&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding Using Data Provider</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>pie</code> chart should display onboarding statuses in percentages. The data isn’t directly sourced from a single entity attribute but requires aggregation based on user statuses.</p>
+</div>
+<div class="paragraph">
+<p>That’s why you’ll need a data provider to pass aggregated data to the <code>DataSet</code> in the controller.</p>
+</div>
+<div class="paragraph">
+<p>Navigate to the controller class by selecting <strong>Controller</strong> and inject the <code>pie</code> chart component into your controller class to interact with the chart component programmatically.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected Chart pie;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To handle data when the view initializes, create an <code>InitEvent</code> handler.</p>
+</div>
+<div class="paragraph">
+<p>Within the <code>onInit</code> method, you’ll retrieve count of users according to their onboarding status, and pass this information to the <code>DataSet</code> class.</p>
+</div>
+<div class="paragraph">
+<p>Use <code>DataManager</code> to load  the total number of users within each onboarding status category as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">final Integer notStarted = dataManager.loadValue(
+                "select count(u) from User u where u.onboardingStatus = :onboardingStatus",
+                Integer.class
+        )
+        .parameter("onboardingStatus", OnboardingStatus.NOT_STARTED)
+        .one();
+
+final Integer inProgress = dataManager.loadValue(
+                "select count(u) from User u where u.onboardingStatus = :onboardingStatus",
+                Integer.class
+        )
+        .parameter("onboardingStatus", OnboardingStatus.IN_PROGRESS)
+        .one();
+
+
+final Integer completed = dataManager.loadValue(
+                "select count(u) from User u where u.onboardingStatus = :onboardingStatus",
+                Integer.class
+        )
+        .parameter("onboardingStatus", OnboardingStatus.COMPLETED)
+        .one();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, create <code>ListChartItems</code> to store the chart data. Create <code>MapDataItem</code> instances for each onboarding status, mapping the status name to its count.</p>
+</div>
+<div class="paragraph">
+<p>Bind the prepared data items to the pie chart. As with the <code>dataSet</code> XML element, define <code>categoryField</code> as the status name and <code>valueField</code> as the list size.</p>
+</div>
+<div class="paragraph">
+<p>You should get the following method by the end of this tutorial.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onInit(final InitEvent event) {
+    final Integer notStarted = dataManager.loadValue(
+                    "select count(u) from User u where u.onboardingStatus = :onboardingStatus",
+                    Integer.class
+            )
+            .parameter("onboardingStatus", OnboardingStatus.NOT_STARTED)
+            .one();
+
+    final Integer inProgress = dataManager.loadValue(
+                    "select count(u) from User u where u.onboardingStatus = :onboardingStatus",
+                    Integer.class
+            )
+            .parameter("onboardingStatus", OnboardingStatus.IN_PROGRESS)
+            .one();
+
+
+    final Integer completed = dataManager.loadValue(
+                    "select count(u) from User u where u.onboardingStatus = :onboardingStatus",
+                    Integer.class
+            )
+            .parameter("onboardingStatus", OnboardingStatus.COMPLETED)
+            .one();
+    ListChartItems&lt;MapDataItem&gt; items = new ListChartItems&lt;&gt;(
+            new MapDataItem(Map.of("category", "Completed", "value", notStarted)),
+            new MapDataItem(Map.of("category", "Not Started", "value", inProgress)),
+            new MapDataItem(Map.of("category", "In Progress", "value", completed))
+        );
+
+
+    pie.setDataSet(
+            new DataSet()
+                    .withSource(
+                            new DataSet.Source&lt;MapDataItem&gt;()
+                                    .withDataProvider(items)
+                                    .withCategoryField("category")
+                                    .withValueField("value")
+                    )
+    );
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This pie chart visualizes the percent of employees by onboarding status.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="pie res" src="_images/pie-res.png" width="1136"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

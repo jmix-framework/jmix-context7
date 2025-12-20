@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating Business Logic in Jmix :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Creating Business Logic in Jmix</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>One of the first questions after creating the initial data model in a Jmix application is: <em>Where should I put my custom logic?</em> In any application, custom / business logic is the foundation that drives unique functionality, ensuring that user actions and data processing reflect the specific needs of the business. In Jmix, you have several options to structure your business logic, each suited for different types of operations and complexity levels.</p>
+</div>
+<div class="paragraph">
+<p>This guide will walk you through the available options, including placing logic in controllers, sharing logic across UI views, and centralizing business processes in reusable services. By the end of this guide, you will understand the pros and cons of each approach and how to implement them effectively in a Jmix application.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to implement this guide step by step, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup Jmix Studio</a></p>
+</li>
+<li>
+<p>Get the completed sample project, which includes all the examples used in this guide. This allows you to explore the finished implementation and experiment with the functionality right away.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>You can <a href="https://github.com/jmix-framework/jmix-business-logic-sample/archive/refs/heads/release_2_7.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+</li>
+<li>
+<p>Or clone it and switch to the <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-business-logic-sample
+cd jmix-business-logic-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Alternatively, you can start with the base <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> project and follow the step-by-step instructions in this guide to implement the features yourself.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="what-we-are-going-to-build"><a class="anchor" href="#what-we-are-going-to-build"></a>What We are Going to Build</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide enhances the <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> example to demonstrate how business logic can be structured in a Jmix application. The Petclinic application simulates a real-world scenario where various business rules and processes are required, such as calculating discounts for pets based on the total number of their visits to the clinic.</p>
+</div>
+<div class="paragraph">
+<p>The application includes the following features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Calculate Discount</strong>: Automatically calculate discounts for pets based on the total number of their visits to the clinic. This feature is triggered from the Pet list view and helps manage client loyalty with custom discount rules.</p>
+</li>
+<li>
+<p><strong>Fetch Contact Information</strong>: Quickly retrieve and display the contact details of a pet’s owner from both the Pet list and Pet detail views. This shared logic is reusable across multiple views for easy access to owner information.</p>
+</li>
+<li>
+<p><strong>Send Disease Warning Mailings</strong>: In case of a disease outbreak, the system can send automated warning emails to pet owners whose pets may be at risk, based on their location and pet type. This background service ensures that owners are informed promptly.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These features showcase how business logic can be structured and implemented efficiently in a Jmix application to handle both UI-driven actions and background processes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="what-is-business-logic"><a class="anchor" href="#what-is-business-logic"></a>What is Business Logic?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Business Logic defines the custom rules and operations that make an application unique by reflecting specific business requirements. It includes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>UI-based Logic</strong>: Affects how the interface responds to user actions, such as form validations or dynamic changes like cascading dropdowns.</p>
+</li>
+<li>
+<p><strong>Validation Rules</strong>: Ensures that data follows business-specific constraints, enforcing rules that are critical for the application’s correctness.</p>
+</li>
+<li>
+<p><strong>Automation</strong>: Performs background tasks such as sending automated notifications, generating reports, or managing recurring processes.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="business-logic-in-controllers"><a class="anchor" href="#business-logic-in-controllers"></a>Business Logic in Controllers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A common scenario in many applications is to perform business logic directly from the user interface. In the Petclinic application, we want to calculate a discount for a pet when a user clicks a button on the Pet list view. This is achieved by defining an action in the UI XML file and linking it to a method in the view controller.</p>
+</div>
+<div class="sect2">
+<h3 id="defining-action-in-view"><a class="anchor" href="#defining-action-in-view"></a>Defining Action in View</h3>
+<div class="paragraph">
+<p>In Jmix, the button for triggering the logic is defined in the view’s XML file. First, we define the button that will be responsible for starting the discount calculation. This button is linked to an action that we define separately within the same XML file. The action will track the selected pet in the list and trigger the discount calculation.</p>
+</div>
+<div class="listingblock">
+<div class="title">pet-list-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="petsDataGrid"
+          width="100%"
+          minHeight="20em"
+          dataContainer="petsDc"&gt;
+    &lt;actions&gt;
+        &lt;action id="create" type="list_create"/&gt;
+        &lt;action id="edit" type="list_edit"/&gt;
+        &lt;action id="remove" type="list_remove"/&gt;
+        &lt;action id="excelExport" type="grdexp_excelExport"/&gt;
+
+        &lt;action id="calculateDiscount"
+                type="list_itemTracking"
+                text="msg://calculateDiscount"
+                icon="MONEY"
+        /&gt;
+        &lt;action id="fetchContact"
+                type="list_itemTracking"
+                text="msg://fetchContact"
+                icon="PHONE"
+        /&gt;
+        &lt;action id="createDiseaseWarningMailing"
+                text="msg://createDiseaseWarningMailing"
+                icon="BULLSEYE"
+        /&gt;
+    &lt;/actions&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>action</code> tag in the XML file defines a named action (<code>calculateDiscount</code>) that is linked to the <code>calculateDiscountBtn</code> button. By using the type <code>list_itemTracking</code> the action can only be invoked when at least one entity is selected in the data grid.</p>
+</div>
+<div class="paragraph">
+<p>When the button is clicked, the action triggers the associated logic in the controller. To handle this in the controller, we subscribe to the action event in the controller class and define the business logic, such as calculating the discount for the selected pet.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="implementing-the-controller-logic"><a class="anchor" href="#implementing-the-controller-logic"></a>Implementing the Controller Logic</h3>
+<div class="paragraph">
+<p>Now that we have the button and action defined, we move to the controller to implement the business logic. When the user clicks the "Calculate discount" button, the controller will handle the event and execute the logic to calculate and display the discount for the selected pet.</p>
+</div>
+<div class="listingblock">
+<div class="title">PetListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("petsDataGrid.calculateDiscount")
+public void onPetsDataGridCalculateDiscount(final ActionPerformedEvent event) {
+    Pet pet = petsDataGrid.getSingleSelectedItem();
+
+    int discount = calculateDiscount(pet);
+
+    notifications.create("Discount for %s: %s%%".formatted(metadataTools.getInstanceName(pet), discount))
+            .withType(Notifications.Type.DEFAULT)
+            .show();
+}
+
+private int calculateDiscount(Pet pet) {
+    int visitAmount = pet.getVisits().size();
+
+    if (visitAmount &gt; 300) {
+        return 10;
+    } else if (visitAmount &gt; 150) {
+        return 5;
+    }
+
+    return 0;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="limitations"><a class="anchor" href="#limitations"></a>Limitations</h3>
+<div class="paragraph">
+<p>Implementing business logic directly in the controller is a simple approach when the logic is tied to user interactions and only needed in a single view. It works well for small, UI-specific tasks where the logic is unlikely to be reused elsewhere.</p>
+</div>
+<div class="paragraph">
+<p>However, as your application grows, this approach can lead to code duplication and become harder to maintain. Additionally, controller-based logic will not be executed if entities are manipulated via the Jmix Generic REST API or other external interfaces. For example, if certain fields need to be set consistently when an entity is modified, placing the logic in the UI controller can cause issues when the entity is accessed through the API.</p>
+</div>
+<div class="paragraph">
+<p>To ensure consistent behavior across all interfaces, and to improve code reusability and testability, it is better to move business logic to shared services or classes. This allows the logic to be applied uniformly, whether through the UI, API, or other entry points.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="shared-ui-logic"><a class="anchor" href="#shared-ui-logic"></a>Shared UI Logic</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The in-controller solution works as long as the logic should only be executed within one view. Once the calculation should be executed in multiple UI views there is a better way not to duplicate the code. The logic can be extracted to a common place available for both controllers.</p>
+</div>
+<div class="sect2">
+<h3 id="spring-bean-containing-the-logic"><a class="anchor" href="#spring-bean-containing-the-logic"></a>Spring Bean Containing the Logic</h3>
+<div class="paragraph">
+<p>The example that is implemented as a shared UI class is to display the contact information of the pet’s owner directly from the pet list view or the pet details view.</p>
+</div>
+<div class="listingblock">
+<div class="title">PetContactFetcher.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class PetContactFetcher {
+
+    private final Messages messages;
+
+    public PetContactFetcher(Messages messages) {
+        this.messages = messages;
+    }
+
+    public Optional&lt;Contact&gt; findContact(Pet pet) {
+        return Optional.ofNullable(pet.getOwner())
+                .flatMap(owner -&gt;
+                        Stream.of(
+                                        contactInfo(owner.getTelephone(), ContactType.TELEPHONE),
+                                        contactInfo(owner.getEmail(), ContactType.EMAIL),
+                                        contactInfo(ownerAddress(owner), ContactType.ADDRESS)
+                                )
+                                .filter(Optional::isPresent)
+                                .findFirst()
+                                .orElse(Optional.empty())
+                );
+    }
+
+    private Optional&lt;Contact&gt; contactInfo(String contactInfo, ContactType contactType) {
+        return Optional.ofNullable(contactInfo)
+                .filter(StringUtils::hasText)
+                .map(info -&gt; createContact(info, contactType));
+    }
+
+    private Contact createContact(String contactValue, ContactType contactType) {
+        Contact contact = new Contact();
+        contact.setValue(contactValue);
+        contact.setType(contactType);
+        return contact;
+    }
+
+    private String ownerAddress(Owner owner) {
+        return messages.formatMessage(
+                this.getClass(), "ownerAddressFormat",
+                owner.getFirstName(), owner.getLastName(), owner.getAddress(), owner.getCity()
+        );
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>@Component</code> annotation on the <code>PetContactFetcher</code> class registers the class in the Spring context. It can be injected via <code>@Autowired</code> into other beans and view controllers exactly like all Jmix standard APIs.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-shared-ui-logic-in-controller"><a class="anchor" href="#using-shared-ui-logic-in-controller"></a>Using Shared UI Logic in Controller</h3>
+<div class="paragraph">
+<p>Here you can see the usage of the <code>PetContactFetcher</code> bean in the Pet detail view:</p>
+</div>
+<div class="listingblock">
+<div class="title">PetDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private PetContactFetcher petContactFetcher;
+@Autowired
+private PetContactDisplay petContactDisplay;
+
+@Subscribe("fetchContact")
+public void onFetchContact(final ActionPerformedEvent event) {
+
+    Optional&lt;Contact&gt; contactInformation = petContactFetcher.findContact(getEditedEntity());
+
+    petContactDisplay.displayContact(contactInformation);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The benefit compared to the first in-controller solution is that you can share the logic between different UI views.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="business-services"><a class="anchor" href="#business-services"></a>Business Services</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The difference between <strong>Shared UI Logic</strong> and <strong>Business Services</strong> lies in their purpose. Shared UI logic is meant to reuse code across different UI views, while business services handle more complex, often transactional processes that are not tied to the user interface. These include tasks such as processing data, enforcing business rules, interacting with the database, or managing operations like sending notifications or generating reports.</p>
+</div>
+<div class="paragraph">
+<p>Business services are ideal for handling logic that runs independently from the UI and can be reused across different areas of the application. They often deal with business processes that require database transactions and consistency, such as reading, updating, or aggregating data from multiple sources.</p>
+</div>
+<div class="paragraph">
+<p>In Jmix, business services are implemented using Spring Beans, annotated with <code>@Component</code> or <code>@Service</code>, making them available across the application.</p>
+</div>
+<div class="sect2">
+<h3 id="disease-warning-service"><a class="anchor" href="#disease-warning-service"></a>Disease Warning Service</h3>
+<div class="paragraph">
+<p>An example of business logic that could be handled in a service is sending out warnings to pet owners when there is a disease outbreak in their city.</p>
+</div>
+<div class="listingblock">
+<div class="title">DiseaseWarningMailingService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class DiseaseWarningMailingService {
+
+    private final Emailer emailer;
+    private final DataManager dataManager;
+
+    public DiseaseWarningMailingService(Emailer emailer, DataManager dataManager) {
+        this.emailer = emailer;
+        this.dataManager = dataManager;
+    }
+
+    public int warnAboutDisease(PetType petType, String disease, String city) {
+
+        List&lt;Pet&gt; petsWithEmail = petsInDiseaseCity(petType, city)
+                .stream()
+                .filter(pet -&gt; StringUtils.hasText(pet.getOwner().getEmail()))
+                .toList();
+
+        petsWithEmail.forEach(pet -&gt; sendEmailToPetsOwner(pet, disease, city));
+
+        return petsWithEmail.size();
+    }
+
+    private List&lt;Pet&gt; petsInDiseaseCity(PetType petType, String city) {
+        return dataManager.load(Pet.class)
+                .query(
+                        "select e from petclinic_Pet e where e.owner.city = :ownerCity and e.type = :petType")
+                .parameter("ownerCity", city)
+                .parameter("petType", petType)
+                .fetchPlan(pet -&gt; {
+                    pet.addFetchPlan(FetchPlan.BASE);
+                    pet.add("owner", FetchPlan.BASE);
+                    pet.add("type", FetchPlan.BASE);
+                })
+                .list();
+    }
+
+    private void sendEmailToPetsOwner(Pet pet, String disease, String city) {
+        String emailBody = """
+                Hello %s,
+                
+                In the area of %s the following disease have been reported: %s.
+                In case your Pet %s shows any unusual behavior, please approach Jmix Petclinic.
+                
+                Yours sincerely,
+                
+                Jmix Petclinic Inc.
+                """
+                .formatted(pet.getOwner().getFullName(), city, disease, pet.getName());
+
+        EmailInfo email = EmailInfoBuilder.create()
+                .setAddresses(pet.getOwner().getEmail())
+                .setSubject("Warning about %s in the Area of %s".formatted(disease, city))
+                .setBody(emailBody)
+                .build();
+
+        emailer.sendEmailAsync(email);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This service interacts with the database to find pets in a given location, retrieves owner email addresses, and sends out automated warnings using the <a href="https://www.jmix.io/marketplace/email-sending/">Jmix Email add-on</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="usage-in-controller"><a class="anchor" href="#usage-in-controller"></a>Usage in Controller</h3>
+<div class="paragraph">
+<p>The disease warning service can be invoked from different parts of the application, such as from views, other services or scheduled jobs. In this case we are using it from a dedicated view that first collects the required information in a form and then passes the values to the service:</p>
+</div>
+<div class="listingblock">
+<div class="title">PetDiseaseWarningScreen.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DiseaseWarningMailingService diseaseWarningMailingService;
+
+@Subscribe("createDiseaseWarningMailing")
+public void onCreateDiseaseWarningMailing(final ActionPerformedEvent event) {
+
+    int notifiedPets = diseaseWarningMailingService.warnAboutDisease(
+            petType.getValue(),
+            disease.getValue(),
+            city.getValue()
+    );
+
+    close(StandardOutcome.SAVE)
+            .then(() -&gt;
+                    notifications.create(messageBundle.formatMessage("ownersNotified", String.valueOf(notifiedPets)))
+                    .withType(Notifications.Type.SUCCESS)
+                    .show()
+            );
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Centralizing business logic in services allows you to efficiently reuse, maintain, and extend business rules while managing database interactions across the application. It also provides the ability to test the functionality in isolation without involving the user interface. This can oftentimes simplify the test setup and speeds up the test execution.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, we explored three different approaches for placing business logic in a Jmix application, each with its own characteristics. We looked at how logic can be implemented directly in controllers for simpler cases, shared across multiple UI views using reusable components, and centralized in business services for more complex or transactional processes.</p>
+</div>
+<div class="paragraph">
+<p>Each approach has its advantages depending on the scenario, and understanding these options allows you to choose the right method for structuring business logic in a way that fits your application’s needs.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

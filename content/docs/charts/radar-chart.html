@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar Chart :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Radar Chart</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a radar chart</p>
+</li>
+<li>
+<p>Add <code>indicator</code>, and <code>title</code> elements</p>
+</li>
+<li>
+<p>Bind data through a data container</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setup"><a class="anchor" href="#setup"></a>Radar Chart Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You will integrate a <code>radar</code> chart component to illustrate the employees' skill metrics, namely: <code>hardSkills</code>, <code>problemSolving</code>, <code>softSkills</code> and <code>teamwork</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="series"><a class="anchor" href="#series"></a>Setting Radar Chart Series</h3>
+<div class="paragraph">
+<p>Let’s insert the chart component in <code>user-list-view.xml</code>.</p>
+</div>
+<div class="paragraph">
+<p>First, click on the <code>formLayout</code> where the chart will be located.</p>
+</div>
+<div class="paragraph">
+<p>Choose <strong>Add Component</strong> in the actions panel and select the <strong>Chart</strong> item to insert the <code>&lt;charts:chart/&gt;</code> element. Configure the <code>id</code>, <code>height</code> and <code>width</code> attributes as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:chart id="radar" width="40em" height="100%" minHeight="30em" alignSelf="STRETCH"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, add a radar series to your chart. Click on the <code>chart</code> element in the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, then click the <strong>Add</strong> button in the inspector panel. Choose <strong>Series → Radar</strong> from the drop-down list.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:series&gt;
+    &lt;charts:radar/&gt;
+&lt;/charts:series&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="properties"><a class="anchor" href="#properties"></a>Adding Chart Properties</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="indicators"><a class="anchor" href="#indicators"></a>Indicators</h3>
+<div class="paragraph">
+<p>A radar chart with multiple axes requires indicators within a separate <code>radar</code> element under <code>chart</code>. The indicators represent each metric’s axis.</p>
+</div>
+<div class="paragraph">
+<p>To add indicators, create a <code>&lt;charts:radar/&gt;</code> element manually. Select the <code>radar</code> element and choose <strong>Add → Indicators → Indicator</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Define each skill as an indicator with <code>name</code> and <code>max</code> value attributes to represent the scale as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:radar&gt;
+    &lt;charts:indicators&gt;
+        &lt;charts:indicator name="Hard Skills" max="5"/&gt;
+        &lt;charts:indicator name="Problem Solving" max="5"/&gt;
+        &lt;charts:indicator name="Soft Skills" max="5"/&gt;
+        &lt;charts:indicator name="Teamwork" max="5"/&gt;
+    &lt;/charts:indicators&gt;
+&lt;/charts:radar&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="title"><a class="anchor" href="#title"></a>Title</h3>
+<div class="paragraph">
+<p>Add a title to your chart to provide context. Select the chart component and choose <strong>Add → Title</strong>, then configure the text attribute.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:title text="Assessment Results"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding Using Data Container</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For your radar chart, you can use the <code>emloyeesDc</code> data container you’ve set in the <a class="xref page" href="bar-chart.html#data-binding">bar chart</a> section.</p>
+</div>
+<div class="paragraph">
+<p>To include the fetched data to the chart, select the <code>chart</code> component and add a <code>dataSet</code> attribute manually.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:dataSet/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inside the <code>dataSet</code> tag, choose the <code>employeesDc</code> container for your <code>source</code> attribute. The radar chart only needs a <code>valueFields</code> as its axes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:title text="Assessment Results"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once you complete these steps, your bar chart XML configuration will be as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:chart id="radar" width="40em" height="100%" minHeight="30em" alignSelf="STRETCH"&gt;
+    &lt;charts:title text="Assessment Results"/&gt;
+    &lt;charts:dataSet&gt;
+        &lt;charts:source dataContainer="employeesDc"
+                       valueFields="hardSkills problemSolving softSkills teamwork"/&gt;
+    &lt;/charts:dataSet&gt;
+    &lt;charts:radar&gt;
+        &lt;charts:indicators&gt;
+            &lt;charts:indicator name="Hard Skills" max="5"/&gt;
+            &lt;charts:indicator name="Problem Solving" max="5"/&gt;
+            &lt;charts:indicator name="Soft Skills" max="5"/&gt;
+            &lt;charts:indicator name="Teamwork" max="5"/&gt;
+        &lt;/charts:indicators&gt;
+    &lt;/charts:radar&gt;
+    &lt;charts:series&gt;
+        &lt;charts:radar/&gt;
+    &lt;/charts:series&gt;
+&lt;/charts:chart&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This radar chart is set up to visually represent employees' skills.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="radar res" src="_images/radar-res.png" width="1136"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

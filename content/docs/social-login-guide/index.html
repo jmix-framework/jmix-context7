@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Login :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Social Login</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix offers a comprehensive security subsystem that includes user management features out of the box. This built-in functionality allows developers to implement a variety of authentication methods while also providing the flexibility to integrate custom solutions. Among these options, Jmix supports integration with third-party services, such as LDAP/Active Directory servers and OpenID Connect providers.</p>
+</div>
+<div class="paragraph">
+<p>One notable feature is the ability to implement Social Login, which enables users to authenticate using their existing accounts from popular platforms like GitHub, Facebook, and Google. This approach not only streamlines the registration process for users but also simplifies user management for developers and administrators.</p>
+</div>
+<div class="paragraph">
+<p>Most Social Login services operate using widely adopted protocols such as OAuth and OpenID Connect, ensuring secure and efficient authentication. This guide will walk you through the steps to implement Social Login in your Jmix applications.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>For applications that need to integrate with standards-compliant services or on-premises software like Keycloak, consider also using the <a class="xref page" href="../oidc/index.html">OpenID Connect add-on</a> for your Jmix project.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To effectively use this guide, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup</a> the development environment.</p>
+</li>
+<li>
+<p>You can follow the guide step-by-step, or get the completed sample project to explore the finished implementation and experiment with the functionality.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Either <a href="https://github.com/jmix-framework/jmix-social-login-sample/archive/refs/heads/release_2_7.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+</li>
+<li>
+<p>Or clone it and switch to the <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-social-login-sample
+cd jmix-social-login-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="what-we-are-going-to-build"><a class="anchor" href="#what-we-are-going-to-build"></a>What We Are Going to Build</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide outlines the process of enhancing an application created using the standard <strong>Full-Stack Application (Java)</strong> template to support authentication via Google OpenID Connect and GitHub OAuth, alongside the default database-hosted accounts.</p>
+</div>
+<div class="paragraph">
+<p>Users will have the flexibility to select their preferred authentication method directly from the login screen.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="login page" src="_images/login-page.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The implementation will be based on the <a href="https://docs.spring.io/spring-security/reference/servlet/oauth2/login/index.html" rel="noopener" target="_blank">Spring Security OAuth 2.0 Login</a> feature.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configure-authentication-providers"><a class="anchor" href="#configure-authentication-providers"></a>Configure Authentication Providers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To enable authentication with a 3rd party service you will have to register Client ID and Client Secret in that service.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Never expose your Client Secret in client-side code or public repositories.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="github-oauth"><a class="anchor" href="#github-oauth"></a>GitHub OAuth</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <a href="https://github.com/settings/apps" rel="noopener" target="_blank">Developer Settings</a> page of your GitHub profile.</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Sign in to your GitHub account.</p>
+</li>
+<li>
+<p>Click on your profile picture in the upper-right corner and select <strong>Settings</strong> from the dropdown menu.</p>
+</li>
+<li>
+<p>In the left sidebar, scroll down to <strong>Developer settings</strong> and click it.</p>
+</li>
+<li>
+<p>On the <strong>Developer settings</strong> page, click on <strong>OAuth Apps</strong>.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Create a new OAuth App</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Click on the <strong>New OAuth App</strong> button to start configuring a new application.</p>
+</li>
+<li>
+<p>Fill in the registration form with the following details:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Application name</strong>: Choose a name that represents your application.</p>
+</li>
+<li>
+<p><strong>Homepage URL</strong>: Enter <code>http://localhost:8080</code> if you are running the app locally, or provide the actual application’s base URL if it’s hosted on a server.</p>
+</li>
+<li>
+<p><strong>Authorization callback URL</strong>: Use <code>http://localhost:8080/login/oauth2/code/github</code> if running locally. Replace <code>http://localhost:8080</code> with the actual application’s base URL if it’s hosted on a server.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <strong>Register application</strong>.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Generate Client Secret</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>In the newly created app settings, click the <strong>Generate a new client secret</strong> button.</p>
+</li>
+<li>
+<p>Copy both the <code>Client ID</code> and <code>Client secret</code> that were generated. These credentials will be required to configure OAuth for your application.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Securely store the <code>Client ID</code> and <code>Client secret</code> in a safe location, as you’ll need them for integrating GitHub OAuth authentication with your application.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="google-openid"><a class="anchor" href="#google-openid"></a>Google OpenID</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open <a href="https://console.cloud.google.com" rel="noopener" target="_blank">Google Cloud Console</a> and sign in with your Google account if you aren’t already logged in.</p>
+</li>
+<li>
+<p>Create a New Project</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>In the top navigation bar, click on the <strong>Project</strong> dropdown.</p>
+</li>
+<li>
+<p>Select <strong>New Project</strong> and enter a project name.</p>
+</li>
+<li>
+<p>Enter a project name.</p>
+</li>
+<li>
+<p>Click <strong>Create</strong> to initialize your project.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Enable APIs &amp; Services</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>With your project selected, go to <strong>APIs &amp; Services</strong>.</p>
+</li>
+<li>
+<p>Select <strong>OAuth consent screen</strong> to begin setting up OAuth for your app.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Configure the OAuth Consent Screen</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Choose the <strong>External</strong> option for the user type and click <strong>Create</strong>.</p>
+</li>
+<li>
+<p>Fill in the required fields in the form (<strong>App name</strong>, <strong>Support email</strong>, etc.), then click <strong>Save and Continue</strong>.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Add Scopes</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>In the <strong>Scopes</strong> section, click <strong>Add or Remove Scopes</strong>.</p>
+</li>
+<li>
+<p>Add the following scopes:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>…​/auth/userinfo.email</code></p>
+</li>
+<li>
+<p><code>…​/auth/userinfo.profile</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <strong>Update</strong> to add these scopes, then proceed by clicking <strong>Save and Continue</strong>.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Complete the OAuth Consent Screen</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Review the information on the final page of the consent screen setup.</p>
+</li>
+<li>
+<p>Click <strong>Back to Dashboard</strong> to save and complete the consent screen configuration.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Create OAuth Credentials</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Go to the <strong>Credentials</strong> section in the left sidebar.</p>
+</li>
+<li>
+<p>Click <strong>Create Credentials</strong> and select <strong>OAuth Client ID</strong>.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Configure the OAuth Client ID</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Choose <strong>Web Application</strong> as the application type.</p>
+</li>
+<li>
+<p>In the <strong>Authorized redirect URIs</strong> section, add the following URI: <code>http://localhost:8080/login/oauth2/code/google</code>. Replace <code>http://localhost:8080</code> with your app’s actual base URL if it is hosted on a server.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Generate the Client ID and Client Secret</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Click <strong>Create</strong> to finish.</p>
+</li>
+<li>
+<p>A dialog box will appear displaying the <code>Client ID</code> and <code>Client secret</code>. Copy these credentials as they are essential for configuring OpenID authentication in your application.</p>
+</li>
+</ol>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configure-application-project"><a class="anchor" href="#configure-application-project"></a>Configure Application Project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Specify client ids and secrets in the project’s <code>application.properties</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.oauth2.client.registration.google.client-id=&lt;your-google-id&gt;
+spring.security.oauth2.client.registration.google.client-secret=&lt;your-google-secret&gt;
+
+spring.security.oauth2.client.registration.github.client-id=&lt;your-github-id&gt;
+spring.security.oauth2.client.registration.github.client-secret=&lt;your-github-secret&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Add Spring Boot OAuth2 client starter to the <code>build.gradle</code> dependencies section:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="extend-user-entity"><a class="anchor" href="#extend-user-entity"></a>Extend User Entity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to be compatible with Spring Security OAuth2 API, the <code>User</code> entity should implement the <code>org.springframework.security.oauth2.core.oidc.user.OidcUser</code> interface.</p>
+</div>
+<div class="paragraph">
+<p>Add it to the list of interfaces implemented by <code>User</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+// ...
+public class User implements JmixUserDetails, HasTimeZone, OidcUser {
+    // ...
+    @Override
+    public OidcUserInfo getUserInfo() {
+        return null;
+    }
+
+    @Override
+    public OidcIdToken getIdToken() {
+        return null;
+    }
+
+    @Override
+    public Map&lt;String, Object&gt; getAttributes() {
+        return null;
+    }
+
+    @Override
+    public Map&lt;String, Object&gt; getClaims() {
+        return null;
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>OidcUser</code> methods are not used in the application, so you can leave their implementations empty.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configure-oauth2-login"><a class="anchor" href="#configure-oauth2-login"></a>Configure OAuth2 Login</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To customize OAuth 2.0 Login provided by Spring Security, you need to create a security configuration class. It should extend the <code>FlowuiVaadinWebSecurity</code> class defined in Jmix and be annotated with <code>@EnableWebSecurity</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@EnableWebSecurity
+@Configuration
+public class OAuth2SecurityConfiguration extends FlowuiVaadinWebSecurity {
+
+    @Autowired
+    private RoleGrantedAuthorityUtils authorityUtils;
+    @Autowired
+    private UnconstrainedDataManager dataManager;
+    // ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>UnconstrainedDataManager</code> bean should be used instead of the <code>DataManager</code> to allow the configuration code to access the <code>User</code> entity without any restrictions.</p>
+</div>
+<div class="paragraph">
+<p>Let’s take a closer look at the different parts of the configuration.</p>
+</div>
+<div class="paragraph">
+<p>The <code>configure(HttpSecurity http)</code> method is an entry point to the security settings configuration. It defines the OAuth2 login process by setting the login page, handling user data from the authentication provider, and managing the post-login behavior:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
+protected void configure(HttpSecurity http) throws Exception {
+    super.configure(http);
+    http.oauth2Login(configurer -&gt;
+            configurer
+                    .loginPage(getLoginPath())
+                    .userInfoEndpoint(userInfoEndpointConfig -&gt;
+                            userInfoEndpointConfig
+                                    .userService(oauth2UserService())
+                                    .oidcUserService(oidcUserService()))
+                    .successHandler(this::onAuthenticationSuccess)
+    );
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>onAuthenticationSuccess()</code> method handles successful authentication. It redirects users to the main view after successful login:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void onAuthenticationSuccess(HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     Authentication authentication) throws IOException {
+    // Redirect to the main view after successful authentication
+    new DefaultRedirectStrategy().sendRedirect(request, response, "/");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>oauth2UserService()</code> and <code>oidcUserService()</code> methods are responsible for mapping user information returned by the authentication service to your application’s <code>User</code> entity.</p>
+</div>
+<div class="paragraph">
+<p>The <code>oidcUserService()</code> method handles GitHub users:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// Returns a method that loads GitHub users
+private OAuth2UserService&lt;OAuth2UserRequest, OAuth2User&gt; oauth2UserService() {
+    DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();
+    return (userRequest) -&gt; {
+        // Delegate to the default implementation to load an external user
+        OAuth2User oAuth2User = delegate.loadUser(userRequest);
+
+        // Find or create a user with username corresponding to the GitHub ID
+        Integer githubId = oAuth2User.getAttribute("id");
+        User jmixUser = loadUserByUsername("github:" + githubId);
+
+        // Update the user with information from GitHub
+        jmixUser.setEmail(oAuth2User.getAttribute("email"));
+        String nameAttr = oAuth2User.getAttribute("name");
+        if (nameAttr != null) {
+            int idx = nameAttr.indexOf(" ");
+            if (idx &gt; 0) {
+                jmixUser.setFirstName(nameAttr.substring(0, idx));
+                jmixUser.setLastName(nameAttr.substring(idx + 1));
+            } else {
+                jmixUser.setLastName(nameAttr);
+            }
+        }
+
+        // Save the user to the database and assign roles
+        User savedJmixUser = dataManager.save(jmixUser);
+        savedJmixUser.setAuthorities(getDefaultGrantedAuthorities());
+        return savedJmixUser;
+    };
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>oidcUserService()</code> method handles Google users:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// Returns a method that loads Google users
+private OAuth2UserService&lt;OidcUserRequest, OidcUser&gt; oidcUserService() {
+    OidcUserService delegate = new OidcUserService();
+    return (userRequest) -&gt; {
+        // Delegate to the default implementation to load an external user
+        OidcUser oidcUser = delegate.loadUser(userRequest);
+
+        // Find or create a user with username corresponding to the Google ID
+        String googleId = oidcUser.getSubject();
+        User jmixUser = loadUserByUsername("google:" + googleId);
+
+        // Update the user with information from Google
+        jmixUser.setEmail(oidcUser.getEmail());
+        jmixUser.setFirstName(oidcUser.getAttribute("given_name"));
+        jmixUser.setLastName(oidcUser.getAttribute("family_name"));
+
+        // Update the user to the database and assign roles
+        User savedJmixUser = dataManager.save(jmixUser);
+        savedJmixUser.setAuthorities(getDefaultGrantedAuthorities());
+        return savedJmixUser;
+    };
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both methods depend on the <code>loadUserByUsername()</code> function that loads a user by username from the database or creates a new user if the user does not exist:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// Loads user by username or creates a new user
+private User loadUserByUsername(String username) {
+    return dataManager.load(User.class)
+            .query("e.username = ?1", username)
+            .optional()
+            .orElseGet(() -&gt; {
+                User user = dataManager.create(User.class);
+                user.setUsername(username);
+                return user;
+            });
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>username</code> attribute of the <code>User</code> entity will store identifiers returned by the authentication services.</p>
+</div>
+<div class="paragraph">
+<p>The <code>getDefaultGrantedAuthorities()</code> method creates a list of authorities to be assigned to the authenticated user. For demonstration purposes, the <code>getDefaultGrantedAuthorities()</code> method assigns full access rights. In a real-world application, however, it is essential to assign more limited privileges to new users. At minimum, new registrations should be assigned a <code>ui-minimal</code> role, as well as user-specific roles that provide access to relevant business entities, attributes, views, and menu items.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// Builds granted authority list to assign default roles to the user
+private Collection&lt;GrantedAuthority&gt; getDefaultGrantedAuthorities() {
+    return List.of(
+            authorityUtils.createResourceRoleGrantedAuthority(FullAccessRole.CODE)
+    );
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_modify_login_view"><a class="anchor" href="#_modify_login_view"></a>Modify Login View</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Open <code>login-view.xml</code> descriptor and add login buttons below the <code>loginForm</code> element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;h3 text="msg://otherLogin.text" classNames="other-login-header"/&gt;
+
+&lt;vbox classNames="login-wrapper"&gt;
+    &lt;button id="googleBtn"
+            text="Sign in with Google"
+            width="100%"
+            icon="app-icons:google"
+            disableOnClick="true"
+            classNames="google-style, other-login-button"/&gt;
+    &lt;button id="githubBtn"
+            text="Sign in with GitHub"
+            width="100%"
+            icon="app-icons:github"
+            disableOnClick="true"
+            classNames="github-style, other-login-button"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The button click handlers should redirect to URLs corresponding to the authentication providers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "googleBtn", subject = "clickListener")
+public void onGoogleBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    UI.getCurrent().getPage().setLocation("/oauth2/authorization/google");
+}
+
+@Subscribe(id = "githubBtn", subject = "clickListener")
+public void onGithubBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    UI.getCurrent().getPage().setLocation("/oauth2/authorization/github");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Add some styling to <code>/frontend/themes/sample-social-login/sample-social-login.css</code> file to have nice looking social login buttons:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.login-wrapper {
+    padding: var(--lumo-space-l);
+    max-width: calc(var(--lumo-size-m) * 10);
+    background: var(--lumo-base-color) linear-gradient(var(--lumo-tint-5pct), var(--lumo-tint-5pct));
+}
+
+.other-login-header {
+    color: var(--lumo-contrast-80pct);
+    width: calc(var(--lumo-size-m) * 10);
+    overflow: hidden;
+    text-align: center;
+}
+
+.other-login-header::before {
+    content: '';
+    display: inline-block;
+    border-bottom: 1px solid;
+    color: var(--lumo-contrast-40pct);
+    width: 50%;
+    margin: 0 0.5em 0 -55%;
+    vertical-align: middle;
+}
+
+.other-login-header::after {
+    content: '';
+    display: inline-block;
+    border-bottom: 1px solid;
+    color: var(--lumo-contrast-40pct);
+    margin: 0 -55% 0 0.5em;
+    vertical-align: middle;
+    width: 50%;
+}
+
+.other-login-button {
+    color: var(--lumo-contrast-80pct);
+}
+
+.google-style vaadin-icon {
+    color: #4285F4;
+    width: var(--lumo-icon-size-s);
+    height: var(--lumo-icon-size-s);
+}
+
+.github-style vaadin-icon {
+    color: 	black;
+    width: var(--lumo-icon-size-s);
+    height: var(--lumo-icon-size-s);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This must be enough to test the implemented authentication methods. Run the application and open <a class="bare" href="http://localhost:8080" rel="noopener" target="_blank">http://localhost:8080</a> in the incognito browser tab.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_summary"><a class="anchor" href="#_summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this tutorial, you have learned how to implement Social Login in your Jmix application.</p>
+</div>
+<div class="paragraph">
+<p>You have seen how to configure Google and GitHub as OAuth2 providers, and how to employ Spring Security OAuth2 Login feature.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

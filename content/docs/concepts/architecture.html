@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Overview :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Architecture Overview</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you can find a few diagrams that show a birds eye view of the Jmix landscape.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="scope"><a class="anchor" href="#scope"></a>Jmix Scope</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the simplest case, the information system built with Jmix consists of a Java web application and a relational database:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="architecture scope 1" src="_images/architecture-scope-1.svg"/>
+</div>
+<div class="title">Figure 1. Simple Jmix application</div>
+</div>
+<div class="paragraph">
+<p>The web application is based on Spring Boot and can be written in Java or Kotlin. A relational database is used to store data of Jmix subsystems (for example, security configuration) and as a main storage of application data.</p>
+</div>
+<div class="paragraph">
+<p>The Jmix application can connect to any number of additional data stores and use a separate file storage on a file system or in the cloud. Also, Jmix offers integrations with an <a class="xref page" href="../oidc/index.html">OIDC</a> or <a class="xref page" href="../ldap/index.html">LDAP</a> server for external authentication and SSO, and with OpenSearch or Elasticsearch for <a class="xref page" href="../search/index.html">full-text search</a> through the application data.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="architecture scope 2" src="_images/architecture-scope-2.svg"/>
+</div>
+<div class="title">Figure 2. Jmix application with additional services</div>
+</div>
+<div class="paragraph">
+<p>The Jmix application provides users with a web interface. It’s created in Java/Kotlin and XML using the <a class="xref page" href="../flow-ui/index.html">Jmix UI</a> subsystem.</p>
+</div>
+<div class="paragraph">
+<p>You can also create a separate frontend application and connect it to the Jmix backend through the <a class="xref page" href="../rest/index.html">Jmix REST API</a> or by creating custom endpoints. Note that frontend applications are out of Jmix scope, you can create them with any technology of your choice.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="architecture scope 3" src="_images/architecture-scope-3.svg"/>
+</div>
+<div class="title">Figure 3. Jmix application with additional frontend</div>
+</div>
+<div class="paragraph">
+<p>The Jmix application can be scaled horizontally using a <a class="xref page" href="../features/cluster-communication.html">cluster</a> of servers and a load balancer.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="architecture scope 4" src="_images/architecture-scope-4.svg"/>
+</div>
+<div class="title">Figure 4. Jmix application scaling</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="components"><a class="anchor" href="#components"></a>Jmix Components</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s zoom in to the Jmix application and explore its components.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="architecture components 1" src="_images/architecture-components-1.svg"/>
+</div>
+<div class="title">Figure 5. Jmix application components</div>
+</div>
+<div class="paragraph">
+<p>A Jmix application always contains dependencies to Spring Boot and to a number of Jmix subsystems. There are two categories of Jmix subsystems:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>Core subsystems</em> provide system-level functionality and are included in most projects.</p>
+</li>
+<li>
+<p><em>Add-ons</em> are optional subsystems that can be included in the project on demand. The add-ons are published at Jmix <a href="https://www.jmix.io/marketplace/" rel="noopener" target="_blank">marketplace</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Technically, both core subsystems and add-ons are organized in the same way. A subsystem contains one or more functional modules and corresponding Spring Boot starters, each packaged in a JAR file. A subsystem can depend on other subsystems: for example, many add-ons contain UI views that require dependency on the core UI subsystem.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

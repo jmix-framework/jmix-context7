@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enumerations :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Enumerations</h1>
+<div class="paragraph">
+<p>An enumeration is a set of constants that can be used as values of an <a class="xref page" href="entities.html">entity</a> attribute.</p>
+</div>
+<div class="paragraph">
+<p>In Jmix, an enumeration is a Java enum implementing the <code>EnumClass</code> interface and having an <code>id</code> field of <code>Integer</code> or <code>String</code> type. This field is stored in the database instead of <code>ordinal()</code> or <code>name()</code> of the enum, which has the following advantages:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You can rename and reorder enum constants, and as long as you keep the identifiers, your data model will be compatible with the database content.</p>
+</li>
+<li>
+<p>Even if the database contains a value that does not correspond to any enum constant (it happens if an old and a new versions of an application work with the same database), the entity still can be loaded with the enum attribute containing null. With the standard JPA approach, loading of such an instance is impossible at all.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use <a class="xref page" href="../studio/entity-designer.html#enumerations">Studio enumeration designer</a> to create Jmix enumerations.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Below is an example of Jmix enumeration class:</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerGrade.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public enum CustomerGrade implements EnumClass&lt;String&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+
+    BRONZE("B"), <i class="conum" data-value="2"></i><b>(2)</b>
+    GOLD("G"),
+    PLATINUM("P");
+
+    private String id;
+
+    CustomerGrade(String value) {
+        this.id = value;
+    }
+
+    public String getId() { <i class="conum" data-value="3"></i><b>(3)</b>
+        return id;
+    }
+
+    @Nullable
+    public static CustomerGrade fromId(String id) { <i class="conum" data-value="3"></i><b>(3)</b>
+        for (CustomerGrade at : CustomerGrade.values()) {
+            if (at.getId().equals(id)) {
+                return at;
+            }
+        }
+        return null;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>EnumClass</code> interface is parameterized by the Id type (<code>String</code> in this case).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Each enum constant is defined with a corresponding Id value passed to the constructor.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>getId()</code> and <code>fromId()</code> methods convert an enum constant to its Id and back.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The enum should be used in an entity as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">Customer.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Column(name = "GRADE")
+private String grade; <i class="conum" data-value="1"></i><b>(1)</b>
+
+public CustomerGrade getGrade() { <i class="conum" data-value="2"></i><b>(2)</b>
+    return grade == null ? null : CustomerGrade.fromId(grade);
+}
+
+public void setGrade(CustomerGrade grade) { <i class="conum" data-value="2"></i><b>(2)</b>
+    this.grade = grade == null ? null : grade.getId();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The persistent field has the type of the enum’s identifier (<code>Integer</code> or <code>String</code>)</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Getter and setter convert from Id type to the enum type and back.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+When creating an attribute in Studio entity designer, select <strong>ENUM</strong> in the <strong>Attribute type</strong> field and find your enum in the <strong>Type</strong> field.
+</td>
+</tr>
+</table>
+</div>
+
+</article>
+</body>
+</html>

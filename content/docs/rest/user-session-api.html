@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Session API :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">User Session API</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The User Session API consists of the following two endpoints:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#user-info">User Info</a> Information about current user.</p>
+</li>
+<li>
+<p><a href="#permissions">Permissions</a> Information about entity permissions that the current user has obtained.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="user-info"><a class="anchor" href="#user-info"></a>User Info</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The User Info Endpoint allows you to fetch information about the current user: <code>GET /userInfo</code> returns <code>200 - OK</code> with the following information:</p>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "username": "admin",
+  "locale": "en"
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="permissions"><a class="anchor" href="#permissions"></a>Permissions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>/permissions</code> endpoint allows you to retrieve information about current user’s permissions on entities and entity attributes.</p>
+</div>
+<div class="paragraph">
+<p>The returned <code>entities</code> array contain a list of targets for the CRUD operations on entities like <code>sample_Customer:read</code> with a value describing the corresponding permission:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Entity Values</caption>
+<colgroup>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Permission</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Operation Forbidden</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Operation Allowed</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The <code>entityAttributes</code> array contains a list of targets for each entity attribute with a value describing the corresponding permission:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. Entity Attribute Values</caption>
+<colgroup>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Permission</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity Attribute hidden</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity Attribute read allowed</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity Attribute modify allowed</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In the following example the permissions are requested for a user that has the following constraints:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The user has full access to the <code>Customer</code> entity.</p>
+</li>
+<li>
+<p>The user has only read access to the <code>Product</code> entity, except for the <code>tags</code> attribute, which is hidden.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Fetch Permissions Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /permissions</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "entities": [
+    {
+      "target": "rstex11_Customer:create",
+      "value": 1
+    },
+    {
+      "target": "rstex11_Customer:read",
+      "value": 1
+    },
+    {
+      "target": "rstex11_Customer:update",
+      "value": 1
+    },
+    {
+      "target": "rstex11_Customer:delete",
+      "value": 0
+    },
+    {
+      "target": "rstex11_Product:create",
+      "value": 0
+    },
+    {
+      "target": "rstex11_Product:read",
+      "value": 1
+    },
+    {
+      "target": "rstex11_Product:update",
+      "value": 0
+    },
+    {
+      "target": "rstex11_Product:delete",
+      "value": 0
+    }
+  ],
+  "entityAttributes": [
+    {
+      "target": "rstex11_Customer:name",
+      "value": 2
+    },
+    {
+      "target": "rstex11_Customer:type",
+      "value": 2
+    },
+    {
+      "target": "rstex11_Product:image",
+      "value": 1
+    },
+    {
+      "target": "rstex11_Product:price",
+      "value": 1
+    },
+    {
+      "target": "rstex11_Product:name",
+      "value": 1
+    },
+    {
+      "target": "rstex11_Product:tags",
+      "value": 0
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

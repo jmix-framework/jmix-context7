@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2. Working with WebDav Components :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">2. Working with WebDav Components</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>At this stage of development, the application features a knowledge base management system represented by the <code>Knowledge base</code> view.</p>
+</div>
+<div class="paragraph">
+<p>In this chapter, you will:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Enhance the webDav document wrapper data grid to display a link to the WebDAV document instead of the document identifier.</p>
+</li>
+<li>
+<p>Utilize the <a class="xref page" href="ui-components.html#webdav-document-upload-field">webdavDocumentUpload</a> component on the webDav document wrapper detail view to upload the WebDAV document into the system.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="add-webdavDocumentUploadField"><a class="anchor" href="#add-webdavDocumentUploadField"></a>Adding WebdavDocumentUploadField on View</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Locate <code>webdav-document-wrapper-detail-view.xml</code> in the <strong>Jmix</strong> tool window and double-click it. The view designer will appear:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="wdw detail view" src="_images/wdw-detail-view.png" width="1425"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You’ll notice that the <code>entityPicker</code> component is being used to show the <code>webdavDocument</code> attribute.
+If you want to display the special component designed to work with documents, you should include the <a class="xref page" href="ui-components.html#webdav-document-upload-field">WebdavDocumentUploadField</a> UI component in the XML descriptor.</p>
+</div>
+<div class="paragraph">
+<p>Remove the <code>entityPicker</code> component description from the XML descriptor and place the cursor after the <code>departmentField</code>. Next, click <strong>Add Component</strong> in the actions panel, then find the <code>WebdavDocumentUploadField</code> item and double-click it.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add wd upload field" src="_images/add-wd-upload-field.png" width="926"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The new <code>webdavDocumentUpload</code> element will be added beneath the <code>formLayout</code> element in both the <strong>Jmix UI</strong> structure panel and in the XML. Configure the <code>id</code>, <code>colspan</code>, and <code>property</code> attributes as shown below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;formLayout id="form" dataContainer="webdavDocumentWrapperDc"&gt;
+    &lt;textField id="descriptionField" property="description"
+               colspan="2"/&gt;
+    &lt;entityPicker id="departmentField" property="department"
+                  colspan="2"&gt;
+        &lt;actions&gt;
+            &lt;action id="entityLookup" type="entity_lookup"/&gt;
+            &lt;action id="entityClear" type="entity_clear"/&gt;
+        &lt;/actions&gt;
+    &lt;/entityPicker&gt;
+    &lt;webdav:webdavDocumentUpload id="webdavDocumentField"
+                                 property="webdavDocument"
+                                 colspan="2"/&gt;
+&lt;/formLayout&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="displaying-webdav-document-link"><a class="anchor" href="#displaying-webdav-document-link"></a>Displaying WebdavDocumentLink in Data Grid</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s display a link to the document in the data grid instead of its identifier.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>webdav-document-wrapper-list-view.xml</code> and find <code>webdavDocumentWrappersDataGrid</code>.</p>
+</div>
+<div class="paragraph">
+<p>Select the <code>webdavDocument</code> column, switch to the <strong>Handlers</strong> tab of the component inspector and create the <code>renderer</code> handler method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "webdavDocumentWrappersDataGrid.webdavDocument", subject = "renderer")
+private Renderer&lt;WebdavDocumentWrapper&gt; webdavDocumentWrappersDataGridWebdavDocumentRenderer() {
+    return null;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inject <code>UiComponents</code> object into controller class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can use the <strong>Inject</strong> button in the top actions panel of the editor to inject dependencies into view controllers and Spring beans.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Implement the <code>webdavDocumentWrappersDataGridWebdavDocumentRenderer</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "webdavDocumentWrappersDataGrid.webdavDocument", subject = "renderer")
+private Renderer&lt;WebdavDocumentWrapper&gt; webdavDocumentWrappersDataGridWebdavDocumentRenderer() {
+    return new ComponentRenderer&lt;&gt;( <i class="conum" data-value="1"></i><b>(1)</b>
+            () -&gt; uiComponents.create(WebdavDocumentLink.class), <i class="conum" data-value="2"></i><b>(2)</b>
+            (link, wrapper) -&gt; {
+                WebdavDocument webdavDocument = wrapper.getWebdavDocument();
+                if (webdavDocument != null) {
+                    link.setWebdavDocument(webdavDocument);
+                }
+            });
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The method returns a <code>Renderer</code> object that creates a UI component to be rendered in the column.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <a class="xref page" href="ui-components.html#webdav-document-link">WebdavDocumentLink</a> component instance is created using the <code>UiComponents</code> factory.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="running-application"><a class="anchor" href="#running-application"></a>Running the Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s run the application to observe the new feature in action.</p>
+</div>
+<div class="paragraph">
+<p>Navigate to <code>http://localhost:8080</code> using your web browser and sign in to the application with the credentials <code>admin/admin</code>.</p>
+</div>
+<div class="paragraph">
+<p>Choose the <code>Knowledge base</code> item from the <code>Application</code> menu. You will see the <code>Webdav document wrappers.list</code> view.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="wd wrapper list" src="_images/wd-wrapper-list.png" width="1271"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Webdav document</strong> column contains a link to the WebDav document and a button allowing you to open the standard <strong>WebDAV document versions</strong> view.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Create</strong>. The <code>Webdav document wrappers.detail</code> view will open. Besides the text field used for a file description, and the picker for a department, you may notice the built-in WebDAV add-on component for file upload. Try uploading a file using this component:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="wd wrapper detail" src="_images/wd-wrapper-detail.png" width="1271"/>
+</div>
+</div>
+<div class="paragraph">
+<p>After clicking the <strong>OK</strong> button, you will be redirected to the list view.</p>
+</div>
+<div class="paragraph">
+<p>Hover your mouse over the WebDAV document name. In the bottom left corner, you will see the link where the document is located on the WebDAV server.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="wd wrapper list try open doc" src="_images/wd-wrapper-list-try-open-doc.png" width="1271"/>
+</div>
+</div>
+<div class="paragraph">
+<p>However, when attempting to open the document, the browser will display a message indicating that it failed to establish a connection to the site.</p>
+</div>
+<div class="paragraph">
+<p>This situation occurs because the necessary configurations have not been made yet. We will discuss this in the next section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you have learned how to utilize components provided by the WebDAV add-on.</p>
+</div>
+<div class="paragraph">
+<p>You have learned that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <a class="xref page" href="ui-components.html#webdav-document-upload-field">WebDAVDocumentUploadField</a> component includes convenient built-in tools for viewing and uploading WebDAV documents.</p>
+</li>
+<li>
+<p>You can use the <a class="xref page" href="ui-components.html#webdav-document-link">WebDavDocumentLink</a> component in a data grid by providing a <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#component-renderer">ComponentRenderer</a> for a column.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

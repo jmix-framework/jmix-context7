@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Logging in Jmix :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Application Logging in Jmix</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>To monitor and understand the behavior of a running Jmix application, effective logging is essential. The Java ecosystem provides mature tools and methods for implementing application logging. This guide will demonstrate how to leverage this ecosystem within a Jmix application.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to implement this guide step by step, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup Jmix Studio</a></p>
+</li>
+<li>
+<p>Get the completed sample project, which includes all the examples used in this guide. This allows you to explore the finished implementation and experiment with the functionality right away.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>You can <a href="https://github.com/jmix-framework/jmix-application-logging-sample/archive/refs/heads/release_2_7.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+</li>
+<li>
+<p>Or clone it and switch to the <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-application-logging-sample
+cd jmix-application-logging-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Alternatively, you can start with the base <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> project and follow the step-by-step instructions in this guide to implement the features yourself.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="what-we-are-going-to-build"><a class="anchor" href="#what-we-are-going-to-build"></a>What We are Going to Build</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, we extend the <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> application by configuring custom log outputs, adjusting log levels, and adding context-sensitive MDC values to ensure that key information, such as the Pet ID, is consistently included in log entries. We enable SQL logging to gain insight into the database queries being executed, which is crucial for diagnosing performance issues and understanding how data is being retrieved.</p>
+</div>
+<div class="sect2">
+<h3 id="why-application-loggig-is-essential"><a class="anchor" href="#why-application-loggig-is-essential"></a>Why Application Logging is Essential</h3>
+<div class="paragraph">
+<p>Once an application is deployed, logging becomes one of the primary ways to gain insight into its operational state. Logs offer visibility into the application’s flow, making them essential for understanding behavior in production. They allow developers to identify and diagnose issues, capturing details about unexpected events or failures, and providing context that helps with debugging production issues.</p>
+</div>
+<div class="paragraph">
+<p>In modern software systems, Observability refers to the ability to understand an application’s internal state by examining its outputs, such as logs, metrics, and traces. Observability extends beyond logging to include metrics and custom business events, which together create a fuller picture of an application’s performance and user interactions. Metrics track quantitative data (like response times or resource usage), while business events capture high-level actions within the system. Together with logging, these elements support monitoring and troubleshooting effectively.</p>
+</div>
+<div class="paragraph">
+<p>In this guide, we’ll focus on logging as a foundational aspect of observability, exploring practical configurations and tools for effective monitoring in Jmix applications.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, two log statements are generated. When a <code>Pet</code> instance is successfully stored, an info log captures the pet’s details. If storing the Pet fails, an error log records information about the failure, aiding in troubleshooting and monitoring.</p>
+</div>
+<div class="listingblock">
+<div class="title">PetService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public Optional&lt;Pet&gt; savePet(Pet pet) {
+    try {
+        Pet savedPet = dataManager.save(pet);
+        log.info("Pet {} was saved correctly", pet); <i class="conum" data-value="2"></i><b>(2)</b>
+        return Optional.of(savedPet);
+    } catch (Exception e) {
+        log.error("Pet {} could not be saved", pet, e); <i class="conum" data-value="3"></i><b>(3)</b>
+        return Optional.empty();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Log messages are typically written either to standard output in the console or to a text file, allowing administrators and developers to access them for review. In production environments, where direct debugging is limited, logging becomes an essential diagnostic tool for understanding application behavior. The above code results in the following log statement:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">2024-10-11T12:33:35.664+02:00  INFO 80773 --- [nio-8080-exec-3] io.jmix.petclinic.service.PetService     : Pet io.jmix.petclinic.entity.pet.Pet-acf0839d-d96c-a286-9b0d-452548ebb70a [detached] was saved correctly</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This log entry captures a successful save action, providing useful context about the <code>Pet</code> entity and where the action took place.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="the-java-logging-ecosystem"><a class="anchor" href="#the-java-logging-ecosystem"></a>The Java Logging Ecosystem</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Logging has always played a significant role in the Java ecosystem, just as in many other platforms. Several APIs and libraries provide mechanisms for logging in Java applications, helping separate the technical task of generating log data from the process of actually "writing a log message" to a file, console, or other destination.</p>
+</div>
+<div class="paragraph">
+<p>When you call something like <code>log.info</code>, you are simply declaring that you want to log a message. The logging libraries then handle the rest—determining where the message should be sent (to a file, standard output, etc.), how it should be formatted, and under what circumstances the message should actually be logged (based on log levels or configurations). This separation allows for flexible, configurable logging behavior across different environments.</p>
+</div>
+<div class="paragraph">
+<p>Jmix uses Logback as its standard logging library. This choice is based on Spring Boot’s default behavior and provides stability, extensive configuration options, and seamless integration within Jmix applications. Spring Boot makes it straightforward to set up and customize logging configurations. While alternatives exist, Logback’s stability and tight integration with Spring Boot make it the recommended choice for Jmix applications.</p>
+</div>
+<div class="paragraph">
+<p>Although Jmix uses Logback as its logging library under the hood, when configuring loggers in your application code, you typically interact with the more abstract logging interface, <strong>Slf4J</strong> (Simple Logging Facade for Java), rather than Logback directly. Slf4J provides a set of abstract APIs for logging at different levels (<code>DEBUG</code>, <code>INFO</code>, <code>WARN</code>, etc.), allowing developers to work with logging in a more flexible and generic way without being tied to any specific logging implementation.</p>
+</div>
+<div class="paragraph">
+<p>Underneath, Logback implements the Slf4J APIs, handling the actual writing of log messages to files, consoles, or other logging destinations. However, as a developer, you don’t need to interact with Logback’s classes directly. This approach makes it easier to potentially swap out the underlying logging library in the future without needing to change every instance where logging is used in your application. The separation of concerns provided by Slf4J makes your logging more modular and adaptable to future changes.</p>
+</div>
+<div class="paragraph">
+<p>This guide will focus on leveraging this combination, with examples of configuring Logback in a Jmix application.</p>
+</div>
+<div class="paragraph">
+<p>For more details on setting up and customizing logging in Spring Boot, including Logback configurations and integration with Slf4J, refer to the official Spring Boot documentation:</p>
+</div>
+<div class="paragraph">
+<p><a href="https://docs.spring.io/spring-boot/reference/features/logging.html">Spring Boot Logging Documentation</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="writing-log-messages-in-jmix"><a class="anchor" href="#writing-log-messages-in-jmix"></a>Writing Log Messages in Jmix</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Writing a log message in a Jmix application is straightforward, much like in any other Java application. Jmix, by default, is configured with Slf4J and Logback, which are also used internally for framework logging.</p>
+</div>
+<div class="paragraph">
+<p>To log information within a class, let’s revisit the example from earlier and take a closer look at how the logger is configured and used. Below, we define a logger and use it to write log messages based on the success or failure of saving a Pet:</p>
+</div>
+<div class="listingblock">
+<div class="title">PetService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Component("petclinic_PetService")
+public class PetService {
+
+    private static final Logger log = LoggerFactory.getLogger(PetService.class); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    public Optional&lt;Pet&gt; savePet(Pet pet) {
+        try {
+            Pet savedPet = dataManager.save(pet);
+            log.info("Pet {} was saved correctly", pet); <i class="conum" data-value="2"></i><b>(2)</b>
+            return Optional.of(savedPet);
+        } catch (Exception e) {
+            log.error("Pet {} could not be saved", pet, e); <i class="conum" data-value="3"></i><b>(3)</b>
+            return Optional.empty();
+        }
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Defines the logger for this class via Slf4J.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Logs an info message upon successful save, with variable data passed as placeholders ({}).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Logs an error message if saving fails, including exception details.</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="logging-levels"><a class="anchor" href="#logging-levels"></a>Logging Levels</h3>
+<div class="paragraph">
+<p>In any application, there is often a need to capture different kinds of events—sometimes errors that need to be addressed, and sometimes just routine information that you might want to know about later. To express the varying levels of importance, Slf4J provides log levels, which indicate how critical or routine a message is. These log levels are arranged in increasing order of severity:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>TRACE</code></p>
+</li>
+<li>
+<p><code>DEBUG</code></p>
+</li>
+<li>
+<p><code>INFO</code></p>
+</li>
+<li>
+<p><code>WARN</code></p>
+</li>
+<li>
+<p><code>ERROR</code></p>
+</li>
+<li>
+<p><code>FATAL</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These levels act as rough categories for the type of event being logged, helping you understand whether something minor or significant has occurred. For example, <code>INFO</code> might be used for routine updates, while <code>ERROR</code> indicates something has gone wrong. You can filter logs by these levels to focus on specific types of events.</p>
+</div>
+<div class="paragraph">
+<p>There is no strict rule on when to use each level—it’s up to you as the developer to decide what <code>INFO</code>, <code>WARN</code>, and <code>ERROR</code> mean within the context of your application. The goal is to use these categories in a way that best fits your specific use case.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see the official Slf4J documentation on <a href="https://www.slf4j.org/api/org/apache/log4j/Level.html">logging levels</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="logging-configuration"><a class="anchor" href="#logging-configuration"></a>Logging Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In Spring Boot applications, you can adjust logging configurations in two main ways: using the <code>application.properties</code> file for simple configurations or by creating a <code>logback-spring.xml</code> file for more advanced settings.</p>
+</div>
+<div class="paragraph">
+<p>The <code>application.properties</code> file is useful for defining basic settings such as log levels and destinations, while the <code>logback-spring.xml</code> file offers more extensive options like defining appenders and formatting log output in greater detail.</p>
+</div>
+<div class="sect2">
+<h3 id="application-properties"><a class="anchor" href="#application-properties"></a>application.properties</h3>
+<div class="paragraph">
+<p>In Spring Boot, including Jmix applications, you can easily adjust logging levels and behaviors through the <code>application.properties</code> file. By default, Jmix generates a handful of useful logging levels for different parts of the source code into the default <code>application.properties</code>. You can modify these levels to increase or decrease verbosity depending your needs.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">logging.level.org.atmosphere = warn
+
+# 'debug' level logs SQL generated by EclipseLink ORM
+logging.level.eclipselink.logging.sql = debug
+
+# 'debug' level logs data store operations
+logging.level.io.jmix.core.datastore = info
+
+# 'debug' level logs access control constraints
+logging.level.io.jmix.core.AccessLogger = info
+
+
+# 'debug' level logs all Jmix debug output
+logging.level.io.jmix = info
+
+
+logging.level.liquibase = warn
+logging.level.io.jmix.petclinic = info</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This configuration defines different logging levels for various components of the Jmix application and the underlying libraries like <code>EclipseLink</code> and <code>Liquibase</code>. For example:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The logging level for <code>io.jmix</code> is set to <code>INFO</code>, which means only important informational messages, warnings, and errors will be logged.</p>
+</li>
+<li>
+<p>The level for <code>liquibase</code> is set to <code>WARN</code>, so only warning and error messages are logged, reducing verbosity.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To change a logging level, simply update the corresponding line in <code>application.properties</code>, and the new level will take effect after restarting the application. This flexibility allows you to tailor the logging output for different environments, such as more detailed logging in development and more minimal logs in production.</p>
+</div>
+<div class="paragraph">
+<p>You can configure logging levels for any package or class that is not already defined by simply adding <code>logging.level.io.jmix.petclinic.service</code> to the <code>application.properties</code> file. You can also specify the logging level for individual classes directly.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">logging.level.io.jmix.petclinic.service = debug</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This configuration sets all classes in the <code>service</code> package of the sample application to log messages at the <code>DEBUG</code> level and above.</p>
+</div>
+<div class="paragraph">
+<p>For more information on logging levels and configuration options, refer to the official Spring Boot documentation:
+<a href="https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging.log-levels" rel="noopener" target="_blank">Spring Boot Logging Levels Documentation</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="advanced-logback-configuration"><a class="anchor" href="#advanced-logback-configuration"></a>Advanced Logback Configuration</h3>
+<div class="paragraph">
+<p>While <code>application.properties</code> provides basic logging configuration, you can create a <code>logback-spring.xml</code> file in the <code>src/main/resources</code> directory for more advanced customization. This file allows you to define appenders, log formats, and manage more complex logging destinations.</p>
+</div>
+<div class="paragraph">
+<p>A simple example configuration might look like this:</p>
+</div>
+<div class="listingblock">
+<div class="title">logback-spring.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;configuration&gt;
+    &lt;include resource="org/springframework/boot/logging/logback/defaults.xml"/&gt;
+    &lt;include resource="org/springframework/boot/logging/logback/console-appender.xml"/&gt;
+
+    &lt;root level="INFO"&gt;
+        &lt;appender-ref ref="CONSOLE"/&gt;
+    &lt;/root&gt;
+
+    &lt;logger name="org.springframework.web" level="WARN"/&gt;
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Using a custom <code>logback-spring.xml</code> allows for greater flexibility in managing how logs are output and stored, offering more fine-tuned control compared to the <code>application.properties</code> file.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="environment-variables"><a class="anchor" href="#environment-variables"></a>Environment Variables</h3>
+<div class="paragraph">
+<p>In addition to configuring logging levels in <code>application.properties</code>, Spring Boot allows you to modify logging levels dynamically using environment variables. This approach is especially useful in containerized environments (e.g., Docker or Kubernetes), where configuration changes can be made at deployment time without modifying the source code.</p>
+</div>
+<div class="paragraph">
+<p>To change a logging level using an environment variable, you can set the <code>LOGGING_LEVEL</code> prefix followed by the package or class name:</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Setting logging level via environment variable in Docker</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ docker run -e LOGGING_LEVEL_IO_JMIX_PETCLINIC_SERVICE=DEBUG my-jmix-app</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the logging level for the <code>io.jmix.petclinic.service</code> package is set to <code>DEBUG</code> at deployment time. You can also combine this with deployment-specific configurations to ensure that different logging levels are applied based on the environment.</p>
+</div>
+<div class="paragraph">
+<p>This dynamic approach is useful for scenarios where you want to adjust the logging verbosity without changing the application’s configuration files. It supports more flexibility, especially when managing multiple deployments or environments.</p>
+</div>
+<div class="paragraph">
+<p>For more details on custom logback logging configuration in Spring Boot, refer to the official <a href="https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging.custom-log-configuration" rel="noopener" target="_blank">Spring Boot Custom Logging Configuration</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="logging-sql-statements"><a class="anchor" href="#logging-sql-statements"></a>Logging SQL Statements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Since Jmix applications interact heavily with the database, it is often important to understand exactly how the application communicates with the database. However, sometimes it’s not possible to get the full picture just by looking at the application source code. In such cases, enabling SQL logging can be very useful, especially when trying to diagnose performance issues, identify inefficient query execution, or verify that the correct database operations are being performed.</p>
+</div>
+<div class="paragraph">
+<p>By default, Jmix sets the logging level for SQL logging to <code>INFO</code> in the <code>application.properties</code> file, which does not activate the Eclipselink SQL logs. However, you can easily adjust this to <code>DEBUG</code> by updating the logging level for <code>eclipselink.logging.sql</code>, allowing you to see detailed SQL queries and parameter bindings.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># 'debug' level logs SQL generated by EclipseLink ORM
+logging.level.eclipselink.logging.sql = debug</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With this configuration, SQL statements are generated and logged, allowing you to closely inspect the actual database queries being executed. This helps verify that the correct queries are being sent to the database, ensuring that your application is functioning as expected. It also provides insight into how data is fetched and processed:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-log hljs" data-lang="log">2024-10-23T07:29:53.664+02:00 DEBUG 6166 --- [nio-8080-exec-8] eclipselink.logging.sql                  : &lt;t 459632279, conn 712486116&gt; SELECT ID, BIRTHDATE, CREATED_BY, CREATED_DATE, DELETED_BY, DELETED_DATE, IDENTIFICATION_NUMBER, LAST_MODIFIED_BY, LAST_MODIFIED_DATE, NAME, VERSION, OWNER_ID, TYPE_ID FROM PETCLINIC_PET WHERE ((ID = ?) AND (0=0))
+	bind =&gt; [098b43a9-e9a2-e6c7-be5d-10f650e3849b]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Logging SQL statements is especially useful when diagnosing performance issues in your application. For example, if you notice that the application is displaying data slowly in the UI, or if fetching large datasets from multiple entities is causing the UI to lag, it might be an indication of an N+1 query issue or improper use of lazy loading. In such cases, enabling SQL logging can help identify these problems, and optimization may be needed by adjusting the fetch strategy to avoid unnecessary queries.</p>
+</div>
+<div class="paragraph">
+<p>Here’s an example where multiple queries are executed to load a <code>Pet</code>, its <code>Owner</code>, and <code>Pet Type</code>. The fact that three separate queries are executed suggests that optimization through the correct use of a fetch plan could improve performance:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-log hljs" data-lang="log">2024-10-23T07:29:53.664+02:00 DEBUG 6166 --- [nio-8080-exec-8] eclipselink.logging.sql                  : &lt;t 459632279, conn 712486116&gt; SELECT ID, BIRTHDATE, CREATED_BY, CREATED_DATE, DELETED_BY, DELETED_DATE, IDENTIFICATION_NUMBER, LAST_MODIFIED_BY, LAST_MODIFIED_DATE, NAME, VERSION, OWNER_ID, TYPE_ID FROM PETCLINIC_PET WHERE ((ID = ?) AND (0=0))
+	bind =&gt; [098b43a9-e9a2-e6c7-be5d-10f650e3849b]
+2024-10-23T07:29:53.665+02:00 DEBUG 6166 --- [nio-8080-exec-8] eclipselink.logging.sql                  : &lt;t 459632279, conn 712486116&gt; [0 ms] spent
+2024-10-23T07:29:53.666+02:00 DEBUG 6166 --- [nio-8080-exec-8] eclipselink.logging.sql                  : &lt;t 459632279, conn 2009192390&gt; SELECT ID, ADDRESS, CITY, CREATED_BY, CREATED_DATE, DELETED_BY, DELETED_DATE, EMAIL, FIRST_NAME, LAST_MODIFIED_BY, LAST_MODIFIED_DATE, LAST_NAME, TELEPHONE, VERSION FROM PETCLINIC_OWNER WHERE ((ID = ?) AND (0=0))
+	bind =&gt; [c3bb4197-4189-c26a-2aa9-35c0ebb9faa4]
+2024-10-23T07:29:53.667+02:00 DEBUG 6166 --- [nio-8080-exec-8] eclipselink.logging.sql                  : &lt;t 459632279, conn 2009192390&gt; [1 ms] spent
+2024-10-23T07:29:53.668+02:00 DEBUG 6166 --- [nio-8080-exec-8] eclipselink.logging.sql                  : &lt;t 459632279, conn 662306096&gt; SELECT ID, COLOR, CREATED_BY, CREATED_DATE, DELETED_BY, DELETED_DATE, LAST_MODIFIED_BY, LAST_MODIFIED_DATE, NAME, VERSION FROM PETCLINIC_PET_TYPE WHERE ((ID = ?) AND (0=0))
+	bind =&gt; [1e2abb1f-5f77-865e-17fa-b67e85497523]</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>EclipseLink uses prepared statements to prevent SQL injection. The actual values are shown in the <code>bind</code> statements, with placeholders (<code>?</code>) in the SQL query. This means the logged queries can’t be directly executed in a database explorer without manually substituting the bound values.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="context-information-in-logs"><a class="anchor" href="#context-information-in-logs"></a>Context Information in Logs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As logging grows in an application, certain pieces of information—such as IDs of business objects or user details—tend to appear frequently in log messages. In the petclinic example, many log messages would likely contain the Pet ID to identify which pet the business operation is acting upon. To avoid repeating this information in every log statement, we can centralize it.</p>
+</div>
+<div class="paragraph">
+<p><em>Slf4J</em> provides a feature called <em>MDC</em> (Mapped Diagnostic Context), which allows you to set specific values once and have them automatically included in every log message. This simplifies logging by ensuring that important context information is consistently logged without needing to be manually added to each log statement. Additionally, MDC values are logged as dedicated key-value pairs, ensuring they always appear in the same format and location within the log messages. This consistency makes it much easier to filter and analyze logs, compared to manually adding context that may vary between log statements.</p>
+</div>
+<div class="paragraph">
+<p>In the petclinic example, the <code>PetService</code> leverages the MDC context to track the Pet’s identification number before performing an update. The Pet ID is set in the MDC, and all log messages related to that operation automatically include the Pet ID, without needing to manually add it each time.
+.PetService.java</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Component("petclinic_PetService")
+public class PetService {
+
+    private static final Logger log = LoggerFactory.getLogger(PetService.class); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    public Optional&lt;Pet&gt; updatePet(Pet pet) {
+        MDC.put("petId", pet.getIdentificationNumber()); <i class="conum" data-value="1"></i><b>(1)</b>
+
+        log.info("Updating Pet"); <i class="conum" data-value="2"></i><b>(2)</b>
+
+        try {
+            Pet updatedPet = dataManager.save(pet);
+
+            log.info("Pet Update successfully"); <i class="conum" data-value="3"></i><b>(3)</b>
+
+            return Optional.of(updatedPet);
+        } catch (Exception e) {
+            log.error("Failed to update Pet", e); <i class="conum" data-value="4"></i><b>(4)</b>
+            return Optional.empty();
+        } finally {
+            // Ensure MDC is cleared to avoid leaking context into unrelated log entries
+            MDC.remove("petId"); <i class="conum" data-value="5"></i><b>(5)</b>
+        }
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The Pet’s identification number is set into the MDC.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>A log message is recorded before updating the Pet.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>After the Pet is successfully updated, another log confirms the success.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>If an error occurs, an error log is created with exception details.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The MDC is cleared at the end of the method to avoid context leakage.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The above code will produce the following log messages with the Pet ID and user automatically included using MDC:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-log hljs" data-lang="log">2024-10-21T08:13:30.392+02:00 jmixUser:joy petId:088  INFO 30254 --- [nio-8080-exec-5] io.jmix.petclinic.service.PetService     : Updating Pet
+2024-10-21T08:13:30.407+02:00 jmixUser:joy petId:088  INFO 30254 --- [nio-8080-exec-5] io.jmix.petclinic.service.PetService     : Pet Update successfully</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In these log messages, the <strong>Pet ID</strong> (<code>088</code>) and <strong>jmixUser</strong> (<code>joy</code>) are consistently included at the beginning of the log line without any manual effort for each log statement.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>By default, Jmix automatically writes the current username into the MDC under the key <code>jmixUser</code>. This allows you to include the current user in log messages without needing to manually handle the MDC for the user. Simply use <code>%X{jmixUser}</code> in your logging pattern to include the current user in logs.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The MDC context allows you to set contextual data, like a Pet ID, at any point in your application (such as in a View-Controller). This data will automatically propagate across method calls and class boundaries, like when interacting with a Service. Once set, the Pet ID is available to all subsequent log messages in that flow, ensuring that consistent information is logged without needing to pass the ID explicitly between classes. This feature simplifies logging across different layers of your application.</p>
+</div>
+<div class="paragraph">
+<p>Another advantage is that the MDC context is preserved when calling deeper framework-level code. This means that when you invoke a framework method, like saving an entity with Jmix’s DataStore or even deeper with EclipseLink, the MDC context remains intact. To see this in action, let’s activate the framework data storage logs and see how MDC values are also included there:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">logging.level.eclipselink.logging.sql=debug
+logging.level.io.jmix.core.datastore=debug</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here’s an example log output showing how the <strong>Pet ID</strong> (<code>087</code>) and <strong>jmixUser</strong> (<code>joy</code>) are included not only in the application-level log messages but also in the internal framework logs during the pet update operation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-log hljs" data-lang="log">2024-10-23T07:29:53.659+02:00 jmixUser:joy petId:087  INFO 6166 --- [nio-8080-exec-8] io.jmix.petclinic.service.PetService     : Updating Pet
+2024-10-23T07:29:53.660+02:00 jmixUser:joy petId:087 DEBUG 6166 --- [nio-8080-exec-8] i.jmix.core.datastore.AbstractDataStore  : save: store=main, entities to save: [io.jmix.petclinic.entity.pet.Pet-098b43a9-e9a2-e6c7-be5d-10f650e3849b [detached]], entities to remove: []
+2024-10-23T07:29:53.675+02:00 jmixUser:joy petId:087 DEBUG 6166 --- [nio-8080-exec-8] eclipselink.logging.sql                  : &lt;t 459632279, conn 1441249747&gt; UPDATE PETCLINIC_PET SET BIRTHDATE = ?,  LAST_MODIFIED_DATE = ?, VERSION = ? WHERE ((ID = ?) AND (VERSION = ?))
+    bind =&gt; [1997-08-16, 2024-10-23T07:29:53.670+02:00, 3, 098b43a9-e9a2-e6c7-be5d-10f650e3849b, 2]
+2024-10-23T07:29:53.683+02:00 jmixUser:joy petId:087  INFO 6166 --- [nio-8080-exec-8] io.jmix.petclinic.service.PetService     : Pet Update successfully</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this log output, the <strong>Pet ID</strong> and <strong>jmixUser</strong> values are consistently included not only in your custom application logs (<code>io.jmix.petclinic.service.PetService</code>) but also in the framework’s internal logs, such as those from the Jmix <code>AbstractDataStore</code> and EclipseLink SQL operations. This allows you to easily link SQL queries or other framework-level operations to their functional context, even when the context might not be obvious from the logs themselves.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>It is important to clear the MDC context after the operation is complete using <code>MDC.remove("petId")</code>. If not cleared, the MDC values will persist and could affect subsequent log messages that may be unrelated to the current operation.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For more details on how MDC works, refer to the official Logback documentation: <a href="https://logback.qos.ch/manual/mdc.html">Logback Manual: MDC</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide demonstrated how effective logging can be implemented in a Jmix application using the Java ecosystem. We explored basic logging concepts, how to use Slf4J and logback to write log messages, and advanced features like MDC (Mapped Diagnostic Context) to include contextual information, such as a Pet ID, across log messages automatically.</p>
+</div>
+<div class="paragraph">
+<p>We also looked at how logging levels can be customized for different environments, either through configuration files or dynamic environment variables.</p>
+</div>
+<div class="paragraph">
+<p>Logging is essential for observability and debugging in production environments. Properly configured logging ensures that administrators can track down issues without direct access to the running application, making it a core aspect of application maintenance and monitoring.</p>
+</div>
+<div class="sect2">
+<h3 id="further-information"><a class="anchor" href="#further-information"></a>Further Information</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../observability-logging-guide/index.html">Advanced Guide on Observability: Centralized Logging</a></p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-boot/reference/features/logging.html" rel="noopener" target="_blank">Spring Boot Logging Documentation</a></p>
+</li>
+<li>
+<p><a href="https://logback.qos.ch/manual/index.html" rel="noopener" target="_blank">Logback Manual</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

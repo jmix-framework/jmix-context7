@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Entities :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Create Entities</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Entities API lets you create entities by performing a <code>POST</code> request against the <code>/entities/:entityName</code> endpoint.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-entity"><a class="anchor" href="#create-entity"></a>Create an Entity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The request body contains a JSON object with the attributes of the entity.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Attributes from <a class="xref page" href="../../data-model/entities.html#traits">Entity Traits</a> like <code>id</code> or <code>createdBy</code> should not be part of the request. Those attributes are automatically added by Jmix while storing the entity.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>When the entity is created successfully, the HTTP response status code <code>201 - Created</code> is returned. By default, a JSON metadata representation of the entity is returned mainly containing the newly created <code>id</code> attribute for further reference.</p>
+</div>
+<div class="listingblock">
+<div class="title">Create Customer Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/entities/sample_Customer
+
+{
+  name: "Randall Bishop"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 201 - Created</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "_entityName": "sample_Customer",
+  "_instanceName": "Randall Bishop",
+  "id": "78e7996d-8b69-6526-8e9f-16262a1c4113"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, it is possible to define which attributes should be returned once the entity is created. This can be achieved through the URL query parameter <code>responseFetchPlan</code>.</p>
+</div>
+<div class="paragraph">
+<p>For example, the URL <code>/entities/sample_Order?responseFetchPlan=order-with-details</code> would return the complete order with all its details containing order lines, customer references etc.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The HTTP response Header <code>Location</code> indicates also the URL to the newly created entity instance for further operations (like fetching, updating, or deleting).
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-validation"><a class="anchor" href="#entity-validation"></a>Entity Validation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When an entity is created or updated, the regular entity validation is active and enforced by default. This means that invalid input (according to the entity validation annotations) from the API is rejected with the HTTP response status code <code>400 - Bad Request</code>.</p>
+</div>
+<div class="paragraph">
+<p>The API returns detailed error messages for each validation violation in the following form of a JSON array. Each entry follows the structure:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">message</dt>
+<dd>
+<p>the (translated) human-readable error message of the violation</p>
+</dd>
+<dt class="hdlist1">messageTemplate</dt>
+<dd>
+<p>the non-interpolated error message for this constraint violation</p>
+</dd>
+<dt class="hdlist1">path</dt>
+<dd>
+<p>the attribute name (or property path) of the attribute that caused the violation</p>
+</dd>
+<dt class="hdlist1">invalidValue</dt>
+<dd>
+<p>the value that was part of the request for the attribute, which causes the violation</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>The following request contains two errors in the request, as 1. the <code>customer</code> attribute is required and 2. the <code>date</code> should not be in the future.</p>
+</div>
+<div class="listingblock">
+<div class="title">Invalid Order Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/entities/sample_Order
+
+{
+  "date": "2048-01-01",
+  "amount": 49.99,
+  "customer": null
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The API then returns the list of violations of the entity validations.</p>
+</div>
+<div class="listingblock">
+<div class="title">Response: 400 - Bad Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    "message": "jakarta.validation.constraints.PastOrPresent.message",
+    "messageTemplate": "{jakarta.validation.constraints.PastOrPresent.message}",
+    "path": "date",
+    "invalidValue": "2048-01-01"
+  },
+  {
+    "message": "may not be null",
+    "messageTemplate": "{jakarta.validation.constraints.NotNull.message}",
+    "path": "customer",
+    "invalidValue": null
+  }
+]</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="association-attributes"><a class="anchor" href="#association-attributes"></a>Association Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When the entity to create should be linked to another existing entity, it is required to reference the other entity in the request.</p>
+</div>
+<div class="paragraph">
+<p>In the Order example, you want to reference a Customer via the <code>customer</code> attribute when you create the Order. This is done through a JSON object containing only the ID of the existing entity. Jmix performs a lookup of the customer by the provided ID from the JSON request and links the customer to the new order.</p>
+</div>
+<div class="listingblock">
+<div class="title">Request with N:1 reference</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/entities/sample_Order
+
+{
+  "customer": {
+    "id": "f88597ff-009d-1cf2-4a90-a4fb5b08d835"
+  },
+  "date": "2021-03-01",
+  "amount": 130.08
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For all kinds of associations: <code>1:N</code>, <code>N:1</code>, <code>M:N</code> the way to reference other entities is always via its ID.</p>
+</div>
+<div class="paragraph">
+<p>The second example shows how to link a <code>Product</code> to multiple <code>ProductTag</code> entities via an <code>M:N</code> relationship, as described in the Product entity definition.</p>
+</div>
+<div class="listingblock">
+<div class="title">Product.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "SAMPLE_PRODUCT")
+@Entity(name = "sample_Product")
+public class Product {
+
+    @JoinTable(name = "SAMPLE_PRODUCT_PRODUCT_TAG_LINK",
+            joinColumns = @JoinColumn(name = "PRODUCT_ID"),
+            inverseJoinColumns = @JoinColumn(name = "PRODUCT_TAG_ID"))
+    @ManyToMany
+    private List&lt;ProductTag&gt; tags;
+
+    // ...
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the request, the <code>ProductTag</code> entity instances are references by their ids. This time, the JSON object is put into an array, as there are multiple product tags to reference.</p>
+</div>
+<div class="listingblock">
+<div class="title">Request with <code>M:N</code> references</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/entities/sample_Product?responseFetchPlan=product-with-tags
+
+{
+  "name": "123",
+  "price": 99.95,
+  "tags": [
+    {
+      "id": "333f3a20-c47b-4bc9-ba34-a72d2d815695" <i class="conum" data-value="1"></i><b>(1)</b>
+    },
+    {
+      "id": "c4c028f0-fec1-7512-83cd-c17537d1f502"
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 201 - Created</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "id": "f0e04748-dcdf-d856-2482-2904f2126fcc",
+  "price": 99.95,
+  "name": "123",
+  "tags": [
+    {
+      "id": "333f3a20-c47b-4bc9-ba34-a72d2d815695", <i class="conum" data-value="2"></i><b>(2)</b>
+      "name": "shiny"
+    },
+    {
+      "id": "c4c028f0-fec1-7512-83cd-c17537d1f502",
+      "name": "great"
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The tags are referenced as a list of JSON objects containing the ID of the already existing <code>ProductTag</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The response contains the stored association to the two <code>ProductTag</code> entities.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="composition-attributes"><a class="anchor" href="#composition-attributes"></a>Composition Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For attributes that are marked as <code>@Composition</code> the situation is slightly different. As this relationship type indicates that the child entities only exist as part of the parent entity, it is also possible to directly create child entities as part of the request to create a parent.</p>
+</div>
+<div class="paragraph">
+<p>In the next example, the <code>OrderLine</code> entity is a child entity of the <code>Order</code> entity. This is expressed through the <code>@Composition</code> annotation on the <code>lines</code> attribute of the <code>Order</code> entity.</p>
+</div>
+<div class="listingblock">
+<div class="title">Order.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class Order {
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @Composition
+    @OneToMany(mappedBy = "order")
+    private List&lt;OrderLine&gt; lines;
+
+    // ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you create an order through the API you can directly create its order lines as part of the request. In this case, all the attributes of the child entity need to be provided. The relationship from the parent to the child does not need to be additionally referenced. Putting the child entity into the JSON array is enough to establish the connection.</p>
+</div>
+<div class="paragraph">
+<p>The following JSON request will create an order with its order lines:</p>
+</div>
+<div class="listingblock">
+<div class="title">Request with child entities</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/entities/sample_Order
+
+{
+  "customer": {
+    "id": "f88597ff-009d-1cf2-4a90-a4fb5b08d835"
+  },
+  "date": "2021-03-01",
+  "amount": 130.08,
+  "lines": [ <i class="conum" data-value="1"></i><b>(1)</b>
+    {
+      "quantity": 2,
+      "product": {
+        "id": "7750adbe-6c30-cede-31a6-577a1a96aa83"  <i class="conum" data-value="2"></i><b>(2)</b>
+      }
+    },
+    {
+      "quantity": 1,
+      "product": {
+        "code": "1ed85c7a-89f1-c339-a738-16307ed6003a"
+      }
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Order lines are created as an array of JSON objects containing all the attributes of the entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>In case a child entity needs to reference another entity (like the <code>N:1</code> reference from the <code>OrderLine</code> to <code>Product</code>), the same rules of referencing via JSON object containing the ID apply.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="bulk-creation"><a class="anchor" href="#bulk-creation"></a>Bulk Creation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Create-Entity API also allows you to create multiple entities within one request. For this the JSON request body should contain an array of JSON objects representing each entity.</p>
+</div>
+<div class="listingblock">
+<div class="title">Bulk Creation Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest
+            /entities
+            /sample_Customer
+
+[
+  {
+    "name": "Randall Bishop"
+  },
+  {
+    "name": "Sarah Doogle"
+  }
+]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 201 - Created</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    "id": "c5fea05d-9062-6ac8-e9b1-7051616de102"
+  },
+  {
+    "id": "4a6a3aa0-ecf5-dcf4-7b37-a268a4cd3720"
+  }
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In case of a violation of an entity validation, the entities will not be created, and a corresponding Error message will be returned. See  <a href="#entity-validation">Entity Validation</a> for further details.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

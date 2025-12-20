@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gateways :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Gateways</h1>
+<div class="sect1">
+<h2 id="overview"><a class="anchor" href="#overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gateways are used to control the flow of a process by determining under what conditions a process should proceed along different paths.
+Each type of gateway serves a specific purpose in directing the flow of a process based on certain conditions or events.</p>
+</div>
+<div class="paragraph">
+<p>Gateways help to model decision points, branching, merging, and synchronization within a process,
+allowing for more complex and dynamic process flows to be represented accurately.</p>
+</div>
+<div class="sect2">
+<h3 id="gateway-types"><a class="anchor" href="#gateway-types"></a>Gateway Types</h3>
+<div class="paragraph">
+<p>There are four types of BPMN gateways supported in <strong>Jmix BPM</strong>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Exclusive gateway</p>
+</li>
+<li>
+<p>Parallel gateway</p>
+</li>
+<li>
+<p>Inclusive gateway</p>
+</li>
+<li>
+<p>Event-based gateway</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>A <strong>Complex gateway</strong> isn’t supported.</p>
+</div>
+<hr/>
+</div>
+<div class="sect2">
+<h3 id="grapical-gateways"><a class="anchor" href="#grapical-gateways"></a>Graphical Representation of Gateways</h3>
+<div class="paragraph">
+<p>All gateways are visualized as diamond shapes with different icons inside:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="gateway types" src="../_images/bpmn-gateways/gateway-types.png" width="400"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="forks-and-joins"><a class="anchor" href="#forks-and-joins"></a>Fork and Join Gateways</h3>
+<div class="paragraph">
+<p>All gateways except <em>Event-based</em> can be used in the process model in two roles:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Fork</strong> — where the process splits in several paths</p>
+</li>
+<li>
+<p><strong>Join</strong> — where paths merge</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As a rule, fork and join gateways are paired, but it isn’t mandatory.
+If the process was split once, each path can continue until the <em>End event</em>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Gateways are used to control the flow of the process execution by generating
+or consuming <a class="xref page" href="../bpm-concepts.html#tokens">tokens</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="gateway-properties"><a class="anchor" href="#gateway-properties"></a>Gateway Properties</h3>
+<div class="paragraph">
+<p>Gateways have only general properties: an ID and a name.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="exclusive-gateway"><a class="anchor" href="#exclusive-gateway"></a>Exclusive Gateway</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An exclusive gateway (or XOR-gateway) is used to model a decision in the process based on data, for example,
+on process variables values or values returned by bean method.</p>
+</div>
+<div class="paragraph">
+<p>When the execution arrives at this gateway,
+all conditions associated with outgoing sequence flows are evaluated in the order in which sequence flows are defined.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>first</strong> sequence flow whose condition evaluates to <em>true</em> to be selected for continuing the process.
+Empty condition is considered as always <em>true</em>.</p>
+</div>
+<div class="paragraph">
+<p>The term "first" in this context refers to the order in which sequence flows are defined in the XML file body,
+not necessarily the order in which they appear in the gateway description.</p>
+</div>
+<div class="paragraph">
+<p>This distinction emphasizes that the sequencing of flows is based on the XML file structure
+rather than the visual representation or textual description of the flows within the gateway.</p>
+</div>
+<div class="paragraph">
+<p>People often use questions as a name of exclusive gateway.
+For example, "Is the document approved?" But the gateway itself doesn’t have any internal logic.
+To make a gateway really work, conditions must be defined on the outgoing flows.</p>
+</div>
+<hr/>
+<div class="sect2">
+<h3 id="gateways-conditions"><a class="anchor" href="#gateways-conditions"></a>Conditions</h3>
+<div class="paragraph">
+<p>A condition defines when a flow is taken. In <strong>Jmix BPM</strong>, condition can be set from the following sources:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Expression</p>
+</li>
+<li>
+<p>User task outcomes</p>
+</li>
+<li>
+<p>Business rule task result</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="condition source" src="../_images/bpmn-gateways/condition-source.png" width="400"/>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Double check if all required conditions on outgoing flows are defined.
+Otherwise, if they are empty, the first one be selected.
+Text label over arrows means nothing for the BPM engine.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="expressions"><a class="anchor" href="#expressions"></a>Expressions</h4>
+<div class="paragraph">
+<p>It is a boolean expression that can access the process variables and compare them with literals or other variables.
+As well, it’s possible to call Spring bean methods here.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>${orderAmount &gt; 1000}
+${price &gt; 100 &amp;&amp; price &lt;= 500}
+${accountant.username == "jane"}
+${jbt_MyService.getRandom &gt; 0.5}
+${jbt_MyService.evaluateCondition()}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the last case, method must return <em>boolean</em> value.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="user-task-outcomes"><a class="anchor" href="#user-task-outcomes"></a>User Task Outcomes</h4>
+<div class="paragraph">
+<p>If there is in the process a user task with outcomes, you can select a certain outcome that activates the given flow.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="exclisive gateway task outcome" src="../_images/bpmn-gateways/exclisive-gateway-task-outcome.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To set up outcome-based condition, select a user task, then outcome.</p>
+</div>
+<div class="paragraph">
+<p>When selecting a user task for condition, be sure that it is to be executed <strong>BEFORE</strong> the condition is evaluated.
+Otherwise, it  causes an error at runtime.</p>
+</div>
+<div class="paragraph">
+<p><strong>Conditions and Multi-instance user task</strong></p>
+</div>
+<div class="paragraph">
+<p>When a user task is <a class="xref page" href="multi-instance-activities.html">multi-instance</a>,
+an additional parameter appears — <em>condition type</em>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="outcome based condition types" src="../_images/bpmn-gateways/outcome-based-condition-types.png" width="300"/>
+</div>
+</div>
+<div class="paragraph">
+<p>There are the following options:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Anyone completed with the outcome</p>
+</li>
+<li>
+<p>Everyone completed with the outcome</p>
+</li>
+<li>
+<p>No one completed with the outcome</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Using this parameter, you can arrange some kind of voting.
+For example, this flow will be selected when at least one user has completed the task with the outcome 'yes'.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="outcome based condition" src="../_images/bpmn-gateways/outcome-based-condition.png" width="600"/>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="business-rule-task-result"><a class="anchor" href="#business-rule-task-result"></a>Business Rule Task Result</h4>
+<div class="paragraph">
+<p>A <a class="xref page" href="bpmn-business-rule-task.html">business rule</a> task returns a result
+that can be used in gateway’s condition.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="exclusive gateway business rule" src="../_images/bpmn-gateways/exclusive-gateway-business-rule.png" width="600"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To set up a condition, based on the business rule result,
+select a business rule task, decision table output variable, and output value.</p>
+</div>
+<div class="paragraph">
+<p>Be sure that selected business rule task is executed <strong>BEFORE</strong> the gateway.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="default-flow"><a class="anchor" href="#default-flow"></a>Default Flow</h3>
+<div class="paragraph">
+<p>If there is one of outgoing flows marked as default (by the slash line across),
+it’d be selected only when all other flow conditions are <em>false</em>.</p>
+</div>
+<div class="paragraph">
+<p>If the default flow has a condition, it’d be ignored.</p>
+</div>
+<div class="paragraph">
+<p>It is highly recommended to use a default flow when modeling an exclusive gateway.
+However, it isn’t mandatory.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="default flow example" src="../_images/bpmn-gateways/default-flow-example.png" width="300"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-exlusive-gateway"><a class="anchor" href="#using-exlusive-gateway"></a>Using Exclusive Gateway</h3>
+<div class="sect3">
+<h4 id="separate-forks-and-joins"><a class="anchor" href="#separate-forks-and-joins"></a>Separate Forks and Joins</h4>
+<div class="paragraph">
+<p>Formally, BPMN specification allows to use one gateway in two roles, but such usage is highly not recommended.</p>
+</div>
+<div class="paragraph">
+<p>So, avoid using an exclusive gateway as shown in the picture, where the gateway is fork and join at once:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="exclusive gateway mixed roles" src="../_images/bpmn-gateways/exclusive-gateway-mixed-roles.png" width="400"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Better to separate gateway’s roles like shown in the next picture with two gateways, one for join and the other for fork:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="exclusive gateway example 2" src="../_images/bpmn-gateways/exclusive-gateway-example-2.png" width="400"/>
+</div>
+</div>
+<hr/>
+</div>
+<div class="sect3">
+<h4 id="multiple-true-conditions"><a class="anchor" href="#multiple-true-conditions"></a>Multiple True Conditions</h4>
+<div class="imageblock">
+<div class="content">
+<img alt="exclusive gateway two true conditions" src="../_images/bpmn-gateways/exclusive-gateway-two-true-conditions.png" width="250"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, you can see exclusive gateway with two obvious conditions that both are true.
+Condition #1 will be evaluated first because it appears in the process XML file higher than condition #2.
+However, in the gateway description condition #2 stays first.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;process id="exclusion-gateway-demo" name="exclusion-gateway-demo" isExecutable="true"&gt;
+    &lt;exclusiveGateway id="Gateway_0r2ejfv"&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+      &lt;incoming&gt;Flow_1sjggq6&lt;/incoming&gt;
+      &lt;outgoing&gt;Flow_2&lt;/outgoing&gt;
+      &lt;outgoing&gt;Flow_1&lt;/outgoing&gt;
+    &lt;/exclusiveGateway&gt;
+    &lt;endEvent id="Event_0kn6j1t" name="1"&gt;
+      &lt;incoming&gt;Flow_1&lt;/incoming&gt;
+    &lt;/endEvent&gt;
+    &lt;sequenceFlow id="Flow_1" name="1 &amp;#62; 0" sourceRef="Gateway_0r2ejfv" targetRef="Event_0kn6j1t"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+      &lt;extensionElements&gt;
+        &lt;jmix:conditionDetails conditionSource="expression" /&gt;
+      &lt;/extensionElements&gt;
+      &lt;conditionExpression xsi:type="tFormalExpression"&gt;${1&amp;gt;0}&lt;/conditionExpression&gt;
+    &lt;/sequenceFlow&gt;
+    &lt;endEvent id="Event_1wmb937" name="2"&gt;
+      &lt;incoming&gt;Flow_2&lt;/incoming&gt;
+    &lt;/endEvent&gt;
+    &lt;sequenceFlow id="Flow_2" name="2 &amp;#62; 0" sourceRef="Gateway_0r2ejfv" targetRef="Event_1wmb937"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+      &lt;extensionElements&gt;
+        &lt;jmix:conditionDetails conditionSource="expression" /&gt;
+      &lt;/extensionElements&gt;
+      &lt;conditionExpression xsi:type="tFormalExpression"&gt;${2&amp;gt;0}&lt;/conditionExpression&gt;
+    &lt;/sequenceFlow&gt;
+    &lt;startEvent id="Event_15w11z6"&gt;
+      &lt;outgoing&gt;Flow_1sjggq6&lt;/outgoing&gt;
+    &lt;/startEvent&gt;
+    &lt;sequenceFlow id="Flow_1sjggq6" sourceRef="Event_15w11z6" targetRef="Gateway_0r2ejfv" /&gt;
+&lt;/process&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — Sequence flow with condition #1</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — Sequence flow with condition #2</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td> — Gateway description section, flow with #2 before #1</td>
+</tr>
+</table>
+</div>
+<hr/>
+</div>
+<div class="sect3">
+<h4 id="cascades-exclusive-gateways"><a class="anchor" href="#cascades-exclusive-gateways"></a>Cascades of Exclusive Gateways</h4>
+<div class="paragraph">
+<p>Exclusive gateway works like a 'SWITCH' operator in programming, not like 'IF'.
+It may have as many outgoing flows as you need.</p>
+</div>
+<div class="paragraph">
+<p>It means you shouldn’t build cascades of YES-NO gateways,
+you can use more smart conditions to select right outbound sequence flow.</p>
+</div>
+<div class="paragraph">
+<p>So, don’t model like this:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="exclusive gateway cascade" src="../_images/bpmn-gateways/exclusive-gateway-cascade.png" width="500"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Here we see to gateways for evaluating atomic conditions <em>Sky == blue</em> and <em>Sea == green</em>.
+If both of them are true, the process goes further. But the model looks complicated.</p>
+</div>
+<div class="paragraph">
+<p>When we use more advanced conditions, we can avoid cascades of gateways:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="exclusive gateway no cascade" src="../_images/bpmn-gateways/exclusive-gateway-no-cascade.png" width="350"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In this picture, we use a combined condition <em>Sky == blue &amp;&amp; Sea == green</em>,
+thus there is only one gateway that is necessary.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="parallel-gateway"><a class="anchor" href="#parallel-gateway"></a>Parallel Gateway</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A parallel gateway (or AND-gateway) is used to split a process flow into multiple parallel paths
+or to merge multiple parallel paths back into a single flow.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="parallel gateway example" src="../_images/bpmn-gateways/parallel-gateway-example.png" width="600"/>
+</div>
+</div>
+<div class="paragraph">
+<p>When execution arrives in the parallel gateway, the process splits in the number of paths equals the number of outgoing flows.</p>
+</div>
+<div class="paragraph">
+<p>If there is a join parallel gateway, the process waits until all incoming flows be executed.
+In other words, until all parallel paths will reach the join gateway.
+Then the process continues past the joining gateway.</p>
+</div>
+<div class="paragraph">
+<p>Actually, it isn’t mandatory to join parallel paths all together.
+Each of them may have its own <em>End event</em>.
+But the whole process ends only after <strong>ALL</strong> parallel path be finished.</p>
+</div>
+<div class="sect2">
+<h3 id="parallel-gateway-conditions"><a class="anchor" href="#parallel-gateway-conditions"></a>Conditions</h3>
+<div class="paragraph">
+<p>Conditions on the outgoing flows from the parallel gateway are ignored.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="parallel-gateway-default-flow"><a class="anchor" href="#parallel-gateway-default-flow"></a>Default Flow</h3>
+<div class="paragraph">
+<p>Default flow in parallel gateway is ignored.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-parallel-gateway"><a class="anchor" href="#using-parallel-gateway"></a>Using Parallel Gateway</h3>
+<div class="sect3">
+<h4 id="separate-forks-joins"><a class="anchor" href="#separate-forks-joins"></a>Separate Forks and Joins</h4>
+<div class="paragraph">
+<p>Do not use the same parallel gateway as fork and join:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="parallel gateway bad example" src="../_images/bpmn-gateways/parallel-gateway-bad-example.png" width="550"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Formally it is possible but highly not recommended.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="use-cascades"><a class="anchor" href="#use-cascades"></a>Use Cascades</h4>
+<div class="paragraph">
+<p>Note that a parallel gateway does not need to be 'balanced'
+(a matching number of incoming/outgoing sequence flows for corresponding parallel gateways).</p>
+</div>
+<div class="paragraph">
+<p>A parallel gateway will simply wait for all incoming sequence flows and create a concurrent path of execution
+for each outgoing sequence flow, not influenced by other constructs in the process model.
+So, the following process is legal in BPMN 2.0:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="parallel gateway cascaded" src="../_images/bpmn-gateways/parallel-gateway-cascaded.png" width="600"/>
+</div>
+</div>
+<div class="paragraph">
+<p>And this model is valid as well:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="parallel gateway cascaded 2" src="../_images/bpmn-gateways/parallel-gateway-cascaded-2.png" width="550"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="inclusive-gateway"><a class="anchor" href="#inclusive-gateway"></a>Inclusive Gateway</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The inclusive gateway (or OR-gateway) can be seen as a combination of an <em>Exclusive</em> and a <em>Parallel</em> gateway.</p>
+</div>
+<div class="paragraph">
+<p>Like an exclusive gateway, you can define conditions on outgoing sequence flows and the inclusive gateway will evaluate them.</p>
+</div>
+<div class="paragraph">
+<p>But the main difference is that the inclusive gateway can take more than one sequence flow, like the parallel gateway.</p>
+</div>
+<div class="paragraph">
+<p>This differs from the parallel gateway as it only waits for incoming flows that will be executed (whose conditions were evaluated true).
+After the join, the process continues past the inclusive gateway.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="inclusive gateway example" src="../_images/bpmn-gateways/inclusive-gateway-example.png" width="650"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the first user fills a checklist, where marks who must participate in the approval process.
+It differs from the parallel process as only selected employees will receive the approval task.</p>
+</div>
+<div class="paragraph">
+<p>Suppose, it were an <em>Accountant</em> and a <em>Team leader</em> selected.
+Then <em>join</em> gateway will wait until both of them complete the task.</p>
+</div>
+<div class="sect2">
+<h3 id="inclusive-gateway-conditions"><a class="anchor" href="#inclusive-gateway-conditions"></a>Conditions</h3>
+<div class="paragraph">
+<p>In inclusive gateway, conditions are configured the same way, like in exclusive gateway.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="inclusive-gateway-default-flow"><a class="anchor" href="#inclusive-gateway-default-flow"></a>Default Flow</h3>
+<div class="paragraph">
+<p>If there is a <em>default</em> sequence flow, this branch will always be executed.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="event-based-gateway"><a class="anchor" href="#event-based-gateway"></a>Event-based Gateway</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The event-based gateway provides a way to take a decision based on events.</p>
+</div>
+<div class="paragraph">
+<p>An event-based gateway must have at least two outgoing sequence flows.
+Each sequence flow must be connected to an intermediate catch event of type timer, message or signal.</p>
+</div>
+<div class="paragraph">
+<p>No other activities are allowed right after event-based gateway.</p>
+</div>
+<div class="paragraph">
+<p>When process execution reaches an event-based gateway, the gateway acts like a <strong>wait state</strong>: execution is suspended.</p>
+</div>
+<div class="paragraph">
+<p>In addition, for each outgoing sequence flow, an event subscription is created.</p>
+</div>
+<div class="paragraph">
+<p>Which event would be triggered first, that path the process will flow.</p>
+</div>
+<div class="paragraph">
+<p>Note the sequence flows running out of an Event-based Gateway are different from ordinary sequence flows.
+These sequence flows are never actually "executed".
+On the contrary,
+they allow the process engine to determine which events and execution arriving at an <strong>Event-based Gateway</strong> needs to subscribe to.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="event based gateway" src="../_images/bpmn-gateways/event-based-gateway.png" width="300"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="event-based-gateway-conditions"><a class="anchor" href="#event-based-gateway-conditions"></a>Conditions</h3>
+<div class="paragraph">
+<p>In event-based gateway, all conditions on outgoing flows will be ignored.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="event-based-gateway-default-flow"><a class="anchor" href="#event-based-gateway-default-flow"></a>Default Flow</h3>
+<div class="paragraph">
+<p>The <em>default</em> mark on the outgoing flow will be ignored.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-event-based-gateway"><a class="anchor" href="#using-event-based-gateway"></a>Using Event-based Gateway</h3>
+<div class="paragraph">
+<p>A typical case where using of event-based gateway is a request to unreliable external service.
+That service can fall down or return an error any time the process sends a request.</p>
+</div>
+<div class="paragraph">
+<p>With an event-based gateway, you can model it like shown in the picture:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="event based gateway usage" src="../_images/bpmn-gateways/event-based-gateway-usage.png" width="500"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the service task sends a request to service and then the process arrives to event-based gateway, which is a wait state.</p>
+</div>
+<div class="paragraph">
+<p>We have three options here:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Success</strong> — OK message received and the process continues its normal path</p>
+</li>
+<li>
+<p><strong>Failure</strong> — Error message received and here you can proceed it; If needed, you can use different messages for errors.</p>
+</li>
+<li>
+<p><strong>Timeout</strong> — Time expired, and you have to decide what to do; probably, repeat request attempt.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This pattern makes a diagram more clear and better understandable.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

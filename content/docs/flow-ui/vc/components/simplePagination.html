@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simplePagination :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">simplePagination</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/simple-pagination-simple" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>simplePagination</code> is a component used to load data by pages. It is designed to be used together with <a class="xref page" href="dataGrid.html">dataGrid</a>, and <a class="xref page" href="treeDataGrid.html">treeDataGrid</a> components.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>XML element: <code>simplePagination</code></p>
+</li>
+<li>
+<p>Java class: <code>SimplePagination</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>simplePagination</code> has a simple view with a count of rows and navigation buttons.</p>
+</div>
+<div class="paragraph">
+<p>It can also have a <a href="#items-per-page">drop-down list</a> for the number of items per page.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="simple pagination" src="../../_images/visual-components/components/simple-pagination.png" width="818"/>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, Jmix Studio generates <code>simplePagination</code> when creating <a class="xref page" href="../../views/views.html#standard-list-view">StandardListView</a> for an entity.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data readOnly="true"&gt;
+    &lt;collection id="usersDc"
+                class="com.company.onboarding.entity.User"&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="department" fetchPlan="_base"/&gt;
+        &lt;/fetchPlan&gt;
+        &lt;loader id="usersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from User e order by e.username]]&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;layout expand="usersTable"&gt;
+        &lt;simplePagination itemsPerPageVisible="true"
+                          id="simplePagination"
+                          dataLoader="usersDl"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Define a <a class="xref page" href="../../data/data-loaders.html">collection loader</a> to load <code>User</code> entities.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Connect <code>simplePagination</code> to data using the <code>dataLoader</code> attribute.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="items-per-page"><a class="anchor" href="#items-per-page"></a>Items per Page</h2>
+<div class="sectionbody">
+<div class="paragraph" id="itemsPerPageVisible">
+<p><code>simplePagination</code> has a special <code>comboBox</code> with options to limit the number of items for one page. To make it visible, set the <code>itemsPerPageVisible</code> attribute to the <code>true</code> value. The default value is <code>false</code>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="items per page" src="../../_images/visual-components/components/items-per-page.png" width="264"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The default value of this list is specified in the <a class="xref page" href="../../ui-properties.html#jmix.ui.component.pagination-items-per-page-items">jmix.ui.component.pagination-items-per-page-items</a> property.</p>
+</div>
+<div class="paragraph" id="itemsPerPageItems">
+<p>You can configure a custom list of options using the <code>itemsPerPageItems</code> attribute. The value of the attribute should be a comma-separated list of options:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;simplePagination dataLoader="usersDl"
+                  itemsPerPageVisible="true"
+                  itemsPerPageItems="2, 4, 6"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Options that are less than or equal to <code>0</code> are ignored. Options that are greater than entity’s <a href="#max-fetch-size">maximum fetch size</a> are replaced by that maximum value.</p>
+</div>
+<div class="paragraph" id="itemsPerPageDefaultValue">
+<p>Use the <code>itemsPerPageDefaultValue</code> attribute to set a default value from the list of options:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;simplePagination dataLoader="usersDl"
+                  itemsPerPageVisible="true"
+                  itemsPerPageItems="2, 4, 6"
+                  itemsPerPageDefaultValue="4"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="itemsPerPageUnlimitedItemVisible">
+<p>The <code>itemsPerPageUnlimitedItemVisible</code> attribute sets the visibility of unlimited (null) option value in the items per page <code>comboBox</code>. The default value is <code>true</code>.</p>
+</div>
+<div class="paragraph">
+<p>When the null option is selected in the <code>comboBox</code>, the component will try to load all data it can with the current maximum fetch size limitation.</p>
+</div>
+<div class="admonitionblock note" id="max-fetch-size">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The maximum fetch size for all entities is defined by <a class="xref page" href="../../ui-properties.html#jmix.ui.default-max-fetch-size">jmix.ui.default-max-fetch-size</a> UI property. Its default value is 10000. A particular entity may have different maximum fetch size, set with <a class="xref page" href="../../ui-properties.html#jmix.ui.entity-max-fetch-size">jmix.ui.entity-max-fetch-size</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a href="#autoLoad">autoLoad</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a href="#dataLoader">dataLoader</a> -
+<a href="#itemsPerPageDefaultValue">itemsPerPageDefaultValue</a> -
+<a href="#itemsPerPageItems">itemsPerPageItems</a> -
+<a href="#itemsPerPageUnlimitedItemVisible">itemsPerPageUnlimitedItemVisible</a> -
+<a href="#itemsPerPageVisible">itemsPerPageVisible</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a></p>
+</div>
+<div class="sect2">
+<h3 id="autoLoad"><a class="anchor" href="#autoLoad"></a>autoLoad</h3>
+<div class="paragraph">
+<p>The <code>autoLoad</code> attribute determines whether the item count should be automatically loaded. When <code>autoLoad</code> is disabled, the component doesn’t know the total item count and shows a button with a question mark <code>[?]</code>. When it’s enabled, the component makes a query to get the total item count and displays it. The default value is <code>false</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="dataLoader"><a class="anchor" href="#dataLoader"></a>dataLoader</h3>
+<div class="paragraph">
+<p>To create <code>simplePagination</code> connected to data, use the <code>dataLoader</code> attribute.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="#AfterRefreshEvent">AfterRefreshEvent</a> -
+<a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a href="#BeforeRefreshEvent">BeforeRefreshEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a href="#totalCountDelegate">totalCountDelegate</a></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="AfterRefreshEvent"><a class="anchor" href="#AfterRefreshEvent"></a>AfterRefreshEvent</h3>
+<div class="paragraph">
+<p><code>io.jmix.flowui.component.PaginationComponent.AfterRefreshEvent</code> is fired after data refresh.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="BeforeRefreshEvent"><a class="anchor" href="#BeforeRefreshEvent"></a>BeforeRefreshEvent</h3>
+<div class="paragraph">
+<p><code>io.jmix.flowui.component.PaginationComponent.BeforeRefreshEvent</code> is fired before refreshing the data when the user clicks next, previous, etc. You can prevent the data container refresh by invoking the <code>preventRefresh()</code> method, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("simplePagination")
+public void onSimplePaginationBeforeRefresh(
+        final PaginationComponent.BeforeRefreshEvent&lt;SimplePagination&gt; event) {
+    if (Objects.requireNonNull(event.getSource().getPaginationLoader()).size() &gt; 10) <i class="conum" data-value="1"></i><b>(1)</b>
+        event.preventRefresh(); <i class="conum" data-value="2"></i><b>(2)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Check the number of instances in the data loader.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Prevent refreshing the data.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="totalCountDelegate"><a class="anchor" href="#totalCountDelegate"></a>totalCountDelegate</h3>
+<div class="paragraph">
+<p>Sets delegate which is used to get the total count of items. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DataManager dataManager;
+
+@Install(to = "simplePagination", subject = "totalCountDelegate")
+private Integer simplePaginationTotalCountDelegate(
+        final LoadContext&lt;User&gt; loadContext) {
+    return dataManager.loadValue("select count(e) from User e", Integer.class).one();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="totalCountByRepositoryDelegate"><a class="anchor" href="#totalCountByRepositoryDelegate"></a>totalCountByRepositoryDelegate</h3>
+<div class="paragraph">
+<p>Sets delegate which is used to get the total count of items from a <a class="xref page" href="../../../data-access/data-repositories.html">data repository</a>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DepartmentRepository repository;
+
+@Install(to = "pagination", subject = "totalCountByRepositoryDelegate")
+private Long paginationTotalCountByRepositoryDelegate(
+        final JmixDataRepositoryContext context) {
+    return repository.count(context);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyboard Shortcuts :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Keyboard Shortcuts</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Keyboard shortcuts can be assigned to various Jmix UI elements, including <a class="xref page" href="actions.html">actions</a>, <a class="xref page" href="vc/components/button.html">buttons</a> and <a class="xref page" href="menu-config.html#item-attributes">main menu items</a>.</p>
+</div>
+<div class="paragraph">
+<p>A shortcut is a combination of key codes and modifiers that are defined in the Vaadin’s <a href="https://vaadin.com/api/platform/24.8/com/vaadin/flow/component/Key.html" rel="noopener" target="_blank">Key</a> and <a href="https://vaadin.com/api/platform/24.8/com/vaadin/flow/component/KeyModifier.html" rel="noopener" target="_blank">KeyModifier</a> classes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-shortcuts"><a class="anchor" href="#adding-shortcuts"></a>Adding Shortcuts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In a view XML, key codes must be written in upper case and separated by a dash (<code>-</code>). Modifiers must precede key codes. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="commitAndCloseBtn" action="commitAction"
+        focusShortcut="META-ENTER"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;button id="closeBtn" action="closeAction"
+        shortcutCombination="SHIFT-ESCAPE"/&gt; <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Focus this button when pressing Meta (Win or ⌘) + Enter</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Execute the action on pressing Shift + Escape</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>When assigning shortcuts in XML, you can use application properties instead of specifying key codes directly. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">some-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="closeBtn" action="closeAction"
+        shortcutCombination="${shortcut.close-detail-view}"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">shortcut.close-detail-view=SHIFT-ESCAPE</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To assign shortcuts programmatically, use the appropriate listeners and the <code>setShortcutCombination()</code> method. The <code>io.jmix.flowui.kit.component.KeyCombination</code> class allows you to create shortcuts from strings or from <code>Key</code> and <code>KeyModifier</code> constants. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixButton saveAndCloseBtn;
+@ViewComponent
+private JmixButton closeBtn;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    saveAndCloseBtn.addFocusShortcut(
+            Key.ENTER, KeyModifier.META);
+
+    closeBtn.setShortcutCombination(
+            KeyCombination.create(Key.ESCAPE, KeyModifier.SHIFT));
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="submitting-change-events-before-shortcut-activation"><a class="anchor" href="#submitting-change-events-before-shortcut-activation"></a>Submitting Change Events Before Shortcut Activation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To ensure that any input value changes for the focused component are submitted before the shortcut is activated, enable the <code>resetFocusOnActiveElement</code> setting using either the <code>KeyCombination</code> API or the Vaadin <code>ShortcutRegistration</code> API. This setting causes the active focused element to lose focus and then receive focus again before the shortcut is triggered.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixButton saveAndCloseBtn;
+@ViewComponent
+private JmixButton closeBtn;
+
+@Subscribe
+public void onInit(InitEvent event) {
+    saveAndCloseBtn.addClickShortcut(Key.ENTER, KeyModifier.META)
+            .resetFocusOnActiveElement();
+
+    KeyCombination keyCombination = KeyCombination.create(Key.ESCAPE, KeyModifier.SHIFT);
+    keyCombination.setResetFocusOnActiveElement(true);
+    closeBtn.setShortcutCombination(keyCombination);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When assigning shortcuts to actions in XML, you can use the nested <code>shortcutCombination</code> element to provide additional settings. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">some-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;action id="saveAction" text="msg:///actions.Save" icon="CHECK"&gt;
+    &lt;shortcutCombination keyCombination="META-ENTER" resetFocusOnActiveElement="true"/&gt;
+&lt;/action&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuring-active-scope"><a class="anchor" href="#configuring-active-scope"></a>Configuring Active Scope</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, shortcuts are registered to the global scope. This means that the shortcut is triggered when the user presses the correct keys, regardless of the location of their cursor or which element is in focus on the screen. You can configure the availability of a shortcut (for example, only when the user focuses on an element) using either the <code>KeyCombination</code> API or the Vaadin <code>ShortcutRegistration</code> API.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private TypedTextField&lt;String&gt; searchField;
+@ViewComponent
+private JmixButton searchButton;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    KeyCombination keyCombination = KeyCombination.create("CONTROL-ENTER", searchField, searchButton);
+    searchButton.setShortcutCombination(keyCombination);
+    // -- OR --
+    searchButton.addClickShortcut(Key.ENTER, KeyModifier.CONTROL)
+            .listenOn(searchField, searchButton);                   <i class="conum" data-value="1"></i><b>(1)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Shortcut’s listener will only trigger if either <code>searchField</code> or <code>searchButton</code> are focused</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="key-codes"><a class="anchor" href="#key-codes"></a>Key Codes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The table below shows the most frequently used key codes. For the complete list, refer to the <a href="https://vaadin.com/api/platform/24.8/com/vaadin/flow/component/Key.html" rel="noopener" target="_blank">Key</a> class.</p>
+</div>
+<div class="paragraph">
+<p>Keys that can be used as modifiers: <code>SHIFT</code>, <code>CONTROL</code>, <code>ALT</code>, <code>ALT_GRAPH</code>, <code>META</code>.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Key Code</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ALT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Alt (Alternative) key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ALT_GRAPH</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The AltGr or AltGraph (Alternate Graphics) key. Enables the ISO Level 3 shift modifier (where Shift is the level 2 modifier).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CAPS_LOCK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The CapsLock or ⇪ key. Toggles the capital character lock on and off for subsequent input.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CONTROL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Control, Ctrl, or Ctl key. Allows typing control characters.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Fn (Function modifier) key. Used to allow generating function key (F1-F15, for instance) characters on keyboards without a dedicated function key area. Often handled in hardware so that events aren’t generated for this key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FN_LOCK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The FnLock or F-Lock (Function Lock) key. Toggles the function key mode described by "Fn" on and off. Often handled in hardware so that events aren’t generated for this key. Found on the Microsoft Natural Keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HYPER</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Hyper key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">META</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Meta key. Allows issuing special command inputs. This is the Windows logo key, or the Command or ⌘ key on Mac keyboards.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUM_LOCK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The NumLock (Number Lock) key. Toggles the numeric keypad between number entry some other mode (often directional arrows). On the Mac, the " NumLock " code should be used for the numpad Clear key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SCROLL_LOCK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Scroll Lock key. Toggles between scrolling and cursor movement modes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SHIFT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Shift key. Modifies keystrokes to allow typing upper (or other) case letters, and to support typing punctuation and other special characters.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SUPER</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Super key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SYMBOL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Symbol modifier key (found on certain virtual keyboards).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SYMBOL_LOCK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Symbol Lock key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ENTER</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Enter or ↵ key. Labelled Return on Apple keyboards.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TAB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tab or ⇥</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SPACE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The space key, Space Bar.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ARROW_DOWN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The down arrow key (↓).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ARROW_LEFT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The left arrow key (←).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ARROW_RIGHT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The right arrow key (→).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ARROW_UP</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The up arrow key (↑).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">END</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The End key. Moves to the end of content. In case of a event.code in the case of event.key the name may be Page Down, End or ↘.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HOME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Home or ↖ key. Moves to the start of content.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PAGE_DOWN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Page Down (or PgDn) key. Scrolls down or displays the next page of content.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PAGE_UP</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Page Up (or PgUp) key. Scrolls up or displays the previous page of content.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BACKSPACE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Backspace or ⌫. Labelled Delete on Apple keyboards.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DELETE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Delete key, Del, and ⌦. The forward delete key. Note that on Apple keyboards, the key labelled Delete on the main part of the keyboard should be encoded as " Backspace ".</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INSERT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Insert key, Ins. Toggles between inserting and overwriting text. Not present on Apple keyboards.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CONTEXT_MENU</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows the context menu. Typically found between the Windows (or OS) key and the Control key on the right side of the keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ESCAPE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Esc (Escape) or ⎋ key. Typically used as an exit, cancel, or "escape this operation" button. Historically, the Escape character was used to signal the start of a special control sequence of characters called an "escape sequence."</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FIND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Find key. Opens an interface (typically a dialog box) for performing a find/search operation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PAUSE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Pause key. Pauses the current application or state, if applicable. Note: This shouldn’t be confused with the "MediaPause" key value, which is used for media controllers, rather than to control applications and processes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PLAY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Play key. Resumes a previously paused application, if applicable. Note: This shouldn’t be confused with the "MediaPlay" key value, which is used for media controllers, rather than to control applications and processes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PRINT_SCREEN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The PrintScreen or PrtScr key. Sometimes SnapShot. Captures the screen and prints it or saves it to disk.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The first general-purpose function key, F1.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F2 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F3 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F4 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F5 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F6</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F6 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F7</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F7 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F8</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F8 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F9</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F9 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F10</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F10 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F11</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F11 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F12</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F12 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F13</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F13 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F14</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F14 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F15</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F15 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F16</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F16 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F17</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F17 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F18</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F18 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F19</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F19 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">F20</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The F20 key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DECIMAL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The decimal point key (typically . or ,) depending on the region.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY11</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The 11 key found on certain media numeric keypads.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY12</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The 12 key found on certain media numeric keypads.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MULTIPLY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The numeric keypad’s multiplication key, *.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ADD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The numeric keypad’s addition key, +.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIVIDE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The numeric keypad’s division key, /.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SUBTRACT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The numeric keypad’s subtraction key, -.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SEPARATOR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The numeric keypad’s places separator character (in the United States, this is a comma, but elsewhere it is frequently a period).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BACKQUOTE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">`~ on a US keyboard. This is the 半角/全角/漢字 ( hankaku/zenkaku/kanji ) key on Japanese keyboards</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BACKSLASH</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Used for both the US | (on the 101-key layout) and also for the key located between the " and Enter keys on row C of the 102-, 104- and 106-key layouts. Labelled #~ on a UK (102) keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BRACKET_LEFT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">[{ on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BRACKET_RIGHT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">]} on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">COMMA</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">,&lt; on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIGIT_0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0) on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIGIT_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1! on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIGIT_2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2@ on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIGIT_3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3# on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIGIT_4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4$ on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIGIT_5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5% on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIGIT_6</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6^ on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIGIT_7</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7&amp; on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIGIT_8</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8* on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIGIT_9</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9( on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">EQUAL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">=+ on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INTL_BACKSLASH</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Located between the left Shift and Z keys. Labelled | on a UK keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INTL_YEN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Located between the = and Backspace keys. Labelled ¥ ( yen ) on a Japanese keyboard. \/ on a Russian keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_A</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">a on a US keyboard. Labelled q on an AZERTY (e.g., French) keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_B</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">b on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_C</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">c on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_D</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">d on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_E</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">e on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_F</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">f on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_G</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">g on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_H</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">h on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_I</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">i on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_J</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">j on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_K</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">k on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_L</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">l on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_M</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">m on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_N</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">n on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">o on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_P</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">p on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_Q</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">q on a US keyboard. Labelled a on an AZERTY (e.g., French) keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_R</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">r on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_S</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">s on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_T</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">t on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_U</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">u on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_V</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">v on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_W</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">w on a US keyboard. Labelled z on an AZERTY (e.g., French) keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_X</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">x on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">y on a US keyboard. Labelled z on a QWERTZ (e.g., German) keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY_Z</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">z on a US keyboard. Labelled w on an AZERTY (e.g., French) keyboard, and y on a QWERTZ (e.g., German) keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MINUS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-_ on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PERIOD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">.&gt; on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">QUOTE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">' on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SEMICOLON</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">;: on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SLASH</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/? on a US keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ALT_LEFT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Alt, Option or ⌥.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ALT_RIGHT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Alt, Option or ⌥. This is labelled AltGr key on many keyboard layouts.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CONTROL_LEFT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Control or ⌃</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CONTROL_RIGHT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Control or ⌃</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">META_LEFT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Windows, ⌘, Command or other OS symbol key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">META_RIGHT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Windows, ⌘, Command or other OS symbol key.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SHIFT_LEFT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shift or ⇧</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SHIFT_RIGHT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shift or ⇧</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0 Ins on a keyboard 0 on a phone or remote control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1 End on a keyboard 1 or 1 QZ on a phone or remote control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2 ↓ on a keyboard 2 ABC on a phone or remote control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3 PgDn on a keyboard 3 DEF on a phone or remote control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4 ← on a keyboard 4 GHI on a phone or remote control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5 on a keyboard 5 JKL on a phone or remote control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_6</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6 → on a keyboard 6 MNO on a phone or remote control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_7</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7 Home on a keyboard 7 PQRS or 7 PRS on a phone or remote control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_8</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8 ↑ on a keyboard 8 TUV on a phone or remote control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_9</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9 PgUp on a keyboard 9 WXYZ or 9 WXY on a phone or remote control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_ADD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_BACKSPACE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Found on the Microsoft Natural Keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_CLEAR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">C or AC (All Clear). Also for use with numpads that have a Clear key that is separate from the NumLock key. On the Mac, the numpad Clear key should always be encoded as " NumLock ".</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_COMMA</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">, (thousands separator). For locales where the thousands separator is a "." (e.g., Brazil), this key may generate a . .</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_DECIMAL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">. For locales where the decimal separator is "," (e.g., Brazil), this key may generate a ",".</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_DIVIDE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_ENTER</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">↵</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_EQUAL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">=</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_MULTIPLY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">* on a keyboard. For use with numpads that provide mathematical operations ( +, -, * and / ). Use "NumpadStar" for the * key on phones and remote controls.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_PAREN_LEFT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">( Found on the Microsoft Natural Keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_PAREN_RIGHT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">) Found on the Microsoft Natural Keyboard.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_STAR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">* on a phone or remote control device. This key is typically found below the 7 key and to the left of the 0 key. Use " NumpadMultiply " for the * key on numeric keypads.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NUMPAD_SUBTRACT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+</article>
+</body>
+</html>

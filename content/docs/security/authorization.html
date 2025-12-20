@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorization :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Authorization</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, we cover the topics related to the access control performed by the framework.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-access-checks"><a class="anchor" href="#data-access-checks"></a>Data Access Checks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following table explains how data access <a class="xref page" href="resource-roles.html">permissions</a> and <a class="xref page" href="row-level-roles.html">restrictions</a> are used by different framework mechanisms.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 14.2857%;"/>
+<col style="width: 14.2857%;"/>
+<col style="width: 14.2857%;"/>
+<col style="width: 14.2857%;"/>
+<col style="width: 14.2858%;"/>
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity Operations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity Attributes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Row-level JPQL Policy <a href="#row-level-jpql-policy">(1)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Row-level READ Predicate Policy <a href="#row-level-read-predicate-policy">(2)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Row-level CREATE/UPDATE/DELETE Predicate Policy</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DataManager</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes <a href="#entity-operations">(3)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>UnconstrainedDataManager</code>, <code>EntityManager</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UI data-aware components</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- <a href="#ui-components">(4)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- <a href="#ui-components">(4)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- <a href="#ui-components">(4)</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REST API <code>/entities</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REST API <code>/queries</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- <a href="#rest_queries">(5)</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REST API <code>/services</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- <a href="#rest_serv">(6)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- <a href="#rest_serv">(6)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- <a href="#rest_serv">(6)</a></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Notes:</p>
+</div>
+<div class="paragraph" id="row-level-jpql-policy">
+<p>1) Row-level JPQL policy affects only the root entity.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// order is loaded only if it satisfies JPQL policies on the Order entity
+Order order = dataManager.load(Order.class).id(orderId).one();
+// related customer is loaded regardless of JPQL policies on the Customer entity
+assert order.getCustomer() != null;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="row-level-read-predicate-policy">
+<p>2) Row-level predicate policy affects the root entity and all linked entities in the loaded graph.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// order is loaded only if it satisfies constraints on the Order entity
+Order order = dataManager.load(Order.class).id(orderId).one();
+// related customer is not null only if it satisfies predicate policies on the Customer entity
+if (order.getCustomer() != null) { /*...*/ }</code></pre>
+</div>
+</div>
+<div class="paragraph" id="entity-operations">
+<p>3) Entity operation check in <code>DataManager</code> is performed for the root entity only.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// loading Order
+Order order = dataManager.load(Order.class).id(orderId).one();
+// related customer is loaded even if the user has no permission to read the Customer entity
+assert order.getCustomer() != null;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="ui-components">
+<p>4) UI components do not check row-level policies themselves, but when data is loaded through standard mechanisms, the policies are applied by <code>DataManager</code>. As a result, if an entity instance is filtered out by a row-level policy, the corresponding UI component is shown but it is empty. Also, for any action based on the <code>SecuredListDataComponentAction</code> class, you can specify a certain entity operation using the <code>setConstraintEntityOp()</code> method. Then the action will be enabled only if the entity operation for the selected entity instance is allowed.</p>
+</div>
+<div class="paragraph" id="rest_queries">
+<p>5) REST queries are read-only.</p>
+</div>
+<div class="paragraph" id="rest_serv">
+<p>6) REST service method parameters and results are not checked for compliance to row-level policies. The service behavior with respect to row-level security is defined by how it loads and saves data, for example whether it uses <code>DataManager</code> or <code>UnconstrainedDataManager</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Security constraints are only applied when using <a class="xref page" href="../data-access/data-manager.html">DataManager</a> to retrieve entity data. When using JPQL queries directly against the database (such as in <a class="xref page" href="../reports/creation/bands.html#structure_jpql">reports</a>) these security constraints are not applied. You will need to ensure you are handling security constraints yourself in those cases.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="access-constraints"><a class="anchor" href="#access-constraints"></a>Access Constraints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this part, we briefly explain how Jmix authorization works. This information will be helpful if you need to <a href="#checking-permissions">check user permissions</a> in your code or if you want to extend or replace the standard system of permissions based on roles and policies.</p>
+</div>
+<div class="paragraph">
+<p>Framework mechanisms contain authorization points, where they check whether an operation or data is permitted. For each authorization point, there is an <em>access context</em>, which is a class implementing the <code>AccessContext</code> interface and having attributes that describe the authorization subject.</p>
+</div>
+<div class="paragraph">
+<p>Any module of the framework, an add-on, or the target application, can define and register a set of <em>access constraints</em> for a certain access context (that is for the authorization point). A constraint is a class implementing the <code>AccessConstraint</code> interface with the <code>applyTo(AccessContext)</code> method. In this method, a constraint implementation decides whether the authorization subject is allowed and updates the access context state with information about this decision.</p>
+</div>
+<div class="paragraph">
+<p>At the authorization point, the mechanism being authorized applies the existing constraints using the <code>AccessManager</code> bean. As a result, the mechanism has the information about authorization from all constraints in the context state and decides whether to continue or abort the operation with the subject.</p>
+</div>
+<div class="paragraph">
+<p>Let’s illustrate this process with an example of checking rights to load an entity by <code>DataManager</code>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In the framework core, there is <code>CrudEntityContext</code> class that implements <code>AccessContext</code> and has the following attributes:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>entityClass</code> - <code>DataManager</code> specifies here what entity is being loaded. Together with the context class, this value describes the authorization point.</p>
+</li>
+<li>
+<p><code>readPermitted</code> - access constraints populate this attribute, so <code>DataManager</code> can decide whether to continue loading the entity.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>In the security subsystem, there is <code>CrudEntityConstraint</code> class that implements <code>AccessConstraint</code> and its methods:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>getContextType()</code> returns <code>CrudEntityContext.class</code> to indicate that the constraint is designed for this context.</p>
+</li>
+<li>
+<p><code>applyTo()</code> sets the <code>CrudEntityContext.readPermitted</code> attribute according to <a class="xref page" href="resource-roles.html#entity-policy">entity policies</a> defined for the current user.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>When <code>DataManager</code> loads an entity, it creates an instance of <code>CrudEntityContext</code>, sets the <code>entityClass</code> attribute, and invokes <code>AccessManager.applyConstraints()</code>. After that, it analyzes the value of <code>CrudEntityContext.readPermitted</code> attribute and either continues loading the entity or aborts the operation.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>With this approach, authorization points are completely decoupled from the information required to make authorization decisions. In the example above, the authorization point is in the framework core, while the code that determines the authorization outcome is in the optional security module. Likewise, you can define an additional constraint for the same <code>CrudEntityContext</code> in your application to affect the standard <code>DataManager</code> authorization process.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="checking-permissions"><a class="anchor" href="#checking-permissions"></a>Checking Permissions in Application Code</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The above section describes how authorization works in the framework code. You may need to reproduce the framework’s authorization decisions in the application code to check what objects are available to the current user. To do this, you need to create an instance of the appropriate <code>AccessContext</code>, pass it to the <code>AccessManager.applyRegisteredConstraints()</code> method, and then analyze the context state. This technique is demonstrated in the examples below.</p>
+</div>
+<div class="paragraph">
+<p>Example of checking if the current user is able to read <code>Customer</code> entity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private AccessManager accessManager;
+
+@Autowired
+private Metadata metadata;
+
+public boolean checkCustomerReadPermitted() {
+    MetaClass metaClass = metadata.getClass(Customer.class);
+    CrudEntityContext accessContext = new CrudEntityContext(metaClass);
+    accessManager.applyRegisteredConstraints(accessContext);
+    return accessContext.isReadPermitted();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Example of getting all permitted UI views:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private AccessManager accessManager;
+
+@Autowired
+private ViewRegistry viewRegistry;
+
+public List&lt;String&gt; getPermittedViews() {
+    return viewRegistry.getViewInfos().stream()
+            .map(ViewInfo::getId)
+            .filter(screenId -&gt; {
+                UiShowViewContext accessContext = new UiShowViewContext(screenId);
+                accessManager.applyRegisteredConstraints(accessContext);
+                return accessContext.isPermitted();
+            })
+            .collect(Collectors.toList());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See also an example of checking a <a class="xref page" href="resource-roles.html#specific-policy">specific policy</a>.</p>
+</div>
+<div class="paragraph">
+<p>Below are some common context classes for checking user permissions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>CrudEntityContext</code> - the context to check <a class="xref page" href="resource-roles.html#entity-policy">entity operations policy</a>.</p>
+</li>
+<li>
+<p><code>EntityAttributeContext</code> - the context to check <a class="xref page" href="resource-roles.html#entity-attribute-policy">entity attributes policy</a>.</p>
+</li>
+<li>
+<p><code>UiShowViewContext</code> - the context to check <a class="xref page" href="resource-roles.html#view-policy">views policy</a>.</p>
+</li>
+<li>
+<p><code>UiMenuContext</code> - the context to check <a class="xref page" href="resource-roles.html#menu-policy">menu policy</a>.</p>
+</li>
+<li>
+<p><code>InMemoryCrudEntityContext</code> - the context to check <a class="xref page" href="row-level-roles.html#predicate-policy">predicate policy</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

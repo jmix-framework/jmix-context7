@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quartz Job Scheduler Setup :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Quartz Job Scheduler Setup</h1>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Since Jmix v.1.2, the recommended way to integrate Quartz Job Scheduler is to use the <a class="xref page" href="quartz/index.html">Quartz add-on</a>.</p>
+</div>
+<div class="paragraph">
+<p>This section is helpful only if you don’t use the Quartz add-on.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><a href="https://www.quartz-scheduler.org" rel="noopener" target="_blank">Quartz Job Scheduler</a> is used in various parts of the framework for running scheduled tasks. This section describes how to include Quartz in your project and set up its job store for different databases.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Add the following dependency to the <code>build.gradle</code> file:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'org.springframework.boot:spring-boot-starter-quartz'</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add the following properties to the <code>application.properties</code> file:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">main.datasource.studio.liquibase.excludePrefixes = qrtz_
+spring.quartz.job-store-type = jdbc</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>If you are using PostgreSQL, add the following property:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.quartz.properties.org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.PostgreSQLDelegate</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>If you are using Microsoft SQL Server, add the following property:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.quartz.properties.org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.MSSQLDelegate</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>If you are using HSQL, PostgreSQL, MySQL or Oracle database, you can rely on automatic creation of the Quartz tables at the application start. Just add the following property:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.quartz.jdbc.initialize-schema = always</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>If you are using Microsoft SQL Server, you have to create the database schema manually, because the script provided by Quartz cannot be executed automatically by the Spring Boot mechanism. Follow these steps:</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>After adding the Quartz dependency (see above) and reloading Gradle project, find the <code>tables_sqlServer.sql</code> file inside the Quartz JAR. You can do it by pressing Shift twice (<strong>Navigate → Search Everything</strong>) in your IDE and entering the file name.</p>
+</li>
+<li>
+<p>Execute the content of the <code>tables_sqlServer.sql</code> file against your database using a SQL client of your choice. Notice that you have to replace the <code>enter_db_name_here</code> placeholder in the first <code>USE</code> command with the name of your database.</p>
+</li>
+<li>
+<p>Add the following property to the application:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.quartz.jdbc.initialize-schema = never</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</li>
+</ol>
+</div>
+
+</article>
+</body>
+</html>

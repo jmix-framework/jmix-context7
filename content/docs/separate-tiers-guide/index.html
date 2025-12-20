@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Separating Application Tiers :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Separating Application Tiers</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix is a full-stack framework enabling developers to build enterprise applications with server-side user interface. However, it also provides the flexibility to develop applications with separate frontend and backend tiers when required for security or scalability reasons.</p>
+</div>
+<div class="paragraph">
+<p>In this architecture, the frontend application is based on the standard Jmix UI subsystem, but it communicates with the backend application instead of directly with the database.</p>
+</div>
+<div class="paragraph">
+<p>This guide explores a sample application which can serve as an example for implementing custom solutions with separate tiers using the Jmix REST API and REST DataStore features.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>It’s essential to carefully evaluate your project’s requirements and constraints before deciding to implement a separated tiers architecture, because it comes with trade-offs:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Increased Complexity</strong>: Separating tiers requires managing two distinct applications, each with its own deployment, configuration, and maintenance needs. Developers need to work with two codebases, keeping data models and business logic synchronized between frontend and backend.</p>
+</li>
+<li>
+<p><strong>Limited Functionality</strong>: Some features that are seamlessly integrated in a full-stack Jmix application may require additional effort or custom implementation when tiers are separated.</p>
+</li>
+<li>
+<p><strong>Performance Overhead</strong>: Communication between tiers via REST APIs introduces additional network latency compared to direct method calls in a monolithic application.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To effectively use this guide, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup</a> the development environment.</p>
+</li>
+<li>
+<p>Clone the <a href="https://github.com/jmix-framework/jmix-separate-tiers-sample" rel="noopener" target="_blank">sample project</a> and switch to <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-separate-tiers-sample
+cd jmix-separate-tiers-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="application-overview"><a class="anchor" href="#application-overview"></a>Application Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The sample project described in this guide illustrates how to partition a Jmix application into distinct frontend and backend components utilizing the <a class="xref page" href="../rest/index.html">REST API</a> and <a class="xref page" href="../rest-ds/index.html">REST DataStore</a> add-ons. The resulting distributed system mirrors the functionality of the <a href="https://github.com/jmix-framework/jmix-onboarding-2" rel="noopener" target="_blank">Jmix Onboarding</a> project described in <a class="xref page" href="../tutorial/index.html">Tutorial</a> and comprises two web applications:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Backend Application</strong> houses JPA entities stored in a dedicated database and exposes the data model through the generic REST API. It also includes essential add-ons like <a class="xref page" href="../data-tools/index.html">Data Tools</a> and <a class="xref page" href="../audit/index.html">Audit</a> for comprehensive data management.</p>
+</li>
+<li>
+<p><strong>Frontend Application</strong> contains Data Transfer Objects (DTOs) that mirror the structure of the backend JPA entities. It performs CRUD operations using the REST DataStore, allowing for user interactions while keeping the backend secure.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>All application data is stored in the backend database.</p>
+</div>
+<div class="paragraph">
+<p>Both applications have a user interface, but the Backend provides only the user management views, Entity Log and Entity Inspector. The Frontend provides the entire user interface for the Onboarding functionality.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+In a real-world scenario, consider extracting to the frontend only the essential parts of the domain logic and UI that absolutely require separation, while keeping as much functionality as possible in the backend. This will minimize the overall complexity of the system.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setup-and-running"><a class="anchor" href="#setup-and-running"></a>Setup and Running</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Open the root project in IntelliJ IDEA with the Jmix Studio plugin installed.</p>
+</div>
+<div class="paragraph">
+<p>Use the run/debug configurations for the Frontend and Backend applications to launch them.</p>
+</div>
+<div class="paragraph">
+<p>The applications are configured to run on different ports: Frontend on 8080, Backend on 8081.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="understanding-application-behavior"><a class="anchor" href="#understanding-application-behavior"></a>Understanding Application Behavior</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following three use cases demonstrate the application behavior from the perspectives of different users.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>As a system administrator, create a new user account.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Access the Backend application by navigating to <a class="bare" href="http://localhost:8081" rel="noopener" target="_blank">http://localhost:8081</a> in your web browser and log in as <code>admin</code> user with <code>admin</code> password.</p>
+</li>
+<li>
+<p>Open <strong>Users</strong> from the main menu. Create a new user with <code>john</code> username and select <code>Operations</code> in the <strong>Department</strong> field. Save the user and assign the <code>Employee</code> role to him.</p>
+<div class="imageblock">
+<div class="content">
+<img alt="app 1" src="_images/app-1.png"/>
+</div>
+<div class="title">Figure 1. Using Backend app to create a new user</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>As an HR Manager, generate onboarding steps for the new user.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Access the Frontend application by navigating to <a class="bare" href="http://localhost:8080" rel="noopener" target="_blank">http://localhost:8080</a> in your web browser and log in as <code>james</code> with password <code>1</code>. James has the <code>HR Manager</code> role, and he can view and manage users of his department.</p>
+</li>
+<li>
+<p>Open <strong>Users</strong> from the main menu and edit the <code>john</code> record. Set a value to the <strong>Joining date</strong> field and click <strong>Generate</strong>. The application will generate onboarding steps for this user.</p>
+<div class="imageblock">
+<div class="content">
+<img alt="app 2" src="_images/app-2.png"/>
+</div>
+<div class="title">Figure 2. Using Frontend app to generate onboarding steps</div>
+</div>
+</li>
+<li>
+<p>Log out from the Frontend application.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>As the new user, complete onboarding steps.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Access the Frontend application by navigating to <a class="bare" href="http://localhost:8080" rel="noopener" target="_blank">http://localhost:8080</a> in your web browser and log in as <code>john</code>.</p>
+</li>
+<li>
+<p>Open <strong>My onboarding</strong> view, mark completed steps and click <strong>Save</strong>.</p>
+<div class="imageblock">
+<div class="content">
+<img alt="app 3" src="_images/app-3.png"/>
+</div>
+<div class="title">Figure 3. Using Frontend app to complete onboarding steps</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="implementation-details"><a class="anchor" href="#implementation-details"></a>Implementation Details</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="project-configuration"><a class="anchor" href="#project-configuration"></a>Project Configuration</h3>
+<div class="sect3">
+<h4 id="backend-application"><a class="anchor" href="#backend-application"></a>Backend Application</h4>
+<div class="paragraph">
+<p>To run on the non-default port 8081 and prevent cookie conflicts with the Frontend application, the Backend application requires the following properties:</p>
+</div>
+<div class="listingblock">
+<div class="title">backend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">server.port=8081
+server.servlet.session.cookie.name=BACKEND_JSESSIONID</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Backend application includes the <a class="xref page" href="../rest/index.html">REST API</a> and <a class="xref page" href="../authorization-server/index.html">Authorization Server</a> add-ons. It has the following configuration of the Authorization Server allowing the Frontend application to connect using the <a class="xref page" href="../authorization-server/obtaining-tokens.html#resource-owner-password-credentials-grant">Resource Owner Password Credentials</a> grant:</p>
+</div>
+<div class="listingblock">
+<div class="title">backend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># Protect REST API endpoints
+jmix.resource-server.authenticated-url-patterns=/rest/**
+
+# Configure Spring Security Authorization Server
+spring.security.oauth2.authorizationserver.client.frontend.registration.authorization-grant-types=password,refresh_token
+spring.security.oauth2.authorizationserver.client.frontend.registration.client-id=frontend-app
+spring.security.oauth2.authorizationserver.client.frontend.registration.client-secret={noop}frontend123
+spring.security.oauth2.authorizationserver.client.frontend.registration.client-authentication_methods=client_secret_basic
+spring.security.oauth2.authorizationserver.client.frontend.token.access-token-format=reference
+spring.security.oauth2.authorizationserver.client.frontend.token.access-token-time-to-live=1h
+spring.security.oauth2.authorizationserver.client.frontend.token.refresh-token-time-to-live=24h</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To support serialization of <code>User</code> entity to JSON for storing OAuth2 tokens in the database, the backend application defines a mixin class and uses it in the <code>JdbcOAuth2AuthorizationServiceObjectMapperCustomizer</code> bean:</p>
+</div>
+<div class="listingblock">
+<div class="title">backend-app/src/main/java/com/company/backend/security/OAuth2TokenUserMixin.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.backend.security;
+
+import com.company.backend.entity.Department;
+import com.company.backend.entity.UserStep;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.jmix.authserver.service.mapper.DefaultOAuth2TokenUserMixin;
+import io.jmix.core.FileRef;
+
+import java.util.List;
+
+public class OAuth2TokenUserMixin extends DefaultOAuth2TokenUserMixin {
+
+    @JsonIgnore
+    private Department department;
+
+    @JsonIgnore
+    private List&lt;UserStep&gt; steps;
+
+    @JsonIgnore
+    private FileRef picture;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">backend-app/src/main/java/com/company/backend/BackendAppApplication.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+JdbcOAuth2AuthorizationServiceObjectMapperCustomizer tokenObjectMapperCustomizer() {
+    return objectMapper -&gt;
+            objectMapper.addMixIn(User.class, OAuth2TokenUserMixin.class);
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="frontend-application"><a class="anchor" href="#frontend-application"></a>Frontend Application</h4>
+<div class="paragraph">
+<p>The Frontend application includes the <a class="xref page" href="../rest-ds/index.html">REST DataStore</a> add-on for authenticating users through the Backend application and accessing its data. The following dependencies are added to <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.restds:jmix-restds-starter' <i class="conum" data-value="1"></i><b>(1)</b>
+implementation 'io.jmix.flowui:jmix-flowui-restds-starter' <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>REST DataStore implementation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Implementation of the user settings and filter configuration persistence based on the REST DataStore.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following dependencies have been removed in comparison to a standard application that interacts directly with the database:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">io.jmix.data:jmix-eclipselink-starter
+io.jmix.security:jmix-security-data-starter
+io.jmix.flowui:jmix-flowui-data-starter
+org.hsqldb:hsqldb</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The REST DataStore is configured in the <code>application.properties</code> file of the Frontend application, along with its connection parameters:</p>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.additional-stores=backend
+jmix.core.store-descriptor-backend=restds_RestDataStoreDescriptor
+
+backend.baseUrl=http://localhost:8081
+backend.clientId=frontend-app
+backend.clientSecret=frontend123
+backend.authenticator=restds_RestPasswordAuthenticator
+
+jmix.restds.authentication-provider-store=backend
+
+jmix.restds.ui-config-store=backend</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>backend.authenticator</code> property specifies the usage of Resource Owner Password Credentials grant instead of the default Client Credentials grant.</p>
+</div>
+<div class="paragraph">
+<p>The <code>jmix.restds.authentication-provider-store</code> property defines the REST data store that will be used to authenticate users. The <a href="#security">Security</a> section below provides more information about this topic.</p>
+</div>
+<div class="paragraph">
+<p>The <code>jmix.restds.ui-config-store</code> property defines the REST data store that will be used for user settings and filter configuration persistence.</p>
+</div>
+<div class="paragraph">
+<p>To access files located in the Backend application’s file storage, the Frontend application defines the <a class="xref page" href="../rest-ds/index.html#file-storage">RestFileStorage</a> bean:</p>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/src/main/java/com/company/frontend/FrontendAppApplication.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+FileStorage backendFileStorage() {
+    return new RestFileStorage("backend", "fs");
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="entities"><a class="anchor" href="#entities"></a>Entities</h3>
+<div class="paragraph">
+<p>The Frontend application contains DTO entities, identical by the structure to the JPA entities of the Backend application. Below is an example of the <code>Department</code> entity in the Backend and Frontend applications.</p>
+</div>
+<div class="listingblock">
+<div class="title">Department entity in Backend application</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "DEPARTMENT", indexes = {
+        @Index(name = "IDX_DEPARTMENT_HR_MANAGER", columnList = "HR_MANAGER_ID")
+}, uniqueConstraints = {
+        @UniqueConstraint(name = "IDX_DEPARTMENT_UNQ_NAME", columnNames = {"NAME"})
+})
+@Entity
+public class Department {
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @Column(name = "VERSION", nullable = false)
+    @Version
+    private Integer version;
+
+    @InstanceName
+    @Column(name = "NAME", nullable = false)
+    @NotNull
+    private String name;
+
+    @JoinColumn(name = "HR_MANAGER_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User hrManager;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Department entity in Frontend application</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Store(name = "backend")
+@JmixEntity
+public class Department {
+    @JmixGeneratedValue
+    @JmixId
+    private UUID id;
+
+    private Integer version;
+
+    @InstanceName
+    @NotNull
+    private String name;
+
+    private User hrManager;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fetch-plans"><a class="anchor" href="#fetch-plans"></a>Fetch Plans</h3>
+<div class="paragraph">
+<p>The use of fetch plans in the Frontend application is the same as when working directly with databases. These <a class="xref page" href="../rest/entities-api/load-entities.html#inline-fetch-plans">inline fetch plans</a> are serialized in JSON and passed to the Backend REST endpoints.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="files"><a class="anchor" href="#files"></a>Files</h3>
+<div class="paragraph">
+<p>The <code>User</code> entity in both applications has the <code>picture</code> property which references a file in a file storage:</p>
+</div>
+<div class="listingblock">
+<div class="title">backend-app/src/main/java/com/company/backend/entity/User.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Column(name = "PICTURE", length = 1024)
+private FileRef picture;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/src/main/java/com/company/frontend/entity/User.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixProperty
+private FileRef picture;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the Backend application, this attribute contains a reference to the <a class="xref page" href="../files/file-storage.html#local-fs">local file storage</a>.</p>
+</div>
+<div class="paragraph">
+<p>In the Frontend application, the value of this attribute is automatically transformed to a reference to the <a class="xref page" href="../rest-ds/index.html#file-storage">REST file storage</a>, which transparently transmits files to and from the Backend application. The REST file storage is configured using the following bean:</p>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/src/main/java/com/company/frontend/FrontendAppApplication.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+FileStorage backendFileStorage() {
+    return new RestFileStorage("backend", "fs");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To use the REST Files API, the <code>rest.fileDownload.enabled</code> and <code>rest.fileUpload.enabled</code> specific policies must be enabled for the user. It is done in the <code>HrManagerRole</code> class of the Backend application:</p>
+</div>
+<div class="listingblock">
+<div class="title">backend-app/src/main/java/com/company/backend/security/HrManagerRole.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ResourceRole(name = "HR Manager", code = "hr-manager", scope = SecurityScope.API)
+public interface HrManagerRole extends RestMinimalRole {
+    // ...
+    @SpecificPolicy(resources = {"rest.fileDownload.enabled", "rest.fileUpload.enabled"})
+    void specific();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="views"><a class="anchor" href="#views"></a>Views</h3>
+<div class="paragraph">
+<p>The Frontend views are mostly identical to the views of the basic Onboarding application, with the following difference.</p>
+</div>
+<div class="paragraph">
+<p><code>MyOnboardingView</code> defines the query in the JSON format of the REST API instead of JPQL:</p>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/src/main/resources/com/company/frontend/</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection class="com.company.frontend.entity.UserStep" id="userStepsDc"&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="step" fetchPlan="_base"/&gt;
+        &lt;/fetchPlan&gt;
+        &lt;loader id="userStepsDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[
+                {
+                  "property": "user.id",
+                  "operator": "=",
+                  "parameterName": "userId"
+                }
+                ]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As this query doesn’t support sorting, the sort order is defined additionally in the load delegate:</p>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/src/main/java/com/company/frontend/view/myonboarding/MyOnboardingView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "userStepsDl", target = Target.DATA_LOADER)
+private List&lt;UserStep&gt; userStepsDlLoadDelegate(final LoadContext&lt;UserStep&gt; loadContext) {
+    loadContext.getQuery().setSort(Sort.by("sortValue"));
+    return dataManager.loadList(loadContext);
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="security"><a class="anchor" href="#security"></a>Security</h3>
+<div class="sect3">
+<h4 id="authentication"><a class="anchor" href="#authentication"></a>Authentication</h4>
+<div class="paragraph">
+<p>The distributed system described in this guide provides end-to-end authentication of users. Both the frontend and backend code works with the security context of the logged-in user. It ensures that standard Jmix mechanisms, such as <a class="xref page" href="../security/authentication.html#current">CurrentAuthentication</a> bean, <a class="xref page" href="../data-model/entities.html#audit-traits">entity audit traits</a> or <a class="xref page" href="../audit/index.html">Audit</a> add-on will correctly recognize the user in the Backend application.</p>
+</div>
+<div class="paragraph">
+<p>The <code>RestLoginViewSupport</code> bean in the Frontend application overrides the standard <code>LoginViewSupport</code> and creates a <code>RestAuthenticationToken</code> instead of <code>UsernamePasswordAuthenticationToken</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/src/main/java/com/company/frontend/view/myonboarding/MyOnboardingView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Primary
+@Component
+public class RestLoginViewSupport extends LoginViewSupport {
+
+    @Override
+    protected Authentication createAuthenticationToken(String username, String password, Locale locale, TimeZone timeZone) {
+        RestAuthenticationToken authenticationToken = new RestAuthenticationToken(username, password);
+        // ...
+        return authenticationToken;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This token is passed to Spring Security <code>AuthenticationManager</code> and further processed by the <code>RestAuthenticationProvider</code> bean which is configured by the REST DataStore add-on because the Frontend application contains this property:</p>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.restds.authentication-provider-store=backend</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>RestAuthenticationProvider</code> authenticates in the Backend’s Authorization Server with the username and password, obtains access and refresh tokens and stores them in the user session.</p>
+</div>
+<div class="paragraph">
+<p>After that, when invoking the Backend REST API, the REST DataStore gets the access token from the session and passes it with requests. When the access token expires, the REST DataStore obtains a new access token using the stored refresh token. If it fails, <code>InvalidRefreshTokenExceptionHandler</code> logs out the user and redirects them to the login view.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="roles"><a class="anchor" href="#roles"></a>Roles</h4>
+<div class="paragraph">
+<p>The Frontend application defines the <code>RestUserRepository</code> bean which extends <code>AbstractRestUserRepository</code> class provided by the REST DataStore add-on. <code>AbstractRestUserRepository</code> assigns to the user all roles defined in the Frontend app that match by name to the user roles in the Backend application.</p>
+</div>
+<div class="paragraph">
+<p>For example, the user <code>bob</code> has the <code>employee</code> role assignment in the Backend’s database. So when he logs in, both Backend and Frontend applications assign this role to him. However, the <code>EmployeeRole</code> classes in the Frontend and Backend applications are different and define the user permissions in the respective tiers.</p>
+</div>
+<div class="paragraph">
+<p>The <code>HrManagerRlRole</code> class in the Backend app restricts the list of users for HR Managers - they can see only users of their department.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="exception-handling"><a class="anchor" href="#exception-handling"></a>Exception Handling</h3>
+<div class="paragraph">
+<p>The Frontend application contains a <code>RestDataStoreAccessException</code> handler that shows a notification when the Backend application is not available:</p>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/src/main/java/com/company/frontend/exception/RestDataStoreAccessExceptionHandler.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class RestDataStoreAccessExceptionHandler extends AbstractUiExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(RestDataStoreAccessExceptionHandler.class);
+
+    private final Notifications notifications;
+
+    public RestDataStoreAccessExceptionHandler(Notifications notifications) {
+        super(RestDataStoreAccessException.class.getName());
+        this.notifications = notifications;
+    }
+
+    @Override
+    protected void doHandle(@NonNull String className, @NonNull String message, @Nullable Throwable throwable) {
+        log.warn(message);
+        if (throwable instanceof RestDataStoreAccessException exception) {
+            notifications.create("Connection error",
+                            "'" + exception.getDataStoreName() + "' service is unavailable")
+                    .withType(Notifications.Type.ERROR)
+                    .show();
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>InvalidRefreshTokenExceptionHandler</code> logs out the user and redirects them to the login view if the attempt to refresh a token fails:</p>
+</div>
+<div class="listingblock">
+<div class="title">frontend-app/src/main/java/com/company/frontend/exception/InvalidRefreshTokenExceptionHandler.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class InvalidRefreshTokenExceptionHandler extends AbstractUiExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(InvalidRefreshTokenExceptionHandler.class);
+
+    @Autowired
+    private LogoutSupport logoutSupport;
+
+    public InvalidRefreshTokenExceptionHandler() {
+        super(InvalidRefreshTokenException.class.getName());
+    }
+
+    @Override
+    protected void doHandle(@NonNull String className, @NonNull String message, @Nullable Throwable throwable) {
+        log.debug(message);
+
+        logoutSupport.logout();
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide has described the essential components involved in creating distinct frontend and backend Jmix applications that communicate via REST APIs.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

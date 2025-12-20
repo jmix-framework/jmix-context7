@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using the Element API :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Using the Element API</h1>
+<div class="paragraph">
+<p>This section demonstrates how to create a component using the <a href="https://vaadin.com/docs/latest/flow/create-ui/element-api" rel="noopener" target="_blank">Element API</a> and a single DOM element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.AbstractSinglePropertyField;
+import com.vaadin.flow.component.Synchronize;
+import com.vaadin.flow.component.Tag;
+
+@Tag("input") <i class="conum" data-value="1"></i><b>(1)</b>
+public class ColorPicker extends AbstractSinglePropertyField&lt;ColorPicker, String&gt; { <i class="conum" data-value="2"></i><b>(2)</b>
+
+    public ColorPicker() {
+        super("value", "", false); <i class="conum" data-value="3"></i><b>(3)</b>
+
+        getElement().setAttribute("type", "color"); <i class="conum" data-value="4"></i><b>(4)</b>
+
+        setSynchronizedEvent("change"); <i class="conum" data-value="5"></i><b>(5)</b>
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Defines the <strong>root</strong> element that is created automatically by the <code>Component</code> class and can be accessed using the <code>getElement()</code> method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Using <code>AbstractSinglePropertyField</code> as a base class which is suitable for creating components based on a single element’s property.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Passing the name of the element’s property that refers to the value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Setting the <code>type</code> attribute value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>By default, <code>AbstractSinglePropertyField</code> listens to a <code>value-changed</code> event, but <code>&lt;input type=color&gt;</code> fires <code>change</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After a component is implemented it can be used in views, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    ColorPicker colorPicker = new ColorPicker();
+    getContent().add(colorPicker);
+
+    colorPicker.addValueChangeListener(e -&gt;
+            notifications.show("Color: " + e.getValue()));
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="color picker" src="../../_images/visual-components/creating-components/color-picker.png" width="266"/>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publishing an Add-on :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Publishing an Add-on</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide will help you to set up everything you need for publishing your open-source add-on to the Jmix <a href="https://www.jmix.io/marketplace/" rel="noopener" target="_blank">marketplace</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>With our proposed approach both source code and binary artifacts are hosted on GitHub.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can publish your add-on artifacts to Maven Central. In this case, create a GitHub repository for your source code, set up publishing by yourself and then follow the <a href="#register-in-marketplace">Register Add-on in Marketplace</a> instructions.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-project"><a class="anchor" href="#create-project"></a>Create Add-on Project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can create your new Jmix add-on project through the Jmix Studio Project wizard using the <strong>Add-On</strong> template.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Please don’t use <code>io.jmix.*</code> as a base package and artifact group of your add-on. This name is reserved for Jmix core add-ons. Ideally, the base package should be a reverse-DNS notation of your own internet domain.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To interact well with the GitHub Actions workflows we will see later, you should change the repository settings for publishing add-on artifacts to GitHub Packages:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">// ...
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/" + System.getenv("GITHUB_REPOSITORY"))
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+    publications {
+        javaMaven(MavenPublication) {
+            artifactId = archName
+            from components.java
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Additionally, you should remove the version attribute in <code>build.gradle</code> (under <code>group = 'my.new.jmix.addon'</code>). Instead, create a file called <code>gradle.properties</code> with the version information directly next to the <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">gradle.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">version=0.0.1-SNAPSHOT</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="github-repository"><a class="anchor" href="#github-repository"></a>Create GitHub Repository</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now you need a GitHub repository. GitHub offers all necessary parts for publishing an open-source add-on:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>source code hosting</p>
+</li>
+<li>
+<p>continuous integration system (GitHub Actions)</p>
+</li>
+<li>
+<p>package management (GitHub Package Registry)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can create a new GitHub repository <a href="https://github.com/new" rel="noopener" target="_blank">here</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="license"><a class="anchor" href="#license"></a>Choose License</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are several open-source licenses that you can choose from. <a href="https://opensource.org/licenses/Apache-2.0" rel="noopener" target="_blank">Apache License, Version 2.0</a>, as well as <a href="https://opensource.org/licenses/MIT" rel="noopener" target="_blank">MIT License</a>, are common liberal licenses for open-source projects. Jmix itself is licensed under <a href="https://github.com/jmix-framework/jmix/blob/master/LICENSE.txt" rel="noopener" target="_blank">Apache 2.0</a>.</p>
+</div>
+<div class="paragraph">
+<p>Once you have picked a license, put the license file into the root directory of your GitHub repository.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="continuous-integration"><a class="anchor" href="#continuous-integration"></a>Set up CI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>GitHub offers a built-in CI system, that compiles the code, runs tests, performs releases, etc. for free for open-source projects.</p>
+</div>
+<div class="paragraph">
+<p>By adding the following GitHub action workflow files into your GitHub repository, the CI system will perform compilation and execution of automated tests. You will need to create the directory <code>.github/workflows</code> manually in the repository.</p>
+</div>
+<div class="listingblock">
+<div class="title">test.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">name: CI pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ci:
+    name: CI pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: '17'
+
+      - name: Make wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v2
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">release.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">name: Publish release
+on:
+  release:
+    types: [created]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '17'
+      - name: Publish package
+        run: gradle -Pversion=${{ github.event.release.tag_name }} build publish
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_USERNAME: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ github.token }}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With those two files in place GitHub Actions will perform the following tasks:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>compile the code</p>
+</li>
+<li>
+<p>run unit / integration tests</p>
+</li>
+<li>
+<p>store test results</p>
+</li>
+<li>
+<p>publishes a new version for newly created releases</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-release"><a class="anchor" href="#create-release"></a>Create Release</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>GitHub allows creating releases through the Web UI and the CLI. For the web UI, you have to first create a tag for a particular commit. Next, you can create the corresponding release. See <a href="https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository">GitHub docs</a> for more information.</p>
+</div>
+<div class="paragraph">
+<p>To create a GitHub release through the CLI use the following command: <code>gh release create 0.1.0</code>. You should replace <code>0.1.0</code> with your desired version to create.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+We propose to follow <a href="https://semver.org/">semantic versioning</a>, which defines how to increase version numbers based on the type of change you performed in this release. It allows users to more easily understand the potential impact of a version update.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Once the release is created, GitHub actions will create the artifact and release it accordingly.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="register-in-marketplace"><a class="anchor" href="#register-in-marketplace"></a>Register Add-on in Marketplace</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="create-issue"><a class="anchor" href="#create-issue"></a>Create Issue</h3>
+<div class="paragraph">
+<p>To publish an add-on to the Jmix Marketplace, you need to create an issue in the <a href="https://github.com/jmix-framework/jmix-website-content/issues/new/choose" rel="noopener" target="_blank">jmix-website-content</a> repository. Select "Publish Add-on to Marketplace" and enter the add-on name and the Github repository it is located in.</p>
+</div>
+<div class="paragraph">
+<p>After you created the issue, we will check the add-on and, if the add-on artifacts are published on GitHub Packages, create proxies to allow users to download the artifacts from the standard Jmix repositories <code>global.repo.jmix.io</code> and <code>nexus.jmix.io</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="submit-description"><a class="anchor" href="#submit-description"></a>Submit Description</h3>
+<div class="paragraph">
+<p>Create a PR with the description of your add-on in the <a href="https://github.com/Haulmont/jmix-website-content/tree/master/Content/Add-ons" rel="noopener" target="_blank">add-on directory</a> of the <code>jmix-website-content</code> repository. We accept the PR and publish the content on the website.</p>
+</div>
+<div class="paragraph">
+<p>If you later want to make changes to your description, you can create another PR with your desired changes in this repository.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="update-bom"><a class="anchor" href="#update-bom"></a>Update Jmix BOM</h3>
+<div class="paragraph">
+<p>After the <a href="#create-release">release</a> is published on GitHub, you will be able to download the artifact through the Jmix artifact repositories <code>global.repo.jmix.io</code> and <code>nexus.jmix.io</code>.</p>
+</div>
+<div class="paragraph">
+<p>Generally, Jmix works with BOM (bill of materials) to centrally manage compatible versions. You can find the versions that are specified for a given Jmix release in the <a href="https://github.com/jmix-framework/jmix/tree/master/jmix-bom" rel="noopener" target="_blank">jmix-bom</a> project on GitHub.</p>
+</div>
+<div class="paragraph">
+<p>The main benefit of this approach is that users don’t have to manually find out the correct version of your add-on that is compatible with their version of Jmix. Instead, you declare which version is working correctly with a particular Jmix release centrally in the BOM.</p>
+</div>
+<div class="paragraph">
+<p>To connect your release with a particular Jmix version, create an issue at <a class="bare" href="https://github.com/jmix-framework/jmix/issues" rel="noopener" target="_blank">https://github.com/jmix-framework/jmix/issues</a> and provide the compatible add-on and Jmix versions.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can create a PR to the corresponding <a href="https://github.com/jmix-framework/jmix/branches/all?query=release_" rel="noopener" target="_blank">release branch</a>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Fork the <a href="https://github.com/jmix-framework/jmix" rel="noopener" target="_blank">jmix-framework/jmix</a> repository.</p>
+</li>
+<li>
+<p>Switch to a Jmix release branch you would like to add your release to (like <code>release_2_7</code>).</p>
+</li>
+<li>
+<p>Add a line with your maven coordinates and the correct version to <code>jmix-bom/bom.gradle</code> after the <code>community add-ons</code> comment:</p>
+<div class="listingblock">
+<div class="title">bom.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-gradle hljs" data-lang="gradle">// community add-ons
+// ...
+api 'my.new.jmix.addon:my-add-on:1.0.0'
+api 'my.new.jmix.addon:my-add-on-starter:1.0.0'
+// end community add-ons</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a PR with the target branch: <code>release_2_7</code> of the <code>jmix-framework/jmix</code> repository.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When a new major or minor Jmix version is released (for example, 5.5.0), its BOM doesn’t contain any third-party add-ons because they are not tested for compatibility with the new version.</p>
+</div>
+<div class="paragraph">
+<p>You should create a new issue or submit a PR for the corresponding release branch (for example, <code>release_5_5</code>) to include your add-on in the new BOM.
+Until your add-on is not in the BOM, users can still use your add-on with the new Jmix version if they explicitly specify the add-on version in their build scripts.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

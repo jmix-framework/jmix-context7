@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renderers :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Renderers</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes how to customize the rendering of UI components like <a class="xref page" href="../components/comboBox.html">comboBox</a>, <a class="xref page" href="../components/dataGrid.html">dataGrid</a>, <a class="xref page" href="../components/checkboxGroup.html">checkboxGroup</a>, <a class="xref page" href="../components/select.html">select</a> and others using custom renderers in Jmix. Custom renderers allow developers to control the visual representation of data within these components, tailoring the UI to specific application requirements. This is particularly useful for:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Enhanced visual representation</strong>: They enable the inclusion of visual elements beyond plain text, such as icons, images, progress bars, or others, to make data more easily understandable and engaging. This can improve the overall user experience and clarity of the UI.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="radio button group renderer" src="../../_images/visual-components/components/radio-button-group-renderer.png" width="189"/>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Conditional rendering</strong>: Renderers can implement logic to change the visual appearance based on the data’s value or other contextual information. For instance, a renderer might display a green checkmark for successful records and a red checkmark for failed ones.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="renderer 2" src="../../_images/visual-components/renderer-2.png" width="184"/>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Complex layouts</strong>: For situations requiring more complex visual layouts than the default rendering offers, custom renderers provide the flexibility to arrange and display data in non-standard ways. This could involve combining several UI elements within a single component cell or creating entirely custom layouts.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="renderer 3" src="../../_images/visual-components/renderer-3.png" width="711"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In essence, renderers in Jmix empower developers to move beyond the basic display capabilities of the default UI components, creating a more tailored and user-friendly interface that effectively communicates data to the end-user.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you need to simply format data (for example, change the way a date or number appears), use a <a class="xref page" href="formatter.html">formatter</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="predefined-renderer"><a class="anchor" href="#predefined-renderer"></a>Predefined XML Renderer</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix provides predefined XML renderers for <a class="xref page" href="../components/dataGrid.html">DataGrid</a> and <a class="xref page" href="../components/treeDataGrid.html">TreeDataGrid</a> columns to simplify common formatting and display table data:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../components/dataGrid.html#number-renderer">numberRenderer</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/dataGrid.html#local-date-renderer">localDateRenderer</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/dataGrid.html#local-date-time-renderer">localDateTimeRenderer</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>They accept a <code>format</code> string. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;column property="joiningDate"&gt;
+    &lt;localDateRenderer format="MMM dd, yyyy"/&gt;
+&lt;/column&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To add a renderer in Jmix Studio, select the <code>column</code> element in the view descriptor XML or in the <strong>Jmix UI</strong> structure panel and click on the <a class="xref page" href="../../../studio/view-designer.html#component-inspector">Add→&lt;Some&gt;Renderer</a> button in the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="component-renderer"><a class="anchor" href="#component-renderer"></a>Component Renderer</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Component renderers provide a mechanism for rendering data within UI components using other UI components.</p>
+</div>
+<div class="paragraph">
+<p>A component renderer takes data as input and generates a UI component (such as a <a class="xref page" href="../components/checkbox.html">checkBox</a>, or <a class="xref page" href="../html-components/image.html">image</a>) to represent that data. This generated component is then used by the parent UI component (for example, a dataGrid column) to display the data. This approach is particularly useful when you need to visually represent data using more than just simple text formatting.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+While simple to implement, component renderers can negatively impact performance, especially with large datasets, because they create a separate UI component for each data item.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To create a renderer use the <code>setRenderer()</code> method or <code>@Supply</code> annotation.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+To generate a <code>renderer</code> handler method in <strong>Jmix Studio</strong>, select the component or grid column, go to the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel and double-click the relevant row. Also, you can use the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code → Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>As an example, let’s consider adding a renderer to display a boolean value using a <code>checkBox</code> in a <code>dataGrid</code>.</p>
+</div>
+<div class="paragraph">
+<p>Select the <code>active</code> column, switch to the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector and double-click the <code>renderer</code> handler method:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="renderer 1" src="../../_images/visual-components/renderer-1.png" width="862"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Implement the <code>dataGridCheckboxActiveRenderer</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "dataGridCheckbox.active", subject = "renderer")
+private Renderer&lt;User&gt; dataGridCheckboxActiveRenderer() {
+    return new ComponentRenderer&lt;&gt;(
+            () -&gt; {
+                JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class); <i class="conum" data-value="1"></i><b>(1)</b>
+                checkbox.setReadOnly(true); <i class="conum" data-value="2"></i><b>(2)</b>
+                return checkbox; <i class="conum" data-value="3"></i><b>(3)</b>
+            },
+            (checkbox, user) -&gt; checkbox.setValue(user.getActive()) <i class="conum" data-value="4"></i><b>(4)</b>
+    );
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>JmixCheckbox</code> component instance is created using the <code>UiComponents</code> factory.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Sets <code>checkbox</code> to read-only mode, preventing users from directly changing its state.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The renderer returns the newly created, read-only checkbox to be shown in the column cells.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Lambda expression that configures the checkbox’s value. It’s a consumer that takes two parameters: the <code>checkbox</code> component and a <code>User</code> instance. It sets the checkbox’s value based on the <code>active</code> attribute of the <code>User</code> entity.</td>
+</tr>
+</table>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="renderer 4" src="../../_images/visual-components/renderer-4.png" width="662"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Examples of custom rendering for various UI components are provided in the relevant sections of the Jmix documentation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../components/checkboxGroup.html#custom-item-presentation">checkboxGroup</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/comboBox.html#rendering-items">comboBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/dataGrid.html#component-renderer">dataGrid</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/entityComboBox.html#renderer">entityComboBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/listBox.html#renderer">listBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/multiSelectComboBox.html#renderer">multiSelectComboBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/multiSelectComboBoxPicker.html#basic-features">multiSelectComboBoxPicker</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/multiSelectListBox.html">multiSelectListBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/radioButtonGroup.html#rendering-items">radioButtonGroup</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/select.html#rendering-items">select</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/treeDataGrid.html#renderer">treeDataGrid</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/virtualList.html#Renderer">virtualList</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="lit-renderer"><a class="anchor" href="#lit-renderer"></a>LitRenderer</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>LitRenderer</code> renders content using HTML and Lit’s data-binding syntax; it’s more lightweight than component-based renderers.</p>
+</div>
+<div class="paragraph">
+<p><code>LitRenderer</code> allows you to define an HTML template and bind properties from an entity to template variables:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "dataGridLit.userInfo", subject = "renderer")
+private Renderer&lt;User&gt; dataGridLitUserInfoRenderer() {
+    return LitRenderer.&lt;User&gt;of("${item.firstName}&lt;br&gt;${item.lastName}&lt;br&gt;${item.email}")
+            .withProperty("firstName", User::getFirstName)
+            .withProperty("lastName", User::getLastName)
+            .withProperty("email", User::getEmail);
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="renderer 5" src="../../_images/visual-components/renderer-5.png" width="592"/>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<code>LitRenderer</code> renders efficiently and is ideal for high-performance applications needing frequent updates. Its lightweight design makes it well-suited for applications with many components or dynamic content.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can use <code>LitRenderer</code> in the following UI components:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../components/dataGrid.html#column">dataGrid.column</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/comboBox.html#rendering-items">comboBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/entityComboBox.html#renderer">entityComboBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/multiSelectComboBox.html#renderer">multiSelectComboBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/multiSelectComboBoxPicker.html#basic-features">multiSelectComboBoxPicker</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/treeDataGrid.html#renderer">treeDataGrid.column</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/virtualList.html#Renderer">virtualList</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fragment-renderer"><a class="anchor" href="#fragment-renderer"></a>Fragment Renderer</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/fragment-renderer" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Renderers for <a class="xref page" href="../components/virtualList.html">virtualList</a>, <a class="xref page" href="../components/dataGrid.html">dataGrid</a> and other components can be defined using <a class="xref page" href="../../fragments/fragments.html">fragments</a>. A special <code>fragmentRenderer</code> XML element is used to declaratively describe a renderer.</p>
+</div>
+<div class="paragraph">
+<p>Like regular fragments, a <code>fragmentRenderer</code> is defined using a descriptor and a Java controller.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Create FragmentRenderer XML-descriptor</strong></p>
+<div class="paragraph">
+<p>The descriptor can contain an optional <a class="xref page" href="../../data/instance-container.html">instanceContainer</a> for the entity that will be used by the renderer.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+    &lt;data&gt;
+        &lt;instance id="userDc" class="com.company.onboarding.entity.User"&gt;
+            &lt;loader id="userDl"/&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+        &lt;/instance&gt;
+    &lt;/data&gt;
+    &lt;content&gt;
+        &lt;hbox&gt;
+            &lt;icon icon="ANGLE_DOUBLE_RIGHT"/&gt;
+            &lt;formLayout id="form" dataContainer="userDc"&gt;
+                &lt;textField property="username" readOnly="true"/&gt;
+                &lt;textField property="firstName" readOnly="true"/&gt;
+                &lt;textField property="lastName" readOnly="true"/&gt;
+                &lt;textField property="email" readOnly="true"/&gt;
+            &lt;/formLayout&gt;
+        &lt;/hbox&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If the instance container is not defined, you can use the <code>FragmentRenderer.getItem()</code> method to handle rendering.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><strong>Create FragmentRenderer Java Controller</strong></p>
+<div class="paragraph">
+<p>The fragment renderer class should extend the <code>FragmentRenderer</code> base class with type parameters indicating the root component and rendered entity, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@FragmentDescriptor("user-fragment.xml") <i class="conum" data-value="1"></i><b>(1)</b>
+@RendererItemContainer("userDc") <i class="conum" data-value="2"></i><b>(2)</b>
+public class UserFragment extends FragmentRenderer&lt;HorizontalLayout, User&gt; {
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@FragmentDescriptor</code> annotation specifies a string value that is a path to an XML file which is used for the fragment initialization.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>@RendererItemContainer</code> annotation is used to specify the data container that accepts the rendered entity.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><strong>Use FragmentRenderer in a View</strong></p>
+<div class="paragraph">
+<p>Select the component where you want to render items and include the <code>fragmentRenderer</code> element. This element requires a <code>class</code> attribute specifying the fully qualified name (FQN) of a class extending the abstract <code>io.jmix.flowui.fragmentrenderer.FragmentRenderer</code> class.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;virtualList itemsContainer="usersDc"&gt;
+    &lt;fragmentRenderer
+            class="com.company.onboarding.view.component.virtuallist.UserFragment"/&gt;
+&lt;/virtualList&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To add a <code>fragmentRenderer</code> in Jmix Studio, select the UI component in the view descriptor XML or in the <strong>Jmix UI</strong> structure panel and click on the <a class="xref page" href="../../../studio/view-designer.html#component-inspector">Add→FragmentRenderer</a> button in the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>fragmentRenderer</code> element also supports <a class="xref page" href="../../fragments/using-fragments.html#passing-parameters-to-fragments">loading properties</a>, just like the <code>fragment</code> element.</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="renderer 6" src="../../_images/visual-components/renderer-6.png" width="877"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You can use <code>fragmentRenderer</code> in the following UI components:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../components/checkboxGroup.html">checkboxGroup</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/dataGrid.html#column">dataGrid.Column</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/entityComboBox.html">entityComboBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/listBox.html">listBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/multiSelectComboBox.html">multiSelectComboBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/multiSelectComboBoxPicker.html">multiSelectComboBoxPicker</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/multiSelectListBox.html">multiSelectListBox</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/radioButtonGroup.html">radioButtonGroup</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/select.html">select</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/treeDataGrid.html#column">treeDataGrid.Column</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../components/virtualList.html">virtualList</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

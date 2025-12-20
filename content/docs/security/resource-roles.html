@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Roles :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Resource Roles</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Resource roles give users permissions to specific objects and operations in the system: CRUD operations on entities, entity attributes, UI views, and so on.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+A user without resource roles has no permissions and cannot access the application’s data and UI.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create"><a class="anchor" href="#create"></a>Creating Resource Roles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can create resource roles at design time using annotated Java interfaces (see <a class="xref page" href="../studio/role-designer.html#resource-role-designer">role designer</a> in Studio) or at runtime using UI views available at <strong>Security → Resource roles</strong>.</p>
+</div>
+<div class="paragraph">
+<p>A role has a user-friendly name and a code. The code is used when assigning the role to users, so don’t change if some users already have this role assigned.</p>
+</div>
+<div class="paragraph">
+<p>Example of defining a design-time role:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ResourceRole( <i class="conum" data-value="1"></i><b>(1)</b>
+    name = "Full Access", <i class="conum" data-value="2"></i><b>(2)</b>
+    code = FullAccessRole.CODE) <i class="conum" data-value="3"></i><b>(3)</b>
+public interface FullAccessRole {
+
+    String CODE = "system-full-access";
+    
+    void fullAccess(); <i class="conum" data-value="4"></i><b>(4)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@ResourceRole</code> annotation indicates that the interface defines a resource role.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>A user-friendly name of the role.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The role’s code.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The interface can have one or more methods to define policy annotations (see below). Different methods are used just to group related policies. Method names can be arbitrary, they are displayed as <strong>Policy group</strong> when the role is shown in UI.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="policies"><a class="anchor" href="#policies"></a>Resource Policies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Resource roles define permissions by specifying <em>resource policies</em>. A resource policy combines a resource with a permitted type of access to it.</p>
+</div>
+<div class="sect2">
+<h3 id="entity-policy"><a class="anchor" href="#entity-policy"></a>Entity Policy</h3>
+<div class="paragraph">
+<p>Entity policy specifies what CRUD operations are permitted for an entity.</p>
+</div>
+<div class="paragraph">
+<p>In a design-time role, the entity policy is defined using the <code>@EntityPolicy</code> annotation, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@EntityPolicy(
+        entityClass = Customer.class,
+        actions = {EntityPolicyAction.READ,
+                EntityPolicyAction.CREATE,
+                EntityPolicyAction.UPDATE})
+void customer();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>entityClass</code> parameter specifies the entity. If you want to define a policy for all entities, use the <code>entityName</code> parameter with <code>*</code> value.</p>
+</div>
+<div class="paragraph">
+<p>The <code>actions</code> parameter specifies permitted CRUD operations. If you want to enable all operations, use <code>EntityPolicyAction.ALL</code> value.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="entity-attribute-policy"><a class="anchor" href="#entity-attribute-policy"></a>Entity Attribute Policy</h3>
+<div class="paragraph">
+<p>Entity attribute policy specifies what entity attributes are permitted.</p>
+</div>
+<div class="paragraph">
+<p>In a design-time role, the entity attribute policy is defined using the <code>@EntityAttributePolicy</code> annotation, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@EntityAttributePolicy(
+        entityClass = Customer.class,
+        attributes = {"name", "region", "details"},
+        action = EntityAttributePolicyAction.MODIFY)
+void customer();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>entityClass</code> parameter specifies the entity. If you want to define a policy for all entities, use the <code>entityName</code> parameter with <code>*</code> value.</p>
+</div>
+<div class="paragraph">
+<p>The <code>attributes</code> parameter specifies entity attribute names. If you want to define a policy for all attributes of the entity, use <code>*</code> value.</p>
+</div>
+<div class="paragraph">
+<p>The <code>action</code> parameter specifies the permitted access level: "view" or "modify". The "modify" level automatically grants also the "view" access.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="view-policy"><a class="anchor" href="#view-policy"></a>View Policy</h3>
+<div class="paragraph">
+<p>View policy specifies permitted UI views.</p>
+</div>
+<div class="paragraph">
+<p>In a design-time role, the view policy is defined using the <code>@ViewPolicy</code> annotation, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewPolicy(
+        viewIds = {"Customer.list"})
+void customer();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>viewIds</code> parameter specifies identifiers of permitted UI views. If you want to enable all views, use <code>*</code> value.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="menu-policy"><a class="anchor" href="#menu-policy"></a>Menu Policy</h3>
+<div class="paragraph">
+<p>Menu policy specifies permitted UI main menu items.</p>
+</div>
+<div class="paragraph">
+<p>In a design-time role, the menu policy is defined using the <code>@MenuPolicy</code> annotation, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@MenuPolicy(
+        menuIds = {"Customer.list"})
+void customer();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>menuIds</code> parameter specifies identifiers of permitted menu items. If you want to enable all menu items, use <code>*</code> value.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="specific-policy"><a class="anchor" href="#specific-policy"></a>Specific Policy</h3>
+<div class="paragraph">
+<p>Specific policy defines permissions on arbitrary named functionality.</p>
+</div>
+<div class="paragraph">
+<p>The framework uses specific permissions to restrict access to various mechanisms. For example, <a class="xref page" href="../rest/index.html">Generic REST API</a> defines the <code>rest.enabled</code> policy, so a user must have this permission to be able to interact with the application through the Generic REST endpoints.</p>
+</div>
+<div class="paragraph">
+<p>You can use specific policies to restrict access to your application functionality too. Below is an example of such access control.</p>
+</div>
+<div class="paragraph">
+<p>In a design-time role, the specific policy is defined using the <code>@SpecificPolicy</code> annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SpecificPolicy(
+        resources = {"customer.notify"})
+void customer();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The policy is checked in the application code using the <code>AccessManager</code> and <code>SpecificOperationAccessContext</code> classes provided by the framework:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private AccessManager accessManager;
+
+public void notifyCustomer(Customer customer) {
+    SpecificOperationAccessContext accessContext =
+            new SpecificOperationAccessContext("customer.notify");
+    accessManager.applyRegisteredConstraints(accessContext);
+    if (accessContext.isPermitted()) {
+        // do notify
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can learn more about checking permissions in the <a class="xref page" href="authorization.html#access-constraints">access constraints</a> section.</p>
+</div>
+<div class="paragraph">
+<p>If you want to enable all existing specific policies, use <code>*</code> value in the <code>@SpecificPolicy.resources</code> annotation attribute.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ui-component-policy"><a class="anchor" href="#ui-component-policy"></a>UI Component Policy</h3>
+<div class="paragraph">
+<p>UI component policies define permissions for UI elements such as fields, buttons, and actions within specific views. This policy support is offered through the separate <a class="xref page" href="../uiconstraints/index.html">UI Constraints</a> add-on.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="role-granularity"><a class="anchor" href="#role-granularity"></a>Role Granularity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A resource role can have any number of policies, and a user can have any number of roles. So you can design roles with different levels of granularity:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Fine-grained roles define permissions to closely related resources like an entity, its UI views and menu items. For example, "Full access to Customers", "Can create and update Orders". You would normally assign several such roles to the user.</p>
+</li>
+<li>
+<p>Coarse-grained roles define all permissions required for a specific job, like "Salesperson". Such a role can define all permissions itself or inherit them from base roles, so a course-grained role can be made as an aggregation of fine-grained ones.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>We recommend creating fine-grained roles at design time and using runtime capabilities only for combining them into different coarse-grained roles for simple assignment to users, and for rare ad-hoc changes in your security model.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="example"><a class="anchor" href="#example"></a>Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Below is a complete example of a design-time resource role that enables limited access to the following entities and their UI views:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="resource roles diagram" src="_images/resource-roles-diagram.svg"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ResourceRole(
+        name = "Customers: non-confidential info only, cannot delete",
+        code = "customer-nonconfidential-access")
+public interface CustomerNonConfidentialAccessRole {
+
+    @EntityPolicy(
+            entityClass = Customer.class,
+            actions = {EntityPolicyAction.READ,
+                    EntityPolicyAction.CREATE,
+                    EntityPolicyAction.UPDATE})
+    @EntityAttributePolicy(
+            entityClass = Customer.class,
+            attributes = {"name", "region", "details"},
+            action = EntityAttributePolicyAction.MODIFY)
+    @ViewPolicy(
+            viewIds = {"Customer.list"})
+    @MenuPolicy(
+            menuIds = {"Customer.list"})
+    void customer();
+
+    @EntityPolicy(
+            entityClass = CustomerDetail.class,
+            actions = EntityPolicyAction.ALL)
+    @EntityAttributePolicy(
+            entityClass = CustomerDetail.class,
+            attributes = {"content"},
+            action = EntityAttributePolicyAction.MODIFY)
+    @ViewPolicy(
+            viewIds = {"CustomerDetail.detail"})
+    void customerDetail();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

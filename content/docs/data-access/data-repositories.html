@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Repositories :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Data Repositories</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://docs.spring.io/spring-data/commons/docs/current/reference/html/#repositories.core-concepts">Spring Data</a> repositories provide a useful abstraction for working with entities, especially when implementing business logic.</p>
+</div>
+<div class="paragraph">
+<p>Jmix data repositories are built on top of Spring Data and use <a class="xref page" href="data-manager.html">DataManager</a> under the hood. It allows you to utilize the convenient repository interface while having the full support for advanced Jmix data access features, such as <a class="xref page" href="entity-events.html">entity events</a>, <a class="xref page" href="../data-model/entities.html#cross-data-store-ref">cross-datastore references</a>, <a class="xref page" href="../security/authorization.html#data-access-checks">data access checks</a>, etc.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="working-with-data-repositories"><a class="anchor" href="#working-with-data-repositories"></a>Working with Data Repositories</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can create a Jmix data repository in two ways: using the <a class="xref page" href="../studio/data-repository-wizard.html">Data Repository Wizard</a> or following the steps below.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create an interface extending <code>JmixDataRepository</code>. Use the entity class and the entity identifier class as type parameters for <code>JmixDataRepository</code>. For example:</p>
+<div class="openblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public interface CustomerRepository extends JmixDataRepository&lt;Customer, UUID&gt; {
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Create a new Spring configuration class in the base package and add the <code>@EnableJmixDataRepositories</code> annotation to it:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.demo;
+
+import io.jmix.core.repository.EnableJmixDataRepositories;
+import org.springframework.context.annotation.Configuration;
+
+@EnableJmixDataRepositories
+@Configuration
+public class JmixDataRepositoryConfiguration {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Jmix will initialize all data repositories located under the base package of the application or the add-on. If you need more customized control over where to search for repositories, use the <code>basePackages</code>, <code>excludeFilters</code> and <code>includeFilters</code> attributes of the annotation.</p>
+</div>
+</li>
+<li>
+<p>Inject your repository into Spring beans or UI controllers using the <code>@Autowired</code> annotation:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private CustomerRepository customerRepository;</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix-data-repository-features"><a class="anchor" href="#jmix-data-repository-features"></a>JmixDataRepository Features</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>JmixDataRepository</code> interface extends the standard Spring Data <a href="https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/PagingAndSortingRepository.html" rel="noopener" target="_blank">PagingAndSortingRepository</a>. It provides a few own methods considering Jmix specifics:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Load methods, such as <code>findById()</code> or <code>findAll()</code>, can accept a <a class="xref page" href="fetching.html#fetch-plan">fetch plan</a>.</p>
+</li>
+<li>
+<p><code>create()</code> method <a class="xref page" href="../data-model/entities.html#instantiation">instantiates</a> a new entity.</p>
+</li>
+<li>
+<p><code>getById()</code> method with the non-optional result loads an entity by id and throws the exception if the entity is not found.</p>
+</li>
+<li>
+<p><code>getDataManager()</code> method returns <a class="xref page" href="data-manager.html">DataManager</a> to use in default methods.</p>
+</li>
+<li>
+<p><code>save()</code> method persists the provided entity and returns saved instance, loaded with the specified fetch plan. The method accepts the entity to be saved and fetch plan to apply when reloading the saved entity. The entity cannot be null, and fetch plan must be applicable to the entity.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="JmixDataRepositoryContext"><a class="anchor" href="#JmixDataRepositoryContext"></a>JmixDataRepositoryContext</h3>
+<div class="paragraph">
+<p>Load methods of repositories inherited from <code>JmixDataRepository</code> support an additional argument of the <code>JmixDataRepositoryContext</code> type. It allows you to pass the filtering, paging and sorting parameters collected from UI components to the <code>LoadContext</code> object. As a result, all the features of <a class="xref page" href="../flow-ui/vc/components/genericFilter.html">genericFilter</a>, <a class="xref page" href="../flow-ui/vc/components/simplePagination.html">simplePagination</a> and <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a> components will work seamlessly with data repositories.</p>
+</div>
+<div class="paragraph">
+<p>Use the <code>JmixDataRepositoryUtils.buildRepositoryContext()</code> static method to convert <code>LoadContext</code> to <code>JmixDataRepositoryContext</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ApplyConstraints"><a class="anchor" href="#ApplyConstraints"></a>Security Constraints</h3>
+<div class="paragraph">
+<p>You can add the <code>io.jmix.core.repository.ApplyConstraints</code> annotation to your data repository. If the value of the annotation is <code>false</code>, the repository uses <code>UnconstrainedDataManager</code> instead of <code>DataManager</code>. The default annotation value is <code>true</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>@ApplyConstraints</code> annotation can be used not only for the entire class, but also for individual methods to either ignore or enable constraints for them only.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public interface OrderRepository extends JmixDataRepository&lt;Order, UUID&gt; {
+    @Override
+    List&lt;Order&gt; findAll(Sort sort, @Nullable FetchPlan fetchPlan);
+
+    @Override
+    @ApplyConstraints(false)
+    List&lt;Order&gt; findAll(FetchPlan fetchPlan);
+
+    @ApplyConstraints(false)
+    List&lt;Order&gt; findByIdNotNull();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the example above, <code>@ApplyConstraints(false)</code> is applied specifically to two methods, and they will use <code>UnconstrainedDataManager</code>.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, constraints are disabled for the entire class, but are specifically enabled for individual methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ApplyConstraints(false)
+public interface ProductRepository extends JmixDataRepository&lt;Product, UUID&gt; {
+    @Override
+    List&lt;Product&gt; findAll(Sort sort, @Nullable FetchPlan fetchPlan);
+
+    @Override
+    @ApplyConstraints
+    Page&lt;Product&gt; findAll(Pageable pageable);
+
+    List&lt;Product&gt; getByIdNotNull();
+
+    @ApplyConstraints
+    List&lt;Product&gt; searchByIdNotNull();
+
+    List&lt;Product&gt; searchById(UUID id);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>findAll()</code> and <code>searchByIdNotNull()</code> methods will use the regular <code>DataManager</code>, while all other methods will use <code>UnconstrainedDataManager</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="annotations"><a class="anchor" href="#annotations"></a>Annotations</h3>
+<div class="paragraph">
+<p>You can use the following annotations on custom query methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>@io.jmix.core.repository.Query</code> defines a JPQL query string, similar to the Spring Data JPA <code>@Query</code> annotation.</p>
+</li>
+<li>
+<p><code>@io.jmix.core.repository.FetchPlan</code> defines a fetch plan to be used when loading data.</p>
+</li>
+<li>
+<p><code>@io.jmix.core.repository.QueryHints</code> and <code>@jakarta.persistence.QueryHint</code> allow you to specify hints for <a class="xref page" href="../data-model/soft-deletion.html#turn-soft-deletion-off">turning soft deletion off</a> and <a class="xref page" href="cache.html#query-cache">using query cache</a>.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If a method name/query and method parameters specify different values for fetch plan and hints, the final values are based on priority, from highest to lowest.</p>
+</div>
+<div class="paragraph">
+<p><strong>FetchPlan:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>FetchPlan</code> parameter. The fetch plan explicitly provided as a parameter to the method takes highest priority.</p>
+</li>
+<li>
+<p><code>JmixDataRepositoryContext#fetchPlan</code> parameter.</p>
+</li>
+<li>
+<p><code>@FetchPlan</code> annotation value.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p><strong>Hints:</strong></p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>JmixDataRepositoryContext</code> parameter.</p>
+</li>
+<li>
+<p><code>@QueryHints</code> annotation value.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>For hints with the same key, the value from the higher priority source will override the value from the lower priority source. Different keys will be merged.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="query-method-examples"><a class="anchor" href="#query-method-examples"></a>Query Method Examples</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="derived-methods"><a class="anchor" href="#derived-methods"></a>Derived Methods</h3>
+<div class="paragraph">
+<p>Jmix data repositories support the standard Spring Data feature of deriving the query from the method name, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; findByEmailContainingIgnoreCase(String emailPart);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Query methods can accept <code>Pageable</code> for pagination and sorting:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Page&lt;Customer&gt; findByEmailContainingIgnoreCase(String emailPart, Pageable pageable);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="query-annotation"><a class="anchor" href="#query-annotation"></a>@Query Annotation</h3>
+<div class="paragraph">
+<p>Similar to Spring Data JPA, a JPQL query can be defined explicitly using the <code>@io.jmix.core.repository.Query</code> annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Query("select c from sample_Customer c where c.email like :email")
+List&lt;Customer&gt; findCustomersByEmail(@Param("email") String emailPart);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the query returns multiple scalar values and/or aggregates, you should provide property names in the <code>properties</code> attribute of the <code>@Query</code> annotation. The method should return a list of <code>KeyValueEntity</code>. Each entity instance will have the properties defined for the query. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Query(
+        value = "select c.grade, count(c) from sample_Customer c group by c.grade",
+        properties = {"grade", "count"}
+)
+List&lt;KeyValueEntity&gt; getCountGroupByGrade();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the query returns a list with a single scalar value, define the method return type as a list of that value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Query(value = "select distinct c.grade from sample_Customer c")
+List&lt;CustomerGrade&gt; getAllGrades();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the query returns a single scalar value, define the method return type as that value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Query(value = "select count(c) from sample_Customer c where c.grade = ?1")
+Long getCountByGrade(CustomerGrade grade);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix-specific-parameters"><a class="anchor" href="#jmix-specific-parameters"></a>Jmix-Specific Parameters</h3>
+<div class="paragraph">
+<p>Jmix data repositories accept <a class="xref page" href="fetching.html#fetch-plan">fetch plan</a> as a parameter of query methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; findByEmailContainingIgnoreCase(String emailPart, FetchPlan fetchPlan);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A shared fetch plan can be defined in the <code>@io.jmix.core.repository.FetchPlan</code> annotation on the query method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@FetchPlan("customer-minimal")
+List&lt;Customer&gt; findByEmail(String email);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A <a class="xref page" href="cache.html#query-cache">cacheable</a> query can be specified using the <code>@io.jmix.core.repository.QueryHints</code> and <code>@jakarta.persistence.QueryHint</code> annotations:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@QueryHints(@QueryHint(name = PersistenceHints.CACHEABLE, value = "true"))
+List&lt;Customer&gt; findByEmail(String email);</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

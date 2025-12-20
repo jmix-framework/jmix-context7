@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Error Handling</h1>
+<div class="sect1">
+<h2 id="errors-catching"><a class="anchor" href="#errors-catching"></a>Errors Catching</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Errors can be thrown by <a class="xref page" href="bpmn/bpmn-events.html#error-end-event">error end events</a> or programmatically.</p>
+</div>
+<div class="paragraph">
+<p>A thrown error <strong>MUST</strong> be caught by an error catch event, specifically using an error boundary event or an error event subprocess.
+Otherwise, it causes an exception.</p>
+</div>
+<div class="sect2">
+<h3 id="catching-error-boundary-event"><a class="anchor" href="#catching-error-boundary-event"></a>Catching Error by Boundary Event</h3>
+<div class="paragraph">
+<p>When an error event is caught, the activity on which the boundary event is defined is destroyed,
+also destroying all current executions within (concurrent activities, nested subprocesses, and so on).
+Process execution continues following the outgoing sequence flow of the boundary event.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error catching boundary" src="_images/errors-hanling/error-catching-boundary.png" width="300"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="event-subprocess-priority"><a class="anchor" href="#event-subprocess-priority"></a>Event Subprocess Priority</h3>
+<div class="paragraph">
+<p>Event subprocess has a priority over the error boundary event.
+So, when an error occurs, the subprocess starts, but the boundary error handler never be activated.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="start error event example 2" src="_images/errors-hanling/start-error-event-example-2.png" width="500"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="error-propagation"><a class="anchor" href="#error-propagation"></a>Error Propagation</h3>
+<div class="paragraph">
+<p>Suppose, the process has parallel paths with call activities, each of them may throw an error.
+Then, it’s possible to use error boundary events without outgoing flows if there is an event subprocess for handling errors:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="parallel errors catcing" src="_images/errors-hanling/parallel-errors%20catcing.png" width="500"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The error, thrown inside call activity will be propagated to the top-level process and caught by event subprocess.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="matching-errors"><a class="anchor" href="#matching-errors"></a>Matching Errors</h3>
+<div class="paragraph">
+<p>Usually, error event has a code. Sometimes the code can be omitted, then <code>id</code> parameter will be used.</p>
+</div>
+<div class="paragraph">
+<p><strong>Single error catching event</strong></p>
+</div>
+<div class="paragraph">
+<p>When there is only one error catching event in the given scope, it catches <strong>ALL</strong> errors with any codes.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, the single error catching event catches both errors with codes 1 and 2.
+If in the error catching event set parameter <em>Error</em>, it will be ignored.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error one catch many" src="_images/errors-hanling/error-one-catch-many.png" width="600"/>
+</div>
+</div>
+<div class="paragraph">
+<p>An event subprocess with error start event works the same way — it will catch any error.</p>
+</div>
+<div class="paragraph">
+<p><strong>Matched errors codes</strong></p>
+</div>
+<div class="paragraph">
+<p>In the other example, we can see designated error catching events for every type of errors:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error one catch many" src="_images/errors-hanling/error-one-catch-many.png" width="600"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Respectively, if error #1 occurs, the first catching evens will be activated, if error #2 — the second one.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The BPM engine considers the error events matching when they refer to the same <em>error definition</em>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><strong>Error code doesn’t match</strong></p>
+</div>
+<div class="paragraph">
+<p>When a code of thrown error doesn’t match any error catching event, the first defined error will be activated.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error code not match" src="_images/errors-hanling/error-code-not-match.png" width="600"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>first</strong> means here which of boundary events is higher in the XML file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">...
+&lt;boundaryEvent id="Event_02" name="Catch error 2"
+    attachedToRef="Activity_13z00xo"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+  &lt;outgoing&gt;Flow_06d3rwf&lt;/outgoing&gt;
+  &lt;errorEventDefinition id="ErrorEventDefinition_0w90u2d" /&gt;
+&lt;/boundaryEvent&gt;
+&lt;sequenceFlow id="Flow_1b1df9j" sourceRef="Event_01" targetRef="Activity_0tcie7m" /&gt;
+&lt;sequenceFlow id="Flow_1trubue" sourceRef="Activity_0tcie7m" targetRef="Event_1073oeg" /&gt;
+&lt;boundaryEvent id="Event_01" name="Catch error 1"
+    attachedToRef="Activity_13z00xo"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+  &lt;outgoing&gt;Flow_1b1df9j&lt;/outgoing&gt;
+  &lt;errorEventDefinition id="ErrorEventDefinition_1aum1e6" /&gt;
+&lt;/boundaryEvent&gt;
+...</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — Boundary event #2 defined first</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — Boundary event #1 defined second</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>So, in our case, catching event #2 will be activated when the code of thrown error is "500".</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The same is applicable to boundary events attached to task or call activity.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><strong>Errors without code</strong></p>
+</div>
+<div class="paragraph">
+<p>The parameter <code>errorCode</code> can be omitted. In this case, <code>errorId</code> will be used instead.</p>
+</div>
+<div class="paragraph">
+<p>For example, thrown error has a code "green":</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">  &lt;error id="err_green" name="Error green" errorCode="green" /&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>But catching event set to the error with id = "green" and without code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">  &lt;error id="green" name="Err1"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Those errors will be matched.</p>
+</div>
+<div class="paragraph">
+<p><strong>Errors thrown programmatically</strong></p>
+</div>
+<div class="paragraph">
+<p>When the error is generated programmatically, it has only code but not id:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">throw new BpmnError("500");</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="unhandled-errors"><a class="anchor" href="#unhandled-errors"></a>Unhandled Errors</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When an error is thrown and not caught, a Flowable exception will be thrown.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

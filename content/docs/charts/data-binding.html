@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Binding :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Data Binding</h1>
+<div class="sect1">
+<h2 id="data-provider"><a class="anchor" href="#data-provider"></a>DataProvider</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a class="xref page" href="chart-component.html#data-set"><code>dataSet</code></a> element accepts a <code>DataProvider</code> implementation as its source. An instance of <code>DataProvider</code> is passed to the <code>withDataProvider()</code> method from the <code>DataSet.Source</code> element of chart component.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data binding diagram" src="_images/data-binding-diagram.png" width="1318"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>DataProvider</code> interface has two standard implementations: <code>ListChartItems</code> and <code>ContainerChartItems</code> classes. The choice between <code>ChartDataItems</code> and <code>ContainerDataItems</code> depends on the data source.</p>
+</div>
+<div class="sect2">
+<h3 id="list-data-provider"><a class="anchor" href="#list-data-provider"></a>ListChartItems</h3>
+<div class="paragraph">
+<p>Using <code>ListChartItems</code> allows manual addition of data items within a chart to present non-entity based or dynamically aggregated data.</p>
+</div>
+<div class="paragraph">
+<p>The <code>ListChartItems</code> implementation holds a collection of <code>DataItem</code> instances. The <code>DataItem</code> interface has three implementations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>EntityDataItem</code> wraps an instance of any entity for chart data representation:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    // ...
+
+    ListChartItems&lt;EntityDataItem&gt; entityChartItems = new ListChartItems&lt;&gt;(
+            List.of(
+                    new EntityDataItem(createValueDescriptionEntity(75, "Sky")),
+                    new EntityDataItem(createValueDescriptionEntity(7, "Shady side of pyramid")),
+                    new EntityDataItem(createValueDescriptionEntity(18, "Sunny side of pyramid"))
+            )
+    );
+
+    entityChart.withDataSet(
+            new DataSet().withSource(
+                    new DataSet.Source&lt;EntityDataItem&gt;()
+                            .withDataProvider(entityChartItems)
+                            .withCategoryField("description")
+                            .withValueField("value")
+            )
+    );
+}
+
+
+protected ValueDescription createValueDescriptionEntity(Integer value, String description) {
+    ValueDescription entity = metadata.create(ValueDescription.class);
+    entity.setValue(value);
+    entity.setDescription(description);
+    return entity;
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>MapDataItem</code> represents a set of key-value pairs as your chart’s data:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">ListChartItems&lt;MapDataItem&gt; mapChartItems = new ListChartItems&lt;&gt;(
+        List.of(
+                new MapDataItem(Map.of("value", 75, "description", "Sky")),
+                new MapDataItem(Map.of("value", 7, "description", "Shady side of pyramid")),
+                new MapDataItem(Map.of("value", 18, "description", "Sunny side of pyramid"))
+        )
+);
+
+mapChart.withDataSet(
+        new DataSet().withSource(
+                new DataSet.Source&lt;MapDataItem&gt;()
+                        .withDataProvider(mapChartItems)
+                        .withCategoryField("description")
+                        .withValueField("value")
+        )
+);</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>SimpleDataItem</code> supports an instance of any <code>public</code> class to define chart data:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">ListChartItems&lt;SimpleDataItem&gt; simpleChartItems = new ListChartItems&lt;&gt;(
+        List.of(
+                new SimpleDataItem(new ValueDescriptionDTO(75, "Sky")),
+                new SimpleDataItem(new ValueDescriptionDTO(7, "Shady side of pyramid")),
+                new SimpleDataItem(new ValueDescriptionDTO(18, "Sunny side of pyramid"))
+        )
+);
+
+simpleChart.withDataSet(
+        new DataSet().withSource(
+                new DataSet.Source&lt;SimpleDataItem&gt;()
+                        .withDataProvider(simpleChartItems)
+                        .withCategoryField("description")
+                        .withValueField("value")
+        )
+);</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="container-data-provider"><a class="anchor" href="#container-data-provider"></a>ContainerDataItems</h3>
+<div class="paragraph">
+<p><code>ContainerDataItems</code> is used to assign a <a class="xref page" href="../flow-ui/data/collection-container.html">CollectionContainer</a>  to a <code>Chart</code> component. This approach requires an existing entity that will represent your chart data.</p>
+</div>
+<div class="paragraph">
+<p>Suppose we have a data container that loads <code>VehicleCount</code> instances. Below is the fragment of the view XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;collection id="vehiclesDc"
+            class="com.company.demo.entity.VehicleCount"&gt;
+    &lt;fetchPlan extends="_local"/&gt;
+    &lt;loader id="vehiclesDl" readOnly="true"&gt;
+        &lt;query&gt;
+            &lt;![CDATA[select e from VehicleCount e order by e.year]]&gt;
+        &lt;/query&gt;
+    &lt;/loader&gt;
+&lt;/collection&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The view controller defines an <code>onInit()</code> method that sets a data provider for the chart. The data provider is based on the <code>vehiclesDc</code> data container.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">chart.setDataSet(
+        new DataSet().withSource(
+                new DataSet.Source&lt;EntityDataItem&gt;()
+                        .withDataProvider(new ContainerChartItems&lt;&gt;(vehiclesDc))
+                        .withCategoryField("year")
+                        .withValueFields("cars", "motorcycles", "bicycles")
+        )
+);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To bind data declaratively, use the <a class="xref page" href="chart-component.html#data-set"><code>dataSet</code></a>
+element in your XML descriptor file to set the defined <code>dataContainer</code> as your data source.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:dataSet&gt;
+    &lt;charts:source dataContainer="vehiclesDc"
+                   categoryField="year"
+                   valueFields="cars motorcycles bicycles"/&gt;
+&lt;/charts:dataSet&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="gauge-series-data-binding"><a class="anchor" href="#gauge-series-data-binding"></a>GaugeSeries Data Binding</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/gauge-series-simple" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Unlike other chart types, <code>gauge</code> charts don’t support <code>DataSet</code>.</p>
+</div>
+<div class="paragraph">
+<p>To add data into the <code>gauge</code> chart, define a <code>dataItem</code> element inside the chart’s <code>series.data</code> in the chart’s XML descriptor as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:series&gt;
+    &lt;charts:gauge id="gaugeSeries" name="Pressure"&gt;
+        &lt;charts:data&gt;
+            &lt;charts:dataItem value="50" name="SCORE"/&gt;
+        &lt;/charts:data&gt;
+    &lt;/charts:gauge&gt;
+&lt;/charts:series&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or get the <code>series</code> attribute in your Java controller, and use the <code>setData()</code> method to bind data programmatically.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">GaugeSeries gaugeSeries = chart.getSeries("gaugeSeries");
+
+gaugeSeries.setData(
+        new GaugeSeries.DataItem()
+                .withValue(50.0).withName("SCORE")
+);</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>DataItem</code> object used for gauge chart data binding is distinct from <code>DataItem</code> mentioned in other chart data binding contexts.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

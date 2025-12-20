@@ -1,0 +1,61 @@
+<Path>Components > ComboBox > ComboBox with custom renderer</Path>
+
+It is possible to customize the render of elements. You can use the setRenderer() method or @Supply annotation for it.
+
+combobox-custom-renderer.xml
+
+<view xmlns="http://jmix.io/schema/flowui/view">
+    <layout>
+        <comboBox id="iconsComboBox"
+                  label="Icons"
+                  width="20em"/>
+    </layout>
+</view>
+
+
+
+
+ComboBoxCustomRendererSample.java
+
+package io.jmix.uisamples.view.flowui.components.combobox.customrenderer;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.combobox.JmixComboBox;
+import io.jmix.flowui.view.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@ViewController("combobox-custom-renderer")
+@ViewDescriptor("combobox-custom-renderer.xml")
+public class ComboBoxCustomRendererSample extends StandardView {
+
+    @ViewComponent
+    protected JmixComboBox<VaadinIcon> iconsComboBox;
+
+    @Autowired
+    protected UiComponents uiComponents;
+
+    @Subscribe
+    protected void onInit(InitEvent event) {
+        iconsComboBox.setItems(VaadinIcon.values());
+    }
+
+    @Supply(to = "iconsComboBox", subject = "renderer")
+    protected Renderer<VaadinIcon> iconsComboBoxRenderer() {
+        return new ComponentRenderer<Component, VaadinIcon>(vaadinIcon -> {
+            HorizontalLayout contentBox = uiComponents.create(HorizontalLayout.class);
+            contentBox.setPadding(false);
+
+            contentBox.add(vaadinIcon.create());
+            contentBox.add(vaadinIcon.name());
+
+            return contentBox;
+        });
+    }
+}
+
+

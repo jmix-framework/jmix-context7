@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Value Formats :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Value Formats</h1>
+<div class="paragraph">
+<p>You can specify the formatting for any field output by the report in the <strong>Value formats</strong> tab of the report detail view. Below is the form to add a format:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="value format" src="../_images/value-format.png" width="642"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong> - report field name with the band prefix, for example, <code>Book.year</code>.</p>
+</li>
+<li>
+<p><strong>Format string</strong> - field format. For number values specify the format according to the <code>java.text.DecimalFormat</code> rules, for dates - <code>java.text.SimpleDateFormat</code>.</p>
+</li>
+<li>
+<p><strong>Groovy script</strong> checkbox - allows specifying a Groovy script to format the parameter. Using the <code>value</code> alias, the current parameter value is passed to the script, which can be formatted or converted to the desired format. A Groovy script should return the new value as a string.</p>
+<div class="paragraph">
+<p>With Groovy scripting, you can create a formatter that handles <a class="xref page" href="../../data-model/enumerations.html">enumeration</a>-type attributes in Jmix reports. This formatter will convert the enumeration’s ID into localized text using the <a class="xref page" href="../../localization/message-bundles.html#messages-interface">Messages</a> bean.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="value format groovy" src="../_images/value-format-groovy.png" width="642"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To access Spring-managed beans, utilize the <code>ApplicationContext</code> object (<code>org.springframework.context.ApplicationContext</code>).</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>With the help of formats, it is possible to insert images and HTML blocks into the document.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In order to insert an image, specify the image URL as the field value, and the format string must be as follows: <code>${image:&lt;Width&gt;x&lt;Height&gt;}</code>, for example, <code>${image:200x300}</code>.</p>
+<div class="paragraph">
+<p>To work with the <code>FileRef</code>, use the <code>${imageFileId:WxH}</code> value formatter that accepts a <code>FileRef</code> instance or a URI of a file as a string.</p>
+</div>
+</li>
+<li>
+<p>In order to insert an HTML block, you should return an HTML markup in the field, and select <code>${html}</code> as the format string. In the output value, you may omit top-level tags up to <code>&lt;body&gt;</code> inclusive. If necessary, all missing top-level tags will be added automatically. All blocks should be encoded with <code>UTF-8</code>. CSS and the <code>style</code> attribute are not supported.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can specify your own custom formats as well. To do this, type the new value in the field without opening the dropdown and press <strong>Enter</strong>. You can also choose any format from the dropdown, edit its name in the field and press <strong>Enter</strong>. Custom format will be saved in both cases.</p>
+</div>
+
+</article>
+</body>
+</html>

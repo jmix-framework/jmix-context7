@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrating Applications Using OpenAPI :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Integrating Applications Using OpenAPI</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>OpenAPI is a standard specification for defining RESTful APIs. It helps in integrating systems by providing a clear, machine-readable format for API definitions, making it easier for different applications to understand and interact with each other.</p>
+</div>
+<div class="paragraph">
+<p>This guide features a hands-on example of integrating a Jmix application with an external REST service, using an OpenAPI schema. It provides step-by-step instructions that leverage both <a class="xref page" href="../studio/openapi-client.html">Jmix Studio features</a> and manual coding to facilitate the implementation process. By the end, you will be prepared to implement OpenAPI-based integrations in your own projects.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To effectively use this guide, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup</a> the development environment.</p>
+</li>
+<li>
+<p>Clone the fork of the <a href="https://github.com/jmix-framework/spring-petclinic-rest" rel="noopener" target="_blank">spring-petclinic-rest</a> sample project:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">git clone https://github.com/jmix-framework/spring-petclinic-rest.git</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We recommend using the fork instead of the original <a href="https://github.com/spring-petclinic/spring-petclinic-rest" rel="noopener" target="_blank">project</a> to ensure reproducibility of the guide. We periodically update the fork to keep it in sync with the original.</p>
+</div>
+</li>
+<li>
+<p>You can follow the guide step-by-step, or get the completed sample project to explore the finished implementation and experiment with the functionality.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Either <a href="https://github.com/jmix-framework/jmix-openapi-integration-sample/archive/refs/heads/release_2_7.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+</li>
+<li>
+<p>Or clone it and switch to the <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-openapi-integration-sample
+cd jmix-openapi-integration-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="what-we-are-going-to-build"><a class="anchor" href="#what-we-are-going-to-build"></a>What We Are Going to Build</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Spring PetClinic REST sample application used in this guide is a variation of the well-known Spring PetClinic sample. Unlike the original project, it provides a REST API without any user interface. The Spring PetClinic domain model includes Pets, Owners, Vets, Specialties and other entities.</p>
+</div>
+<div class="paragraph">
+<p>You will create a sample Jmix application to manage information about advanced training for veterinarians. It will be integrated with Spring PetClinic REST application and provide the following features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>CRUD user interface for managing <code>Specialty</code> and <code>Vet</code> entities of Spring PetClinic through its REST API.</p>
+</li>
+<li>
+<p><code>Training</code> entity that manages information about training sessions and contains links to <code>Specialty</code> and <code>Vet</code> from Spring PetClinic.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="systems" src="_images/intro/systems.svg"/>
+</div>
+<div class="title">Figure 1. Sample applications</div>
+</div>
+<div class="paragraph">
+<p>The Veterinary Training application will mirror a part of the PetClinic data model that is involved in the integration: <code>Specialty</code> and <code>Vet</code> entities. They will be represented by Jmix DTO entities and used in the <code>Training</code> JPA entity:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="data model" src="_images/intro/data-model.svg"/>
+</div>
+<div class="title">Figure 2. Data models</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="preparation"><a class="anchor" href="#preparation"></a>Preparation</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="start-spring-petclinic-rest"><a class="anchor" href="#start-spring-petclinic-rest"></a>Start Spring PetClinic REST</h3>
+<div class="paragraph">
+<p>Open terminal in the <code>spring-petclinic-rest</code> directory and execute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">./mvnw spring-boot:run</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the application is ready to accept requests, you will see the following message in the console:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">INFO  PetClinicApplication - Started PetClinicApplication in 3.086 seconds (process running for 3.327)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Open <a class="bare" href="http://localhost:9966/petclinic/api/specialties" rel="noopener" target="_blank">http://localhost:9966/petclinic/api/specialties</a> in your web browser. You should see the JSON array representing <code>Specialty</code> instances.</p>
+</div>
+<div class="paragraph">
+<p>By default, the Spring PetClinic REST application does not require authentication. Later in this guide we’ll turn the authentication on and make relevant changes in the integration code.</p>
+</div>
+<div class="paragraph">
+<p>Open <a class="bare" href="http://localhost:9966/petclinic/v3/api-docs" rel="noopener" target="_blank">http://localhost:9966/petclinic/v3/api-docs</a>. You should see the Spring PetClinic OpenAPI schema in JSON format.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="create-project"><a class="anchor" href="#create-project"></a>Create Project</h3>
+<div class="paragraph">
+<p>Create a new Jmix project using the <strong>Full-Stack Application (Java)</strong> template.</p>
+</div>
+<div class="paragraph">
+<p>Use <code>vet-training</code> as a project name and <code>com.company.vettraining</code> as a base package.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="copy-schema-into-project"><a class="anchor" href="#copy-schema-into-project"></a>Copy Schema into Project</h3>
+<div class="paragraph">
+<p>Copy <code>spring-petclinic-rest/src/main/resources/openapi.yml</code> file to <code>vet-training/src/main/resources</code> and rename it to <code>petclinic-openapi.yml</code>.</p>
+</div>
+<div class="paragraph">
+<p>The OpenAPI schema of the PetClinic application must be present in the Veterinary Training project as a YAML or JSON file.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="generating-api-client"><a class="anchor" href="#generating-api-client"></a>Generating API Client</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The first step in the integration process is to generate Java client classes from the OpenAPI schema of the PetClinic application.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In the Jmix tool window, select <strong>New</strong> → <strong>Advanced</strong> → <strong>OpenAPI Client</strong>. The <strong>Create OpenAPI Client</strong> wizard will open.</p>
+</li>
+<li>
+<p>On the first <strong>General</strong> step, select the <code>petclinic-openapi.yml</code> file in the <strong>Schema file</strong> field and enter <code>petclinic</code> in the <strong>Client name</strong> field.</p>
+<div class="paragraph">
+<p>Make sure that both <strong>Package for generated sources</strong> and <strong>Package for Spring configuration</strong> fields have the <code>com.company.vettraining.petclinic</code> value.</p>
+</div>
+</li>
+<li>
+<p>On the next <strong>Generator Options</strong> step, keep the suggested suffixes: <code>Model</code> for model class names and <code>Api</code> for API class names.</p>
+</li>
+<li>
+<p>On the last <strong>Summary</strong> step, review the information about project changes and click <strong>Create</strong>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Studio adds the <a href="https://github.com/OpenAPITools/openapi-generator" rel="noopener" target="_blank">OpenAPI generator</a> task to <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+plugins {
+    // ...
+    id 'org.openapi.generator' version '7.8.0'
+}
+// ...
+dependencies {
+    // ...
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+    implementation 'org.mapstruct:mapstruct:1.6.1'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.1'
+}
+
+sourceSets {
+    main.java.srcDirs += "$buildDir/generated/openapi/petclinic/src/main/java"
+}
+// ...
+tasks.register('openApiGeneratePetclinic', GenerateTask) {
+    inputSpec = "$rootDir/src/main/resources/petclinic-openapi.yml"
+    outputDir = "$buildDir/generated/openapi/petclinic/"
+    generatorName = "java"
+    library = "restclient"
+    packageName = "com.company.vettraining.petclinic"
+    modelPackage = "com.company.vettraining.petclinic.model"
+    apiPackage = "com.company.vettraining.petclinic.api"
+    modelNameSuffix = "Model"
+    generateApiTests = false
+    generateModelTests = false
+    skipValidateSpec = true
+    configOptions.set([
+            useRuntimeException: "true",
+            useJakartaEe       : "true"
+    ])
+}
+compileJava.dependsOn tasks.named("openApiGeneratePetclinic")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And runs the <code>openApiGeneratePetclinic</code> task to create API client sources in the <code>build/generated/openapi/petclinic</code> directory.</p>
+</div>
+<div class="paragraph">
+<p>The task will be executed each time the project is built.</p>
+</div>
+<div class="paragraph">
+<p>Apart from the client sources in <code>build/generated</code>, Studio creates a Spring configuration class that exposes API client as a set of beans:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/petclinic/PetclinicClientConfiguration.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Configuration
+public class PetclinicClientConfiguration {
+
+    @Bean("petclinicApiClient")
+    public ApiClient apiClient() {
+        return new ApiClient();
+    }
+
+    @Bean("petclinicFailingApi")
+    public FailingApi failingApi(ApiClient apiClient) {
+        return new FailingApi(apiClient);
+    }
+
+    @Bean("petclinicOwnerApi")
+    public OwnerApi ownerApi(ApiClient apiClient) {
+        return new OwnerApi(apiClient);
+    }
+
+    // ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Jmix tool window will show the generated client API and model classes in the <strong>OpenAPI</strong> node:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="openapi node" src="_images/generate-client/openapi-node.png" width="335"/>
+</div>
+<div class="title">Figure 3. Jmix tool window OpenAPI node</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-entities-and-mappers"><a class="anchor" href="#creating-entities-and-mappers"></a>Creating Entities and Mappers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>External data should be represented by Jmix entities in order to be incorporated into the application data model and shown in Jmix UI. Instead of directly using API model objects in the UI and business logic, it is recommended to create an additional layer of <a class="xref page" href="../data-model/entities.html#dto">DTO entities</a> and mappers corresponding to API model classes.</p>
+</div>
+<div class="paragraph">
+<p>A separate layer of Jmix entities and mappers offers several benefits compared to directly using API model classes.</p>
+</div>
+<div class="paragraph">
+<p>First, it provides a clear separation between the external data model and the internal application logic, allowing you to adapt the external data to fit the specific needs of your application. This enhances maintainability by isolating external API changes from core business logic, reducing the risk of breaking changes.</p>
+</div>
+<div class="paragraph">
+<p>API model classes are designed to represent data as defined by the external service, which may not always align well with the needs of your application. There can be potential issues with data types and associations that are used in API model classes, making them unsuitable for direct use. By creating a mapping layer, you have the flexibility to transform and adapt the data to suit your application’s specific requirements.</p>
+</div>
+<div class="paragraph">
+<p>Additionally, using a dedicated Jmix entity layer allows you to fully integrate external data into the Jmix ecosystem. You can add Jmix-specific annotations, such as <code>@InstanceName</code> or <code>@Composition</code>, to enhance the application’s functionality. This is not possible with API model classes directly, as they are re-generated on each project build, causing any custom changes to be lost.</p>
+</div>
+<div class="paragraph">
+<p>Jmix Studio provides sophisticated tooling for automatic creation of <a class="xref page" href="../data-model/entities.html#dto">DTO entities</a> and mappers for API model classes.</p>
+</div>
+<div class="paragraph">
+<p>In this section, you will create DTO entities and mappers for the <code>SpecialtyModel</code> and <code>VetModel</code> API classes.</p>
+</div>
+<div class="sect2">
+<h3 id="model-mapping-wizard"><a class="anchor" href="#model-mapping-wizard"></a>Model Mapping Wizard</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Select <strong>OpenAPI</strong> → <strong>petclinic</strong> → <strong>Model</strong> node in the Jmix tool window and click <strong>Model Mapping</strong> in its context menu:</p>
+<div class="imageblock">
+<div class="content">
+<img alt="model mapping command" src="_images/create-entities/model-mapping-command.png" width="285"/>
+</div>
+<div class="title">Figure 4. Model Mapping command</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Model Mapping</strong> wizard will start.</p>
+</div>
+</li>
+<li>
+<p>On the first step of the wizard, select <code>SpecialtyModel</code> and <code>VetModel</code> classes in the list:</p>
+<div class="imageblock">
+<div class="content">
+<img alt="select model classes" src="_images/create-entities/select-model-classes.png" width="750"/>
+</div>
+<div class="title">Figure 5. Selecting model classes to map</div>
+</div>
+</li>
+<li>
+<p>On the second step, click <strong>Create All</strong> button to create entities and mappers for the selected model classes automatically. You will see the names of created mappers in the second column:</p>
+<div class="imageblock">
+<div class="content">
+<img alt="create mappings" src="_images/create-entities/create-mappings.png" width="750"/>
+</div>
+<div class="title">Figure 6. Creating entities and mappers automatically</div>
+</div>
+</li>
+<li>
+<p>Click on <strong>SpecialtyMapper</strong>. The <strong>New MapStruct Mapper</strong> window will open:</p>
+<div class="imageblock">
+<div class="content">
+<img alt="specialty mapper" src="_images/create-entities/specialty-mapper.png" width="557"/>
+</div>
+<div class="title">Figure 7. Mapper for SpecialtyModel</div>
+</div>
+<div class="paragraph">
+<p>The window shows the fully-qualified name of the corresponding entity and the mapper class name.</p>
+</div>
+</li>
+<li>
+<p>You need to check and adjust parameters of the created entity. Click the edit button next to the <strong>Jmix entity</strong> field. The <strong>New Jmix Entity</strong> window will open. Select the <code>id</code> attribute as an identifier:</p>
+<div class="imageblock">
+<div class="content">
+<img alt="specialty entity" src="_images/create-entities/specialty-entity.png" width="831"/>
+</div>
+<div class="title">Figure 8. Specialty entity parameters</div>
+</div>
+</li>
+<li>
+<p>Click on <strong>VetMapper</strong> in the <strong>Model Mapping</strong> window, then edit the <code>Vet</code> entity. Select the <code>id</code> attribute as an identifier. Check that the <code>specialties</code> attribute is mapped as a list of <code>Specialty</code> entity:</p>
+<div class="imageblock">
+<div class="content">
+<img alt="vet entity" src="_images/create-entities/vet-entity.png" width="831"/>
+</div>
+<div class="title">Figure 9. Vet entity parameters</div>
+</div>
+</li>
+<li>
+<p>When you click the <strong>Create</strong> button in the <strong>Model Mapping</strong> window, Studio will create <code>Specialty</code> and <code>Vet</code> DTO entities, as well as <code>SpecialtyMapper</code> and <code>VetMapper</code> classes.</p>
+<div class="paragraph">
+<p>The <strong>OpenAPI</strong> → <strong>petclinic</strong> → <strong>Model</strong> nodes of the Jmix tool window will display related entities and mappers:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="model nodes" src="_images/create-entities/model-nodes.png" width="232"/>
+</div>
+<div class="title">Figure 10. Model nodes with mappings</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="defining-instance-names"><a class="anchor" href="#defining-instance-names"></a>Defining Instance Names</h3>
+<div class="paragraph">
+<p>Since the <code>Specialty</code> and <code>Vet</code> entities will be displayed in UI, it is necessary to define their <a class="xref page" href="../data-model/entities.html#instance-name">instance names</a>. Instance names provide a human-readable representation of entity instances, which is crucial for displaying references to entities in the UI. You can define instance names manually in the entity source code or by using the entity designer.</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/entity/petclinic/Specialty.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+public class Specialty {
+    @JmixId
+    private Integer id;
+
+    @InstanceName // add this
+    private String name;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/entity/petclinic/Vet.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+public class Vet {
+    @JmixId
+    private Integer id;
+
+    private String firstName;
+
+    private String lastName;
+
+    private List&lt;Specialty&gt; specialties;
+
+    // add this
+    @InstanceName
+    @DependsOnProperties({"firstName", "lastName"})
+    public String getInstanceName() {
+        return String.format("%s %s", firstName, lastName);
+    }
+
+    // getters and setters</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="exploring-mappers"><a class="anchor" href="#exploring-mappers"></a>Exploring Mappers</h3>
+<div class="paragraph">
+<p>Mappers created by Studio use the <a href="https://mapstruct.org/" rel="noopener" target="_blank">MapStruct</a> library. MapStruct is an annotation-based code generator that integrates with the Java compiler to create efficient mapping code at compile-time using plain method invocations. This approach ensures high performance and reduces boilerplate code, making it easier to maintain mappings while providing flexibility in adapting the data model.</p>
+</div>
+<div class="paragraph">
+<p>The mappers between API models and DTO entities look as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/petclinic/mapper/VetMapper.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.vettraining.petclinic.mapper;
+
+import com.company.vettraining.entity.petclinic.Vet;
+import com.company.vettraining.petclinic.model.VetModel;
+import io.jmix.core.EntityStates;
+import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Mapper(
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        uses = {SpecialtyMapper.class}
+)
+public abstract class VetMapper {
+
+    @Autowired
+    protected EntityStates entityStates;
+
+    public abstract VetModel toModel(Vet vet); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    public abstract Vet toEntity(VetModel vetModel); <i class="conum" data-value="2"></i><b>(2)</b>
+
+    @AfterMapping
+    protected void resetNew(@MappingTarget Vet entity) { <i class="conum" data-value="3"></i><b>(3)</b>
+        entityStates.setNew(entity, false);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>toModel()</code> method maps Jmix DTO entity to API model object</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>toEntity()</code> method maps API model object to Jmix DTO entity</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>This method is invoked by MapStruct automatically after mapping from model to entity. It resets the "new" state of the created instance.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Jmix UI relies on the internal "new" flag of entities to differentiate between instances created in memory and those loaded from external storage. The mapper sets this flag to <code>false</code> after creating an entity instance from a model object.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-services"><a class="anchor" href="#creating-services"></a>Creating Services</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The OpenAPI generator creates a set of classes representing the API endpoints, such as <code>VetApi</code>, <code>PetApi</code>, etc. Methods of these classes correspond to the OpenAPI schema paths and operate with API model classes.</p>
+</div>
+<div class="paragraph">
+<p>Using these classes directly in application logic has several disadvantages:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The classes expose more public methods than needed for the application.</p>
+</li>
+<li>
+<p>The methods use API model types for parameters and results, while business logic and UI operate with Jmix entities.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To address these issues, it is recommended to create intermediary services that convert data between entities and API model classes and delegate to API endpoint classes. These services provide a clear and concise API for accessing external data, improving maintainability and reducing the risk of errors.</p>
+</div>
+<div class="paragraph">
+<p>Jmix Studio includes a wizard that helps create such beans automatically by selecting required methods from API endpoint classes.</p>
+</div>
+<div class="paragraph">
+<p>In this section, you will create intermediate services for the <code>SpecialtyApi</code> and <code>VetApi</code> classes.</p>
+</div>
+<div class="sect2">
+<h3 id="service-creation-wizard"><a class="anchor" href="#service-creation-wizard"></a>Service Creation Wizard</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Select <strong>OpenAPI</strong> → <strong>petclinic</strong> → <strong>API</strong> → <strong>SpecialtyApi</strong> node in the Jmix tool window and click <strong>Create Service</strong> in its context menu:</p>
+<div class="imageblock">
+<div class="content">
+<img alt="create service menu" src="_images/create-services/create-service-menu.png" width="281"/>
+</div>
+<div class="title">Figure 11. Create Service command</div>
+</div>
+</li>
+<li>
+<p>Accept suggested package and class name in the <strong>New Service</strong> dialog:</p>
+<div class="imageblock">
+<div class="content">
+<img alt="new service" src="_images/create-services/new-service.png" width="370"/>
+</div>
+<div class="title">Figure 12. New Service dialog</div>
+</div>
+</li>
+<li>
+<p>In the <strong>Delegate Methods</strong> dialog, select CRUD methods for <code>SpecialtyModel</code>:</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p><code>addSpecialty()</code></p>
+</li>
+<li>
+<p><code>deleteSpecialty()</code></p>
+</li>
+<li>
+<p><code>getSpecialty()</code></p>
+</li>
+<li>
+<p><code>listSpecialties()</code></p>
+</li>
+<li>
+<p><code>updateSpecialty()</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="delegate methods" src="_images/create-services/delegate-methods.png" width="897"/>
+</div>
+<div class="title">Figure 13. Delegate Methods dialog</div>
+</div>
+<div class="paragraph">
+<p>For each selected method of the API endpoint class, the wizard will create a service method which will use a Jmix entity instead of an API model class.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The resulting service will look as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/petclinic/service/SpecialtyService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class SpecialtyService {
+    private final SpecialtyApi specialtyApi;
+    private final SpecialtyMapper specialtyMapper;
+
+    public SpecialtyService(SpecialtyApi specialtyApi, SpecialtyMapper specialtyMapper) {
+        this.specialtyApi = specialtyApi;
+        this.specialtyMapper = specialtyMapper;
+    }
+
+    public Specialty addSpecialty(Specialty specialty) {
+        SpecialtyModel specialtyModel = specialtyMapper.toModel(specialty);
+        SpecialtyModel resultSpecialtyModel = specialtyApi.addSpecialty(specialtyModel);
+        return specialtyMapper.toEntity(resultSpecialtyModel);
+    }
+
+    public Specialty deleteSpecialty(Integer specialtyId) {
+        SpecialtyModel specialtyModel = specialtyApi.deleteSpecialty(specialtyId);
+        return specialtyMapper.toEntity(specialtyModel);
+    }
+
+    public Specialty getSpecialty(Integer specialtyId) {
+        SpecialtyModel specialtyModel = specialtyApi.getSpecialty(specialtyId);
+        return specialtyMapper.toEntity(specialtyModel);
+    }
+
+    public List&lt;Specialty&gt; listSpecialties() {
+        List&lt;SpecialtyModel&gt; specialtyModels = specialtyApi.listSpecialties();
+        List&lt;Specialty&gt; specialties = specialtyModels.stream()
+                .map(specialtyMapper::toEntity)
+                .collect(Collectors.toList());
+        return specialties;
+    }
+
+    // ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, Studio has generated code that converts data between Jmix entities and API models using mappers and delegates to the API endpoint class. The service method parameters and results are of the entity type and can be easily used in the application logic and UI.</p>
+</div>
+<div class="paragraph">
+<p>After creating <code>SpecialtyService</code> for <code>SpecialtyApi</code>, create <code>VetService</code> for <code>VetApi</code> by using the same wizard and select <code>addVet()</code>, <code>deleteVet()</code>, <code>getVet()</code>, <code>listVets()</code>, <code>updateVet()</code> methods.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="adjusting-services"><a class="anchor" href="#adjusting-services"></a>Adjusting Services</h3>
+<div class="paragraph">
+<p>In some cases, the automatically generated conversion and delegation code may be insufficient. For example, the PetClinic API returns null from the <code>updateSpecialty()</code> method, despite declaring it returns an updated instance. You will need to manually adjust the <code>updateSpecialty()</code> service method to handle this inconsistency:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/petclinic/service/SpecialtyService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public Specialty updateSpecialty(Integer specialtyId, Specialty specialty) {
+    SpecialtyModel specialtyModel = specialtyMapper.toModel(specialty);
+    SpecialtyModel resultSpecialtyModel = specialtyApi.updateSpecialty(specialtyId, specialtyModel);
+    return resultSpecialtyModel != null ?
+            specialtyMapper.toEntity(resultSpecialtyModel) :
+            getSpecialty(specialtyId); <i class="conum" data-value="1"></i><b>(1)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>If the API returns null instead of the updated model, reload it by ID.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Make the same modification in the <code>VetService</code> class:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/petclinic/service/VetService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public Vet updateVet(Integer vetId, Vet vet) {
+    VetModel vetModel = vetMapper.toModel(vet);
+    VetModel resultVetModel = vetApi.updateVet(vetId, vetModel);
+    return resultVetModel != null ?
+            vetMapper.toEntity(resultVetModel) :
+            getVet(vetId);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-views"><a class="anchor" href="#creating-views"></a>Creating Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One of the key objectives of this integration is to manage <code>Specialty</code> and <code>Vet</code> entities from the PetClinic application through the Veterinary Training application’s UI. In this section, you will create CRUD views that use the services developed earlier for data loading and saving.</p>
+</div>
+<div class="sect2">
+<h3 id="specialty-views"><a class="anchor" href="#specialty-views"></a>Specialty Views</h3>
+<div class="paragraph">
+<p>Select the <code>Specialty</code> entity in the Jmix tool window and click <strong>New</strong> → <strong>View</strong> in its context menu. Select <strong>DTO entity list and detail views</strong> template and accept all parameters on the next steps of the view creation wizard.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>SpecialtyListView</code> class and add code that invokes <code>SpecialtyService</code> methods in the delegate handlers:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/view/specialty/SpecialtyListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "specialties", layout = MainView.class)
+@ViewController(id = "Specialty.list")
+@ViewDescriptor(path = "specialty-list-view.xml")
+@LookupComponent("specialtiesDataGrid")
+@DialogMode(width = "50em")
+public class SpecialtyListView extends StandardListView&lt;Specialty&gt; {
+
+    @Autowired
+    private SpecialtyService specialtyService;
+
+    @Install(to = "specialtiesDl", target = Target.DATA_LOADER)
+    protected List&lt;Specialty&gt; specialtiesDlLoadDelegate(LoadContext&lt;Specialty&gt; loadContext) {
+        return specialtyService.listSpecialties();
+    }
+
+    @Install(to = "specialtiesDataGrid.remove", subject = "delegate")
+    private void specialtiesDataGridRemoveDelegate(final Collection&lt;Specialty&gt; collection) {
+        for (Specialty entity : collection) {
+            specialtyService.deleteSpecialty(entity.getId());
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Open <code>SpecialtyDetailView</code> and do the same for its delegate handlers:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/view/specialty/SpecialtyDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "specialties/:id", layout = MainView.class)
+@ViewController(id = "Specialty.detail")
+@ViewDescriptor(path = "specialty-detail-view.xml")
+@EditedEntityContainer("specialtyDc")
+public class SpecialtyDetailView extends StandardDetailView&lt;Specialty&gt; {
+
+    @Autowired
+    private SpecialtyService specialtyService;
+    @Autowired
+    private EntityStates entityStates;
+
+    @Install(to = "specialtyDl", target = Target.DATA_LOADER)
+    private Specialty customerDlLoadDelegate(final LoadContext&lt;Specialty&gt; loadContext) {
+        Object id = loadContext.getId();
+        return specialtyService.getSpecialty((Integer) id);
+    }
+
+    @Install(target = Target.DATA_CONTEXT)
+    private Set&lt;Object&gt; saveDelegate(final SaveContext saveContext) {
+        Specialty entity = getEditedEntity();
+        Specialty saved = entityStates.isNew(entity) ?
+                specialtyService.addSpecialty(entity) :
+                specialtyService.updateSpecialty(entity.getId(), entity);
+        return Set.of(saved);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <code>specialty-detail-view.xml</code>, either remove the text field for the <code>id</code> attribute or disable it, as it should not be entered by the user.</p>
+</div>
+<div class="paragraph">
+<p>Now you can run the application and test the <code>Specialty</code> views:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="specialty list view" src="_images/create-views/specialty-list-view.png"/>
+</div>
+<div class="title">Figure 14. Specialty list view</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="vet-views"><a class="anchor" href="#vet-views"></a>Vet Views</h3>
+<div class="paragraph">
+<p>Create DTO list and detail views for the <code>Vet</code> entity in the same way as for <code>Specialty</code> above and use <code>VetService</code> in delegate handlers. Remove or disable the text field for the <code>id</code> attribute in <code>vet-detail-view.xml</code>.</p>
+</div>
+<div class="paragraph">
+<p>In the PetClinic API, <code>VetModel</code> includes a list of <code>SpecialtyModel</code>, representing the specialties of the veterinarian. The API loads specialties along with a vet and updates them when the vet is updated.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Vet</code> Jmix entity has a collection of the <code>Specialty</code> entity in the <code>specialties</code> attribute, aligning with the API model. To manage this relationship, add a <code>multiSelectComboBox</code> component to the <code>Vet</code> detail view layout:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/com/company/vettraining/view/vet/vet-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="firstNameField" property="firstName"/&gt;
+&lt;textField id="lastNameField" property="lastName"/&gt;
+&lt;!-- add this --&gt;
+&lt;multiSelectComboBox id="specialtiesComboBox"
+                     dataContainer="vetDc" property="specialties"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The new field will be bound to the <code>specialties</code> attribute of the <code>Vet</code> entity located in the <code>vetDc</code> data container.</p>
+</div>
+<div class="paragraph">
+<p>In order to provide the list of available options to the <code>multiSelectComboBox</code> component, define its <code>itemsFetchCallback</code> handler as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/view/vet/VetDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private SpecialtyService specialtyService;
+
+@Install(to = "specialtiesComboBox", subject = "itemsFetchCallback")
+private Stream&lt;Specialty&gt; specialtiesComboBoxItemsFetchCallback(final Query&lt;Specialty, String&gt; query) {
+    String filter = query.getFilter().orElse("");
+    return specialtyService.listSpecialties().stream() <i class="conum" data-value="1"></i><b>(1)</b>
+            .filter(specialty -&gt;
+                    specialty.getName().toLowerCase().contains(filter.toLowerCase()))
+            .skip(query.getOffset())
+            .limit(query.getLimit());
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Get the list of specialties from <code>SpecialtyService</code> and filter it according to the user input.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This allows users to select specialties when editing a veterinarian:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vet detail view" src="_images/create-views/vet-detail-view.png"/>
+</div>
+<div class="title">Figure 15. Vet detail view</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="linking-jpa-and-dto-entities"><a class="anchor" href="#linking-jpa-and-dto-entities"></a>Linking JPA and DTO Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The main objective of the Veterinary Training application is to manage trainings using the information about specialties and vets from Spring PetClinic.</p>
+</div>
+<div class="paragraph">
+<p>In this section, you will create the <code>Training</code> JPA entity, which will be stored in the Veterinary Training database and will include links to the <code>Specialty</code> and <code>Vet</code> DTO entities. Users will be able to manage training sessions in the UI as though all the information were stored in a single database.</p>
+</div>
+<div class="sect2">
+<h3 id="training-entity"><a class="anchor" href="#training-entity"></a>Training Entity</h3>
+<div class="paragraph">
+<p>Create a new JPA entity called <code>Training</code> and add the following attributes:</p>
+</div>
+<table class="tableblock frame-all grid-all" style="width: 50%;">
+<colgroup>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">date</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LocalDate</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">description</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">specialtyId</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integer</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">vetId</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integer</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The <code>specialtyId</code> and <code>vetId</code> attributes will store specialty and vet IDs in the database.</p>
+</div>
+<div class="paragraph">
+<p>Now create transient attributes referencing the <code>Specialty</code> and <code>Vet</code> DTO entities. When creating the attribute, select <code>ASSOCIATION</code> in <strong>Attribute type</strong>, then click <strong>Transient</strong> checkbox and select DTO entity in the <strong>Type</strong> dropdown:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="specialty attr" src="_images/linking-entities/specialty-attr.png" width="750"/>
+</div>
+<div class="title">Figure 16. Specialty attribute</div>
+</div>
+<div class="paragraph">
+<p>Do the same to create the <code>vet</code> attribute.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Training</code> entity source code should look as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/entity/Training.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "TRAINING")
+@Entity
+public class Training {
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @Column(name = "DATE_")
+    private LocalDate date;
+
+    @InstanceName
+    @Column(name = "DESCRIPTION")
+    private String description;
+
+    @Column(name = "SPECIALTY_ID")
+    private Integer specialtyId;
+
+    @Column(name = "VET_ID")
+    private Integer vetId;
+
+    @JmixProperty
+    @Transient
+    private Specialty specialty;
+
+    @JmixProperty
+    @Transient
+    private Vet vet;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="handling-transient-attributes"><a class="anchor" href="#handling-transient-attributes"></a>Handling Transient Attributes</h3>
+<div class="paragraph">
+<p>When the <code>Training</code> entity is loaded from the database, the <code>specialty</code> and <code>vet</code> transient attributes are initially empty and must be populated with DTO entities. Upon saving the <code>Training</code> entity, the <code>specialtyId</code> and <code>vetId</code> persistent attributes should be updated with the IDs of the selected <code>Vet</code> and <code>Specialty</code> entities.</p>
+</div>
+<div class="paragraph">
+<p>This can be done using the <code>EntityLoadingEvent</code> and <code>EntitySavingEvent</code> <a class="xref page" href="../data-access/entity-events.html#saving-loading-events">listeners</a>.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>New</strong> → <strong>Event Listener</strong> in the Jmix tool window, select <strong>Entity Event</strong> on the first step of the <strong>Subscribe to Event</strong> wizard and click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>On the second step of the wizard, select the <code>Training</code> entity and <strong>Entity Loading</strong> and <strong>Entity Saving</strong> checkboxes:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="event listeners" src="_images/linking-entities/event-listeners.png" width="538"/>
+</div>
+<div class="title">Figure 17. Creating entity event listeners</div>
+</div>
+<div class="paragraph">
+<p>Inject <code>SpecialtyService</code> and <code>VetService</code> to the created bean and implement the listener methods as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/listener/TrainingEventListener.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class TrainingEventListener {
+
+    private final SpecialtyService specialtyService;
+    private final VetService vetService;
+
+    public TrainingEventListener(SpecialtyService specialtyService, VetService vetService) {
+        this.specialtyService = specialtyService;
+        this.vetService = vetService;
+    }
+
+    @EventListener
+    public void onTrainingLoading(final EntityLoadingEvent&lt;Training&gt; event) {
+        Training training = event.getEntity();
+        if (training.getSpecialtyId() != null) {
+            training.setSpecialty(specialtyService.getSpecialty(training.getSpecialtyId()));
+        }
+        if (training.getVetId() != null) {
+            training.setVet(vetService.getVet(training.getVetId()));
+        }
+    }
+
+    @EventListener
+    public void onTrainingSaving(final EntitySavingEvent&lt;Training&gt; event) {
+        Training training = event.getEntity();
+        training.setSpecialtyId(training.getSpecialty() == null ? null : training.getSpecialty().getId());
+        training.setVetId(training.getVet() == null ? null : training.getVet().getId());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Upon loading the <code>Training</code> entity, the <code>onTrainingLoading()</code> method will invoke the services to load <code>Specialty</code> and <code>Vet</code> entities from the PetClinic application.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="training-views"><a class="anchor" href="#training-views"></a>Training Views</h3>
+<div class="paragraph">
+<p>Select the <code>Training</code> entity in Jmix tool window and click <strong>New</strong> → <strong>View</strong> in its context menu. Select the <strong>Entity list and detail views</strong> template and accept all parameters on the next steps of the view creation wizard. Select <code>specialty</code> and <code>vet</code> attributes in the fetch plans for both list and detail views:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="training fetch plan" src="_images/linking-entities/training-fetch-plan.png" width="538"/>
+</div>
+</div>
+<div class="paragraph">
+<p>These attributes are transient, so including them in the fetch plan does not affect data loading but allows Studio to add corresponding data grid columns and form fields to the view layouts.</p>
+</div>
+<div class="paragraph">
+<p>After generating views from templates, further customization is required to correctly handle references to <code>Specialty</code> and <code>Vet</code>.</p>
+</div>
+<div class="paragraph">
+<p>In the list view, the only required change is to remove the columns containing IDs. Open <code>training-list-view.xml</code> and remove the <code>specialtyId</code> and <code>vetId</code> columns from <code>trainingsDataGrid</code>.</p>
+</div>
+<div class="paragraph">
+<p>In the detail view, you need to add combo-boxes to select related <code>Specialty</code> and <code>Vet</code> entities. The <code>Vet</code> combo-box options should depend on the selected <code>Specialty</code> and display only veterinarians with that specialty.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>training-detail-view.xml</code>, remove <code>specialtyIdField</code> and <code>vetIdField</code>, and then add the <code>vetsDc</code> collection container along with the <code>specialtyField</code> and <code>vetField</code> components as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/com/company/vettraining/view/training/training-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://trainingDetailView.title"
+      focusComponent="form"&gt;
+    &lt;data&gt;
+        &lt;instance id="trainingDc"
+                  class="com.company.vettraining.entity.Training"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="trainingDl"/&gt;
+        &lt;/instance&gt;
+        &lt;!-- add this --&gt;
+        &lt;collection id="vetsDc" class="com.company.vettraining.entity.petclinic.Vet"&gt;
+            &lt;loader id="vetsDl" readOnly="true"/&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;dataLoadCoordinator auto="true"/&gt;
+    &lt;/facets&gt;
+    &lt;actions&gt;
+        &lt;action id="saveAction" type="detail_saveClose"/&gt;
+        &lt;action id="closeAction" type="detail_close"/&gt;
+    &lt;/actions&gt;
+    &lt;layout&gt;
+        &lt;formLayout id="form" dataContainer="trainingDc"&gt;
+            &lt;responsiveSteps&gt;
+                &lt;responsiveStep minWidth="0" columns="1"/&gt;
+                &lt;responsiveStep minWidth="40em" columns="2"/&gt;
+            &lt;/responsiveSteps&gt;
+            &lt;datePicker id="dateField" property="date"/&gt;
+            &lt;textField id="descriptionField" property="description"/&gt;
+            &lt;!-- add this --&gt;
+            &lt;entityComboBox id="specialtyField" property="specialty"/&gt;
+            &lt;entityComboBox id="vetField" property="vet" itemsContainer="vetsDc"/&gt;
+        &lt;/formLayout&gt;
+        &lt;hbox id="detailActions"&gt;
+            &lt;button id="saveAndCloseButton" action="saveAction"/&gt;
+            &lt;button id="closeButton" action="closeAction"/&gt;
+        &lt;/hbox&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>vetField</code> combo-box will obtain its options from the <code>vetsDc</code> collection container. To load <code>Vet</code> DTO entities into this container, generate a load delegate for the <code>vetsDl</code> data loader and implement it as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/view/training/TrainingDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private VetService vetService;
+
+@ViewComponent
+private EntityComboBox&lt;Specialty&gt; specialtyField;
+
+@Install(to = "vetsDl", target = Target.DATA_LOADER)
+private List&lt;Vet&gt; vetsDlLoadDelegate(final LoadContext&lt;Vet&gt; loadContext) {
+    return vetService.listVets().stream()
+            .filter(vet -&gt;
+                    specialtyField.getValue() != null &amp;&amp;
+                            vet.getSpecialties().contains(specialtyField.getValue())
+            )
+            .toList();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Options for <code>specialtyField</code> can be loaded similarly into a dedicated collection data container, or more efficiently by using an items fetch callback method. Use the latter approach:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/view/training/TrainingDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private SpecialtyService specialtyService;
+
+@Install(to = "specialtyField", subject = "itemsFetchCallback")
+private Stream&lt;Specialty&gt; specialtyFieldItemsFetchCallback(final Query&lt;Specialty, String&gt; query) {
+    String filter = query.getFilter().orElse("");
+    return specialtyService.listSpecialties().stream()
+            .filter(specialty -&gt;
+                    specialty.getName().toLowerCase().contains(filter.toLowerCase()))
+            .skip(query.getOffset())
+            .limit(query.getLimit());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The final step is to ensure that the list of veterinarians is refreshed each time the user selects a different specialty. You can achieve this by creating a handler for the <code>ItemPropertyChangeEvent</code> of the <code>trainingDc</code> data container:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/view/training/TrainingDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionLoader&lt;Vet&gt; vetsDl;
+
+@ViewComponent
+private EntityComboBox&lt;Vet&gt; vetField;
+
+@Subscribe(id = "trainingDc", target = Target.DATA_CONTAINER)
+public void onTrainingDcItemPropertyChange(final InstanceContainer.ItemPropertyChangeEvent&lt;Training&gt; event) {
+    if (event.getProperty().equals("specialty")) {
+        vetsDl.load();
+        vetField.clear();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you can start the application and test the creation of training sessions:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="create training" src="_images/linking-entities/create-training.png"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="handling-authentication"><a class="anchor" href="#handling-authentication"></a>Handling Authentication</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the final step of this guide, we will enable authentication in the PetClinic REST application, update the OpenAPI schema, and address it in the client code.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Stop the PetClinic application and start it again using the following command:</p>
+<div class="listingblock">
+<div class="title">Linux and macOS</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">./mvnw spring-boot:run -Dspring-boot.run.arguments="--petclinic.security.enable=true"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Windows</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">mvnw spring-boot:run "-Dspring-boot.run.arguments=--petclinic.security.enable=true"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The PetClinic REST endpoints now require HTTP Basic authentication. The application has a single user with the username <code>admin</code> and the password <code>admin</code>.</p>
+</div>
+</li>
+<li>
+<p>Make sure that when you open <a class="bare" href="http://localhost:9966/petclinic/api/specialties" rel="noopener" target="_blank">http://localhost:9966/petclinic/api/specialties</a> in your web browser, it prompts you for your username and password. Enter <code>admin</code> for both.</p>
+</li>
+<li>
+<p>In the <code>petclinic-openapi.yaml</code> file, add <code>securitySchemes</code> section to <code>components</code> and <code>security</code> section to the root:</p>
+<div class="listingblock">
+<div class="title">src/main/resources/petclinic-openapi.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml"># ...
+components:
+  schemas:
+  # ...
+  securitySchemes:
+    basic:
+      description: Basic HTTP Authentication
+      type: http
+      scheme: Basic
+security:
+  - basic: []</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will indicate that all OpenAPI paths use the HTTP Basic authentication.</p>
+</div>
+</li>
+<li>
+<p>In <code>PetclinicClientConfiguration</code>, supply the credentials to the <code>ApiClient</code> object:</p>
+<div class="listingblock">
+<div class="title">src/main/java/com/company/vettraining/petclinic/PetclinicClientConfiguration.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean("petclinicApiClient")
+public ApiClient apiClient() {
+    ApiClient apiClient = new ApiClient();
+    apiClient.setUsername("admin");
+    apiClient.setPassword("admin");
+    return apiClient;
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>After restarting the Veterinary Training application, the OpenAPI generator Gradle task will update the client sources according to the schema changes and use the provided credentials when invoking the PetClinic REST API.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, you learned how to integrate a Jmix application with an external REST service using OpenAPI.</p>
+</div>
+<div class="paragraph">
+<p>We created an additional layer of Jmix entities and mappers to effectively manage external data, and intermediate services for better integration and maintainability.</p>
+</div>
+<div class="paragraph">
+<p>All of these tasks were accomplished with the assistance of Jmix Studio, which provided sophisticated tooling for generating DTO entities, mappers, and services, significantly reducing manual work.</p>
+</div>
+<div class="paragraph">
+<p>Finally, we built CRUD views for managing external data, linked JPA and DTO entities to implement a <a class="xref page" href="../concepts/principles.html#unified-data-model">unified data model</a>, and refined the UI to handle entity relationships effectively.</p>
+</div>
+<div class="paragraph">
+<p>By following this guide, you are now equipped to implement similar OpenAPI-based integrations in your own projects.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

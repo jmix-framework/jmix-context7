@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Attributes API :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Dynamic Attributes API</h1>
+<div class="sect1">
+<h2 id="model"><a class="anchor" href="#model"></a>Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dynamic attributes implement the Entity-Attribute-Value model.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="dynattr diagram" src="_images/dynattr-diagram.svg"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Category</code> specifies a category of objects and the corresponding set of dynamic attributes. Each category needs to be linked to a specific entity type.</p>
+<div class="paragraph">
+<p>For instance, consider an entity classified as <code>Car</code>. In this scenario, we can create two categories: <code>Truck</code> and <code>Passenger</code>. The <code>Truck</code> category may encompass attributes like <code>Load capacity</code> and <code>Body type</code>, while the <code>Passenger</code> could include attributes such as <code>Number of seats</code> and <code>Child seat</code>.</p>
+</div>
+</li>
+<li>
+<p><code>CategoryAttribute</code> represents a dynamic attribute associated with a specific category. Each attribute defines a single field with a specific data type. The required <code>code</code> field holds the system identifier of the attribute, while the <code>name</code> field contains the human-readable attribute name.</p>
+</li>
+<li>
+<p><code>CategoryAttributeValue</code> signifies the value of a dynamic attribute for a specific entity instance. These values are stored in the dedicated <code>SYS_ATTR_VALUE</code> table. Each record in the table is linked to a particular entity through the <code>ENTITY_ID</code> column.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>An entity instance can possess dynamic attributes from all categories linked to its entity type. For instance, if you establish two categories for the <code>Car</code> entity as described earlier, you can assign any dynamic attribute from both categories to a <code>Car</code> instance.</p>
+</div>
+<div class="paragraph">
+<p>If you want to categorize an entity instance under a single category - for instance, a car being classified as either a truck or passenger - the entity must implement the <code>Categorized</code> interface. This setup ensures that an entity instance is affiliated with a specific category and possesses dynamic attributes exclusively from that category.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="loading-and-saving"><a class="anchor" href="#loading-and-saving"></a>Loading and Saving</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Loading and saving dynamic attribute values is handled by <code>DataManager</code>. Use one of these methods to indicate that dynamic attributes should be loaded for entity instances:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>setHint(DynAttrQueryHints.LOAD_DYN_ATTR, true)</code> method of <code>LoadContext</code>.</p>
+</li>
+<li>
+<p><code>hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)</code> method of the fluent API.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By default, dynamic attributes are not loaded. At the same time, <code>DataManager</code> always saves dynamic attributes contained in entity instances passed to <code>save()</code>.</p>
+</div>
+<div class="paragraph">
+<p>Dynamic attribute values are available through <code>getValue()</code> / <code>setValue()</code> methods of <code>EntityValues</code>. Pass the attribute code with the <code>+</code> prefix to these methods, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DataManager dataManager;
+
+@ViewComponent
+private DataGrid&lt;Car&gt; carsDataGrid;
+
+public void increaseLoadCapacity(Car car, int value) {
+    Car carLoad = dataManager.load(Car.class)
+            .id(car.getId())
+            .hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)
+            .one();
+    Integer capacity = EntityValues.getValue(car, "+truckLoadCapacity");
+    EntityValues.setValue(car, "+truckLoadCapacity", capacity + value);
+    dataManager.save(car);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In practice, direct access to attribute values in the application code is rarely necessary. Any dynamic attribute can be automatically displayed in any <code>DataGrid</code> or <code>FormLayout</code> component linked to a data container featuring the entity associated with the dynamic attribute. When setting up dynamic attributes, you can define <a class="xref page" href="dynattr-managing.html#visibility">attribute visibility</a> within views and components.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

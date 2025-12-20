@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modularity and Extension :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Modularity and Extension</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will learn how to create modular and extendable systems with Jmix.</p>
+</div>
+<div class="paragraph">
+<p>Splitting a complex system into a set of components makes it more manageable and allows for reusing functionality. For example, if you build, say, the User Management as a separate component, you can delegate its implementation and maintenance to a separate team, as well as to use it in multiple applications created in your organization, because most probably they have the same requirements in this area.</p>
+</div>
+<div class="paragraph">
+<p>Another feature that improves productivity is the ability to create new components on the basis of existing ones, by modifying and extending their functionality. If you take the example with the User Management component, you can imagine that you need to add a field to the User entity in a particular application that uses the component. So the component is extendable if you can add such a detail right in your application without the need to build a separate version of the whole User Management component.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="subsystems"><a class="anchor" href="#subsystems"></a>Subsystems, Add-ons and Modules</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The word "component" is so overloaded with meanings that in the context of Jmix modularity we will use a more specific term - <em>subsystem</em>. A subsystem is a separate component of a Jmix application providing some functionality. There are two categories of subsystems:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>Core subsystems</em> provide system-level functionality and are included in most projects.</p>
+</li>
+<li>
+<p><em>Add-ons</em> are optional subsystems that can be included in the project on demand. The public add-ons are available at Jmix <a href="https://www.jmix.io/marketplace/" rel="noopener" target="_blank">marketplace</a>. You can also create custom add-ons and use them within your organization.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Below is a possible structure of an application that uses the core subsystems, the public Reports add-on and a custom User Management add-on:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="subsystems.drawio" src="_images/subsystems.drawio.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>We will use the term <em>module</em> in the same meaning as in the IDE. A module is a collection of source code files and build settings that is built and packaged into a single JAR file.</p>
+</div>
+<div class="paragraph">
+<p>A Jmix subsystem consists of one or multiple functional modules, each accompanied by a Spring Boot starter module.</p>
+</div>
+<div class="paragraph">
+<p>A subsystem can depend on other subsystems. For example, a User Management subsystem would probably depend on Data Access and UI subsystems, which in turn depend on the Core subsystem.</p>
+</div>
+<div class="paragraph">
+<p>Technically, dependencies between subsystems are expressed by dependencies between their functional modules. See more details in the <a class="xref page" href="creating-add-ons.html">Creating Add-ons</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="extendable-applications"><a class="anchor" href="#extendable-applications"></a>Extendable Applications</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Functionality of add-ons (actually, of any subsystem including core) can be extended and modified by the application or by another add-on. The <a class="xref page" href="extension.html">Extending Functionality</a> section describes what can be extended and how to do it.</p>
+</div>
+<div class="paragraph">
+<p>The obvious consequence is that you can customize some functionality provided by add-ons used in your application and better adapt them to your needs.</p>
+</div>
+<div class="paragraph">
+<p>Another possibility is creating applications that can be customized for a particular industry or customer without modification of the original product. In order to achieve this, you need to put the main application functionality into an add-on, and use the application module just as a thin runner.</p>
+</div>
+<div class="paragraph">
+<p>Below is a structure of an extendable application:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="original app.drawio" src="_images/original-app.drawio.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To create a customized version of the application, you need to replace only the runner module with another module that contains customizations:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="customized app.drawio" src="_images/customized-app.drawio.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The customized application project contains only extension functionality, the Application add-on is used as a dependency and is not modified.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

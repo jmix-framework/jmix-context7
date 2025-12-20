@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Components :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Visual Components</h1>
+<div class="paragraph">
+<p>Jmix views are built from visual components that have server-side Java interface and can be declared in XML using corresponding XML elements.</p>
+</div>
+<div class="paragraph">
+<p>For example, the following XML descriptor defines a view which displays a text field, a button and a label:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"&gt;
+    &lt;layout&gt;
+        &lt;textField id="nameField"
+                   placeholder="Enter your name"
+                   datatype="string"/&gt;
+        &lt;button id="helloButton" text="Say Hello"/&gt;
+        &lt;div id="greetingsLabel"/&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the Java class of the view, you can listen to the button click event, get the text field value and set it to the label:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private TypedTextField&lt;String&gt; nameField;
+
+@ViewComponent
+private Div greetingsLabel;
+
+@Subscribe("helloButton")
+private void onHelloButtonClick(ClickEvent&lt;Button&gt; event) {
+    greetingsLabel.setText("Hello " + nameField.getTypedValue());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, the text field component is represented by the <code>TypedTextField</code> class in Java. <code>TypedTextField</code> extends the Vaadin’s <a href="https://vaadin.com/docs/latest/components/text-field" rel="noopener" target="_blank">TextField</a> component and adds support for different value types, data binding and other Jmix-specific capabilities.</p>
+</div>
+<div class="paragraph">
+<p>The label is the Vaadin’s <a href="https://vaadin.com/api/platform/24.8/com/vaadin/flow/component/html/Div.html" rel="noopener" target="_blank">Div</a> component, which represents the HTML <code>div</code> element.</p>
+</div>
+<div class="paragraph">
+<p>In general, each visual component in Jmix consists of the following parts:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Java class extending <a href="https://vaadin.com/api/platform/24.8/com/vaadin/flow/component/Component.html" rel="noopener" target="_blank">Component</a>. It can be one of the Vaadin’s standard <a href="https://vaadin.com/docs/latest/components" rel="noopener" target="_blank">components</a>, its extended version, or a completely new component based on <a href="https://vaadin.com/api/platform/24.8/com/vaadin/flow/component/Composite.html" rel="noopener" target="_blank">Composite</a> or created from scratch.</p>
+</li>
+<li>
+<p>XML element for defining the component declaratively in view XML descriptors.</p>
+</li>
+<li>
+<p>Loader that reads the XML element and instantiates the component.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Items 2 and 3 are optional: you can just instantiate any subclass of <code>com.vaadin.flow.component.Component</code> in your view and add it to a parent component to show on the browser page. But when the component has an XSD and a loader class, it’s much easier to use. Additionally, it can be exposed to Studio using a few annotations.</p>
+</div>
+<div class="paragraph">
+<p>Studio allows you to build views in a visual designer with a preview, components structure and properties panels. When you click the <strong>Add Component</strong> button, Studio shows a palette of available components:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="studio designer 1" src="_images/visual-components/studio-designer-1.png"/>
+</div>
+</div>
+
+</article>
+</body>
+</html>

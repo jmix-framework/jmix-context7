@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fileStorageUploadField :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">fileStorageUploadField</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/file-storage-upload-field" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>fileStorageUploadField</code> allows users to upload a file to the Jmix <a class="xref page" href="../../../files/file-storage.html">file storage</a>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>XML element: <code>fileStorageUploadField</code></p>
+</li>
+<li>
+<p>Java class: <code>FileStorageUploadField</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The component can contain a label, a link to the uploaded file, and an upload button. When the upload button is clicked, a standard file picker dialog pops up, allowing the user to select a file.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="file storage upload basics" src="../../_images/visual-components/components/file-storage-upload-basics.gif"/>
+</div>
+</div>
+<div class="paragraph">
+<p><code>fileStorageUploadField</code> can work both without being bound to an entity attribute and with <a href="#data-binding">data binding</a>.</p>
+</div>
+<div class="paragraph">
+<p>Below we will show an example of using the component without data binding. You can use it to handle the uploaded file directly without associating it with any Jmix entity.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fileStorageUploadField id="fileRefField"
+                        acceptedFileTypes=".xlsx, .xls"
+                        fileStoragePutMode="MANUAL"
+                        fileNameVisible="true"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then you can handle the uploaded file directly within the <a href="#FileUploadSucceededEvent">FileUploadSucceededEvent</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To store a file in an entity attribute as a byte array instead of <code>FileRef</code>, use the <a class="xref page" href="fileUploadField.html">fileUploadField</a> component.</p>
+</div>
+<div class="paragraph">
+<p>To upload multiple files simultaneously, you should use the <a class="xref page" href="upload.html">upload</a> component instead of <code>fileStorageUploadField</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The uploaded file will be immediately stored in the default <code>FileStorage</code>. To control the saving of the file programmatically, use the <a href="#fileStoragePutMode">fileStoragePutMode</a> attribute.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>fileStorageUploadField</code> allows users to upload a file to the <a class="xref page" href="../../../files/file-storage.html">file storage</a> and link it to an entity attribute as a <code>FileRef</code> object.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, the <code>picture</code> attribute of the <code>User</code> entity has the <code>FileRef</code> type.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Column(name = "PICTURE", length = 1024)
+private FileRef picture;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance class="com.company.onboarding.entity.User" id="userDc"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader id="userDl"/&gt;
+    &lt;/instance&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;fileStorageUploadField dataContainer="userDc"
+                            property="picture"
+                            clearButtonVisible="true"
+                            fileNameVisible="true"/&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>fileStorageUploadField</code> has a link to the container specified in the <code>dataContainer</code> attribute; the <code>property</code> attribute contains the name of the entity attribute that is displayed in <code>fileStorageUploadField</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="internationalization"><a class="anchor" href="#internationalization"></a>Internationalization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All labels and messages in <code>fileStorageUploadField</code> are configurable.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="file storage upload text attrs" src="../../_images/visual-components/components/file-storage-upload-text-attrs.png" width="991"/>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The <a class="xref page" href="../common-attributes.html#label">label</a> attribute.</p>
+</li>
+<li>
+<p>The <a href="#uploadText">uploadText</a> attribute.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> attribute.</p>
+</li>
+<li>
+<p>The <a href="#fileNotSelectedText">fileNotSelectedText</a> attribute.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../common-attributes.html#helperText">helperText</a> attribute.</p>
+</li>
+<li>
+<p>The <a href="#fileTooBigText">fileTooBigText</a> attribute.</p>
+</li>
+<li>
+<p>The <a href="#incorrectFileTypeText">incorrectFileTypeText</a> attribute.</p>
+</li>
+<li>
+<p>The <a href="#uploadDialogTitle">uploadDialogTitle</a> attribute.</p>
+</li>
+<li>
+<p>The <a href="#remainingTimeText">remainingTimeText</a> attribute.</p>
+</li>
+<li>
+<p>The <a href="#uploadDialogCancelText">uploadDialogCancelText</a> attribute.</p>
+</li>
+<li>
+<p>The <a href="#processingStatusText">processingStatusText</a> attribute.</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="connectingStatusText"><a class="anchor" href="#connectingStatusText"></a>connectingStatusText</h3>
+<div class="paragraph">
+<p>Defines the text of status in the upload dialog when connection is set.</p>
+</div>
+<div class="paragraph">
+<p>The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fileNotSelectedText"><a class="anchor" href="#fileNotSelectedText"></a>fileNotSelectedText</h3>
+<div class="paragraph">
+<p>Sets the text that is shown when <a href="#fileNameVisible">fileNameVisible="true"</a> and the file is not uploaded. If not set, the default "File is not selected" text is shown.</p>
+</div>
+<div class="paragraph">
+<p>The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fileTooBigText"><a class="anchor" href="#fileTooBigText"></a>fileTooBigText</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/api/platform/24.4.4/com/vaadin/flow/component/upload/UploadI18N.Error.html#setFileIsTooBig(java.lang.String)" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>Sets the text of exception when the file size exceeds the <a href="#maxFileSize">maxFileSize</a> value.</p>
+</div>
+<div class="paragraph">
+<p>The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="incorrectFileTypeText"><a class="anchor" href="#incorrectFileTypeText"></a>incorrectFileTypeText</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/api/platform/24.4.4/com/vaadin/flow/component/upload/UploadI18N.Error.html#setIncorrectFileType(java.lang.String)" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>Sets the text of the message that is shown when the file extension is not included to the <a href="#acceptedFileTypes">acceptedFileTypes</a> attribute.</p>
+</div>
+<div class="paragraph">
+<p>The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="processingStatusText"><a class="anchor" href="#processingStatusText"></a>processingStatusText</h3>
+<div class="paragraph">
+<p>Sets the text of status in the upload dialog when a file is uploaded and processed.</p>
+</div>
+<div class="paragraph">
+<p>The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="remainingTimeText"><a class="anchor" href="#remainingTimeText"></a>remainingTimeText</h3>
+<div class="paragraph">
+<p>Sets the text in the upload dialog when it shows the remaining time.</p>
+</div>
+<div class="paragraph">
+<p>The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="remainingTimeUnknownText"><a class="anchor" href="#remainingTimeUnknownText"></a>remainingTimeUnknownText</h3>
+<div class="paragraph">
+<p>Sets the text in the upload dialog when it cannot calculate the remaining time.</p>
+</div>
+<div class="paragraph">
+<p>The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="uploadDialogCancelText"><a class="anchor" href="#uploadDialogCancelText"></a>uploadDialogCancelText</h3>
+<div class="paragraph">
+<p>Sets the text to the cancel button in the upload dialog.</p>
+</div>
+<div class="paragraph">
+<p>The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="uploadDialogTitle"><a class="anchor" href="#uploadDialogTitle"></a>uploadDialogTitle</h3>
+<div class="paragraph">
+<p>Sets the title of the upload dialog that is shown while uploading a file.</p>
+</div>
+<div class="paragraph">
+<p>The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="uploadText"><a class="anchor" href="#uploadText"></a>uploadText</h3>
+<div class="paragraph">
+<p>Sets the text that should be shown in the upload button.</p>
+</div>
+<div class="paragraph">
+<p>The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a href="#acceptedFileTypes">acceptedFileTypes</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a href="#clearButtonAriaLabel">clearButtonAriaLabel</a> -
+<a href="#clearButtonVisible">clearButtonVisible</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a href="#connectingStatusText">connectingStatusText</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> -
+<a href="#dropAllowed">dropAllowed</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#errorMessage">errorMessage</a> -
+<a href="#fileNameVisible">fileNameVisible</a> -
+<a href="#fileNotSelectedText">fileNotSelectedText</a> -
+<a href="#fileStorageName">fileStorageName</a> -
+<a href="#fileStoragePutMode">fileStoragePutMode</a> -
+<a href="#fileTooBigText">fileTooBigText</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
+<a href="#incorrectFileTypeText">incorrectFileTypeText</a> -
+<a class="xref page" href="../common-attributes.html#label">label</a> -
+<a href="#maxFileSize">maxFileSize</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a href="#processingStatusText">processingStatusText</a> -
+<a class="xref page" href="../common-attributes.html#property">property</a> -
+<a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
+<a href="#remainingTimeText">remainingTimeText</a> -
+<a href="#remainingTimeUnknownText">remainingTimeUnknownText</a> -
+<a class="xref page" href="../common-attributes.html#required">required</a> -
+<a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
+<a href="#uploadDialogCancelText">uploadDialogCancelText</a> -
+<a href="#uploadDialogTitle">uploadDialogTitle</a> -
+<a href="#uploadIcon">uploadIcon</a> -
+<a href="#uploadText">uploadText</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+<div class="sect2">
+<h3 id="acceptedFileTypes"><a class="anchor" href="#acceptedFileTypes"></a>acceptedFileTypes</h3>
+<div class="paragraph">
+<p>Specifies the types of files that the server accepts. The acceptable file formats are set using <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_Types" rel="noopener" target="_blank">MIME type patterns</a> or file extensions.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+MIME types are widely supported, while file extensions are only implemented in certain browsers, so it should be avoided.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fileStorageUploadField dataContainer="userDc"
+                        property="picture"
+                        acceptedFileTypes="image/png, .png"/&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>acceptedFileTypes</code> attribute filters the files displayed in the system file chooser dialog, ensuring users only select files with the allowed extensions.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="clearButtonAriaLabel"><a class="anchor" href="#clearButtonAriaLabel"></a>clearButtonAriaLabel</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="mdn-docs-btn" href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-label" target="_blank">MDN</a>
+</div>
+<div class="paragraph">
+<p>Sets the <code>aria-label</code> attribute to the clear button.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="clearButtonVisible"><a class="anchor" href="#clearButtonVisible"></a>clearButtonVisible</h3>
+<div class="paragraph">
+<p>Sets whether the clear button should be shown after the file name. Works only if <a href="#fileNameVisible">fileNameVisible="true"</a>.</p>
+</div>
+<div class="paragraph">
+<p>The default value is <code>false</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="dropAllowed"><a class="anchor" href="#dropAllowed"></a>dropAllowed</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/components/upload/#drag-drop" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>Sets whether the component supports dropping files for uploading.</p>
+</div>
+<div class="paragraph">
+<p>The default value is <code>true</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+File can only be dropped over the component’s <strong>Upload</strong> button.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fileNameVisible"><a class="anchor" href="#fileNameVisible"></a>fileNameVisible</h3>
+<div class="paragraph">
+<p>The <code>fileNameVisible</code> attribute controls whether the name of the uploaded file is displayed next to the upload button. It is <code>false</code> by default.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fileStorageName"><a class="anchor" href="#fileStorageName"></a>fileStorageName</h3>
+<div class="paragraph">
+<p>Sets the name of <a class="xref page" href="../../../files/file-storage.html">FileStorage</a> where the upload file will be placed. If not set, the default <code>FileStorage</code> will be used.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fileStoragePutMode"><a class="anchor" href="#fileStoragePutMode"></a>fileStoragePutMode</h3>
+<div class="paragraph">
+<p>Sets mode which determines when a file will be put into FileStorage. By default, the <code>fileStoragePutMode</code> attribute is set to the <code>IMMEDIATE</code> value. You can control the saving of the file programmatically if you set the <code>fileStoragePutMode</code> attribute to the <code>MANUAL</code> value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fileStorageUploadField id="manuallyControlledField"
+                        dataContainer="userDc"
+                        property="picture"
+                        clearButtonVisible="true"
+                        fileNameVisible="true"
+                        fileStoragePutMode="MANUAL"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the view controller, define the component itself, and the <code>TemporaryStorage</code> interface. Then subscribe to the event of <a href="#FileUploadSucceededEvent">successful uploads</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private TemporaryStorage temporaryStorage;
+@ViewComponent
+private FileStorageUploadField manuallyControlledField;
+@Autowired
+private Notifications notifications;
+
+@Subscribe("manuallyControlledField")
+public void onManuallyControlledFieldFileUploadSucceeded(
+        final FileUploadSucceededEvent&lt;FileStorageUploadField&gt; event) {
+    Receiver receiver = event.getReceiver();
+    if (receiver instanceof FileTemporaryStorageBuffer) {
+        UUID fileId = ((FileTemporaryStorageBuffer) receiver)
+                .getFileData().getFileInfo().getId();
+        File file = temporaryStorage.getFile(fileId);
+
+        if (file != null) {
+            notifications.create("File is uploaded to temporary storage at "
+                            + file.getAbsolutePath())
+                    .show();
+        }
+        FileRef fileRef = temporaryStorage.putFileIntoStorage(fileId, event.getFileName());
+        manuallyControlledField.setValue(fileRef);
+        notifications.create("Uploaded file: "
+                        + ((FileTemporaryStorageBuffer) receiver).getFileData().getFileName())
+                .show();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The component will upload the file to the temporary storage and invoke <code>FileUploadSucceedEvent</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>TemporaryStorage.putFileIntoStorage()</code> method moves the uploaded file from the temporary client storage to the default <a class="xref page" href="../../../files/file-storage.html">File Storage</a>.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The <a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> is not fired automatically after uploading the <code>fileStorageUploadField</code> field with <code>MANUAL</code> put mode, because the <code>FileRef</code> value can be obtained only after uploading a file to the permanent file storage.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="maxFileSize"><a class="anchor" href="#maxFileSize"></a>maxFileSize</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/components/upload/#file-size" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>Specifies the maximum file size in bytes allowed to upload. Notice that it is a client-side constraint, which will be checked before sending the request.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If <code>MultipartProperties</code> is available, the default value will be set from <code>MultipartProperties#getMaxFileSize()</code> that is equal to 1Mb. To increase maximum file size for all fields in the application use <code>MultipartProperties#getMaxFileSize()</code> property.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="uploadIcon"><a class="anchor" href="#uploadIcon"></a>uploadIcon</h3>
+<div class="paragraph">
+<p>Sets an icon to the upload button.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a href="#FileUploadFailedEvent">FileUploadFailedEvent</a> -
+<a href="#FileUploadFileRejectedEvent">FileUploadFileRejectedEvent</a> -
+<a href="#FileUploadFinishedEvent">FileUploadFinishedEvent</a> -
+<a href="#FileUploadProgressEvent">FileUploadProgressEvent</a> -
+<a href="#FileUploadStartedEvent">FileUploadStartedEvent</a> -
+<a href="#FileUploadSucceededEvent">FileUploadSucceededEvent</a> -
+<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a> -
+<a class="xref page" href="textField.html#validator">validator</a></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="FileUploadFailedEvent"><a class="anchor" href="#FileUploadFailedEvent"></a>FileUploadFailedEvent</h3>
+<div class="paragraph">
+<p><code>io.jmix.flowui.kit.component.upload.event.FileUploadFailedEvent</code> is fired when <code>FailedEvent</code> of <code>Upload</code> is occurred. See <a href="https://vaadin.com/api/platform/24.4.4/com/vaadin/flow/component/upload/Upload.html#addFailedListener(com.vaadin.flow.component.ComponentEventListener)" rel="noopener" target="_blank">Upload.addFailedListener(ComponentEventListener)</a> for details.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("manuallyControlledField")
+public void onManuallyControlledFieldFileUploadFailed(
+        final FileUploadFailedEvent&lt;FileStorageUploadField&gt; event) {
+    notifications.create("File upload error")
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="FileUploadFileRejectedEvent"><a class="anchor" href="#FileUploadFileRejectedEvent"></a>FileUploadFileRejectedEvent</h3>
+<div class="paragraph">
+<p><code>io.jmix.flowui.kit.component.upload.event.FileUploadFileRejectedEvent</code> is fired when <code>FileRejectedEvent</code> of <code>Upload</code> is occurred. See <a href="https://vaadin.com/api/platform/24.4.4/com/vaadin/flow/component/upload/Upload.html#addFileRejectedListener(com.vaadin.flow.component.ComponentEventListener)" rel="noopener" target="_blank">Upload.addFileRejectedListener(ComponentEventListener)</a> for details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="FileUploadFinishedEvent"><a class="anchor" href="#FileUploadFinishedEvent"></a>FileUploadFinishedEvent</h3>
+<div class="paragraph">
+<p><code>io.jmix.flowui.kit.component.upload.event.FileUploadFinishedEvent</code> is fired when <code>FinishedEvent</code> of <code>Upload</code> is occurred. See <a href="https://vaadin.com/api/platform/24.4.4/com/vaadin/flow/component/upload/Upload.html#addFinishedListener(com.vaadin.flow.component.ComponentEventListener)" rel="noopener" target="_blank">Upload.addFinishedListener(ComponentEventListener)</a> for details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="FileUploadProgressEvent"><a class="anchor" href="#FileUploadProgressEvent"></a>FileUploadProgressEvent</h3>
+<div class="paragraph">
+<p><code>io.jmix.flowui.kit.component.upload.event.FileUploadProgressEvent</code> is fired when <code>ProgressUpdateEvent</code> of <code>Upload</code> is occurred. See <a href="https://vaadin.com/api/platform/24.4.4/com/vaadin/flow/component/upload/Upload.html#addProgressListener(com.vaadin.flow.component.ComponentEventListener)" rel="noopener" target="_blank">Upload.addProgressListener(ComponentEventListener)</a> for details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="FileUploadStartedEvent"><a class="anchor" href="#FileUploadStartedEvent"></a>FileUploadStartedEvent</h3>
+<div class="paragraph">
+<p><code>io.jmix.flowui.kit.component.upload.event.FileUploadStartedEvent</code> is fired when <code>StartedEvent</code> of <code>Upload</code> is occurred. See <a href="https://vaadin.com/api/platform/24.4.4/com/vaadin/flow/component/upload/Upload.html#addStartedListener(com.vaadin.flow.component.ComponentEventListener)" rel="noopener" target="_blank">Upload.addStartedListener(ComponentEventListener)</a> for details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="FileUploadSucceededEvent"><a class="anchor" href="#FileUploadSucceededEvent"></a>FileUploadSucceededEvent</h3>
+<div class="paragraph">
+<p><code>io.jmix.flowui.kit.component.upload.event.FileUploadSucceededEvent</code> is fired when the <code>Upload</code> component’s <code>SucceededEvent</code> occurs, meaning the upload has been successfully received. See <a href="https://vaadin.com/api/platform/24.4.4/com/vaadin/flow/component/upload/Upload.html#addSucceededListener(com.vaadin.flow.component.ComponentEventListener)" rel="noopener" target="_blank">Upload.addSucceededListener(ComponentEventListener)</a> for details.</p>
+</div>
+<div class="paragraph">
+<p>Here is an example of using <code>fileStorageUploadField</code> for <code>.xls</code> и <code>.xlsx</code> files, and then processing those files in <code>FileUploadSucceededEvent</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("fileRefField")
+public void onFileRefFieldFileUploadSucceeded(
+        final FileUploadSucceededEvent&lt;FileStorageUploadField&gt; event) {
+    if (event.getReceiver() instanceof FileTemporaryStorageBuffer buffer) {
+        UUID fileId = buffer.getFileData().getFileInfo().getId();
+        log.info("FileId: " + fileId);
+
+        File file = temporaryStorage.getFile(fileId); <i class="conum" data-value="1"></i><b>(1)</b>
+        log.info("File from temp storage: " + file);
+        try { <i class="conum" data-value="2"></i><b>(2)</b>
+            List&lt;String&gt; lines = FileUtils.readLines(file, StandardCharsets.UTF_8);
+            for (String line : lines) {
+                log.info("Read line: " + line);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        temporaryStorage.deleteFile(fileId); <i class="conum" data-value="3"></i><b>(3)</b>
+        log.info("File is deleted from temp storage: " + file);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Get local file from the <a class="xref page" href="../../../files/uploading-files.html#using-temporary-storage">temporary storage</a> using identifier provided by the upload event.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Process the file data.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Remove the uploaded file. In a real-world application you would move the file to <a class="xref page" href="../../../files/file-storage.html">FileStorage</a> here using the <code>temporaryStorage.putFileIntoStorage()</code> method.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can also find an example of <code>FileUploadSucceededEvent</code> in the <a href="#fileStoragePutMode">fileStoragePutMode</a> description.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="tooltip.html">tooltip</a></p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

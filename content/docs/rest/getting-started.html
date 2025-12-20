@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started with REST :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Getting Started with REST</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section contains an example of retrieving the information about application users through the Generic REST API.</p>
+</div>
+<div class="paragraph">
+<p>First, add the Generic REST add-on to your project according to the <a class="xref page" href="index.html#installation">installation</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="obtaining-access-token"><a class="anchor" href="#obtaining-access-token"></a>Obtaining Access Token</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To access the protected resource the client must present a valid access token. The OAuth 2.1 specification provides several ways to get an access token from the authorization server. They are called grant types. In this example, we will use the <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-11#name-client-credentials-grant" rel="noopener" target="_blank">Client Credentials grant</a> which is suitable for confidential clients, such as backend integrations.</p>
+</div>
+<div class="paragraph">
+<p>The functionality responsible for issuing tokens and supporting OAuth 2.1 protocol features is located inside the Authorization Server add-on. You must add this add-on to your application. See the <a class="xref page" href="../authorization-server/index.html#installation">Authorization Server</a> add-on documentation for instructions on how to do this.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.authserver:jmix-authserver-starter'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The idea is that in Jmix application we must register the client (e.g. an external application that needs to access Jmix REST API), define client id and secret, and then using these credentials we will be able to get the access token by a special HTTP request.</p>
+</div>
+<div class="paragraph">
+<p>The simplest way to register a client is to add standard Spring Authorization Server application properties:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># The client id is my-client
+spring.security.oauth2.authorizationserver.client.myclient.registration.client-id=my-client
+# The client secret (password) is my-secret
+spring.security.oauth2.authorizationserver.client.myclient.registration.client-secret={noop}my-secret
+# Enable Client Credential grant for the my-client
+spring.security.oauth2.authorizationserver.client.myclient.registration.authorization-grant-types=client_credentials
+# Client credentials must be passed in the Authorization header using the HTTP Basic authentication scheme
+spring.security.oauth2.authorizationserver.client.myclient.registration.client-authentication_methods=client_secret_basic
+# Use opaque tokens instead of JWT
+spring.security.oauth2.authorizationserver.client.myclient.token.access-token-format=reference
+# access token time-to-live
+spring.security.oauth2.authorizationserver.client.myclient.token.access-token-time-to-live=24h</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The next set of application properties is Jmix-specific and defines which resource and row-level roles must be assigned to the access token issued to the client. In this example we will assign two resource roles:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>rest-minimal</code> (REST: minimal access) - to enable REST API endpoints access.</p>
+</li>
+<li>
+<p><code>user-management</code> (User management) - to allow operations with the User entity using REST API.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># my-client is the client id we configured previously
+jmix.authserver.client.myclient.client-id = my-client
+jmix.authserver.client.myclient.resource-roles = user-management, rest-minimal</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>user-management</code> role looks as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ResourceRole(name = "User management", code = UserManagementRole.CODE, scope = "API") <i class="conum" data-value="1"></i><b>(1)</b>
+public interface UserManagementRole {
+
+    String CODE = "user-management";
+
+    @EntityAttributePolicy(entityClass = User.class, attributes = "*", action = EntityAttributePolicyAction.MODIFY)
+    @EntityPolicy(entityClass = User.class, actions = EntityPolicyAction.ALL)
+    void user();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The API scope indicates the role will be applied for REST API requests</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After these properties are defined in the application it should be possible to obtain access tokens. In this example, we will use the <code>curl</code> command-line tool to interact with the REST API.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -X POST http://localhost:8080/oauth2/token \
+   --basic --user my-client:my-secret \
+   -H "Content-Type: application/x-www-form-urlencoded" \
+   -d "grant_type=client_credentials"</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+On Windows, remove <code>\</code> symbols and write the command in a single line.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>As a result, you should get something like this:</p>
+</div>
+<div class="listingblock">
+<div class="title">HTTP/1.1 200</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "access_token":"hKhgNyGMTqaKd6prH-GoHF8zFVTSr9tKKyE3OnMoafRO4FT4Xq_cewHr28cIRITaRmF0olRXpVTyFdxcOPTAl8Vc7xopHrdNuXNXwEeBn7NSiEMvQXW5zO0dwMn_H8FQ",
+  "token_type":"Bearer",
+  "expires_in":299
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>access_token</code> attribute is the token you can use for further requests as part of the <code>Authorization</code> Header. It acts as a temporary credential that grants you access to the application.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="rest-endpoints-security"><a class="anchor" href="#rest-endpoints-security"></a>Configuring REST Endpoints Security</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, when you add the REST API add-on to the application, no security settings are applied to the REST endpoints. There are <a class="xref page" href="../security/custom-endpoints.html">multiple ways</a> to protect these endpoints. One way is to configure authenticated URLs for resource server by adding the following application property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.resource-server.authenticated-url-patterns = /rest/**</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If the security of the REST endpoints is not configured in one way or another, then accessing them will either redirect to the UI login page or result in a server error due to executing code without the user’s security context.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="retrieve-entity-list"><a class="anchor" href="#retrieve-entity-list"></a>Retrieving Entity List</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>With the access token you can use the generic REST API endpoints to load a list of users (replace <code>&lt;access_token&gt;</code> with the value obtained on the previous step). In this example, we will fetch all the users that are present in the application through the Entities API:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -X GET http://localhost:8080/rest/entities/User \
+    -H "Authorization: Bearer &lt;access_token&gt;"</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This request supposes that your project contains an entity named <code>User</code>.</p>
+</div>
+<div class="paragraph">
+<p>The entity name is either a Java class name or the value of <code>name</code> attribute in the <code>@Entity</code> or <code>@JmixEntity</code> annotation.
+If you have specified a <strong>Project id</strong> when created the project, the entity name is <code>&lt;projectid&gt;_User</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The response will contain all users that are available in the application:</p>
+</div>
+<div class="listingblock">
+<div class="title">HTTP/1.1 200</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    "_entityName": "User",
+    "_instanceName": "[admin]",
+    "id": "60885987-1b61-4247-94c7-dff348347f93",
+    "version": 1,
+    "active": true,
+    "username": "admin"
+  }
+]</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

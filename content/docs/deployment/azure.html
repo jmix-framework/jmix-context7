@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure App Services :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Azure App Services</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, we describe how to deploy a Jmix application to Azure App Services cloud.</p>
+</div>
+<div class="paragraph">
+<p>Before starting the guide, create a Microsoft Azure account and Azure DevOps account, and ensure that you have access to <a href="https://portal.azure.com/" rel="noopener" target="_blank">Azure portal</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+We will use PostgreSQL as a database for this guide.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="azure-env"><a class="anchor" href="#azure-env"></a>Creating The Azure Environment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Launch the <a href="https://docs.microsoft.com/en-in/azure/cloud-shell/overview" rel="noopener" target="_blank">Azure Cloud Shell</a> from the Azure portal and begin with creating a resource group:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">az group create --name MyJmixGroup1 --location eastus</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, create a PostgreSQL server. Here <code>sku</code> stands for Stock Keeping Unit, so <code>--sku-name GP_Gen5_2</code> maps to General Purpose pricing tier, Generation 5, and 2 virtual cores. Pass your own database credentials in the command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">az postgres server create --resource-group MyJmixGroup1 --name myjmixpostgres1 --admin-user jmixadmin --admin-password ChangeMe@42 --sku-name GP_Gen5_2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Remember the password, as you will not be able to see it anywhere in the Azure interface.</p>
+</div>
+<div class="paragraph">
+<p>Navigate to <strong>myjmixpostgres1</strong> in portal, open <strong>Connection security</strong>, set <strong>Allow access to Azure services</strong> to <strong>Yes</strong> and click <strong>Save</strong>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="azure-project-setup"><a class="anchor" href="#azure-project-setup"></a>Jmix Project Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to use a local PostgreSQL database for development, your Data Store settings and <code>application.properties</code> should contain connection parameters for the local database, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">main.datasource.url = jdbc:postgresql://localhost/demo
+main.datasource.username = root
+main.datasource.password = root</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Azure PostgreSQL connection parameters should be specified in the Gradle task configuration as described below.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>build.gradle</code> and add the <a href="https://github.com/microsoft/azure-gradle-plugins/tree/master/azure-webapp-gradle-plugin" rel="noopener" target="_blank">Azure WebApp Plugin for Gradle</a> to the <code>plugins</code> section:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">plugins {
+    // ...
+    id "com.microsoft.azure.azurewebapp" version "1.2.0"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then add the <code>azurewebapp</code> task configuration with your Azure parameters and credentials:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">azurewebapp {
+    subscription = '&lt;your-subscription-id&gt;'
+    resourceGroup = 'MyJmixGroup1' <i class="conum" data-value="1"></i><b>(1)</b>
+    appServicePlanName = 'MyJmixPlan1' <i class="conum" data-value="2"></i><b>(2)</b>
+    appName = 'MyJmixApp1' <i class="conum" data-value="3"></i><b>(3)</b>
+    pricingTier = 'P1v2'
+    region = 'eastus'
+    runtime {
+        os = 'Linux'
+        webContainer = 'Java SE' <i class="conum" data-value="4"></i><b>(4)</b>
+        javaVersion = 'Java 17' <i class="conum" data-value="5"></i><b>(5)</b>
+    }
+    appSettings { <i class="conum" data-value="6"></i><b>(6)</b>
+        put('main.datasource.url', 'jdbc:postgresql://myjmixpostgres1.postgres.database.azure.com:5432/postgres')
+        put('main.datasource.username', 'jmixadmin@myjmixpostgres1')
+        put('main.datasource.password', 'ChangeMe@42')
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The resource group which you created in Azure portal.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The app service plan will be created automatically on first deployment.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The app name which will be used also in your application URL.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>A container for Spring Boot executable JAR.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Java version must correspond to the version used to compile the application.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The <code>appSettings</code> section allows you to set environment variables for connecting to the Azure PostgreSQL when the application is deployed to the cloud. Here <code>myjmixpostgres1</code> is the name of PostgreSQL server created above.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now you can deploy the application to Azure cloud with the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">./gradlew azureWebAppDeploy</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the deployment was successful, the running application is available at <code>https://myjmixapp1.azurewebsites.net</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you got an error from Gradle, try to execute the command again with the <code>--stacktrace</code> option to see the cause:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">./gradlew azureWebAppDeploy --stacktrace</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To <a href="https://docs.microsoft.com/en-us/azure/app-service/troubleshoot-diagnostic-logs#enable-application-logging-linuxcontainer" rel="noopener" target="_blank">enable application logging</a>, open the app in the portal and select <strong>App Service logs</strong>. In the <strong>Application logging</strong> field, select <strong>File System</strong> and click <strong>Save</strong>. After that, redeploy the application from the command line or restart it at the app overview page in the portal.</p>
+</div>
+<div class="paragraph">
+<p>To view or download the logs, go to the app page in the portal, <strong>Diagnose and solve problems</strong> → <strong>Availability and Performance</strong> → <strong>Application Logs</strong>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

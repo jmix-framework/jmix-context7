@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Editor :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Bulk Editor</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This add-on is designed to allow users to change attribute values for multiple entity instances at once.</p>
+</div>
+<div class="paragraph">
+<p>It provides an <a class="xref page" href="../flow-ui/actions.html">action</a> that opens a dialog where the user can enter attribute values. After that, the action updates the selected entities in the data store and in the UI.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For automatic installation through Jmix Marketplace, follow instructions in the <a class="xref page" href="../add-ons.html#installation">Add-ons</a> section.</p>
+</div>
+<div class="paragraph">
+<p>For manual installation, add the following dependency to your <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.bulkeditor:jmix-bulkeditor-starter'</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="usage"><a class="anchor" href="#usage"></a>Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The type of action provided by the add-on is <code>bulked_edit</code>. It is a <a class="xref page" href="../flow-ui/actions/list-actions.html">list component action</a>, so it can be added to <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a> and <a class="xref page" href="../flow-ui/vc/components/treeDataGrid.html">treeDataGrid</a>.</p>
+</div>
+<div class="paragraph">
+<p>Usage example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+    &lt;!-- ... --&gt;
+    &lt;button action="booksDataGrid.bulkEdit"/&gt;
+&lt;/hbox&gt;
+&lt;dataGrid id="booksDataGrid" dataContainer="booksDc" columnReorderingAllowed="true"
+            selectionMode="MULTI"&gt;
+    &lt;actions&gt;
+        &lt;!-- ... --&gt;
+        &lt;action id="bulkEdit" type="bulked_edit"/&gt;
+    &lt;/actions&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To be able to select multiple entities, set <code>selectionMode="MULTI"</code> for <code>dataGrid</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="parameterization"><a class="anchor" href="#parameterization"></a>Parameterization</h3>
+<div class="paragraph">
+<p>The <code>bulked_edit</code> action provides additional properties that can be configured either in XML or programmatically using setter methods in Java.</p>
+</div>
+<div class="paragraph">
+<p>In XML, configure these properties using the nested <code>&lt;properties&gt;</code> element. Each <code>&lt;property&gt;</code> element corresponds to a setter method in the action class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;action id="bulkEditAction" type="bulked_edit"&gt;
+    &lt;properties&gt;
+        &lt;property name="includeProperties" value="username, email"/&gt;
+    &lt;/properties&gt;
+&lt;/action&gt;</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_available_properties"><a class="anchor" href="#_available_properties"></a>Available Properties</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><code>includeProperties</code> - specifies the entity attributes to display in the bulk editor window. When set, all other attributes are excluded from editing.</p>
+</li>
+<li>
+<p><code>exclude</code> - defines a regular expression to explicitly exclude specific fields from the list of attributes available for editing.</p>
+</li>
+<li>
+<p><code>useConfirmDialog</code> - controls whether to show a confirmation dialog to users before saving changes. Default value is <code>true</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

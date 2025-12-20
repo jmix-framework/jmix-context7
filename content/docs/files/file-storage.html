@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using File Storage :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Using File Storage</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>File Storage is an abstraction enabling different implementations of how and where the files are stored and providing a unified <a href="https://github.com/jmix-framework/jmix/blob/master/jmix-core/core/src/main/java/io/jmix/core/FileStorage.java" rel="noopener" target="_blank">interface</a> for accessing files and referring to them from the data model entities.</p>
+</div>
+<div class="paragraph">
+<p>Jmix comes with two file storage implementations: <a href="#local-fs">Local</a> and <a href="#aws-fs">AWS</a>. When you create a new project in Studio, it includes the local implementation.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can store files of any size in the file storage, because transferring files to and from the file storage is performed by copying small chunks of data between input and output streams, so files are never fully loaded into memory.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="ui-example"><a class="anchor" href="#ui-example"></a>Working with Files in UI</h3>
+<div class="paragraph">
+<p>In this section, we will give an example of working with files in the file storage using the UI components.</p>
+</div>
+<div class="paragraph">
+<p>Firstly, create an attribute of the <code>FileRef</code> type in your entity, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Entity
+@Table(name = "ATTACHMENT")
+public class Attachment {
+    // ...
+
+    @Column(name = "FILE_")
+    private FileRef file;
+
+    public FileRef getFile() {
+        return file;
+    }
+
+    public void setFile(FileRef file) {
+        this.file = file;
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you run the application, Studio generates a database migration script for creating a corresponding column of the string type, because <code>FileRef</code> has a string representation in the URI format.</p>
+</div>
+<div class="paragraph">
+<p>For uploading files from a UI view, use the <a class="xref page" href="../flow-ui/vc/components/fileStorageUploadField.html">fileStorageUploadField</a> component bound to the entity attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;iframe/&gt;
+&lt;formLayout id="form" dataContainer="attachmentDc"&gt;
+    &lt;fileStorageUploadField id="fileField" property="file"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To download attached files, add a component column to the data grid in the list view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataGrid&lt;Attachment&gt; attachmentsDataGrid;
+
+@Autowired
+private UiComponents uiComponents;
+
+@Autowired
+private Downloader downloader; <i class="conum" data-value="1"></i><b>(1)</b>
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    attachmentsDataGrid.addComponentColumn(attachment -&gt; {
+        Button button = uiComponents.create(Button.class);
+        button.setText("Download");
+        button.addThemeName("tertiary-inline");
+        button.addClickListener(clickEvent -&gt; {
+            downloader.download(attachment.getFile()); <i class="conum" data-value="2"></i><b>(2)</b>
+        });
+        return button;
+    });
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Use the <a class="xref page" href="downloading-files.html#downloader">Downloader</a> bean to download files.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>download()</code> method accepts the <code>FileRef</code> value and takes the file from the file storage specified in the <code>FileRef</code> object. The name and type of the file are also encoded in <code>FileRef</code>, so the web browser correctly chooses whether to download or display the file.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="file-storage-example"><a class="anchor" href="#file-storage-example"></a>Using FileStorage Interface</h3>
+<div class="paragraph">
+<p>The following example shows how to work with the <a href="https://github.com/jmix-framework/jmix/blob/master/jmix-core/core/src/main/java/io/jmix/core/FileStorage.java" rel="noopener" target="_blank">FileStorage</a> interface directly.</p>
+</div>
+<div class="paragraph">
+<p>The first method saves to file storage a file obtained from a web service. The second method loads a file from the file storage and saves it to the local file system.</p>
+</div>
+<div class="paragraph">
+<p>The same <code>Attachment</code> entity is used as in the previous example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private FileStorageLocator fileStorageLocator; <i class="conum" data-value="1"></i><b>(1)</b>
+@Autowired
+private DataManager dataManager;
+
+private void getAndSaveImage() {
+    try {
+        <i class="conum" data-value="2"></i><b>(2)</b>
+        URLConnection connection = new URL("https://picsum.photos/300").openConnection();
+        try (InputStream responseStream = connection.getInputStream()) {
+            <i class="conum" data-value="3"></i><b>(3)</b>
+            FileStorage fileStorage = fileStorageLocator.getDefault();
+            FileRef fileRef = fileStorage.saveStream("photo.jpg", responseStream);
+            <i class="conum" data-value="4"></i><b>(4)</b>
+            Attachment attachment = dataManager.create(Attachment.class);
+            attachment.setFile(fileRef);
+            dataManager.save(attachment);
+        }
+    } catch (IOException e) {
+        throw new RuntimeException("Error getting image", e);
+    }
+}
+
+private void saveToLocalFile(Attachment attachment, Path path) {
+    FileStorage fileStorage = fileStorageLocator.getDefault();
+    FileRef fileRef = attachment.getFile();
+    <i class="conum" data-value="5"></i><b>(5)</b>
+    InputStream inputStream = fileStorage.openStream(fileRef);
+    try {
+        <i class="conum" data-value="6"></i><b>(6)</b>
+        Files.copy(inputStream, path.resolve(fileRef.getFileName()),
+                StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+        throw new RuntimeException("Error saving image", e);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>FileStorageLocator</code> allows you to work with a particular file storage if you have defined <a href="#multiple-fs">multiple file storages</a> in your project. If you have a single file storage (which is a default situation), you can inject the <code>FileStorage</code> interface directly.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Getting an input stream for the web resource. Instead of the <code>URLConnection</code> class, you may want to use <code>HttpClient</code>, or a third-party library like Apache HttpClient.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Saving the resource content to the file storage. The returned <code>FileRef</code> object is a reference to the file in the file storage.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Saving the reference to an entity attribute.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Getting an input stream to load the file from the file storage.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Saving the file to the local file system.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="local-fs"><a class="anchor" href="#local-fs"></a>Local File Storage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Local File Storage implementation allows you to store files on the local file system of the application server or on any network-attached storage (NAS).</p>
+</div>
+<div class="paragraph">
+<p>To use Local File Storage in your application, make sure your <code>build.gradle</code> file contains the following line in the <code>dependencies</code> section:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.localfs:jmix-localfs-starter'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Files are stored in a special directory structure which is maintained by the file storage. By default, the root directory is <code>${user.dir}/.jmix/work/filestorage</code>, where <code>${user.dir}</code> is the user working directory (where JVM was started). You can change it by specifying a work directory in the <a class="xref page" href="../app-properties.html#jmix.core.work-dir">jmix.core.work-dir</a> application property or a complete path in the <code>jmix.localfs.storage-dir</code> application property, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.localfs.storage-dir = /opt/file-storage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>jmix.localfs.max-file-size</code> property limits the maximum size of uploaded files. Its default value is <code>100MB</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="aws-fs"><a class="anchor" href="#aws-fs"></a>AWS File Storage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The AWS File Storage implementation allows you to store files in <a href="https://aws.amazon.com/s3" rel="noopener" target="_blank">Amazon S3</a>.</p>
+</div>
+<div class="paragraph">
+<p>To use AWS File Storage in your application, install the AWS File Storage add-on from the marketplace as described in the <a class="xref page" href="../add-ons.html">Add-ons</a> section, or manually add the following line to the <code>dependencies</code> section of your <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.awsfs:jmix-awsfs-starter'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you plan to use AWS File Storage only, remove the Local File Storage dependency from <code>build.gradle</code> (the line containing <code>io.jmix.localfs:jmix-localfs-starter</code>). Otherwise, see the <a href="#multiple-fs">next section</a> for how to configure multiple file storages.</p>
+</div>
+<div class="paragraph">
+<p>Define application properties:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.awsfs.access-key = &lt;access key ID&gt;
+jmix.awsfs.secret-access-key = &lt;secret access key&gt;
+jmix.awsfs.region = &lt;AWS region, for example eu-north-1&gt;
+jmix.awsfs.bucket = &lt;S3 bucket name&gt;
+jmix.awsfs.chunk-size = &lt;optional upload chunk size in KB, default is 8192&gt;
+jmix.awsfs.endpoint-url = &lt;optional endpoint URL for S3-compatible cloud storages&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The S3 bucket in the selected region must be created beforehand.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="multiple-fs"><a class="anchor" href="#multiple-fs"></a>Using Multiple File Storages</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to use more than one file storage in your application, specify a default one using its name in the application property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.default-file-storage = fs</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Local File Storage name is <code>fs</code>, the AWS File Storage name is <code>s3</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you want to use multiple storages of the same type, define additional storages with unique names. For example, to define an additional Local File Storage with the root directory at <code>/var/tmp/myfs</code>, add the following code to the main application class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+FileStorage myFileStorage() {
+    return new LocalFileStorage("myfs", "/var/tmp/myfs");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To work with different file storages programmatically, use the <code>FileStorageLocator</code> bean. It allows you to get a file storage by its name.</p>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../flow-ui/vc/components/fileStorageUploadField.html">fileStorageUploadField</a> component has the <code>fileStorage</code> attribute to specify a file storage name. If it’s not set, the component uses the default file storage.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

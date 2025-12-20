@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Configuration</h1>
+<div class="sect1">
+<h2 id="https"><a class="anchor" href="#https"></a>Configuring HTTPS</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To authenticate desktop applications, the server must have HTTPS enabled. Here are simple instructions for configuring HTTPS in your development environment.</p>
+</div>
+<div class="sect2">
+<h3 id="trusted-certificate"><a class="anchor" href="#trusted-certificate"></a>Generating Trusted Certificate</h3>
+<div class="paragraph">
+<p>Trusted  certificates can be obtained from SSL certificate providers or generated with <code>certbot</code>. But for the development purposes you can issue your own root certificate and sign development server’s certificate with it. To simplify this task, we recommend using the <code>mkcert</code> tool.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Install <code>mkcert</code> by following the instructions provided in its repository: <a href="https://github.com/FiloSottile/mkcert" rel="noopener" target="_blank">https://github.com/FiloSottile/mkcert</a>.</p>
+</li>
+<li>
+<p>Generate and install the root certificate:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">mkcert -install</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a certificate for localhost:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">mkcert -pkcs12 localhost 127.0.0.1 ::1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You will see the <code>localhost+2.p12</code> file in the current folder.</p>
+</div>
+</li>
+<li>
+<p>Create a keystore file with the certificate for your project:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">keytool -importkeystore -srckeystore localhost+2.p12 -srcstoretype pkcs12 -destkeystore localhost.jks</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Enter <code>changeit</code> as the source keystore password.</p>
+</div>
+<div class="paragraph">
+<p>You will see the <code>localhost.jks</code> file in the current folder.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="configuring-server"><a class="anchor" href="#configuring-server"></a>Configuring Server</h3>
+<div class="paragraph">
+<p>This section explains how to use the certificate generated in the previous section in your application when it runs from the IDE or as an executable JAR.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create <code>src/main/resources/&lt;base-package&gt;/keystore</code> directory and copy <code>localhost.jks</code> into it.</p>
+</li>
+<li>
+<p>Set the following properties in the <code>application.properties</code> file replacing <code>&lt;base-package&gt;</code> and <code>&lt;password&gt;</code> with actual values:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># Enables HTTPS
+server.ssl.enabled=true
+# The format used for the keystore
+server.ssl.key-store-type = JKS
+# The path to the keystore containing the certificate
+server.ssl.key-store = classpath:&lt;base-package&gt;/keystore/localhost.jks
+# The password used to generate the keystore
+server.ssl.key-store-password = &lt;password&gt;
+# The alias mapped to the certificate
+server.ssl.key-alias = localhost
+
+# Changes the server's port
+server.port = 8443</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The <code>&lt;base-package&gt;</code> in the path to the keystore (<code>server.ssl.key-store</code> property) should be presented as a slash-separated path:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>server.ssl.key-store = classpath:com/example/demo/keystore/localhost.jks</pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Open the main application class and change the <code>printApplicationUrl()</code> method. The URL should be changed to <code>https://</code> after configuring HTTPS:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@EventListener
+    public void printApplicationUrl(final ApplicationStartedEvent event) {
+        LoggerFactory.getLogger(DemoApplication.class).info("Application started at "
+                + "https://localhost:"
+                + environment.getProperty("local.server.port")
+                + Strings.nullToEmpty(environment.getProperty("server.servlet.context-path")));
+    }</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="maintenance"><a class="anchor" href="#maintenance"></a>Maintenance Tasks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The WebDAV add-on includes several maintenance tasks, as described below. To run these tasks regularly, include the Quartz add-on in your project as outlined in the <a class="xref page" href="../quartz/index.html#installation">Quartz / Installation</a> section.</p>
+</div>
+<div class="sect2">
+<h3 id="expired-lock-cleaning-job"><a class="anchor" href="#expired-lock-cleaning-job"></a>ExpiredLockCleaningJob</h3>
+<div class="paragraph">
+<p>This job removes expired <a class="xref page" href="webdav-documents.html#lock-unlock">lock</a> objects. By default, it runs every two hours.</p>
+</div>
+<div class="paragraph">
+<p>To modify the job schedule, use the <a class="xref page" href="webdav-properties.html#jmix.webdav.expired-lock-cleaning-cron">jmix.webdav.expired-lock-cleaning-cron</a> property.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="webdav-document-versions-cleaning-job"><a class="anchor" href="#webdav-document-versions-cleaning-job"></a>WebdavDocumentVersionsCleaningJob</h3>
+<div class="paragraph">
+<p>This job removes <code>WebdavDocumentVersion</code> instances that are not associated with any documents. By default, it runs once a month.</p>
+</div>
+<div class="paragraph">
+<p>To change the job schedule, use the <a class="xref page" href="webdav-properties.html#jmix.webdav.document-versions-cleaning-cron">jmix.webdav.document-versions-cleaning-cron</a> property.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="security"><a class="anchor" href="#security"></a>Configuring Security</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Access restrictions for documents are set up using <a class="xref page" href="../security/resource-roles.html">resource</a> and <a class="xref page" href="../security/row-level-roles.html">row-level</a> roles.</p>
+</div>
+<div class="sect2">
+<h3 id="predefined-roles"><a class="anchor" href="#predefined-roles"></a>Predefined Roles</h3>
+<div class="paragraph">
+<p>The Jmix application with the WebDAV add-on includes two default resource roles:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>WebDAV: minimal access</strong> - a fundamental WebDAV role necessary for all users utilizing WebDAV functionality.</p>
+</li>
+<li>
+<p><strong>WebDAV: view document browser</strong> - provides permission to access the <a class="xref page" href="webdav-documents.html">WebDAV documents</a> view.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

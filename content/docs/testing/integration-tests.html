@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Tests :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Integration Tests</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>An integration test is a broader type of test. It allows you to execute code in an environment close to the normal application runtime. When we talk about integration tests, we mean a test that starts the complete Spring context and interacts with a database if needed.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use the <strong>New → Advanced → Integration Test</strong> action in the <strong>Jmix</strong> tool window to quickly create an integration test using Studio.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following example will check the <code>OrderAmountCalculation</code> class again. But this time, we will test the class not as an isolated unit (as described in the previous section), but as part of the bigger context where it is used in the application. In this case, there is an <code>EntityChangedEvent</code> listener for <code>OrderLine</code> entities. As part of the persistence logic, the listener recalculates the order amount of the order, the order line belongs to, with the help of the <code>OrderAmountCalculation</code> class:</p>
+</div>
+<div class="listingblock">
+<div class="title">OrderLineEventListener.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@EventListener
+public void recalculateOrderAmount(EntityChangedEvent&lt;OrderLine&gt; event) {
+    Order order = findOrderFromEvent(event);
+
+    BigDecimal amount = new OrderAmountCalculation().calculateTotalAmount(order.getLines());
+    order.setAmount(amount);
+
+    dataManager.save(order);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the integration test, the <code>OrderLineEventListener</code> and the <code>OrderAmountCalculation</code> can be tested together. The test will create an order and an order line and store them in the database via the <a class="xref page" href="../data-access/data-manager.html">DataManager</a> API. This will trigger the event listener, and the order amount will be calculated.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dependency-injection-in-tests"><a class="anchor" href="#dependency-injection-in-tests"></a>Dependency Injection in Tests</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A Spring integration test can use the same dependency injection mechanism as the application code. In particular, you can use the <code>@Autowired</code> annotation to inject beans into the test class. In this example, the <code>DataManager</code> is injected into the test class to use it for transitively triggering the <code>OrderLineEventListener</code> logic:</p>
+</div>
+<div class="listingblock">
+<div class="title">OrderLineEventListenerTest.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SpringBootTest
+public class OrderLineEventListenerTest {
+
+    @Autowired
+    DataManager dataManager;
+
+    // ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need to test a custom bean directly, you can also directly inject the bean under test into the test class. In the following example, the <code>CustomerService</code> is injected into the test class to directly execute its tested methods:</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerServiceTest.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SpringBootTest
+public class CustomerServiceTest {
+
+    @Autowired
+    CustomerService customerService;
+
+    // ...
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="database-interactions"><a class="anchor" href="#database-interactions"></a>Database Interactions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are two main reasons to interact with the database in an integration test.</p>
+</div>
+<div class="paragraph">
+<p>The first one is that you might want to set up test data required for the execution of the test case. To interact with the database, you can use the regular Jmix features like <code>DataManager</code>, as you would in production code.</p>
+</div>
+<div class="paragraph">
+<p>The second reason is that the database can be accessed by the application logic executed in a test.</p>
+</div>
+<div class="paragraph">
+<p>Let’s look at an example for both of those scenarios:</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerServiceTest.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Test
+void given_customerWithEmailExists_when_findByEmail_then_customerFound() {
+
+    // given
+    Customer customer = dataManager.create(Customer.class);
+    customer.setEmail("customer@test.com");
+    dataManager.save(customer); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    // when
+    Optional&lt;Customer&gt; foundCustomer = customerService.findByEmail("customer@test.com");  <i class="conum" data-value="2"></i><b>(2)</b>
+
+    // then
+    assertThat(foundCustomer)
+            .isPresent();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>DataManager</code> is used in the test to create a test customer in the database.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>CustomerService</code> is used to perform a database lookup of customers by email.</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="test-data-cleanup"><a class="anchor" href="#test-data-cleanup"></a>Test Data Cleanup</h3>
+<div class="paragraph">
+<p>In the example above, the <code>DataManager</code> stores a test customer in the database. Since all tests share the same database instance by default, it means that this test data will also be available for the next test. This is not a problem in this example, but in other cases, it might be. For example, consider that there is a unique constraint on the email address field of the <code>Customer</code> entity. If you write a test that creates a customer with a specific email address, and another test that searches for a customer by email address - assuming it is not there, the second test would fail, because it would find the customer created by the first test.</p>
+</div>
+<div class="paragraph">
+<p>There are several ways of cleaning up the test data. The first one is to keep references to entities that were created during the test. In the example above, you could keep a reference to the customer that was created in the test and delete it after the test has finished using <code>dataManager.remove(customer)</code>. This is a valid approach, but it requires some additional code in the test. Additionally, it is not always possible to keep a reference to data that were created during the test. For example, if a new entity is created in the production code, you cannot get a reference to it in the test. Furthermore, in case of an exception during the test, the cleanup code might not be executed.</p>
+</div>
+<div class="paragraph">
+<p>The second option would be to perform more general database cleanup. In the following example a <code>JdbcTemplate</code> performs the SQL statement <code>DELETE FROM CUSTOMER</code> to delete all customers from the database:</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerServiceTest.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired <i class="conum" data-value="1"></i><b>(1)</b>
+DataSource dataSource;
+
+@AfterEach <i class="conum" data-value="2"></i><b>(2)</b>
+void tearDown() {
+    JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+    JdbcTestUtils.deleteFromTables(jdbc, "CUSTOMER"); <i class="conum" data-value="3"></i><b>(3)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>DataSource</code> is injected to instantiate the <code>JdbcTemplate</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>@AfterEach</code> indicates to JUnit that this method should be executed after each test case.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The Spring <code>JdbcTestUtils</code> class provides a convenience method to delete all data from a database table. See more information about it in the <a href="https://docs.spring.io/spring-framework/reference/testing/support-jdbc.html" rel="noopener" target="_blank">Spring testing documentation</a>.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="security-context-in-tests"><a class="anchor" href="#security-context-in-tests"></a>Security Context in Tests</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix allows code to be executed on behalf of a specified user, which is often necessary for testing functionalities that rely on user roles and permissions. This can be achieved by using the <a class="xref page" href="../security/authentication.html#system">SystemAuthenticator</a>.</p>
+</div>
+<div class="paragraph">
+<p>Let’s consider an example of testing a <code>CustomerService</code> method that behaves differently depending on the role of the user who executes it:</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class CustomerService {
+
+    @Autowired
+    private DataManager dataManager;
+
+    public Optional&lt;Customer&gt; findByEmail(String email) {
+        return dataManager.load(Customer.class)
+                .query("select c from Customer c where c.email = :email")
+                .parameter("email", email)
+                .optional();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the <code>CustomerService</code> has a method <code>findCustomerByEmail</code> that returns a customer entity if found. The security policies enable access to customer data to only particular roles. This behavior can be tested by using the <code>SystemAuthenticator</code> to execute the method as a particular user:</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerServiceTest.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private final String USERNAME = "userWithoutPermissions";
+
+@Test
+void given_noPermissionsToReadCustomerData_when_findByEmail_then_nothingFound() {
+
+    // given
+    Customer customer = dataManager.create(Customer.class);
+    customer.setEmail("customer@test.com");
+    dataManager.save(customer);
+
+    // and
+    User userWithoutPermissions = dataManager.create(User.class);
+    userWithoutPermissions.setUsername(USERNAME);
+    dataManager.save(userWithoutPermissions); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    // when
+    Optional&lt;Customer&gt; foundCustomer = systemAuthenticator.withUser( <i class="conum" data-value="2"></i><b>(2)</b>
+            USERNAME,
+            () -&gt; customerService.findByEmail("customer@test.com") <i class="conum" data-value="3"></i><b>(3)</b>
+    );
+
+    // then
+    assertThat(foundCustomer)
+            .isNotPresent();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A new user without any role assignment is created for the test case.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>SystemAuthenticator</code> executes the code under test on behalf of the newly created user.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>CustomerService</code> performs a database lookup of customers by email with the security context of that user.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>As the user has no roles, the customer service returns an empty <code>Optional</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="authenticated-as-admin"><a class="anchor" href="#authenticated-as-admin"></a>AuthenticatedAsAdmin</h3>
+<div class="paragraph">
+<p>Instead of setting up the security context for particular parts of the test, you can use the <code>AuthenticatedAsAdmin</code> JUnit extension, which is automatically generated in a new Jmix project. It creates a security context before each test and sets the authenticated user to the admin user.</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerServiceTest.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SpringBootTest
+@ExtendWith(AuthenticatedAsAdmin.class)
+public class CustomerServiceTest {
+    // ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is also possible to combine the <code>AuthenticatedAsAdmin</code> extension with the <code>SystemAuthenticator</code> to execute the test code as a particular user. By annotating the test class the default security context is set to the admin. But within the test case, you can use the <code>SystemAuthenticator</code> to execute the code as a particular user.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="overriding-application-behavior"><a class="anchor" href="#overriding-application-behavior"></a>Overriding Application Behavior</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Sometimes even for integration tests it is required to mock out certain parts of the application. In those cases, it is possible to combine the functionalities of <code>@SpringBooTest</code> with Mockito and mock out particular beans, but still use the overall Spring context.</p>
+</div>
+<div class="paragraph">
+<p>Let’s consider a <code>NotificationService</code> that as part of its business logic uses the <code>Emailer</code> API from the <a class="xref page" href="../email/index.html">Email Sending</a> add-on. An integration test for this service should not actually send out emails, so the email functionality should be mocked.</p>
+</div>
+<div class="sect2">
+<h3 id="mock-bean"><a class="anchor" href="#mock-bean"></a>@MockBean</h3>
+<div class="paragraph">
+<p>To mock a bean in a Spring integration test, you can use the <code>@MockBean</code> annotation. In the following example, the <code>Emailer</code> bean is mocked for the <code>NotificationService</code> test described above:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.demo.app;
+
+import com.company.demo.entity.Customer;
+import io.jmix.email.EmailException;
+import io.jmix.email.EmailInfo;
+import io.jmix.email.Emailer;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+
+@SpringBootTest
+class NotificationServiceTest {
+
+    @MockBean
+    Emailer emailer;
+
+    @Autowired
+    NotificationService notificationService;
+
+    @Test
+    void given_emailDelivered_when_sendNotification_then_success() throws EmailException {
+
+        // given:
+        Customer customer = new Customer();
+        customer.setEmail("customer@company.com");
+
+        // when:
+        boolean success = notificationService.notifyCustomerAboutOrderDelivered(customer);
+
+        // then:
+        assertThat(success).isTrue();
+    }
+
+
+    @Test
+    void given_emailNotDelivered_when_sendNotification_then_noSuccess() throws EmailException {
+
+        // given:
+        doThrow(EmailException.class).when(emailer)
+                .sendEmail(any(EmailInfo.class));
+
+        // and:
+        Customer customer = new Customer();
+        customer.setEmail("customer@company.com");
+
+        // when:
+        boolean success = notificationService.notifyCustomerAboutOrderDelivered(customer);
+
+        // then:
+        assertThat(success).isFalse();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>@MockBean</code> annotation replaces the bean in the application context with a mock. This enables two things:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>To prevent the email from actually being sent.</p>
+</li>
+<li>
+<p>To simulate failure scenario where email sending did not work.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="test-configuration"><a class="anchor" href="#test-configuration"></a>@TestConfiguration</h3>
+<div class="paragraph">
+<p>In the example above, the <code>@MockBean</code> annotation is used to replace the <code>Emailer</code> bean with a mock. But this is not the only way to replace a bean in the application context. Another way is to use the <code>@TestConfiguration</code> annotation. This annotation is set on a configuration class that is used only for the test. In the following example, the test configuration class replaces the <code>Emailer</code> bean with a mock:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.demo.app;
+
+import com.company.demo.entity.Customer;
+import io.jmix.email.EmailException;
+import io.jmix.email.EmailInfo;
+import io.jmix.email.Emailer;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+
+
+@SpringBootTest
+class NotificationServiceWithTestConfigurationTest {
+
+    @Autowired
+    NotificationService notificationService;
+
+    @TestConfiguration <i class="conum" data-value="1"></i><b>(1)</b>
+    public static class EmailerTestConfiguration {
+        @Bean
+        public Emailer emailer() throws EmailException { <i class="conum" data-value="2"></i><b>(2)</b>
+            Emailer emailer = mock(Emailer.class); <i class="conum" data-value="3"></i><b>(3)</b>
+
+            doThrow(EmailException.class).when(emailer) <i class="conum" data-value="4"></i><b>(4)</b>
+                    .sendEmail(any(EmailInfo.class));
+
+            return emailer;
+        }
+    }
+
+    @Test
+    void given_emailNotDelivered_when_sendNotification_then_noSuccess() throws EmailException {
+
+        // given:
+        Customer customer = new Customer();
+        customer.setEmail("customer@company.com");
+
+        // when:
+        boolean success = notificationService.notifyCustomerAboutOrderDelivered(customer);
+
+        // then:
+        assertThat(success).isFalse();
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The inner static class annotated with <code>@TestConfiguration</code> will be picked up by Spring when executing the test case.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>A bean with the name <code>emailer</code> of type <code>Emailer</code> is declared. It overrides the standard bean of this type.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>A mock instance is created.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The behaviour of the mock is specified and the configured mock is returned.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The production code interacting with the <code>Emailer</code> bean will now use the mock instead of the standard implementation.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

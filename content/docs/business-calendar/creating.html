@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating Business Calendar :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Creating Business Calendar</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can create business calendars both at <a href="#business-calendars-runtime">runtime</a> using a special visual editor, or at <a href="#business-calendars-design-time">design time</a> with annotated Java interfaces.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="business-calendars-runtime"><a class="anchor" href="#business-calendars-runtime"></a>Creating Business Calendar at Runtime</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After the add-on is installed, use the main menu to open the <strong>Business calendars</strong> list view.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="business calendar list" src="_images/business-calendar-list.png" width="1392"/>
+</div>
+</div>
+<div class="paragraph">
+<p>When on this page, click the <strong>Create</strong> button to open the <strong>Business calendar editor</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="business calendar editor" src="_images/business-calendar-editor.png" width="1392"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Specify the following parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong> – human-readable description of the given calendar.</p>
+</li>
+<li>
+<p><strong>Code</strong> – unique identifier of the given calendar.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The next step is to define working days and hours while excluding non-working time, such as holidays, vacations, or any other time off work. For this, use the editor’s tabs described below.</p>
+</div>
+<div class="sect2">
+<h3 id="_holidays"><a class="anchor" href="#_holidays"></a>Holidays</h3>
+<div class="paragraph">
+<p>On the <strong>Holidays</strong> tab, click <strong>Create</strong> to add holidays and weekends.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="business calendar holidays" src="_images/business-calendar-holidays.png" width="1392"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The add-on supports the following types of holidays:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Day of week</strong> – allows to set holidays on certain days of week. For example, for many people, the standard weekend is Saturday and Sunday:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="business calendar day of week" src="_images/business-calendar-day-of-week.png" width="484"/>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Specific date holiday</strong> – allows to set a holiday on an exact date. For example, some holidays fall on a different day every year to allow people a long weekend:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="business calendar specific date holiday" src="_images/business-calendar-specific-date-holiday.png" width="484"/>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Annual holiday</strong> – allows to schedule recurring holidays that are celebrated on the same day every year, such as <em>New Year’s Day</em>.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="business calendar annual holiday" src="_images/business-calendar-annual-holiday.png" width="484"/>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Cron-based holiday</strong> – allows specifying holidays in the quartz CRON format. See <a href="http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html" rel="noopener" target="_blank">Cron trigger tutorial</a> for more information.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="business calendar cron holiday" src="_images/business-calendar-cron-holiday.png" width="484"/>
+</div>
+</div>
+<div class="paragraph">
+<p>It can help adding some nontrivial holidays, like the <em>Third Friday of every month</em> or the <em>First Monday of July</em>, etc.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_working_schedule"><a class="anchor" href="#_working_schedule"></a>Working Schedule</h3>
+<div class="paragraph">
+<p>On the <strong>Working schedule</strong> tab, you can specify working hours for each day of the week. There can be several working periods per day, but they should not overlap.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="working schedule editor" src="_images/working-schedule-editor.png" width="1392"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_additional_business_days"><a class="anchor" href="#_additional_business_days"></a>Additional Business Days</h3>
+<div class="paragraph">
+<p>On the <strong>Additional business days</strong> tab, you can set days that you want to always be treated business days. If such a date coincides with a holiday, it will still be a workday. There is an option to set different working hours.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="additional business day editor" src="_images/additional-business-day-editor.png" width="1392"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="business-calendars-design-time"><a class="anchor" href="#business-calendars-design-time"></a>Creating Business Calendar at Design Time</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use annotated Java interface to create a business calendar at design time. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@BusinessCalendar(name = "Sample Business Calendar",
+        code = "sample-business-calendar") <i class="conum" data-value="1"></i><b>(1)</b>
+public interface SampleBusinessCalendar {
+
+    @CronHoliday(expression = "* * * 1-2 MAY ?") <i class="conum" data-value="2"></i><b>(2)</b>
+    @CronHoliday(expression = "* * * ? * 6#3")
+    void cronHoliday();
+
+    @WeeklyHoliday(DayOfWeek.SATURDAY)
+    @WeeklyHoliday(value = DayOfWeek.SUNDAY,
+            description = "Sunday is a day for family") <i class="conum" data-value="3"></i><b>(3)</b>
+    void weeklyHolidays();
+
+    @FixedDayHoliday(fixedDate = "2024-05-08") <i class="conum" data-value="4"></i><b>(4)</b>
+    @FixedDayHoliday(fixedDate = "2024-05-09")
+    void fixedHoliday();
+
+    @FixedYearlyHoliday(month = Month.NOVEMBER, dayOfMonth = 4) <i class="conum" data-value="5"></i><b>(5)</b>
+    @FixedYearlyHoliday(month = Month.JUNE, dayOfMonth = 12)
+    void fixedYearlyHoliday();
+
+    @ScheduledBusinessDay(dayOfWeek = DayOfWeek.MONDAY,
+            startTime = "08:00", endTime = "17:00") <i class="conum" data-value="6"></i><b>(6)</b>
+    @ScheduledBusinessDay(dayOfWeek = DayOfWeek.WEDNESDAY,
+            startTime = "09:00", endTime = "17:00")
+    @ScheduledBusinessDay(dayOfWeek = DayOfWeek.FRIDAY,
+            startTime = "10:00", endTime = "15:00")
+    void scheduledBD();
+
+    @AdditionalBusinessDay(fixedDate = "2024-05-06",
+            startTime = "10:00", endTime = "16:30") <i class="conum" data-value="7"></i><b>(7)</b>
+    @AdditionalBusinessDay(fixedDate = "2024-05-07",
+            startTime = "10:00", endTime = "16:30")
+    void additionalBD();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Annotated business calendar is an interface annotated with the <code>@BusinessCalendar</code> annotation. You should specify the following parameters for the <code>@BusinessCalendar</code> annotation:
+<div class="ulist">
+<ul>
+<li>
+<p><code>name</code> – a human-readable description of a given calendar;</p>
+</li>
+<li>
+<p><code>code</code> – a unique identifier of a given calendar.</p>
+</li>
+</ul>
+</div></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Specify holiday in the quartz CRON format.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Specify holiday for days of the week.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Specify holiday for a specific date.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Specify holiday for an annually recurring date.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Specify scheduled business days.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Specify additional business days.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A business calendar created at the design time is displayed in the list of all business calendars and is available only for viewing.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="business calendars" src="_images/business-calendars.gif" width="1282"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

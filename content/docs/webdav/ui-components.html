@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Components :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">UI Components</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The WebDAV add-on includes UI components that facilitate working with WebDAV documents.</p>
+</div>
+<div class="paragraph">
+<p>To add these components on the view, use Jmix Studio.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add Component</strong> in the actions panel, then find type <code>webdav</code> in the search field. From the list of results, select the desired component and double-click on it.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add webdav component" src="_images/add-webdav-component.png" width="767"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The new element will be added in both the <strong>Jmix UI</strong> structure panel and in the XML. You can configure attributes like <a class="xref page" href="../flow-ui/vc/common-attributes.html#id">id</a>, <a class="xref page" href="../flow-ui/vc/common-attributes.html#height">height</a>, <a class="xref page" href="../flow-ui/vc/common-attributes.html#width">width</a>, etc., in the same way as it is done for other <a class="xref page" href="../flow-ui/vc/components.html">UI components</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;webdav:webdavDocumentUpload id="webdavDocumentField"
+                             property="webdavDocument"
+                             colspan="2"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you don’t use the view designer, declare the <code>webdav</code> namespace in your view’s XML descriptor manually:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:webdav="http://jmix.io/schema/webdav/ui"
+      title="msg://webdavDocumentWrapperDetailView.title"
+      focusComponent="form"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="how-to-inject">
+<p>You can inject the UI component into the controller by utilizing the <strong>Inject to Controller</strong> action in the <strong>Jmix UI</strong> structure panel:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="inject webdav from hierarchy" src="_images/inject-webdav-from-hierarchy.png" width="477"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can employ the <strong>Inject</strong> button available in the actions panel:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="inject webdav" src="_images/inject-webdav.png" width="851"/>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For the component to be injectable into the controller, it must have the <code>id</code> attribute specified.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now you can interact with the webDAV UI component programmatically by accessing its methods directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private WebdavDocumentUploadField webdavDocumentField;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    webdavDocumentField.setMaxFileSize(5242880);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="webdav-document-link"><a class="anchor" href="#webdav-document-link"></a>WebdavDocumentLink</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>WebdavDocumentLink</code> is a UI component enabling users to open documents in desktop office applications. Additionally, if document versioning is supported, users can view all versions of the document.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="ui webdav document link" src="_images/ui-webdav-document-link.png" width="994"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The component offers the following features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Opening the most recent version of a document for viewing and editing.</p>
+</li>
+<li>
+<p>Opening previous versions of a document in read-only mode (for further information, refer to <a class="xref page" href="version-control.html#webdav-document-versions">WebDAV Document Versions</a>).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the example below, <code>WebdavDocumentLink</code> will be <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#renderers">rendered</a> in the left column of the data grid:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="webdavDocumentWrappersDataGrid"
+          width="100%"
+          minHeight="20em"
+          dataContainer="webdavDocumentWrappersDc"
+          columnReorderingAllowed="true"&gt;
+    &lt;columns resizable="true"&gt;
+        &lt;column property="webdavDocument"/&gt;
+        &lt;column property="description"/&gt;
+        &lt;column property="lastModifiedBy"/&gt;
+        &lt;column property="lastModifiedDate"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>renderer</code> handler creates and returns the <code>WebdavDocumentLink</code> component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "webdavDocumentWrappersDataGrid.webdavDocument", subject = "renderer")
+private Renderer&lt;WebdavDocumentWrapper&gt; webdavDocumentWrappersDataGridWebdavDocumentRenderer() {
+    return new ComponentRenderer&lt;&gt;( <i class="conum" data-value="1"></i><b>(1)</b>
+            () -&gt; uiComponents.create(WebdavDocumentLink.class), <i class="conum" data-value="2"></i><b>(2)</b>
+            (link, wrapper) -&gt; {
+                WebdavDocument webdavDocument = wrapper.getWebdavDocument();
+                if (webdavDocument != null) {
+                    link.setWebdavDocument(webdavDocument);
+                }
+            });
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The method returns a <code>Renderer</code> object that creates a UI component to be rendered in the column.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>WebdavDocumentLink</code> component instance is created using the <code>UiComponents</code> factory.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="webdav-document-version-link"><a class="anchor" href="#webdav-document-version-link"></a>WebdavDocumentVersionLink</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>WebdavDocumentVersionLink</code> allows opening a specific document version in desktop office applications in read-only mode. The component shows the file name of a particular document version.</p>
+</div>
+<div class="paragraph">
+<p>To create <code>WebdavDocumentVersionLink</code>, use the <code>UiComponents</code> factory.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">WebdavDocumentVersionLink webdavDocumentVersionLink =
+    uiComponents.create(WebdavDocumentVersionLink.class);
+webdavDocumentVersionLink.setWebdavDocumentVersion(documentVersion);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="webdav-document-upload-field"><a class="anchor" href="#webdav-document-upload-field"></a>WebdavDocumentUploadField</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>WebdavDocumentUploadField</code> component is specifically designed for working with documents.</p>
+</div>
+<div class="paragraph">
+<p>The XML component name: <code>webdavDocumentUpload</code>.</p>
+</div>
+<div class="paragraph">
+<p>The component provides the following functionalities:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Uploading a file to create a new document or a new version of an existing document.</p>
+</li>
+<li>
+<p>Opening a document for viewing or editing.</p>
+</li>
+<li>
+<p>Downloading the latest or previous versions of a document.</p>
+</li>
+<li>
+<p>Creating new versions of a document based on existing versions.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_work_modes"><a class="anchor" href="#_work_modes"></a>Work Modes</h3>
+<div class="paragraph">
+<p>The component operates in two modes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Versioning Enabled</strong>: When versioning is enabled, the <code>WebdavDocumentUploadField</code> component is displayed without any limitations.</p>
+</li>
+<li>
+<p><strong>Versioning Disabled</strong>: When versioning is disabled, the <code>WebdavDocumentUploadField</code> component does not display a link to the most recent version of the document.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

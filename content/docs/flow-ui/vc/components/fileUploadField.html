@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fileUploadField :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">fileUploadField</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/file-upload-field" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>fileUploadField</code> allows users to select a file from their local machine and upload it in the Jmix application.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>XML element: <code>fileUploadField</code></p>
+</li>
+<li>
+<p>Java class: <code>FileUploadField</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The component can contain a label, a link to the uploaded file, and an upload button. When the upload button is clicked, a standard file picker dialog pops up, allowing the user to select a file.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="file upload field basics" src="../../_images/visual-components/components/file-upload-field-basics.gif"/>
+</div>
+</div>
+<div class="paragraph">
+<p><code>fileUploadField</code> can work both without being bound to an entity attribute and with <a href="#data-binding">data binding</a>.</p>
+</div>
+<div class="paragraph">
+<p>Below we will show an example of using the component without data binding. You can use it to handle the uploaded file directly without associating it with any Jmix entity. This is great for situations where you want to process the file, save it to a different location, or perform some other operation without storing it persistently in the database.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fileUploadField id="fileUploadField"
+                 clearButtonVisible="true"
+                 fileNameVisible="true"
+                 dropAllowed="true"
+                 acceptedFileTypes=".pdf, .jpeg, .jpg, .png, .doc, .docx"
+                 maxFileSize="921600"
+                 label="msg://fileUploadField.label"
+                 helperText="msg://fileUploadField.helperText"
+                 fileTooBigText="msg://fileUploadField.fileTooBigText"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="FileUploadSucceededEvent-example">
+<p>Now you can handle the uploaded file directly within the <code>FileUploadSucceededEvent</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("fileUploadField")
+public void onFileUploadFieldFileUploadSucceeded(
+        final FileUploadSucceededEvent&lt;FileUploadField&gt; event) {
+    // Access the uploaded file information:
+    String fileName = event.getFileName();
+    byte[] fileContent = event.getSource().getValue();
+
+    // Perform your logic to handle the fileContent:
+    assert fileContent != null;
+    log.info("File content: " + new String(fileContent, StandardCharsets.UTF_8));
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+By default, <code>fileUploadField</code> uses a <code>MemoryBuffer</code> as its <code>Receiver</code>. This means that the uploaded file is stored in memory as a byte array. There is no physical file created on the file system when you use <code>MemoryBuffer</code>. This is great for smaller files that don’t require persistent storage.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>For uploading and saving large files it is recommended to use the <a class="xref page" href="fileStorageUploadField.html">fileStorageUploadField</a> component.</p>
+</div>
+<div class="paragraph">
+<p>To upload multiple files simultaneously, you should use the <a class="xref page" href="upload.html">upload</a> component instead of <code>fileUploadField</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>fileUploadField</code> allows users to save the uploaded file to an entity attribute as a byte array.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, the <code>document</code> attribute of the <code>User</code> entity has the byte array type.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Column(name = "DOCUMENT")
+private byte[] document;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance class="com.company.onboarding.entity.User" id="userDc"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader id="userDl"/&gt;
+    &lt;/instance&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;fileUploadField dataContainer="userDc"
+                     property="document"
+                     clearButtonVisible="true"
+                     fileNameVisible="true"/&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>fileUploadField</code> has a link to the container specified in the <code>dataContainer</code> attribute; the <code>property</code> attribute contains the name of the entity attribute that is displayed in <code>fileUploadField</code>.</p>
+</div>
+<div class="paragraph">
+<p>To store the file in the file storage and link to the entity as <code>FileRef</code>, use the <a class="xref page" href="fileStorageUploadField.html">fileStorageUploadField</a> component.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="fileStorageUploadField.html#acceptedFileTypes">acceptedFileTypes</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="fileStorageUploadField.html#clearButtonAriaLabel">clearButtonAriaLabel</a> -
+<a class="xref page" href="fileStorageUploadField.html#clearButtonVisible">clearButtonVisible</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="fileStorageUploadField.html#connectingStatusText">connectingStatusText</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> -
+<a class="xref page" href="fileStorageUploadField.html#dropAllowed">dropAllowed</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#errorMessage">errorMessage</a> -
+<a href="#fileName">fileName</a> -
+<a class="xref page" href="fileStorageUploadField.html#fileNameVisible">fileNameVisible</a> -
+<a class="xref page" href="fileStorageUploadField.html#fileNotSelectedText">fileNotSelectedText</a> -
+<a class="xref page" href="fileStorageUploadField.html#fileTooBigText">fileTooBigText</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
+<a class="xref page" href="fileStorageUploadField.html#incorrectFileTypeText">incorrectFileTypeText</a> -
+<a class="xref page" href="../common-attributes.html#label">label</a> -
+<a class="xref page" href="fileStorageUploadField.html#maxFileSize">maxFileSize</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="fileStorageUploadField.html#processingStatusText">processingStatusText</a> -
+<a class="xref page" href="../common-attributes.html#property">property</a> -
+<a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
+<a class="xref page" href="fileStorageUploadField.html#remainingTimeText">remainingTimeText</a> -
+<a class="xref page" href="fileStorageUploadField.html#remainingTimeUnknownText">remainingTimeUnknownText</a> -
+<a class="xref page" href="../common-attributes.html#required">required</a> -
+<a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
+<a class="xref page" href="fileStorageUploadField.html#uploadDialogCancelText">uploadDialogCancelText</a> -
+<a class="xref page" href="fileStorageUploadField.html#uploadDialogTitle">uploadDialogTitle</a> -
+<a class="xref page" href="fileStorageUploadField.html#uploadIcon">uploadIcon</a> -
+<a class="xref page" href="fileStorageUploadField.html#uploadText">uploadText</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+<div class="sect2">
+<h3 id="fileName"><a class="anchor" href="#fileName"></a>fileName</h3>
+<div class="paragraph">
+<p>Sets the text that should be shown if the value is set from the data container. When a user uploads the file, the field shows the file name. However, when the value is saved to the database, the field looses information about the file name. The <code>fileName</code> attribute is intended to set custom text when there is no information about the file name. If it is not defined, the default value will be shown:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="file upload field file name" src="../../_images/visual-components/components/file-upload-field-file-name.png" width="283"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a class="xref page" href="fileStorageUploadField.html#FileUploadFailedEvent">FileUploadFailedEvent</a> -
+<a class="xref page" href="fileStorageUploadField.html#FileUploadFileRejectedEvent">FileUploadFileRejectedEvent</a> -
+<a class="xref page" href="fileStorageUploadField.html#FileUploadFinishedEvent">FileUploadFinishedEvent</a> -
+<a class="xref page" href="fileStorageUploadField.html#FileUploadProgressEvent">FileUploadProgressEvent</a> -
+<a class="xref page" href="fileStorageUploadField.html#FileUploadStartedEvent">FileUploadStartedEvent</a> -
+<a href="#FileUploadSucceededEvent">FileUploadSucceededEvent</a> -
+<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a> -
+<a class="xref page" href="textField.html#validator">validator</a></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="FileUploadSucceededEvent"><a class="anchor" href="#FileUploadSucceededEvent"></a>FileUploadSucceededEvent</h3>
+<div class="paragraph">
+<p><code>io.jmix.flowui.kit.component.upload.event.FileUploadSucceededEvent</code> is fired when <code>SucceededEvent</code> of <code>Upload</code> is occurred.</p>
+</div>
+<div class="paragraph">
+<p>See the usage example <a href="#FileUploadSucceededEvent-example">above</a> in the <strong>Basics</strong> section.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

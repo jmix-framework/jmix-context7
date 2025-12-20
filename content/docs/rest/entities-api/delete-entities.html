@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Entities :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Delete Entities</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Entities API finally allows you to delete entities that should be removed from the application. The corresponding endpoint is once again: <code>/entities/:entityName/:entityId</code> using the HTTP method <code>DELETE</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="delete-entity"><a class="anchor" href="#delete-entity"></a>Delete an Entity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following example removes a previously created Customer:</p>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">DELETE http://localhost:8080/rest
+            /entities
+            /sample_Customer
+            /13f01f59-8e5f-4fd9-802b-66501d49ac99</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In case the entity exists, the response status <code>200 - OK</code> is returned without any response body, and the entity is deleted from the application. In case the entity is not found, <code>404 - Not Found</code> is returned.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The Entities API takes <a class="xref page" href="../../data-model/soft-deletion.html">Soft Deletion</a> into consideration. Depending on the setting of the entity, the instance is either only soft-deleted or deleted entirely from the database.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="bulk-delete"><a class="anchor" href="#bulk-delete"></a>Bulk Delete</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Delete-Entity API also allows you to delete multiple entities within one request. For this the JSON request body should contain an array of IDs representing each entity.</p>
+</div>
+<div class="listingblock">
+<div class="title">Bulk Update Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">DELETE http://localhost:8080/rest
+            /entities
+            /sample_Customer
+
+[
+  "3b9a1d43-1397-d2ae-eedd-f79eec1b81e2",
+  "20ba4218-6690-c14c-9453-9ccd4b0add37"
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In case all entities could be deleted, the HTTP response code <code>200 - OK</code> is returned.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

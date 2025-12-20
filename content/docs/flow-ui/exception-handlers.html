@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exception Handlers :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Exception Handlers</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Unhandled exceptions thrown in the HTTP request thread are passed to the Jmix exception handling mechanism. It contains a list of handlers, each of which is capable of handling the exception or choosing not to. If the exception is hot handled by any specific handler, it is passed to <code>DefaultUiExceptionHandler</code> which shows a dialog with the exception message and the stack trace. You can customize the dialog as explained <a href="#customizing-default-handler">below</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="application-exception-handlers"><a class="anchor" href="#application-exception-handlers"></a>Application Exception Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can provide own handlers for any exceptions. The simplest way to do it is to create a subclass of <code>AbstractUiExceptionHandler</code> and register it as a Spring bean.</p>
+</div>
+<div class="paragraph">
+<p>For example, if you have the following exception:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.exception;
+
+public class MyException extends RuntimeException {
+
+    public MyException(String message) {
+        super(message);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can define a handler for it as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.exception;
+
+import io.jmix.flowui.Notifications;
+import io.jmix.flowui.exception.AbstractUiExceptionHandler;
+import org.springframework.stereotype.Component;
+
+@Component <i class="conum" data-value="1"></i><b>(1)</b>
+public class MyExceptionHandler extends AbstractUiExceptionHandler { <i class="conum" data-value="2"></i><b>(2)</b>
+
+    private final Notifications notifications; <i class="conum" data-value="3"></i><b>(3)</b>
+
+    public MyExceptionHandler(Notifications notifications) {
+        super(MyException.class.getName()); <i class="conum" data-value="4"></i><b>(4)</b>
+        this.notifications = notifications;
+    }
+
+    @Override
+    protected void doHandle(String className, String message, Throwable throwable) {
+        notifications.show("My exception", throwable.getMessage()); <i class="conum" data-value="5"></i><b>(5)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>- Make the handler a Spring bean.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>- Extend <code>AbstractUiExceptionHandler</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>- Inject any other Spring beans if needed.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>- Pass the fully-qualified class name of the exception to the super constructor.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>- Handle the exception in <code>doHandle()</code> method.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Your exception handler will be automatically added to the list of handlers by the framework. You can adjust the position of your handler in the list by adding the <code>@Order</code> annotation to your bean. For example, if you set the order as <code>@Order(JmixOrder.HIGHEST_PRECEDENCE - 10)</code>, your handler will have a priority over a framework’s handler for the same exception.</p>
+</div>
+<div class="paragraph">
+<p>If you need more control over determining what exceptions should be processed by your handler, either override the <code>canHandle()</code> method of the <code>AbstractUiExceptionHandler</code> base class, or don’t use <code>AbstractUiExceptionHandler</code> at all and implement the <code>UiExceptionHandler</code> interface directly. See also <a href="https://vaadin.com/docs/latest/advanced/custom-error-handler" rel="noopener" target="_blank">Vaadin documentation</a> for how to handle UI exceptions on the lower level.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="unique-constraint-violation-handler"><a class="anchor" href="#unique-constraint-violation-handler"></a>Unique Constraint Violation Handler</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix provides a built-in handler for database unique constraint violation errors: <code>UniqueConstraintViolationHandler</code>. It can be easily customized in two aspects.</p>
+</div>
+<div class="paragraph">
+<p>First, you can modify the message that is shown to the user in response to the error. The message is set in the message bundle with the key in the <code>databaseUniqueConstraintViolation.&lt;DB_CONSTRAINT_NAME&gt;</code> format, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">messages_en.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">databaseUniqueConstraintViolation.IDX_DEPARTMENT_UNQ_NAME=A department with the same name already exists</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Second, you can provide your own pattern for recognizing unique constraint violations. The framework contains default patterns for each database type, for example for PostgreSQL it is <code>ERROR: duplicate key value violates unique constraint "(.+)"</code>. You can see the default patterns in the implementations of the <code>DbmsFeatures</code> interface. If a default pattern doesn’t work for you (it may happen because of a database localization), provide your pattern in the <a class="xref page" href="../data-access/data-properties.html#jmix.data.unique-constraint-violation-pattern">jmix.data.unique-constraint-violation-pattern</a> property.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="customizing-default-handler"><a class="anchor" href="#customizing-default-handler"></a>Customizing Default Handler</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can customize the dialog shown by the default exception handler by providing CSS variables and application properties, or by extending the Java class of the dialog and implementing your own logic.</p>
+</div>
+<div class="sect2">
+<h3 id="using-css-and-properties"><a class="anchor" href="#using-css-and-properties"></a>Using CSS and Properties</h3>
+<div class="paragraph">
+<p>Dimensions of the default exception handler dialog can be customized using CSS variables in your <a class="xref page" href="themes/themes.html#application-theme">application theme</a> CSS file. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html {
+    --jmix-exception-dialog-width: 30em;
+    --jmix-exception-dialog-expanded-width: 40em;
+    --jmix-exception-dialog-expanded-height: 30em;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, <code>ExceptionDialog</code> appears as a modal window. This behavior can be customized by setting the <a class="xref page" href="ui-properties.html#jmix.ui.exception-dialog-modal">jmix.ui.exception-dialog-modal</a> property in the <code>application.properties</code> file.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="extending-exception-dialog-class"><a class="anchor" href="#extending-exception-dialog-class"></a>Extending ExceptionDialog Class</h3>
+<div class="paragraph">
+<p>The example below shows how to add a button that allows users to report the exception to a system administrator.</p>
+</div>
+<div class="paragraph">
+<p>First, create your dialog class based on <code>ExceptionDialog</code> and override appropriate methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.exception;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import io.jmix.flowui.exception.ExceptionDialog;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE) <i class="conum" data-value="1"></i><b>(1)</b>
+public class MyExceptionDialog extends ExceptionDialog { <i class="conum" data-value="2"></i><b>(2)</b>
+
+    public MyExceptionDialog(Throwable throwable) {
+        super(throwable);
+    }
+
+    @Override
+    protected HorizontalLayout createButtonsPanel() { <i class="conum" data-value="3"></i><b>(3)</b>
+        HorizontalLayout buttonsPanel = super.createButtonsPanel();
+        Button button = uiComponents.create(Button.class);
+        button.setText("Report to admin");
+        button.addClickListener(e -&gt; {
+            // ...
+        });
+        buttonsPanel.add(button);
+        return buttonsPanel;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>- Register the class as a prototype bean.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>- Extend <code>ExceptionDialog</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>- Override appropriate methods to customize the standard dialog.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Then create a provider class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.exception;
+
+import io.jmix.flowui.exception.ExceptionDialog;
+import io.jmix.flowui.exception.ExceptionDialogProvider;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MyExceptionDialogProvider implements ExceptionDialogProvider {
+
+    private final ObjectProvider&lt;MyExceptionDialog&gt; myExceptionDialogProvider; <i class="conum" data-value="1"></i><b>(1)</b>
+
+    public MyExceptionDialogProvider(ObjectProvider&lt;MyExceptionDialog&gt; myExceptionDialogProvider) {
+        this.myExceptionDialogProvider = myExceptionDialogProvider;
+    }
+
+    @Override
+    public boolean supports(Throwable throwable) {
+        return true; <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+
+    @Override
+    public ExceptionDialog getExceptionDialogOpener(Throwable throwable) {
+        return myExceptionDialogProvider.getObject(throwable); <i class="conum" data-value="3"></i><b>(3)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>- Use <code>ObjectProvider</code> because <code>MyExceptionDialog</code> is a prototype bean.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>- You can instruct the provider to take effect only for specific exceptions. Return <code>true</code> if you want it to work for all exception types.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>- Return new instance of <code>MyExceptionDialog</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The framework will pick up your provider and use the returned dialog for unhandled exceptions.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="navigation-exception-handling"><a class="anchor" href="#navigation-exception-handling"></a>Navigation Exception Handling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If an unhandled exception occurs during navigation, Vaadin displays a special error view. For example, when a user navigates to a non-existent route, the following page is shown (in a production build it doesn’t show available routes):</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="original error page" src="_images/exception-handlers/original-error-page.png" width="821"/>
+</div>
+<div class="title">Figure 1. Example of default route not found error page</div>
+</div>
+<div class="paragraph">
+<p>The <code>RouteNotFoundError</code> for <code>com.vaadin.flow.router.NotFoundException</code>, and <code>RouteAccessDeniedError</code> for <code>com.vaadin.flow.router.AccessDeniedException</code> are implemented by default.</p>
+</div>
+<div class="paragraph">
+<p>If you want to provide a custom error page, create a class extending the default one, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.exception;
+
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.dom.Style;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.ErrorParameter;
+import com.vaadin.flow.router.NotFoundException;
+import com.vaadin.flow.router.RouteNotFoundError;
+import jakarta.servlet.http.HttpServletResponse;
+
+public class CustomRouteNotFoundError extends RouteNotFoundError {
+
+    @Override
+    public int setErrorParameter(BeforeEnterEvent event,
+                                 ErrorParameter&lt;NotFoundException&gt; parameter) {
+        Div message = new Div("404");
+        message.getElement().getStyle().setFontSize("10em");
+
+        Anchor link = new Anchor(".", "Main Page");
+        link.getElement().getStyle().setFontSize("2em");
+
+        getElement().getStyle().setTextAlign(Style.TextAlign.CENTER);
+        getElement().appendChild(
+                message.getElement(),
+                link.getElement()
+        );
+
+        return HttpServletResponse.SC_NOT_FOUND;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="custom error page" src="_images/exception-handlers/custom-error-page.png" width="821"/>
+</div>
+<div class="title">Figure 2. Example of custom route not found error page</div>
+</div>
+<div class="paragraph">
+<p>Your class will be automatically picked up by the framework and used for displaying routing errors.</p>
+</div>
+<div class="paragraph">
+<p>See also <a href="https://vaadin.com/docs/latest/flow/routing/exceptions" rel="noopener" target="_blank">Vaadin documentation</a> for more information about navigation exceptions.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

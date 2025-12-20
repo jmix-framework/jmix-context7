@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principles :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Principles</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix is designed for creating web applications with extensive data models and complex UI primarily tailored for internal users of an organization.</p>
+</div>
+<div class="paragraph">
+<p>Examples of such applications include a simple CRUD, an admin UI for a website, a business automation tool, a CRM or an ERP-class system. These applications typically involve managing dozens or hundreds of interconnected entities in hundreds or thousands of screens, while using mostly standard UI components like fields, forms and tables.</p>
+</div>
+<div class="paragraph">
+<p>To effectively create applications of such kind, developers need a tool that enables them to operate on a higher level of abstraction than provided by mainstream technologies like Spring or Jakarta EE. The tool should hide the unnecessary details and save from writing repetitive code, since such applications usually contain a lot of repetitive elements: very similar to each other entities, attributes, UI fields, screens, etc. But the abstraction level must not be too high, to allow developers to express business logic in a familiar programming language and use modern powerful development tools from IDE and VCS to testing frameworks and CI/CD.</p>
+</div>
+<div class="paragraph">
+<p>The Jmix goal is to provide adequate abstraction for the development of the aforementioned class of applications.</p>
+</div>
+<div class="paragraph">
+<p>Below, we describe the principles that Jmix is based on.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="full-stack-development"><a class="anchor" href="#full-stack-development"></a>Full-Stack Development</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix offers a full-stack development approach, which has two main aspects:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Using the single programming language and development paradigm. A backend developer can create a business feature on the full stack from the database schema to UI, while writing plain synchronous Java (or Kotlin) code. No need to have expertise in frontend technologies based on JavaScript.</p>
+</li>
+<li>
+<p>The API is optional. A Jmix web application with the user interface can perfectly function without exposing any API endpoints that introduce complexity and security risks.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>These aspects should actually be attributed to the Vaadin framework which is used by Jmix under the hood. Vaadin provides a rich set of UI components each of which has a client part and a server part. The client part is written in JavaScript and runs in the browser, the server part is written in Java and runs on the server. Users interact with the client part of the components, while the server part directly works with the application Java code.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="principles full stack 1" src="_images/principles-full-stack-1.svg"/>
+</div>
+<div class="title">Figure 1. Example of Vaadin component interactions</div>
+</div>
+<div class="paragraph">
+<p>So the application developers don’t need to create API for the frontend and don’t write the frontend code. They just interact with the server parts of Vaadin components.</p>
+</div>
+<div class="paragraph">
+<p>If you are new to this concept, we recommend reading the article in our blog post: <a href="https://www.jmix.io/blog/simplicity-focus-through-server-driven-web-ui-development" rel="noopener" target="_blank">Simplicity &amp; Focus Through Server-Driven Web UI Development</a>.</p>
+</div>
+<div class="paragraph">
+<p>A single programming language and development paradigm allow backend developers to create whole business features instead of just backend parts and APIs. This approach dramatically improves the productivity of a team and enables building a solution without the need for frontend development investments.</p>
+</div>
+<div class="paragraph">
+<p>The fact that the UI can function without the need to create a special API saves a lot of time for designing, developing, documenting and maintaining the API endpoints. It is also inherently more secure, because the application sends to the browser only data that are really displayed on the user’s screen. There is no risk of extra data being inadvertently exposed to JavaScript in the browser, and there is much less surface area for security vulnerabilities.</p>
+</div>
+<div class="paragraph">
+<p>The flip side of this approach is that the abstraction over the frontend makes it more difficult to customize UI or create own UI components. It’s of course possible, but generally harder than when using frontend frameworks directly. Also, with the Vaadin server-side state model, each user session requires a certain amount of memory on the server, which limits vertical scalability (however, the application can be scaled horizontally by adding more servers to the cluster).</p>
+</div>
+<div class="paragraph">
+<p>So, the Jmix and Vaadin approach to full-stack development provides more value if the functionality of existing UI components is mostly sufficient for implementing a solution, and deep customizations are needed only in certain parts of the application UI. Another condition is that the number of concurrent (working at the same time) users is predictable and fits within the total memory available on the servers. Both conditions are usually true for enterprise applications that Jmix is targeted for.</p>
+</div>
+<div class="paragraph">
+<p>In the context of full-stack development, it is also important to discuss the topic of monolithic and microservices architectures.</p>
+</div>
+<div class="paragraph">
+<p>Solutions built on microservices often feature a frontend that is loosely coupled with the backend. This contrasts with the full-stack development approach, where the user interface directly interacts with the business logic.</p>
+</div>
+<div class="paragraph">
+<p>But this doesn’t mean that full-stack development works only for monoliths. You can take the best of both worlds if you split a large application into a number of cooperating monoliths, each with its own database and UI.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="principles full stack 2" src="_images/principles-full-stack-2.svg"/>
+</div>
+<div class="title">Figure 2. Cooperating monoliths</div>
+</div>
+<div class="paragraph">
+<p>Jmix is well suited for building <em>modular monoliths</em> of any granularity and size.</p>
+</div>
+<div class="paragraph">
+<p>Modularity is achieved by creating custom <a class="xref page" href="../modularity/creating-add-ons.html">add-ons</a> and developing <a class="xref page" href="../studio/composite-projects.html">composite projects</a> in Studio, which allows for flexibility in dividing the codebase.</p>
+</div>
+<div class="paragraph">
+<p>Integration of self-contained application services into a complete information system is supported by the <a class="xref page" href="../oidc/index.html">OpenID Connect</a>, <a class="xref page" href="../rest/index.html">REST API</a> and <a class="xref page" href="../rest-ds/index.html">REST DataStore</a> add-ons, as well as by the fact that Jmix is fully compatible with any asynchronous communication solution. You can find an example of integrating Jmix applications in the <a class="xref page" href="../integrated-apps-guide/index.html">Integrating Jmix Applications</a> guide.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="unified-data-model"><a class="anchor" href="#unified-data-model"></a>Unified Data Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix allows developers to represent heterogeneous data in a single unified model and use it directly in the persistence, UI and business logic. There is no need to create layers of data transfer objects (DTOs) and mappers between the persistence and presentation models.</p>
+</div>
+<div class="paragraph">
+<p>Below, we will compare the conventional architecture of Java enterprise applications with the unified data model approach and define the boundaries within which the latter is more appropriate.</p>
+</div>
+<div class="paragraph">
+<p>The common approach in the modern enterprise applications development is to have separate data models for persistence and for presentation and business logic. In other words, you usually have a layer of JPA (Jakarta Persistence API) entities mapped to your database tables and a separate layer of Data Transfer Objects (DTOs) to pass them to/from the frontend through REST controllers (or using GraphQL or other API technologies). In the traditional JavaScript SPA frontend, you also have the same DTOs represented in JSON.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="principles model 1" src="_images/principles-model-1.svg"/>
+</div>
+<div class="title">Figure 3. Conventional approach</div>
+</div>
+<div class="paragraph">
+<p>This architecture gives you great flexibility: you can change persistence and presentation models independently, you can convert data to the most convenient structure for storage and UI, and you can exclude certain data from exposure through the API for security reasons. The flip side is that you need to repeat a lot of classes and attributes, and write mappers from one model to another and back.</p>
+</div>
+<div class="paragraph">
+<p>The separation of the persistence and presentation data models is certainly justified in an application with few entities and a fancy UI structured very differently from the ER-model of the stored data.</p>
+</div>
+<div class="paragraph">
+<p>But in many enterprise applications the situation is quite opposite: data should be represented in UI in the same structure as they are stored in the database. Taking into account also the size of the data model in such applications (usually tens or hundreds of entities), the separation of models in this case may be unreasonably expensive.</p>
+</div>
+<div class="paragraph">
+<p>The above-mentioned security reasons for creating separate models are irrelevant to Jmix applications, because the API is not required for building the user interface. And you can easily restrict data exposed to users: you just don’t create UI controls for certain entity attributes and these attributes never leave the backend.</p>
+</div>
+<div class="paragraph">
+<p>So the basic approach in Jmix applications is to work with the single data model in all layers: persistence, business logic and UI. For most cases it means using JPA entities and their attributes mapped to database fields. But Jmix doesn’t limit you with just the persistence model and supports also the following scenarios:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Using calculated values implemented by transient attributes of JPA entities.</p>
+</li>
+<li>
+<p>Working with data sources different from relational databases. In this case, the model is defined by Plain Old Java Objects (POJOs) mapped to external APIs or non-relational databases.</p>
+</li>
+<li>
+<p>For sophisticated parts of UI, using presentation POJOs that are structured differently from the persistence model.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>With Jmix, all these requirements can be implemented within the single data model. That is, instead of stacking different models on top of each other, you can expand the main JPA persistence model by adding non-JPA items to it.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="principles model 2" src="_images/principles-model-2.svg"/>
+</div>
+<div class="title">Figure 4. Unified data model approach</div>
+</div>
+<div class="paragraph">
+<p>In applications that display data mostly in the same structure as they are stored, this approach brings obvious benefits: you don’t duplicate the whole model on different layers and don’t write boilerplate code for maintaining this duplication. Instead, you can extend the underlying persistence model with required elements only when they are needed.</p>
+</div>
+<div class="paragraph">
+<p>To better understand how Jmix provides a unified data model containing different elements, and what you can do with this model, refer to the <a class="xref page" href="features.html#data-model-and-metadata">Data Model and Metadata</a> section. See also the <a class="xref page" href="../openapi-integration-guide/index.html">Integrating Applications Using OpenAPI</a> guide for an example of linking JPA and DTO entities.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ready-made-solutions"><a class="anchor" href="#ready-made-solutions"></a>Ready-Made Solutions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix provides ready-made solutions to common tasks in enterprise applications. They range from sophisticated UI components for working with data to full-stack features like report generation and business process management.</p>
+</div>
+<div class="paragraph">
+<p>This category also includes high-level abstractions and declarative approach for UI building, data access and security. You can find an overview of these features in the <a class="xref page" href="features.html#data-access">next section</a>.</p>
+</div>
+<div class="paragraph">
+<p>Jmix is focused on a specific area of development - enterprise applications, and compared to general-purpose frameworks such as Spring or Django, it provides more suitable ready-made solutions for this class of applications.</p>
+</div>
+<div class="paragraph">
+<p>These solutions, practices and presets serve as starting points, lower the entry barrier and speed up the development of applications.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-mainstream-technologies"><a class="anchor" href="#using-mainstream-technologies"></a>Using Mainstream Technologies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix is built on top of mainstream technologies (Java, Spring, JPA) and tends to not reinvent the wheel. It applies a particular opinionated structure and pre-configuration to the underlying technologies, while remaining fundamentally open.</p>
+</div>
+<div class="paragraph">
+<p>There are no restrictions on bypassing Jmix abstractions and working directly with underlying technologies when needed.</p>
+</div>
+<div class="paragraph">
+<p>From the tooling and methodology perspective, developers can use industry best practices such as testing frameworks, static code analysis, CI/CD and version control systems.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="extensibility"><a class="anchor" href="#extensibility"></a>Extensibility</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix is built with extensibility in mind. If something in the framework doesn’t meet your requirements, it can be extended or replaced by a custom solution.</p>
+</div>
+<div class="paragraph">
+<p>Also, the extensibility features built into the Jmix framework allow for creating products that can be customized for a particular industry or customer without modification of the original product.</p>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../modularity/index.html">Modularity and Extension</a> section describes the Jmix extensibility features in detail.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

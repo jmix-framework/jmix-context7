@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key-Value Containers :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Key-Value Containers</h1>
+<div class="paragraph">
+<p><code>KeyValueContainer</code> and <code>KeyValueCollectionContainer</code> are designed to work with <a class="xref page" href="../../data-model/entities.html#key-value">key-value entities</a>. Such entities can contain an arbitrary number of attributes that are defined at runtime.</p>
+</div>
+<div class="paragraph">
+<p><code>KeyValueContainer</code> and <code>KeyValueCollectionContainer</code> can be defined in a view XML descriptor using <code>keyValueInstance</code> and <code>keyValueCollection</code> elements.</p>
+</div>
+<div class="paragraph">
+<p>XML definition of a key-value container must include the <code>properties</code> element that defines the <code>KeyValueEntity</code> attributes (actually, keys and their types). The order of nested property elements should conform to the order of result set columns returned by the query. In the following example the <code>username</code> attribute will get its value from <code>us.user.username</code> column and the <code>stepsCount</code> attribute from <code>count(us)</code> column:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;keyValueCollection id="summaryDc"&gt;
+    &lt;loader id="summaryDl"&gt;
+        &lt;query&gt;
+            &lt;![CDATA[select us.user.username, count(us) from UserStep us
+            where us.dueDate &lt; current_date and us.completedDate is null
+            group by us.user.username]]&gt;
+        &lt;/query&gt;
+    &lt;/loader&gt;
+    &lt;properties&gt;
+        &lt;property name="username" datatype="string"/&gt;
+        &lt;property name="stepsCount" datatype="int"/&gt;
+    &lt;/properties&gt;
+&lt;/keyValueCollection&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Besides, you can configure key-value containers using their Java API which includes the following methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>addProperty()</code> - allows you to define the entity attributes (keys). The method accepts a name of the attribute and its type in the form of a <a class="xref page" href="../../data-model/datatype.html">Datatype</a> or a Java class. In the latter case, the class should be either an entity class or a class supported by one of the datatypes. This method is used by the framework under the hood when you define properties of the key-value container declartively in XML as explained above.</p>
+</li>
+<li>
+<p><code>setIdName()</code> is an optional method that allows you to define one of the attributes as an identifier attribute of the entity. It means that <code>KeyValueEntity</code> instances stored in this container will have identifiers obtained from the given attribute. Otherwise, <code>KeyValueEntity</code> instances get randomly generated UUIDs.</p>
+</li>
+<li>
+<p><code>getEntityMetaClass()</code> returns a dynamic implementation of the <a class="xref page" href="../../data-model/metadata.html">MetaClass</a> interface that represents the current schema of <code>KeyValueEntity</code> instances. It is determined by previous calls to <code>addProperty()</code>.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Explore the following online examples to see key-value containers in action:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://demo.jmix.io/ui-samples/sample/data-grid-key-value" rel="noopener" target="_blank">DataGrid with key-value container</a></p>
+</li>
+<li>
+<p><a href="https://demo.jmix.io/ui-samples/sample/property-filter-key-value" rel="noopener" target="_blank">PropertyFilter with key-value container</a></p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrating Jmix Applications :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Integrating Jmix Applications</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide provides a detailed exploration of an example designed to help you create distributed systems consisting of interconnected web applications. The example leverages the <a class="xref page" href="../rest/index.html">REST API</a> and <a class="xref page" href="../rest-ds/index.html">REST DataStore</a> add-ons for seamless integration.</p>
+</div>
+<div class="paragraph">
+<p>Key features of the example project:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>REST API Integration</strong>: Enables reliable communication between applications using Jmix’s built-in REST capabilities.</p>
+</li>
+<li>
+<p><strong>REST DataStore</strong>: Allows applications to work with entities located in remote Jmix applications as if they were local.</p>
+</li>
+<li>
+<p><strong>Distributed Data Management</strong>: Demonstrates how to manage related data across multiple applications while maintaining data integrity.</p>
+</li>
+<li>
+<p><strong>Seamless User Experience</strong>: Provides a unified interface for users to interact with entities from different parts of the distributed system.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You will learn how to set up the REST API and configure the REST DataStore, along with implementing essential components for developing a fully functional distributed system using Jmix. By the end, you’ll have a comprehensive understanding of how to leverage these powerful features to build scalable and modular enterprise applications.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To effectively use this guide, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup</a> the development environment.</p>
+</li>
+<li>
+<p>Clone the <a href="https://github.com/jmix-framework/jmix-integrated-apps-sample" rel="noopener" target="_blank">sample project</a> and switch to <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-integrated-apps-sample
+cd jmix-integrated-apps-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="application-overview"><a class="anchor" href="#application-overview"></a>Application Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The example distributed system described in this guide comprises three distinct Jmix applications, each responsible for a specific domain:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Products</strong> application handles product catalog and inventory.</p>
+</li>
+<li>
+<p><strong>Customers</strong> application manages customer information and relationships.</p>
+</li>
+<li>
+<p><strong>Orders</strong> application processes and tracks customer orders.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>By utilizing Jmix’s REST API and REST DataStore add-ons, these applications can communicate and share data, creating a cohesive ecosystem for managing various aspects of a business operation.</p>
+</div>
+<div class="paragraph">
+<p>The Orders application depends on Customers and Products applications:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="system" src="_images/system.svg"/>
+</div>
+<div class="title">Figure 1. Dependencies between applications</div>
+</div>
+<div class="paragraph">
+<p>Each application uses its own database. The Orders application obtains data from Customers and Products applications through their REST API.</p>
+</div>
+<div class="sect2">
+<h3 id="data-models"><a class="anchor" href="#data-models"></a>Data Models</h3>
+<div class="paragraph">
+<p>Below are the data models of the applications (JPA entities are in grey, DTO entities are in blue).</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="customers" src="_images/customers.svg"/>
+</div>
+<div class="title">Figure 2. Customers application data model</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="products" src="_images/products.svg"/>
+</div>
+<div class="title">Figure 3. Products application data model</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="orders" src="_images/orders.svg"/>
+</div>
+<div class="title">Figure 4. Orders application data model</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="integration-approaches"><a class="anchor" href="#integration-approaches"></a>Integration Approaches</h3>
+<div class="paragraph">
+<p>The Orders application demonstrates two approaches to the integration:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Replicating data from an external application</strong></p>
+<div class="paragraph">
+<p>The Orders application contains the <code>SimpleCustomer</code> JPA entity that represents the customers in the <a href="https://martinfowler.com/bliki/BoundedContext.html" rel="noopener" target="_blank">bounded context</a> of orders. The <code>Order</code> entity has a reference to <code>SimpleCustomer</code> and doesn’t directly depend on the external application. Customers' data is aggregated and stored in <code>SimpleCustomer</code> upon request.</p>
+</div>
+<div class="paragraph">
+<p>This approach provides loose coupling between applications: users can create orders for existing customers even if the Customers application is unavailable.</p>
+</div>
+</li>
+<li>
+<p><strong>Using cross-datastore references</strong></p>
+<div class="paragraph">
+<p>The <code>OrderLine</code> JPA entity has a reference to the <code>Product</code> DTO entity which is directly loaded from the Products application using the REST DataStore.</p>
+</div>
+<div class="paragraph">
+<p>This approach leads to tighter coupling between the applications, but it is simpler as it doesn’t require any special integration code.</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>In the replication scenario, the sample also demonstrates a possible approach to selecting and returning external data by redirecting users between applications.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setup-and-running"><a class="anchor" href="#setup-and-running"></a>Setup and Running</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Open the root project in IntelliJ IDEA with the Jmix Studio plugin installed.</p>
+</div>
+<div class="paragraph">
+<p>Use the run/debug configurations for the Customers, Products, and Orders applications to launch them.</p>
+</div>
+<div class="paragraph">
+<p>All three applications are configured to run on different ports.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="understanding-application-behavior"><a class="anchor" href="#understanding-application-behavior"></a>Understanding Application Behavior</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Access the Orders application by navigating to <a class="bare" href="http://localhost:8080" rel="noopener" target="_blank">http://localhost:8080</a> in your web browser and logging in as <code>admin</code> user with <code>admin</code> password.</p>
+</div>
+<div class="sect2">
+<h3 id="managing-external-data"><a class="anchor" href="#managing-external-data"></a>Managing External Data</h3>
+<div class="paragraph">
+<p>The Orders application demonstrates how to manage external data using DTO entities and REST DataStore. The Products application itself has no UI, so users can work with it only through the views of the Orders application.</p>
+</div>
+<div class="paragraph">
+<p>You can open the <strong>Product categories (DTO)</strong> and <strong>Products (DTO)</strong> views from the main menu. The <strong>DTO</strong> suffix here indicates that the view works with DTO entities mapped to external data.</p>
+</div>
+<div class="paragraph">
+<p>The list views provide filtering, paging and sorting of entities. The detail views allow you to create and modify entities.</p>
+</div>
+<div class="paragraph">
+<p>If you stop the Products application, the product management views will show an error notification "Connection error. 'products' service is unavailable".</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="linking-external-and-local-entities"><a class="anchor" href="#linking-external-and-local-entities"></a>Linking External and Local Entities</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Open the <strong>Orders</strong> view from the main menu and click <strong>Create</strong>.</p>
+</li>
+<li>
+<p>Fill in the <strong>Number</strong> and <strong>Date</strong> fields of the new order and leave the <strong>Customer</strong> field empty (we will deal with it later).</p>
+</li>
+<li>
+<p>Click <strong>Create</strong> button to create a new order line. The <strong>Order line</strong> dialog will appear.</p>
+<div class="imageblock">
+<div class="content">
+<img alt="order line 1" src="_images/order-line-1.png"/>
+</div>
+<div class="title">Figure 5. Creating OrderLine with linked Product</div>
+</div>
+</li>
+<li>
+<p>The dropdown list of the <strong>Product</strong> field will display products provided by the Products application through the REST API. If the Products application is unavailable, you will see an error notification.</p>
+</li>
+<li>
+<p>Select a product from the list. At this moment the reference to the <code>Product</code> DTO entity will be set to the <code>OrderLine</code> JPA entity. The JPA entity will be saved to the Orders database when you click <strong>OK</strong> in the <strong>Order line</strong> and <strong>Order</strong> detail views. It will include the identifier of the linked product.</p>
+</li>
+<li>
+<p>If you open the saved order for editing, the linked product will be loaded from the Products application and shown in the data grid:</p>
+<div class="imageblock">
+<div class="content">
+<img alt="order line 2" src="_images/order-line-2.png"/>
+</div>
+<div class="title">Figure 6. Order with OrderLines and linked Products</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This scenario demonstrates the use of <a class="xref page" href="../data-model/entities.html#cross-data-store-ref">cross-datastore</a> references for linking data between applications. This approach simplifies implementation but increases dependency between the applications, as users can see order lines with products only when the external Products application is up and running.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="replicating-external-data"><a class="anchor" href="#replicating-external-data"></a>Replicating External Data</h3>
+<div class="paragraph">
+<p>In this section, we’ll explore another approach to integration based on replicating data between applications.</p>
+</div>
+<div class="paragraph">
+<p>In the Orders application, the <code>Order</code> entity has a reference to the <code>SimpleCustomer</code> JPA entity located in the same database. <code>SimpleCustomer</code> stores a subset of customer data sufficient for creating orders. These data are imported from the Customers application upon user request.</p>
+</div>
+<div class="paragraph">
+<p>Below we’ll describe two possible ways to organize the import process.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a new order or edit the one created before.</p>
+</li>
+<li>
+<p>Try to select a value in the <strong>Customer</strong> field. Initially, the dropdown is empty because the Orders database doesn’t contain any <code>SimpleCustomer</code> instances.</p>
+</li>
+<li>
+<p>Click the ellipsis button to open the <strong>Simple customers</strong> lookup view. The table is also empty, so you need to click <strong>Import Customers…​</strong> and select one of the options:</p>
+<div class="imageblock">
+<div class="content">
+<img alt="import customers 1" src="_images/import-customers-1.png"/>
+</div>
+<div class="title">Figure 7. Options for managing and importing customers</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Show external entities in this app</strong></p>
+<div class="paragraph">
+<p>The Orders application will open its views for DTO entities mapped to the data of the Customers application. You can use these views to manage customers as you would in the Customers application.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="import customers 2" src="_images/import-customers-2.png"/>
+</div>
+<div class="title">Figure 8. Managing customers using DTO views in Orders application</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Customers (DTO)</strong> view allows you to select a customer and its data will be imported as a new <code>SimpleCustomer</code> instance.</p>
+</div>
+<div class="paragraph">
+<p>The implementation of this import scenario is described in the <a href="#import-using-own-views">Import Using DTO Views</a> section.</p>
+</div>
+</li>
+<li>
+<p><strong>Open external app</strong></p>
+<div class="paragraph">
+<p>This option opens the Customers application in a new browser tab. Log in as <code>admin</code>. The application will show the detail view for creating a new customer:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="import customers 3" src="_images/import-customers-3.png"/>
+</div>
+<div class="title">Figure 9. Creating new customer in Customers application</div>
+</div>
+<div class="paragraph">
+<p>After entering data into fields and clicking OK, you will be redirected back to the <strong>Simple customers</strong> view of the Orders application and a dialog will appear notifying you about successful import:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="import customers 4" src="_images/import-customers-4.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If you click <strong>Close and select</strong> button in the dialog, the current tab will close and the imported customer will be selected in the order displayed in the previous tab:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="import customers 5" src="_images/import-customers-5.png"/>
+</div>
+<div class="title">Figure 10. Imported customer is selected in order</div>
+</div>
+<div class="paragraph">
+<p>The implementation of this import scenario is described in the <a href="#import-using-redirects">Import Using Redirects</a> section.</p>
+</div>
+</li>
+</ol>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The first approach that uses DTO views of the Orders application for managing and selecting customers can be more convenient to users, as they stay inside the UI of a single application.</p>
+</div>
+<div class="paragraph">
+<p>The second approach, which redirects users between applications, doesn’t require the implementation of customer management views in the Orders application.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="implementation-details"><a class="anchor" href="#implementation-details"></a>Implementation Details</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="project-configuration"><a class="anchor" href="#project-configuration"></a>Project Configuration</h3>
+<div class="paragraph">
+<p>The Customers and Products applications include the <a class="xref page" href="../rest/index.html">REST API</a> and <a class="xref page" href="../authorization-server/index.html">Authorization Server</a> add-ons. The Customers application has a UI, while the Products application is a headless service.</p>
+</div>
+<div class="paragraph">
+<p>To run on specific ports and prevent cookie conflicts, the Customers and Products applications require the following properties:</p>
+</div>
+<div class="listingblock">
+<div class="title">customers/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">server.port=8081
+server.servlet.session.cookie.name=CUSTOMERS_JSESSIONID</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">products/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">server.port=8082
+server.servlet.session.cookie.name=PRODUCTS_JSESSIONID</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both applications have an identical configuration of the Authorization Server allowing the Orders application to connect using the Client Credentials grant:</p>
+</div>
+<div class="listingblock">
+<div class="title">customers/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># Protect REST API endpoints
+jmix.resource-server.authenticated-url-patterns=/rest/**
+
+# Configure Spring Security Authorization Server
+spring.security.oauth2.authorizationserver.client.orders.registration.client-id=orders-app
+spring.security.oauth2.authorizationserver.client.orders.registration.client-secret={noop}orders123
+spring.security.oauth2.authorizationserver.client.orders.registration.authorization-grant-types=client_credentials
+spring.security.oauth2.authorizationserver.client.orders.registration.client-authentication_methods=client_secret_basic
+spring.security.oauth2.authorizationserver.client.orders.token.access-token-format=reference
+spring.security.oauth2.authorizationserver.client.orders.token.access-token-time-to-live=24h
+
+# Assign security roles to the client
+jmix.authserver.client.orders.client-id=orders-app
+jmix.authserver.client.orders.resource-roles=system-full-access</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>system-full-access</code> role is assigned to the <code>orders-app</code> client for simplicity. In a real-world application it should have minimal permissions sufficient for working with entities needed for integration.</p>
+</div>
+<div class="paragraph">
+<p>The Orders application includes the <a class="xref page" href="../rest-ds/index.html">REST DataStore</a> add-on for accessing data of Customers and Orders applications.</p>
+</div>
+<div class="paragraph">
+<p>There are two additional REST data stores configured in the <code>application.properties</code> file of the Orders application: <code>customers</code> and <code>products</code>, along with their connection parameters:</p>
+</div>
+<div class="listingblock">
+<div class="title">orders/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.additional-stores=customers,products
+jmix.core.store-descriptor-customers=restds_RestDataStoreDescriptor
+jmix.core.store-descriptor-products=restds_RestDataStoreDescriptor
+
+customers.baseUrl=http://localhost:8081
+customers.clientId=orders-app
+customers.clientSecret=orders123
+
+products.baseUrl=http://localhost:8082
+products.clientId=orders-app
+products.clientSecret=orders123</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="entities"><a class="anchor" href="#entities"></a>Entities</h3>
+<div class="paragraph">
+<p>The Orders application contains DTO entities, identical by the structure to the JPA entities of the Products and Customers applications. Below is an example of the <code>Customer</code> entity in the Customers and Orders application.</p>
+</div>
+<div class="listingblock">
+<div class="title">Customer entity in Customers application</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "CUSTOMER", indexes = {
+        @Index(name = "IDX_CUSTOMER_REGION", columnList = "REGION_ID")
+})
+@Entity
+public class Customer {
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @Column(name = "VERSION", nullable = false)
+    @Version
+    private Integer version;
+
+    @InstanceName
+    @Column(name = "NAME", nullable = false)
+    @NotNull
+    private String name;
+
+    @Email
+    @Column(name = "EMAIL")
+    private String email;
+
+    @EmbeddedParameters(nullAllowed = false)
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "city", column = @Column(name = "ADDRESS_CITY")),
+            @AttributeOverride(name = "postCode", column = @Column(name = "ADDRESS_POST_CODE")),
+            @AttributeOverride(name = "addressLine", column = @Column(name = "ADDRESS_ADDRESS_LINE"))
+    })
+    private Address address;
+
+    @JoinColumn(name = "REGION_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Region region;
+
+    @Composition
+    @OneToMany(mappedBy = "customer")
+    private Set&lt;Contact&gt; contacts;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Customer entity in Orders application</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Store(name = "customers") <i class="conum" data-value="1"></i><b>(1)</b>
+@JmixEntity
+public class Customer {
+    @JmixGeneratedValue
+    @JmixId
+    private UUID id;
+
+    private Integer version;
+
+    @InstanceName
+    @NotNull
+    private String name;
+
+    @Email
+    private String email;
+
+    @JmixEmbedded <i class="conum" data-value="2"></i><b>(2)</b>
+    @EmbeddedParameters(nullAllowed = false)
+    private Address address;
+
+    private Region region;
+
+    @Composition(inverse = "customer") <i class="conum" data-value="3"></i><b>(3)</b>
+    private Set&lt;Contact&gt; contacts;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@Store</code> annotation points to the appropriate REST data store.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>@JmixEmbedded</code> annotation is used in DTO entities instead of the JPA’s <code>@Embedded</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>@Composition</code> annotation in a DTO entity should contain the <code>inverse</code> parameter to specify the inverse property instead of the JPA’s <code>@OneToMany(mappedBy)</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the Orders application, the <code>OrderLine</code> JPA entity contains a cross-datastore reference to the <code>Product</code> DTO entity:</p>
+</div>
+<div class="listingblock">
+<div class="title">OrderLine entity</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "ORDER_LINE", indexes = {
+        @Index(name = "IDX_ORDER_LINE_ORDER", columnList = "ORDER_ID")
+})
+@Entity
+public class OrderLine {
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @Column(name = "QUANTITY")
+    private Double quantity;
+
+    @Column(name = "PRODUCT_ID")
+    private UUID productId; <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @JmixProperty
+    @Transient
+    @DependsOnProperties("productId")
+    private Product product; <i class="conum" data-value="2"></i><b>(2)</b>
+
+    // ...</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>productId</code> persistent attribute stores a product ID in the Orders database.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>DataManager</code> automatically calls the <code>products</code> REST data store to populate the <code>product</code> transient attribute when loading <code>OrderLine</code>.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fetch-plans"><a class="anchor" href="#fetch-plans"></a>Fetch Plans</h3>
+<div class="paragraph">
+<p>Since Jmix 2.5, the generic REST API supports both named fetch plans defined in <a class="xref page" href="../data-access/fetching.html#creating-fetch-plans">fetch plans repository</a> and inline fetch plans defined in view descriptors or created programmatically. So the Orders application uses fetch plans for Customers and Products DTO entities in the same way as for local JPA entities. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">orders/src/main/resources/com/company/orders/view/products/product/product-list-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="productsDc"
+                class="com.company.orders.entity.products.Product"&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="category" fetchPlan="_base"/&gt;
+        &lt;/fetchPlan&gt;
+        &lt;loader id="productsDl" readOnly="true"/&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, fetch plans can contain references to entities from a different data store:</p>
+</div>
+<div class="listingblock">
+<div class="title">orders/src/main/resources/com/company/orders/view/orderline/order-line-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance id="orderLineDc"
+              class="com.company.orders.entity.OrderLine"&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="product" fetchPlan="_base"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;/fetchPlan&gt;
+        &lt;loader id="orderLineDl"/&gt;
+    &lt;/instance&gt;
+&lt;/data&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Reference from OrderLine JPA entity to Product DTO entity.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="views"><a class="anchor" href="#views"></a>Views</h3>
+<div class="paragraph">
+<p>The Orders application contains views for managing data of external applications using DTO entities:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Customer.list</code>, <code>Customer.detail</code>, <code>Contact.detail</code></p>
+</li>
+<li>
+<p><code>ProductCategory.list</code>, <code>ProductCategory.detail</code>, <code>Product.list</code>, <code>Product.detail</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These views were created using the <code>DTO entity list view</code> and <code>DTO entity detail view</code> templates provided by Studio. The views don’t have delegate methods (usual for DTO views), as they are unnecessary when the entity is associated with a data store. The standard Jmix CRUD functionality operates through the <code>DataManager</code> for these entities.</p>
+</div>
+<div class="paragraph">
+<p>Data loaders do not have the <code>query</code> element, so they load all instances according to the pagination and filtering components, if they are used in the view. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">orders/src/main/resources/com/company/orders/view/customers/customer/customer-list-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="customersDc"
+                class="com.company.orders.entity.customers.Customer"&gt;
+        &lt;loader id="customersDl" readOnly="true"/&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>However, data loaders of DTO entities support JSON queries as explained in the <a class="xref page" href="../rest-ds/index.html#using-query-in-view-xml">REST DataStore documentation</a>. You can find an example of a JSON query in <code>Customer.detail</code> view descriptor. It is used to filter dropdown list items when the user selects a reference to the <code>Region</code> entity:</p>
+</div>
+<div class="listingblock">
+<div class="title">orders/src/main/resources/com/company/orders/view/customers/customer/customer-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityComboBox id="regionField" property="region"&gt;
+    &lt;itemsQuery class="com.company.orders.entity.customers.Region"
+                searchStringFormat="${inputString}"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;query&gt;
+            &lt;![CDATA[
+            {
+              "property": "name",
+              "operator": "contains",
+              "parameterName": "searchString"
+            }
+            ]]&gt;
+        &lt;/query&gt;
+    &lt;/itemsQuery&gt;
+    &lt;actions&gt;
+        &lt;action id="entityClear" type="entity_clear"/&gt;
+    &lt;/actions&gt;
+&lt;/entityComboBox&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="import-using-own-views"><a class="anchor" href="#import-using-own-views"></a>Import Using DTO Views</h3>
+<div class="paragraph">
+<p>When you import customers in the <strong>Simple customers</strong> view using the <strong>Show external entities in this app</strong>, the process is straightforward:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>Customer</code> DTO list view is shown in lookup mode using the <code>DialogWindows</code> bean:</p>
+<div class="listingblock">
+<div class="title">orders/src/main/java/com/company/orders/view/simplecustomer/SimpleCustomerListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private CustomerImporter customerImporter;
+
+@Autowired
+private DialogWindows dialogWindows;
+
+@Subscribe("importButton.showExternalEntitiesItem")
+public void onImportButtonShowExternalEntitiesItemClick(final DropdownButtonItem.ClickEvent event) {
+    // Show Customer DTO list view for looking up a customer and importing it
+    dialogWindows.lookup(this, Customer.class)
+            .withSelectHandler(this::importCustomers)
+            .open();
+}
+
+private void importCustomers(Collection&lt;Customer&gt; customers) {
+    for (Customer customer : customers) {
+        importCustomer(Id.of(customer));
+    }
+    simpleCustomersDl.load();
+    notifications.create("Imported successfully").show();
+}
+
+private SimpleCustomer importCustomer(Id&lt;Customer&gt; customerId) {
+    // Delegate to the CustomerImporter bean to import the customer
+    return customerImporter.importCustomer(customerId);
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The <code>CustomerImporter</code> bean loads <code>Customer</code> DTO entity from the Customers application using <code>DataManager</code> and creates or updates a <code>SimpleCustomer</code> JPA entity with data required for the Orders application:</p>
+<div class="listingblock">
+<div class="title">orders/src/main/java/com/company/orders/view/simplecustomer/CustomerImporter.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class CustomerImporter {
+
+    private final DataManager dataManager;
+
+    public CustomerImporter(DataManager dataManager) {
+        this.dataManager = dataManager;
+    }
+
+    public SimpleCustomer importCustomer(Id&lt;Customer&gt; customerId) {
+        Customer fullCustomer = dataManager.load(customerId)
+                .fetchPlan(fpb -&gt; fpb
+                        .addFetchPlan(FetchPlan.BASE)
+                        .add("region", FetchPlan.BASE)
+                        .add("contacts", FetchPlan.BASE))
+                .one();
+
+        SimpleCustomer simpleCustomer = dataManager.load(SimpleCustomer.class)
+                .query("e.externalId = ?1", customerId.getValue())
+                .optional()
+                .orElseGet(() -&gt; {
+                    SimpleCustomer sc = dataManager.create(SimpleCustomer.class);
+                    sc.setExternalId(fullCustomer.getId());
+                    return sc;
+                });
+        simpleCustomer.setName(fullCustomer.getName());
+        simpleCustomer.setEmail(fullCustomer.getEmail());
+        simpleCustomer.setRegionName(fullCustomer.getRegion() == null ? null : fullCustomer.getRegion().getName());
+        simpleCustomer.setAddressText(formatAddressText(fullCustomer.getAddress()));
+        simpleCustomer.setPreferredContact(formatPreferredContact(fullCustomer.getContacts()));
+
+        SimpleCustomer importedCustomer = dataManager.save(simpleCustomer);
+        return importedCustomer;
+    }
+
+    private String formatAddressText(Address address) {
+        return address.getCity() + ", " + address.getPostCode() + ", " + address.getAddressLine();
+    }
+
+    private String formatPreferredContact(Set&lt;Contact&gt; contacts) {
+        return contacts.stream()
+                .filter(contact -&gt; Boolean.TRUE.equals(contact.getPreferred()))
+                .findFirst()
+                .map(contact -&gt; contact.getContactType() + ": " + contact.getContactValue())
+                .orElse("");
+    }
+
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="import-using-redirects"><a class="anchor" href="#import-using-redirects"></a>Import Using Redirects</h3>
+<div class="paragraph">
+<p>When choosing <strong>Open external app</strong> option for importing customers in the <strong>Simple customers</strong> view, the process is as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The Orders application opens the Customers application in a new browser tab with the path to create a new customer and with additional query parameter <code>redirectTo=orders.simpleCustomers</code>. The Customers application base URL is taken from the REST DataStore connection properties:</p>
+<div class="listingblock">
+<div class="title">orders/src/main/java/com/company/orders/view/simplecustomer/SimpleCustomerListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Value("${customers.baseUrl}")
+private String customersBaseUrl;
+
+@Subscribe("importButton.openExternalAppItem")
+public void onImportButtonOpenExternalAppItemClick(final DropdownButtonItem.ClickEvent event) {
+    // Open the Customers application with the customers list in a new tab and
+    // provide a URL parameter to redirect back to this view
+    String url = customersBaseUrl + "/customers/new?redirectTo=orders.simpleCustomers";
+    UI.getCurrent().getPage().executeJs("window.open('" + url + "', '_blank');");
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>In this example, users need to log in to the Customers application by entering a username and password. In a real-world distributed system, the Orders and Customers applications could have a Single-Sign-On based on an external Identity Provider (for example Keycloak) and the <a class="xref page" href="../oidc/index.html">OpenID Connect</a> add-on.</p>
+</li>
+<li>
+<p>The <code>Customer.detail</code> view of the Customers application remembers the <code>redirectTo</code> parameter on opening and use it to redirect back to the Orders application after saving the new customer:</p>
+<div class="listingblock">
+<div class="title">customers/src/main/java/com/company/customers/view/customer/CustomerDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private String redirectTo;
+
+@Autowired
+private Environment environment;
+
+@Subscribe
+public void onQueryParametersChange(final QueryParametersChangeEvent event) {
+    // When the URL contains the "redirectTo" parameter, save it to redirect after save
+    event.getQueryParameters().getSingleParameter("redirectTo").ifPresent(param -&gt; {
+        redirectTo = param;
+    });
+}
+
+@Subscribe
+public void onAfterSave(final AfterSaveEvent event) {
+    if (redirectTo != null) {
+        // Get full URL and redirect to it
+        String baseUrl = environment.getProperty(redirectTo + ".url");
+        UI.getCurrent().getPage().setLocation(baseUrl + "?importCustomer=" + getEditedEntity().getId());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The redirect URL is defined by the <code>orders.simpleCustomers.url</code> property:</p>
+</div>
+<div class="listingblock">
+<div class="title">customers/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">orders.simpleCustomers.url=http://localhost:8080/simpleCustomers</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The Orders application opens in the same browser tab instead of the Customers with the URL pointing to the <code>SimpleCustomers.list</code> view and the <code>importCustomer</code> query parameter containing the created customer’s ID:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">http://localhost:8080/simpleCustomers?importCustomer=59eef946-20f8-47a3-a37b-653f37e18619</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The <code>SimpleCustomers.list</code> view handles the URL query parameter, imports the customer by ID using the <code>CustomerImporter</code> bean and shows a dialog offering to close this browser tab and select the imported customer. If the user clicks <strong>Close and select</strong> in the dialog, the <code>SimpleCustomers.list</code> view sends the <code>SelectCustomerEvent</code> with the imported <code>SimpleCustomer</code> instance and closes this browser tab:</p>
+<div class="listingblock">
+<div class="title">orders/src/main/java/com/company/orders/view/simplecustomer/SimpleCustomerListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private CustomerImporter customerImporter;
+
+@Autowired
+private UiEventPublisher uiEventPublisher;
+
+@Subscribe
+public void onQueryParametersChange(final QueryParametersChangeEvent event) {
+    // When redirecting from the Customers app back, the URL contains the "importCustomer"
+    // parameter with the ID of the customer to import
+    event.getQueryParameters().getSingleParameter("importCustomer").ifPresent(param -&gt; {
+        Id&lt;Customer&gt; customerId = Id.of(UUID.fromString(param), Customer.class);
+        SimpleCustomer importedCustomer = importCustomer(customerId);
+
+        String thisUrl = RouteConfiguration.forSessionScope().getUrl(this.getClass());
+        UI.getCurrent().getPage().getHistory().replaceState(null, thisUrl);
+
+        // Show a success notification and close the browser window
+        dialogs.createOptionDialog()
+                .withText("Successfully imported '" + importedCustomer.getName() + "'")
+                .withActions(
+                        new DialogAction(DialogAction.Type.OK)
+                                .withText("Close and select")
+                                .withHandler(actionPerformedEvent -&gt;
+                                        closeBrowserWindowAndNotify(importedCustomer)),
+                        new BaseAction("continue")
+                                .withText("Continue")
+                )
+                .open();
+    });
+}
+
+private SimpleCustomer importCustomer(Id&lt;Customer&gt; customerId) {
+    // Delegate to the CustomerImporter bean to import the customer
+    return customerImporter.importCustomer(customerId);
+}
+
+private void closeBrowserWindowAndNotify(SimpleCustomer importedCustomer) {
+    // Close the browser window and notify the UI about the imported customer
+    UI.getCurrent().getPage().executeJs("window.close();");
+    uiEventPublisher.publishEvent(new SelectCustomerEvent(this, importedCustomer));
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The <code>SimpleCustomers.list</code> view of the first browser tab which initiated redirects listens to <code>SelectCustomerEvent</code>. If it was open in the lookup mode to select a customer, it executes the <code>selectAction</code> to automatically select the imported instance:</p>
+<div class="listingblock">
+<div class="title">orders/src/main/java/com/company/orders/view/simplecustomer/SimpleCustomerListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataGrid&lt;SimpleCustomer&gt; simpleCustomersDataGrid;
+
+@EventListener
+private void onSelectImportedCustomer(final SelectCustomerEvent event) {
+    // If a customer was imported by another instance of this view,
+    // select it and return to the calling view
+    getSelectAction().ifPresent(action -&gt; {
+        simpleCustomersDataGrid.select(event.getCustomer());
+        action.actionPerform(this);
+    });
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="business-logic"><a class="anchor" href="#business-logic"></a>Business Logic</h3>
+<div class="paragraph">
+<p>The Products application includes a business service accessible via the generic REST API, which returns the stock quantity for a specific product:</p>
+</div>
+<div class="listingblock">
+<div class="title">products/src/main/java/com/company/products/service/InventoryService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestService("InventoryService")
+public class InventoryService {
+
+    @RestMethod
+    public Double getAvailableInStock(Product product) {
+        return (double) Math.round(Math.random() * 100);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Orders application invokes this service in the <code>OrderLine.detail</code> view to show the available quantity to the user. The service is represented by an interface annotated with <code>@RemoteService</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">orders/src/main/java/com/company/orders/service/InventoryService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.orders.service;
+
+import com.company.orders.entity.products.Product;
+import io.jmix.restds.annotation.RemoteService;
+
+@RemoteService(store = "products")
+public interface InventoryService {
+
+    Double getAvailableInStock(Product product);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For interfaces marked with this annotation, the REST DataStore add-on generates client proxy objects that automatically serialize parameters, invoke the remote REST services, and deserialize the results.</p>
+</div>
+<div class="paragraph">
+<p>The service interface can be used in the client code as a regular singleton bean:</p>
+</div>
+<div class="listingblock">
+<div class="title">orders/src/main/java/com/company/orders/view/orderline/OrderLineDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private InventoryService inventoryService;
+
+@Subscribe(id = "availableBtn", subject = "clickListener")
+public void onAvailableBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    Product product = getEditedEntity().getProduct();
+    if (product != null) {
+        Double inStock = inventoryService.getAvailableInStock(product);
+        notifications.show("Available in stock: " + inStock);
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="exception-handling"><a class="anchor" href="#exception-handling"></a>Exception Handling</h3>
+<div class="paragraph">
+<p>The Orders application contains a <code>RestDataStoreAccessException</code> handler that shows a notification when the Customers or Products applications are not available during an integration request:</p>
+</div>
+<div class="listingblock">
+<div class="title">orders/src/main/java/com/company/orders/service/InventoryService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class RestDataStoreAccessExceptionHandler extends AbstractUiExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(RestDataStoreAccessExceptionHandler.class);
+
+    private final Notifications notifications;
+
+    public RestDataStoreAccessExceptionHandler(Notifications notifications) {
+        super(RestDataStoreAccessException.class.getName());
+        this.notifications = notifications;
+    }
+
+    @Override
+    protected void doHandle(@NonNull String className, @NonNull String message, @Nullable Throwable throwable) {
+        log.warn(message);
+
+        if (throwable instanceof RestDataStoreAccessException exception) {
+            notifications.create("Connection error",
+                            "'" + exception.getDataStoreName() + "' service is unavailable")
+                    .withType(Notifications.Type.ERROR)
+                    .show();
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide has equipped you with the essential knowledge and practical steps to integrate Jmix applications into a distributed system. By utilizing the <a class="xref page" href="../rest/index.html">REST API</a> and <a class="xref page" href="../rest-ds/index.html">REST DataStore</a> add-ons, you can create a cohesive environment where multiple applications communicate effectively, ensuring seamless data management across various domains.</p>
+</div>
+<div class="paragraph">
+<p>You explored both data replication and cross-datastore references, each offering its own benefits for application interconnectivity.</p>
+</div>
+<div class="paragraph">
+<p>The guide has also demonstrated two approaches to selecting and returning external data: using DTO views for managing external entities and redirecting users between applications.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

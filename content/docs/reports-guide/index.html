@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Generation :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Report Generation</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a class="xref page" href="../reports/index.html">Jmix Reports</a> add-on allows developers to create dynamic, data-driven reports directly within Jmix applications, supporting a variety of templates and output formats.</p>
+</div>
+<div class="paragraph">
+<p>This guide demonstrates the add-on’s core functionality through practical examples in a sample CRM application, showcasing report design at both design-time (via Java annotations) and runtime (via database-stored definitions editable in the UI).</p>
+</div>
+<div class="paragraph">
+<p>You’ll learn how to structure reports with bands and datasets, handle input parameters and validations, integrate charts and cross-tabs, and embed report actions into application views.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To effectively use this guide, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup</a> the development environment.</p>
+</li>
+<li>
+<p>Clone the <a href="https://github.com/jmix-framework/jmix-reports-sample" rel="noopener" target="_blank">sample project</a> and switch to <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-reports-sample
+cd jmix-reports-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="application-overview"><a class="anchor" href="#application-overview"></a>Application Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The example application used in this guide is a simple CRM system with the data model illustrated by the following diagram:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="er model" src="_images/er-model.svg"/>
+</div>
+<div class="title">Figure 1. Application Data Model</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Client</code> - represents customers with the main information and a collection of contacts. The <code>ClientType</code> enumeration defines classification categories for clients.</p>
+</li>
+<li>
+<p><code>Contact</code> - stores customer contact details.</p>
+</li>
+<li>
+<p><code>Order</code> - customer orders with status tracking. The <code>OrderStatus</code> enumeration defines values for order lifecycle management.</p>
+</li>
+<li>
+<p><code>Invoice</code> - billing documents associated with orders. The <code>InvoiceStatus</code> enumeration defines status values for invoice processing.</p>
+</li>
+<li>
+<p><code>Payment</code> - payment records.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The main purpose of the application is to show how to develop and run various types of reports, so it doesn’t contain any specific business logic.</p>
+</div>
+<div class="paragraph">
+<p>Let’s explore the application features.</p>
+</div>
+<div class="paragraph">
+<p>Open the project in your IDE with the Jmix Studio plugin installed. Run the application using the <code>Jmix-reports-sample Jmix Application</code> run/debug configuration. Go to <a class="bare" href="http://localhost:8080" rel="noopener" target="_blank">http://localhost:8080</a> in your web browser and log in as <code>admin</code> with <code>admin</code> password.</p>
+</div>
+<div class="paragraph">
+<p>The demo data includes the users <code>alice</code>, <code>bob</code>, and others. All of them have the password <code>1</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can open the <strong>Clients</strong>, <strong>Orders</strong>, <strong>Invoices</strong>, <strong>Payments</strong> and <strong>Users</strong> views to see demo data automatically generated on first launch.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Reports → Reports</strong> in the main menu. You will see the list of all reports available in the application.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/all-reports.png"><img alt="all reports" src="_images/all-reports.png"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>Reports in the <code>Design Time Reports</code> group are defined in the application code and cannot be edited at runtime.</p>
+</div>
+<div class="paragraph">
+<p>Reports in the <code>Runtime Reports</code> group duplicate the design-time reports. They use the same templates and produce identical results. The only difference is that their structure and template content are stored in the database, so you can explore and edit them in the running application by clicking <strong>Edit</strong>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="client-profile"><a class="anchor" href="#client-profile"></a>Client Profile Report</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This report provides complete information about a client, including the list of contacts. It has a master-detail structure and offers multiple templates and output formats.</p>
+</div>
+<div class="paragraph">
+<p><strong>Running from Report Designer</strong></p>
+</div>
+<div class="paragraph">
+<p>Select the <code>Client Profile</code> report in the data grid and click the <strong>Run</strong> button.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>Input parameters</strong> dialog allows you to choose a template and select a client entity for which you want to generate the report.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/client-profile-1.png"><img alt="client profile 1" src="_images/client-profile-1.png"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>The template defines both the source template file and the output type. For example, you can have a DOCX template and output the resulting report as a PDF file.</p>
+</div>
+<div class="paragraph">
+<p>Select one of the templates and a client and click <strong>Run</strong>. The application will generate the report and either open the result in a new browser tab or download it as a file, depending on the output type.</p>
+</div>
+<div class="paragraph">
+<p>For example, this is how the report result looks in the DOCX format:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/client-profile-2.png"><img alt="client profile 2" src="_images/client-profile-2.png"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Running from Application Views</strong></p>
+</div>
+<div class="paragraph">
+<p>Users can run the <code>Client Profile</code> report from the <strong>Reports → Run report</strong> view and some other application views as well.</p>
+</div>
+<div class="paragraph">
+<p>Log out from the application and log in as <code>bob</code> with password <code>1</code>. You now have limited access defined by the <code>Employee</code> role. This role grants permissions on the <strong>Reports → Run report</strong> view and list and detail views of the <code>Client</code> entity.</p>
+</div>
+<div class="paragraph">
+<p>If you open the <strong>Reports → Run report</strong> view, you will see only the <code>Client Profile</code> report and its runtime clone.</p>
+</div>
+<div class="paragraph">
+<p>Open the <strong>Clients</strong> list view. Select a client in the data grid, click <strong>Reports</strong> dropdown and then select <strong>Reports for entity</strong>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/client-profile-3.png"><img alt="client profile 3" src="_images/client-profile-3.png" width="734"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Client</strong> field of the <strong>Input parameters</strong> dialog will be set to the client selected in the data grid.</p>
+</div>
+<div class="paragraph">
+<p>If you open the client detail view, you will see two additional buttons at the bottom: <strong>Reports for entity</strong> and <strong>Print client profile</strong>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/client-profile-4.png"><img alt="client profile 4" src="_images/client-profile-4.png" width="625"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Reports for entity</strong> button allows you to select a template and a client the same as in the list view. The <strong>Print client profile</strong> button just prints the report right away for the edited entity using the HTML template and HTML output:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/client-profile-5.png"><img alt="client profile 5" src="_images/client-profile-5.png"/></a>
+</div>
+</div>
+<div class="sect2">
+<h3 id="client-profile-structure"><a class="anchor" href="#client-profile-structure"></a>Report Structure</h3>
+<div class="paragraph">
+<p>The <code>Client Profile</code> report has the following band structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs"> Root
+  ├── Client
+  └── Contacts</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Client</code> band is printed once. The <code>Contacts</code> band is repeated for every contact.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="client-profile-html-template"><a class="anchor" href="#client-profile-html-template"></a>HTML Template</h3>
+<div class="paragraph">
+<p>One of the <a href="#client-profile">Client Profile</a> report templates is written in HTML. You can download the whole file from <a href="https://github.com/jmix-framework/jmix-reports-sample/blob/release_2_7/src/main/resources/com/company/crm/report/client-profile-report.html" rel="noopener" target="_blank">GitHub</a>.</p>
+</div>
+<div class="paragraph">
+<p>The template is a standard HTML file with added <a href="https://freemarker.apache.org/docs/index.html" rel="noopener" target="_blank">Freemarker</a> directives to populate with data when the report is executed.</p>
+</div>
+<div class="paragraph">
+<p>Let’s consider the template body:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;h1&gt;Client Profile&lt;/h1&gt;
+&lt;div class="subtitle"&gt;Generated: ${.now?string("yyyy-MM-dd HH:mm")}&lt;/div&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+
+&lt;#assign Client = Root.bands.Client[0]&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+&lt;#assign Contacts = Root.bands.Contacts&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+
+&lt;div class="section"&gt;
+  &lt;h2&gt;Summary&lt;/h2&gt;
+  &lt;dl class="kv"&gt;
+    &lt;dt&gt;Name&lt;/dt&gt;&lt;dd&gt;${Client.fields.name!}&lt;/dd&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+    &lt;dt&gt;Full name&lt;/dt&gt;&lt;dd&gt;${Client.fields.fullName!}&lt;/dd&gt;
+    &lt;dt&gt;Type&lt;/dt&gt;&lt;dd&gt;${Client.fields.type!}&lt;/dd&gt;
+    &lt;dt&gt;Address&lt;/dt&gt;&lt;dd&gt;${Client.fields.address!}&lt;/dd&gt;
+    &lt;dt&gt;VAT number&lt;/dt&gt;&lt;dd&gt;${Client.fields.vatNumber!}&lt;/dd&gt;
+    &lt;dt&gt;Registration number&lt;/dt&gt;&lt;dd&gt;${Client.fields.regNumber!}&lt;/dd&gt;
+    &lt;dt&gt;Website&lt;/dt&gt;&lt;dd&gt;${Client.fields.website!}&lt;/dd&gt;
+    &lt;dt&gt;Account manager&lt;/dt&gt;&lt;dd&gt;${Client.fields.accountManager!}&lt;/dd&gt;
+  &lt;/dl&gt;
+&lt;/div&gt;
+
+&lt;#if Contacts?has_content&gt;
+  &lt;div class="section"&gt;
+    &lt;h2&gt;Contacts&lt;/h2&gt;
+    &lt;table&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;
+          &lt;th&gt;#&lt;/th&gt;
+          &lt;th&gt;Person&lt;/th&gt;
+          &lt;th&gt;Position&lt;/th&gt;
+          &lt;th&gt;Email&lt;/th&gt;
+          &lt;th&gt;Phone&lt;/th&gt;
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        &lt;#list Contacts as c&gt; <i class="conum" data-value="5"></i><b>(5)</b>
+          &lt;tr&gt;
+            &lt;td&gt;${c?index + 1}&lt;/td&gt; <i class="conum" data-value="6"></i><b>(6)</b>
+            &lt;td&gt;${c.fields.person!}&lt;/td&gt; <i class="conum" data-value="7"></i><b>(7)</b>
+            &lt;td&gt;${c.fields.position!}&lt;/td&gt;
+            &lt;td&gt;${c.fields.email!}&lt;/td&gt;
+            &lt;td&gt;${c.fields.phone!}&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/#list&gt;
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;
+&lt;/#if&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Using the Freemarker special variable <code>.now</code> to print the current timestamp.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Assigning the first row of the <code>Client</code> band to the <code>Client</code> variable.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Assigning the rows of the <code>Contacts</code> band to the <code>Contacts</code> variable.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Printing the <code>Client</code> fields.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Iterating over the <code>Contacts</code> list.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Using the Freemarker loop variable to print the item number.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Printing the <code>Contacts</code> fields.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="client-profile-docx-template"><a class="anchor" href="#client-profile-docx-template"></a>DOCX Template</h3>
+<div class="paragraph">
+<p>Another <code>Client Profile</code> report template is a DOCX file. You can download it from <a href="https://github.com/jmix-framework/jmix-reports-sample/blob/release_2_7/src/main/resources/com/company/crm/report/client-profile-report.docx" rel="noopener" target="_blank">GitHub</a>.</p>
+</div>
+<div class="paragraph">
+<p>The DOCX template is populated with data using the <code>${band_name.field_name}</code> placeholders and defining band names in the tables.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/template-docx-1.png"><img alt="template docx 1" src="_images/template-docx-1.png" width="717"/></a>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The report timestamp is printed as a regular field of the <code>Root</code> band.</p>
+</li>
+<li>
+<p>Printing the <code>Client</code> band fields.</p>
+</li>
+<li>
+<p>The <code>##band==&lt;band_name&gt;</code> directive in a table cell defines a band for the table.</p>
+</li>
+<li>
+<p>The item number is printed as a regular field of the <code>Contacts</code> band.</p>
+</li>
+<li>
+<p>Printing the <code>Contacts</code> band fields.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="client-profile-jrxml-template"><a class="anchor" href="#client-profile-jrxml-template"></a>JRXML Template</h3>
+<div class="paragraph">
+<p>The JRXML template of the <a href="#client-profile">Client Profile</a> report is rendered using <a href="https://github.com/Jaspersoft/jasperreports" rel="noopener" target="_blank">JasperReports</a> library to produce a PDF file. You can download the template from <a href="https://github.com/jmix-framework/jmix-reports-sample/blob/release_2_7/src/main/resources/com/company/crm/report/client-profile-report.jrxml" rel="noopener" target="_blank">GitHub</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="client-profile-design-time"><a class="anchor" href="#client-profile-design-time"></a>Design-Time Definition</h3>
+<div class="paragraph">
+<p>The <code>Client Profile</code> report structure is defined by the <code>com.company.crm.report.ClientProfileReport</code> class.</p>
+</div>
+<div class="paragraph">
+<p>Below we describe the key elements of the class, its annotations and methods.</p>
+</div>
+<div class="sect3">
+<h4 id="_reportdef"><a class="anchor" href="#_reportdef"></a>@ReportDef</h4>
+<div class="paragraph">
+<p>The <code>@ReportDef</code> annotation is a mandatory element of a report definition:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ReportDef(
+        code = "client-profile", <i class="conum" data-value="1"></i><b>(1)</b>
+        group = DesignTimeReportsGroup.class, <i class="conum" data-value="2"></i><b>(2)</b>
+        name = "Client Profile", <i class="conum" data-value="3"></i><b>(3)</b>
+        description = "Simple report with different templates and output formats" <i class="conum" data-value="4"></i><b>(4)</b>
+)
+public class ClientProfileReport {
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Report code is used to identify the report when running it through the API.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Report group definition class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Report name and description to display in UI.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>@ReportDef</code> annotation is itself annotated with Spring’s <code>@Component</code>, so the report definition class becomes a singleton bean.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_availableforroles_and_availableinviews"><a class="anchor" href="#_availableforroles_and_availableinviews"></a>@AvailableForRoles and @AvailableInViews</h4>
+<div class="paragraph">
+<p>The <code>@AvailableForRoles</code> and <code>@AvailableInViews</code> specify the user roles that are permitted to run the report and indicate the views in which the report generation actions will show the report:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@AvailableForRoles(
+        roleClasses = {FullAccessRole.class, EmployeeRole.class, ManagerRole.class}
+)
+@AvailableInViews(
+        viewClasses = {ClientDetailView.class, ClientListView.class}
+)
+public class ClientProfileReport {
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_templatedef"><a class="anchor" href="#_templatedef"></a>@TemplateDef</h4>
+<div class="paragraph">
+<p>The <code>@TemplateDef</code> annotation defines the report template:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@TemplateDef(
+        isDefault = true, <i class="conum" data-value="1"></i><b>(1)</b>
+        code = "HTML → HTML", <i class="conum" data-value="2"></i><b>(2)</b>
+        filePath = "com/company/crm/report/client-profile-report.html", <i class="conum" data-value="3"></i><b>(3)</b>
+        outputType = ReportOutputType.HTML, <i class="conum" data-value="4"></i><b>(4)</b>
+        outputNamePattern = "client-profile.html", <i class="conum" data-value="5"></i><b>(5)</b>
+        templateEngine = TemplateMarkupEngine.FREEMARKER <i class="conum" data-value="6"></i><b>(6)</b>
+)
+public class ClientProfileReport {
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Indicates that the template should be automatically used unless user explicitly specifies another one.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The unique template code is shown to the user and can be used when referring to the template in API.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Path to the template file starting from the resources root.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Type of the output content generated by the reporting engine. Output type should be consistent with the template file type.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Optional file name pattern which will be used to generate the output file name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>For HTML templates, defines the template engine to process the content.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A report may contain multiple <code>@TemplateDef</code> annotations. When the report is executed, one template is either selected by the user or chosen automatically.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_inputparameterdef"><a class="anchor" href="#_inputparameterdef"></a>@InputParameterDef</h4>
+<div class="paragraph">
+<p>The <code>@InputParameterDef</code> annotation defines an external parameter passed to the report:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@InputParameterDef(
+        alias = "client", <i class="conum" data-value="1"></i><b>(1)</b>
+        name = "msg://com.company.crm.entity/Client", <i class="conum" data-value="2"></i><b>(2)</b>
+        type = ParameterType.ENTITY, <i class="conum" data-value="3"></i><b>(3)</b>
+        required = true, <i class="conum" data-value="4"></i><b>(4)</b>
+        entity = @EntityParameterDef(entityClass = Client.class) <i class="conum" data-value="5"></i><b>(5)</b>
+)
+public class ClientProfileReport {
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Unique alias to access parameter in datasets.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Human-readable parameter name. Can be a string or a reference to a localized message.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Data type of the parameter.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Whether the parameter is mandatory and must be entered by the user or passed through the API.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>For <code>ParameterType.ENTITY</code> and <code>ParameterType.ENTITY_LIST</code> parameters, defines additional properties.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A report may contain multiple <code>@InputParameterDef</code> annotations.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_banddef_and_datasetdef"><a class="anchor" href="#_banddef_and_datasetdef"></a>@BandDef and @DataSetDef</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@BandDef(
+        name = "Root", <i class="conum" data-value="1"></i><b>(1)</b>
+        root = true,
+        dataSets = @DataSetDef( <i class="conum" data-value="2"></i><b>(2)</b>
+                name = "root", <i class="conum" data-value="3"></i><b>(3)</b>
+                type = DataSetType.DELEGATE <i class="conum" data-value="4"></i><b>(4)</b>
+        )
+)
+
+@BandDef(
+        name = "Client",
+        parent = "Root", <i class="conum" data-value="5"></i><b>(5)</b>
+        dataSets = @DataSetDef(name = "client", type = DataSetType.DELEGATE)
+)
+
+@BandDef(
+        name = "Contacts",
+        parent = "Root",
+        dataSets = @DataSetDef(name = "contacts", type = DataSetType.DELEGATE)
+)
+public class ClientProfileReport {
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The unique band name. Any report must include the band named <code>Root</code> with the annotation attribute <code>root = true</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>dataSets</code> attribute defines one or more datasets for this band using the <code>@DataSetDef</code> annotation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The dataset name to refer from a delegate method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Dataset type determines how the band data is obtained. <code>DataSetType.DELEGATE</code> means delegation to a <code>ReportDataLoader</code> object returned by a report class method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The <code>parent</code> attribute specifies a parent band to define the report structure.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="client-profile-delegates"><a class="anchor" href="#client-profile-delegates"></a>Delegate Methods</h4>
+<div class="paragraph">
+<p>The report class can contain delegate methods that are invoked by the report engine when running the report.</p>
+</div>
+<div class="paragraph">
+<p>The most common delegates are used for loading data in band datasets. Methods of this kind are annotated with <code>@DataSetDelegate</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class ClientProfileReport {
+
+    @Autowired
+    private MetadataTools metadataTools;
+
+    @DataSetDelegate(name = "client") <i class="conum" data-value="1"></i><b>(1)</b>
+    public ReportDataLoader clientDataLoader() { <i class="conum" data-value="2"></i><b>(2)</b>
+        return (reportQuery, parentBand, params) -&gt; {
+            Client client = (Client) params.get("client");
+            Map&lt;String, Object&gt; fields = new HashMap&lt;&gt;();
+            fields.put("name", client.getName());
+            fields.put("fullName", client.getFullName());
+            fields.put("type", client.getType().name());
+            fields.put("address", client.getAddress());
+            fields.put("vatNumber", client.getVatNumber());
+            fields.put("regNumber", client.getRegNumber());
+            fields.put("website", client.getWebsite());
+            fields.put("accountManager", client.getAccountManager() == null ?
+                    "" : metadataTools.getInstanceName(client.getAccountManager()));
+            return List.of(fields);
+        };
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>name</code> attribute links the method to the dataset (<code>client</code> in this example).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The method returns the <code>ReportDataLoader</code> object and does not have any arguments.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><code>ReportDataLoader</code> is a functional interface that accepts a parent band and external parameters map. It returns a list of fields that becomes the band content.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="client-profile-runtime"><a class="anchor" href="#client-profile-runtime"></a>Runtime Definition</h3>
+<div class="paragraph">
+<p>The sample project includes the copy of the <code>Client Profile</code> report, defined in the database. This "runtime" report produces the same result as the one defined at design time.</p>
+</div>
+<div class="paragraph">
+<p>Run the application and open <strong>Reports → Reports</strong> view. Select <code>Client Profile (runtime)</code> in the list and click <strong>Edit</strong>. You will see the modifiable report properties defined on several tabs: <strong>Report details</strong>, <strong>Bands</strong>, <strong>Parameters</strong>, and so on.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>Bands</strong> tab defines the structure of bands and datasets:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/client-profile-runtime-1.png"><img alt="client profile runtime 1" src="_images/client-profile-runtime-1.png"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>The same logic as that in the <a href="#client-profile-delegates">clientDataLoader()</a> delegate is implemented here using the Groovy script:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def metadataTools = applicationContext.getBean(io.jmix.core.MetadataTools)
+
+def client = params['client']
+
+return [[
+    'name': client.name,
+    'fullName': client.fullName,
+    'type': client.type.name(),
+    'address': client.address,
+    'vatNumber': client.vatNumber,
+    'regNumber': client.regNumber,
+    'website': client.website,
+    'accountManager': client.accountManager ? metadataTools.getInstanceName(client.accountManager) : ''
+    ]]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Templates are listed on the <strong>Templates</strong> tab:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/client-profile-runtime-2.png"><img alt="client profile runtime 2" src="_images/client-profile-runtime-2.png"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>In runtime reports, templates are uploaded to the application and stored in the database.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="report-actions-in-views"><a class="anchor" href="#report-actions-in-views"></a>Report Actions in Views</h3>
+<div class="paragraph">
+<p>The <code>Client Profile</code> report is available to the users through the actions defined in the application views. The actions are provided by the Reports add-on.</p>
+</div>
+<div class="listingblock">
+<div class="title">client-list-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+    &lt;!-- ... --&gt;
+    &lt;comboButton text="Reports"&gt;
+        &lt;items&gt;
+            &lt;actionItem id="reportForEntityActionItem" ref="clientsDataGrid.runListEntityReportAction"/&gt;
+            &lt;actionItem id="reportActionItem" ref="clientsDataGrid.runReportAction"/&gt;
+        &lt;/items&gt;
+    &lt;/comboButton&gt;
+&lt;/hbox&gt;
+&lt;dataGrid id="clientsDataGrid" width="100%" minHeight="20em"
+          dataContainer="clientsDc" columnReorderingAllowed="true"&gt;
+    &lt;actions&gt;
+        &lt;!-- ... --&gt;
+        &lt;action id="runListEntityReportAction" text="Reports for entity"
+                type="report_runListEntityReport"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;action id="runReportAction" text="Reports" icon="vaadin:table"
+                type="report_runReport"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/actions&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Action with the <code>report_runListEntityReport</code> type shows available reports that have an external parameter of the <code>Entity</code> or the <code>List of entities</code> type and where the parameter entity type matches the entity displayed by the <code>dataGrid</code>. If an entity is selected in the <code>dataGrid</code>, it is automatically set as the parameter value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Action with the <code>report_runReport</code> type shows all reports available to the user in this view.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">client-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;actions&gt;
+    &lt;!-- ... --&gt;
+    &lt;action id="runSingleEntityReportAction" text="Reports for entity"
+            type="report_runSingleEntityReport"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;/actions&gt;
+&lt;layout&gt;
+    &lt;hbox id="detailActions"&gt;
+        &lt;button id="saveAndCloseButton" action="saveAction"/&gt;
+        &lt;button id="closeButton" action="closeAction"/&gt;
+        &lt;button action="runSingleEntityReportAction"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;button id="printClientProfileButton" text="Print client profile"
+                icon="vaadin:file-text"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/hbox&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Action with the <code>report_runSingleEntityReport</code> type shows available reports that have an external parameter of the <code>Entity</code> or the <code>List of entities</code> type and where the parameter entity type matches the entity displayed in this detail view.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The button executes the <code>Client Profile</code> report using the custom handler in <code>ClientDetailView</code> shown below.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">ClientDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class ClientDetailView extends StandardDetailView&lt;Client&gt; {
+
+    @Autowired
+    private UiReportRunner uiReportRunner; <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @Subscribe(id = "printClientProfileButton", subject = "clickListener")
+    public void onPrintClientProfileButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+        uiReportRunner.byReportCode("client-profile")
+                .addParam("client", getEditedEntity())
+                .withTemplateCode("HTML → HTML")
+                .withParametersDialogShowMode(ParametersDialogShowMode.NO)
+                .runAndShow();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>UiReportRunner</code> bean provides fluent API to execute reports in UI.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="orders-by-client"><a class="anchor" href="#orders-by-client"></a>Orders by Client Report</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This is a multi-level tabular report with subtotals. It shows all orders, grouped by client and status.</p>
+</div>
+<div class="paragraph">
+<p>The report is available for <code>admin</code> and for <code>alice</code> who has the <code>Manager</code> role.</p>
+</div>
+<div class="paragraph">
+<p>Log in as <code>alice</code> with password <code>1</code> and open the <strong>Reports → Run report</strong> view. Select the <code>Orders by Client</code> report and click <strong>Run</strong>.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Input parameters</strong> dialog, select the <strong>From</strong> and <strong>To</strong> dates to take into account only orders within a specific range. Both dates are optional, so if you leave them blank, all orders will be included in the report.</p>
+</div>
+<div class="paragraph">
+<p>This report is developed for a single XLSX template, so the dialog does not allow you to select a template.</p>
+</div>
+<div class="paragraph">
+<p>The resulting report looks as follows (most of the rows are hidden manually to show the totals):</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/orders-by-client-1.png"><img alt="orders by client 1" src="_images/orders-by-client-1.png"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>The report can also be generated by a user with <code>Manager</code> role from the <strong>Clients</strong> and <strong>Orders</strong> list views using the <strong>Reports</strong> button.</p>
+</div>
+<div class="sect2">
+<h3 id="orders-by-client-structure"><a class="anchor" href="#orders-by-client-structure"></a>Report Structure</h3>
+<div class="paragraph">
+<p>The <code>Orders by Client</code> report has the following band structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">Root
+  ├── Header
+  ├── Client
+  │     ├── OrderStatus
+  │     │     └── Order
+  │     └── ClientTotal
+  └── GrandTotal</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Header</code> band is printed once to display the report parameters and timestamp.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Client</code> band is repeated for every client who has orders within the specified date range.</p>
+</div>
+<div class="paragraph">
+<p>The <code>OrderStatus</code> band iterates over statuses of the found orders.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Order</code> band displays the orders with the current status.</p>
+</div>
+<div class="paragraph">
+<p>The <code>ClientTotal</code> band is printed for each client.</p>
+</div>
+<div class="paragraph">
+<p>The <code>GrandTotal</code> band is printed once in the report footer.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="orders-by-client-xlsx-template"><a class="anchor" href="#orders-by-client-xlsx-template"></a>XLSX Template</h3>
+<div class="paragraph">
+<p>XLSX templates are used in all tabular reports of this guide: <a href="#orders-by-client">Orders by Client Report</a>, <a href="#orders-by-status">Orders by Status Report</a> and <a href="#revenue-by-month">Revenue by Month Report</a>.</p>
+</div>
+<div class="paragraph">
+<p>Report bands correspond to named ranges in the XLSX template. The following picture shows the named range of the <code>Order</code> band:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/template-xlsx-1.png"><img alt="template xlsx 1" src="_images/template-xlsx-1.png" width="963"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>Bands are populated with data using the <code>${field_name}</code> placeholders.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="orders-by-client-design-time"><a class="anchor" href="#orders-by-client-design-time"></a>Design-Time Definition</h3>
+<div class="paragraph">
+<p>The <code>Orders by Client</code> report structure is defined by the <code>com.company.crm.report.OrdersByClientReport</code> class.</p>
+</div>
+<div class="paragraph">
+<p>Below we outline only elements that are substantially different from the <a href="#client-profile-design-time">Client Profile report definition</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class OrdersByClientReport {
+    @Autowired
+    private DataManager dataManager;
+
+    private final ThreadLocal&lt;BigDecimal&gt; runningClientTotal =
+            ThreadLocal.withInitial(() -&gt; BigDecimal.ZERO); <i class="conum" data-value="1"></i><b>(1)</b>
+    private final ThreadLocal&lt;BigDecimal&gt; runningGrandTotal =
+            ThreadLocal.withInitial(() -&gt; BigDecimal.ZERO); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @DataSetDelegate(name = "client")
+    public ReportDataLoader clientDataLoader() {
+        return (reportQuery, parentBand, params) -&gt; {
+
+            // Initialize thread locals on report start
+            runningClientTotal.set(BigDecimal.ZERO);
+            runningGrandTotal.set(BigDecimal.ZERO);
+
+            List&lt;Client&gt; clients = dataManager.load(Client.class) <i class="conum" data-value="2"></i><b>(2)</b>
+                    .query("""
+                            select c from Client c
+                            where exists (
+                                            select 1 from Order_ o where o.client.id = c.id and
+                                                (:dateFrom is null or o.date &gt;= :dateFrom) and
+                                                (:dateTo is null or o.date &lt;= :dateTo)
+                                         )
+                            order by c.name""")
+                    .parameter("dateFrom", params.get("dateFrom"))
+                    .parameter("dateTo", params.get("dateTo"))
+                    .list();
+            return clients.stream()
+                    .map(client -&gt; Map.of("id", client.getId(), "name", (Object) client.getName()))
+                    .toList();
+        };
+    }
+    @DataSetDelegate(name = "order")
+    public ReportDataLoader orderDataLoader() {
+        return (reportQuery, parentBand, params) -&gt; {
+            Object clientId = parentBand.getParentBand().getData().get("id");  <i class="conum" data-value="3"></i><b>(3)</b>
+            Object statusId = parentBand.getData().get("statusId");
+            List&lt;Order&gt; orderList = dataManager.load(Order.class)
+                    .query("""
+                            select o from Order_ o
+                            where o.client.id = :clientId and o.status = :status and
+                                (:dateFrom is null or o.date &gt;= :dateFrom) and
+                                (:dateTo is null or o.date &lt;= :dateTo)
+                            order by o.date""")
+                    .parameter("clientId", clientId)
+                    .parameter("status", statusId)
+                    .parameter("dateFrom", params.get("dateFrom"))
+                    .parameter("dateTo", params.get("dateTo"))
+                    .list();
+            return orderList.stream()
+                    .map(order -&gt; {
+                        runningClientTotal.set(
+                                runningClientTotal.get().add(order.getTotal())
+                        ); <i class="conum" data-value="4"></i><b>(4)</b>
+                        Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+                        map.put("order", order);
+                        map.put("date", order.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                        map.put("quote", order.getQuote());
+                        map.put("comment", order.getComment());
+                        map.put("total", order.getTotal());
+                        return map;
+                    })
+                    .toList();
+        };
+    }
+
+    @DataSetDelegate(name = "clientTotal")
+    public ReportDataLoader clientTotalDataLoader() {
+        return (reportQuery, parentBand, params) -&gt; {
+            Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+            map.put("clientTotal", runningClientTotal.get()); <i class="conum" data-value="5"></i><b>(5)</b>
+
+            runningGrandTotal.set(
+                    runningGrandTotal.get().add(runningClientTotal.get())
+            ); <i class="conum" data-value="6"></i><b>(6)</b>
+            runningClientTotal.set(BigDecimal.ZERO);
+
+            return List.of(map);
+        };
+    }
+
+    @DataSetDelegate(name = "grandTotal")
+    public ReportDataLoader grandTotalDataLoader() {
+        return (reportQuery, parentBand, params) -&gt; {
+            Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+            map.put("grandTotal", runningGrandTotal.get()); <i class="conum" data-value="7"></i><b>(7)</b>
+
+            // Clean up thread locals on report finish
+            runningClientTotal.remove();
+            runningGrandTotal.remove();
+
+            return List.of(map);
+        };
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Thread-local variables are used to store intermediate values during the report execution.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>DataManager</code> is used to load data.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>parentBand</code> argument is used to get fields of the upper-level bands and use them as parameters for this band’s dataset query.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>runningClientTotal</code> is increased by the amount of the order printed in the current band iteration.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Accumulated <code>runningClientTotal</code> is used to print the client total field.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td><code>runningGrandTotal</code> is increased by the current client total value; <code>runningClientTotal</code> is set to zero for the next client.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Accumulated <code>runningGrandTotal</code> is printed in the end and thread-local variables are cleared.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="orders-by-client-runtime"><a class="anchor" href="#orders-by-client-runtime"></a>Runtime Definition</h3>
+<div class="paragraph">
+<p>The runtime variant of the report is called <code>Orders by Client (runtime)</code> and can be opened from the <strong>Reports → Reports</strong> view.</p>
+</div>
+<div class="paragraph">
+<p>Instead of accumulating subtotals and totals in thread-local variables, the runtime report uses separate JPQL queries to calculate them.</p>
+</div>
+<div class="paragraph">
+<p>The <code>ClientTotal</code> band dataset query:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">select sum(o.total) as "clientTotal"
+from Order_ o
+where o.client.id = ${Client.id} and
+    (${dateFrom} is null or o.date &gt;= ${dateFrom}) and
+    (${dateTo} is null or o.date &lt;= ${dateTo})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>GrandTotal</code> band dataset query:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">select sum(o.total) as "grandTotal"
+from Order_ o
+where (${dateFrom} is null or o.date &gt;= ${dateFrom}) and
+    (${dateTo} is null or o.date &lt;= ${dateTo})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The JPQL syntax of report queries is slightly different from the standard JPQL:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>as</code> operator is used to provide field names. For example: <code>select sum(o.total) as "clientTotal"</code>.</p>
+</li>
+<li>
+<p>Parameters are provided using <code>${param_name}</code> placeholders. For example: <code>o.date &gt;= ${dateFrom}</code>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="orders-by-status"><a class="anchor" href="#orders-by-status"></a>Orders by Status Report</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This is a tabular report with a chart. It shows a high-level sales pipeline: count and sum of orders per status in a period.</p>
+</div>
+<div class="paragraph">
+<p>The report is similar to <a href="#orders-by-client">Orders by Client</a> in the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>available to the <code>Manager</code> role;</p>
+</li>
+<li>
+<p>accepts an optional range of dates;</p>
+</li>
+<li>
+<p>has a single XLSX template;</p>
+</li>
+<li>
+<p>can be generated from the <strong>Clients</strong> and <strong>Orders</strong> list views.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Log in as <code>alice</code> with password <code>1</code> and open the <strong>Reports → Run report</strong> view. Select the <code>Orders by Status</code> report and click <strong>Run</strong>.</p>
+</div>
+<div class="paragraph">
+<p>The resulting report looks as follows:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/orders-by-status-1.png"><img alt="orders by status 1" src="_images/orders-by-status-1.png"/></a>
+</div>
+</div>
+<div class="sect2">
+<h3 id="orders-by-status-structure"><a class="anchor" href="#orders-by-status-structure"></a>Report Structure</h3>
+<div class="paragraph">
+<p>The <code>Orders by Status</code> report has the following band structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">Root
+  ├── Header
+  ├── OrderStatus
+  └── Chart</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Header</code> band is printed once to display the report parameters and timestamp.</p>
+</div>
+<div class="paragraph">
+<p>The <code>OrderStatus</code> band is repeated for every status of orders within the specified date range.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Chart</code> band is printed once to display the chart.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="orders-by-status-diagram-template"><a class="anchor" href="#orders-by-status-diagram-template"></a>XLSX Template with Diagram</h3>
+<div class="paragraph">
+<p>The XLSX template can contain diagrams. They are defined in a separate band:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/template-xlsx-diagram-1.png"><img alt="template xlsx diagram 1" src="_images/template-xlsx-diagram-1.png" width="546"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>The data source for the chart is the range of cells corresponding to a tabular band:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/template-xlsx-diagram-2.png"><img alt="template xlsx diagram 2" src="_images/template-xlsx-diagram-2.png" width="919"/></a>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="orders-by-status-design-time"><a class="anchor" href="#orders-by-status-design-time"></a>Design-Time Definition</h3>
+<div class="paragraph">
+<p>The <code>Orders by Status</code> report structure is defined by the <a href="https://github.com/jmix-framework/jmix-reports-sample/blob/release_2_7/src/main/java/com/company/crm/report/OrdersByStatusReport.java" rel="noopener" target="_blank">OrdersByStatusReport</a> class.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Chart</code> band has no datasets, but it is still printed once:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@BandDef(
+        name = "Chart",
+        parent = "Root"
+)
+public class OrdersByStatusReport {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This behavior is defined by the <a class="xref page" href="../reports/configuration.html#jmix.reports.put-empty-row-if-no-data-selected">jmix.reports.put-empty-row-if-no-data-selected</a> application property.</p>
+</div>
+<div class="paragraph">
+<p>The <code>OrderStatus</code> band has a dataset that delegates to a <code>ReportDataLoader</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@BandDef(
+        name = "OrderStatus",
+        parent = "Root",
+        dataSets = @DataSetDef(name = "orderStatus", type = DataSetType.DELEGATE)
+)
+public class OrdersByStatusReport {
+
+    @Autowired
+    private DataManager dataManager;
+
+    @DataSetDelegate(name = "orderStatus")
+    public ReportDataLoader orderStatusDataLoader() {
+        return (reportQuery, parentBand, params) -&gt; {
+            List&lt;KeyValueEntity&gt; keyValueEntities = dataManager.loadValues("""
+                            select o.status, count(o), sum(o.total) from Order_ o
+                            where (:dateFrom is null or o.date &gt;= :dateFrom) and
+                                (:dateTo is null or o.date &lt;= :dateTo)
+                            group by o.status order by o.status""")
+                    .properties("statusId", "count", "total")
+                    .parameter("dateFrom", params.get("dateFrom"))
+                    .parameter("dateTo", params.get("dateTo"))
+                    .list();
+            return keyValueEntities.stream()
+                    .map(kve -&gt; {
+                        Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+                        map.put("status", OrderStatus.fromId(kve.getValue("statusId")));
+                        map.put("count", kve.getValue("count"));
+                        map.put("total", kve.getValue("total"));
+                        return map;
+                    })
+                    .toList();
+        };
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="orders-by-status-runtime"><a class="anchor" href="#orders-by-status-runtime"></a>Runtime Definition</h3>
+<div class="paragraph">
+<p>The runtime variant of the report is called <code>Orders by Status (runtime)</code> and can be opened from the <strong>Reports → Reports</strong> view.</p>
+</div>
+<div class="paragraph">
+<p>It uses a JPQL query for calculating aggregated values in the <code>OrderStatus</code> band:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">select o.status as "status",
+    count(o) as "count", sum(o.total) as "total"
+from Order_ o
+where (${dateFrom} is null or o.date &gt;= ${dateFrom}) and
+    (${dateTo} is null or o.date &lt;= ${dateTo})
+group by o.status
+order by o.status</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="revenue-by-month"><a class="anchor" href="#revenue-by-month"></a>Revenue by Month Report</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This is a cross-tab report that shows monthly total payments by client.</p>
+</div>
+<div class="paragraph">
+<p>Cross-tab means that the number of columns in the report is dynamic, just like the rows, and each intersection, or cell, shows the result of aggregation based on the row and column.</p>
+</div>
+<div class="paragraph">
+<p>Log in as <code>alice</code> with password <code>1</code> and open the <strong>Reports → Run report</strong> view. Select the <code>Revenue by Month</code> report and click <strong>Run</strong>.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Input parameters</strong> dialog, the <strong>From</strong> and <strong>To</strong> dates are required. Moreover, the user must select the start a month in <strong>From</strong> and the end of a month in <strong>To</strong>. Also, the application checks that the <strong>From</strong> date is before the <strong>To</strong> date. These constraints help to avoid uncertainty when interpreting the report data, because the report is calculated for entire months.</p>
+</div>
+<div class="paragraph">
+<p>The resulting report looks as follows:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/revenue-by-month-1.png"><img alt="revenue by month 1" src="_images/revenue-by-month-1.png"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>The report can also be generated from the <strong>Clients</strong> and <strong>Payments</strong> list views using the <strong>Reports</strong> button.</p>
+</div>
+<div class="sect2">
+<h3 id="revenue-by-month-structure"><a class="anchor" href="#revenue-by-month-structure"></a>Report Structure</h3>
+<div class="paragraph">
+<p>The <code>Revenue by Month</code> report has the following band structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">Root
+  ├── Header
+  └── Revenue</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Header</code> band is printed once to display the report parameters and timestamp.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Revenue</code> band is a cross-tab band that has a complex internal structure of datasets, corresponding to rows, columns, and intersection cells.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="revenue-by-month-cross-tab-template"><a class="anchor" href="#revenue-by-month-cross-tab-template"></a>XLSX Cross-Tab Template</h3>
+<div class="paragraph">
+<p>The datasets of the cross-tab band have names with predefined prefixes. They correspond to the following named cell ranges:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/template-xlsx-crosstab-1.png"><img alt="template xlsx crosstab 1" src="_images/template-xlsx-crosstab-1.png" width="578"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>Assuming that the cross-tab band name is <code>Revenue</code>, the named ranges needed to output the band are:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>Revenue_header</code></p>
+</li>
+<li>
+<p><code>Revenue_master_data</code></p>
+</li>
+<li>
+<p><code>Revenue_dynamic_header</code></p>
+</li>
+<li>
+<p><code>Revenue</code></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="revenue-by-month-design-time"><a class="anchor" href="#revenue-by-month-design-time"></a>Design-Time Definition</h3>
+<div class="paragraph">
+<p>The <code>Revenue by Month</code> report structure is defined by the <a href="https://github.com/jmix-framework/jmix-reports-sample/blob/release_2_7/src/main/java/com/company/crm/report/RevenueByMonthReport.java" rel="noopener" target="_blank">RevenueByMonthReport</a> class.</p>
+</div>
+<div class="paragraph">
+<p>Below, we will consider elements that distinguish this report from the others.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@InputParameterDef(
+        alias = "dateFrom",
+        name = "From",
+        type = ParameterType.DATE,
+        required = true <i class="conum" data-value="1"></i><b>(1)</b>
+)
+
+@InputParameterDef(
+        alias = "dateTo",
+        name = "To",
+        type = ParameterType.DATE,
+        required = true <i class="conum" data-value="1"></i><b>(1)</b>
+)
+public class RevenueByMonthReport {
+
+    @InputParameterDelegate(alias = "dateFrom") <i class="conum" data-value="2"></i><b>(2)</b>
+    public ParameterValidator&lt;Date&gt; dateFromValidator() {
+        return value -&gt; {
+            if (!Objects.equals(value, ReportUtils.getFirstDayOfMonth(value))) {
+                throw new ReportParametersValidationException("'From' date must be the first day of month");
+            }
+        };
+    }
+    
+    @InputParameterDelegate(alias = "dateTo") <i class="conum" data-value="2"></i><b>(2)</b>
+    public ParameterValidator&lt;Date&gt; dateToValidator() {
+        return value -&gt; {
+            if (!Objects.equals(value, ReportUtils.getLastDayOfMonth(value))) {
+                throw new ReportParametersValidationException("'To' date must be the last day of month");
+            }
+        };
+    }
+
+    @ReportDelegate <i class="conum" data-value="3"></i><b>(3)</b>
+    public ParametersCrossValidator parametersCrossValidator() {
+        return params -&gt; {
+            Date dateFrom = getParam(params, "dateFrom");
+            Date dateTo = getParam(params, "dateTo");
+            if (dateFrom.after(dateTo)) {
+                throw new ReportParametersValidationException("'From' date must be before 'To' date");
+            }
+        };
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Both input parameters are required. Users cannot run the report without entering parameter values.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Input parameters are validated using <code>ParameterValidator</code> objects returned by <code>@InputParameterDelegate</code> methods. Entered dates must be the beginning and the end of months.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>ParametersCrossValidator</code> returned from the <code>@ReportDelegate</code> method performs additional validation of all entered parameters: it ensures the "From" date is before the "To" date.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>Revenue</code> cross-tab band and its datasets are defined as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@BandDef(
+        name = "Revenue",
+        parent = "Root",
+        orientation = Orientation.CROSS, <i class="conum" data-value="1"></i><b>(1)</b>
+        dataSets = {
+                @DataSetDef(name = "Revenue_dynamic_header", <i class="conum" data-value="2"></i><b>(2)</b>
+                        type = DataSetType.DELEGATE),
+                @DataSetDef(name = "Revenue_master_data", <i class="conum" data-value="3"></i><b>(3)</b>
+                        type = DataSetType.DELEGATE),
+                @DataSetDef(name = "Revenue", <i class="conum" data-value="4"></i><b>(4)</b>
+                        type = DataSetType.DELEGATE)
+        }
+)
+public class RevenueByMonthReport {
+
+    @DataSetDelegate(name = "Revenue_dynamic_header") <i class="conum" data-value="2"></i><b>(2)</b>
+    public ReportDataLoader revenueDynamicHeaderDataLoader() {
+        return (reportQuery, parentBand, params) -&gt; {
+            Date dateFrom = getParam(params, "dateFrom");
+            Date dateTo = getParam(params, "dateTo");
+
+            YearMonth start = YearMonth.from(ReportUtils.dateToLocalDate(dateFrom));
+            YearMonth end = YearMonth.from(ReportUtils.dateToLocalDate(dateTo));
+
+            List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();
+            YearMonth current = start;
+            while (!current.isAfter(end)) {
+                Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+                map.put("monthId", current.getYear() + "-" + current.getMonthValue());
+                map.put("monthName", current.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " " + current.getYear());
+                map.put("year", current.getYear());
+                map.put("month", current.getMonthValue());
+                result.add(map);
+                current = current.plusMonths(1);
+            }
+            return result;
+        };
+    }
+
+    @DataSetDelegate(name = "Revenue_master_data") <i class="conum" data-value="3"></i><b>(3)</b>
+    public ReportDataLoader revenueMasterDataDataLoader() {
+        return (reportQuery, parentBand, params) -&gt; {
+            List&lt;Client&gt; clients = dataManager.load(Client.class)
+                    .query("""
+                            select c from Client c
+                            where exists (
+                                    select 1 from Payment p where p.invoice.client.id = c.id and
+                                        p.date &gt;= :dateFrom and p.date &lt;= :dateTo
+                                    )
+                            order by c.name""")
+                    .parameter("dateFrom", params.get("dateFrom"))
+                    .parameter("dateTo", params.get("dateTo"))
+                    .list();
+            return clients.stream()
+                    .map(client -&gt; Map.of("clientId", client.getId(), "name", (Object) client.getName()))
+                    .toList();
+        };
+    }
+
+     @DataSetDelegate(name = "Revenue") <i class="conum" data-value="4"></i><b>(4)</b>
+     public ReportDataLoader revenueDataLoader() {
+        return (reportQuery, parentBand, params) -&gt; {
+            List&lt;Map&lt;String, Object&gt;&gt; headerList = getParam(params, "Revenue_dynamic_header");
+
+            List&lt;Map&lt;String, Object&gt;&gt; masterDataList = getParam(params, "Revenue_master_data");
+            List&lt;Object&gt; clientIds = masterDataList.stream()
+                    .map(m -&gt; m.get("clientId"))
+                    .toList();
+
+            List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();
+            for (Map&lt;String, Object&gt; headerData : headerList) {
+                dataManager.loadValues("""
+                            select p.invoice.client.id, sum(p.amount) from Payment p
+                            where extract(month from p.date) = :month and
+                                extract(year from p.date) = :year and
+                                p.invoice.client.id in :clientIds
+                            group by p.invoice.client.id
+                            """)
+                        .properties("clientId", "amount")
+                        .parameter("month", headerData.get("month"))
+                        .parameter("year", headerData.get("year"))
+                        .parameter("clientIds", clientIds)
+                        .list()
+                        .forEach(kv -&gt; {
+                            Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+                            map.put("Revenue_dynamic_header@monthId", <i class="conum" data-value="5"></i><b>(5)</b>
+                                    headerData.get("monthId"));
+                            map.put("Revenue_master_data@clientId", <i class="conum" data-value="5"></i><b>(5)</b>
+                                    kv.getValue("clientId"));
+                            map.put("amount", kv.getValue("amount"));
+                            result.add(map);
+                        });
+            }
+            return result;
+        };
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Annotation attribute <code>orientation = Orientation.CROSS</code> specifies the cross-tab band.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Dataset with the <code>&lt;band_name&gt;_dynamic_header</code> predefined name provides data for column headers.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Dataset with the <code>&lt;band_name&gt;_master_data</code> predefined name provides data for row headers.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Dataset with the <code>&lt;band_name&gt;</code> predefined name provides data for intersection cells.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The cells dataset returns also identifiers of rows and columns as <code>&lt;band_name&gt;_master_data@&lt;id_field_name&gt;</code> and <code>&lt;band_name&gt;_dynamic_header@&lt;id_field_name&gt;</code> fields. These identifiers enable the reporting engine to correspond the cell with the respective row and column.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="revenue-by-month-runtime"><a class="anchor" href="#revenue-by-month-runtime"></a>Runtime Definition</h3>
+<div class="paragraph">
+<p>The runtime variant of the report is called <code>Revenue by Month (runtime)</code> and can be opened from the <strong>Reports → Reports</strong> view.</p>
+</div>
+<div class="paragraph">
+<p>It uses JPQL and Groovy datasets shown below.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Revenue_dynamic_header</code> dataset’s Groovy script for columns:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">import com.company.crm.report.ReportUtils
+import java.time.YearMonth
+import java.time.format.TextStyle
+
+def dateFrom = params["dateFrom"]
+def dateTo = params["dateTo"]
+
+def start = YearMonth.from(ReportUtils.dateToLocalDate(dateFrom));
+def end = YearMonth.from(ReportUtils.dateToLocalDate(dateTo));
+
+def result = []
+def current = start
+while (!current.isAfter(end)) {
+    result.add([
+        'monthId': current.getYear() + "-" + current.getMonthValue(),
+        'monthName': current.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " " + current.getYear(),
+        'year': current.getYear(),
+        'month': current.getMonthValue()
+    ])
+    current = current.plusMonths(1)
+}
+return result</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Revenue_master_data</code> dataset’s JPQL query for rows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">select c.id as "clientId", c.name as "name"
+from Client c
+where exists (
+        select 1 from Payment p where p.invoice.client.id = c.id and
+            p.date &gt;= ${dateFrom} and p.date &lt;= ${dateTo}
+        )
+order by c.name</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Revenue</code> dataset’s Groovy script for intersection cells:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def headerList = params["Revenue_dynamic_header"]
+
+def masterDataList = params["Revenue_master_data"]
+def clientIds = masterDataList.collect { it['clientId'] }
+
+def result = []
+headerList.each { headerData -&gt;
+    dataManager.loadValues('''
+                select p.invoice.client.id, sum(p.amount) from Payment p
+                where extract(month from p.date) = :month and
+                    extract(year from p.date) = :year and
+                    p.invoice.client.id in :clientIds
+                group by p.invoice.client.id
+                ''')
+            .properties("clientId", "amount")
+            .parameter("month", headerData["month"])
+            .parameter("year", headerData["year"])
+            .parameter("clientIds", clientIds)
+            .list()
+            .each { kv -&gt;
+                result.add([
+                    "Revenue_dynamic_header@monthId": headerData["monthId"],
+                    "Revenue_master_data@clientId": kv.getValue("clientId"),
+                    "amount": kv.getValue("amount")
+                ])
+            }
+}
+return result</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="importing-runtime-reports"><a class="anchor" href="#importing-runtime-reports"></a>Importing Runtime Reports</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this project, runtime report definitions are manually exported to ZIP files from the <strong>Reports</strong> view and stored in the application resources. They are loaded into the database at the start of the application by the following bean:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class RuntimeReportsImporter {
+
+    private static final Logger log = LoggerFactory.getLogger(RuntimeReportsImporter.class);
+
+    @Autowired
+    private Resources resources;
+
+    @Autowired
+    protected ReportImportExport reportImportExport; <i class="conum" data-value="1"></i><b>(1)</b>
+
+    private static final String[] archives = new String[] { "client-profile.zip", "orders-by-client.zip",
+            "orders-by-status.zip", "revenue-by-month.zip" };
+
+    @EventListener(ApplicationReadyEvent.class) <i class="conum" data-value="2"></i><b>(2)</b>
+    @Authenticated <i class="conum" data-value="3"></i><b>(3)</b>
+    public void importReports(ApplicationReadyEvent event) {
+        log.info("Starting runtime report import");
+        for (String archive : archives) {
+            try (InputStream is = resources.getResourceAsStream("/com/company/crm/runtime-reports/" + archive)) {
+                if (is != null) {
+                    reportImportExport.importReports(IOUtils.toByteArray(is));
+                } else {
+                    log.warn("Report file not found: {}", archive);
+                }
+            } catch (IOException e) {
+                log.error("Failed to import report: {}", archive, e);
+            }
+        }
+        log.info("Runtime report import completed");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>ReportImportExport</code> bean allows you to load runtime report definitions to the database from ZIP archives.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The import procedure is invoked on application start.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>It requires the system authentication.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="project-configuration"><a class="anchor" href="#project-configuration"></a>Project Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To convert resulting documents from office formats (DOCX, XLSX) to PDF, the application uses the locally installed LibreOffice. This is defined by the following properties:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.reports.use-office-for-document-conversion=true
+jmix.reports.office-path=/Applications/LibreOffice.app/Contents/MacOS</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide demonstrates the following features of the <a class="xref page" href="../reports/index.html">Jmix Reports</a> add-on using examples from a sample CRM application:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Band-based report structures, including master-detail and cross-tab bands.</p>
+</li>
+<li>
+<p>Multiple template types: HTML with Freemarker directives, DOCX with placeholders, XLSX with named ranges and diagrams.</p>
+</li>
+<li>
+<p>Output formats: PDF, DOCX, XLSX, HTML.</p>
+</li>
+<li>
+<p>Design-time report definitions using annotations such as <code>@ReportDef</code>, <code>@TemplateDef</code>, <code>@InputParameterDef</code>, <code>@BandDef</code>, and <code>@DataSetDef</code>.</p>
+</li>
+<li>
+<p>Runtime report definitions stored in the database, editable via the UI, with JPQL queries and Groovy scripts for data loading.</p>
+</li>
+<li>
+<p>Input parameters, including entity types, date ranges, and validations using delegate methods.</p>
+</li>
+<li>
+<p>Data loading via delegate methods, thread-local variables for totals, and aggregated JPQL queries.</p>
+</li>
+<li>
+<p>Report execution actions integrated into entity list and detail views.</p>
+</li>
+<li>
+<p>Role-based permissions for report access.</p>
+</li>
+<li>
+<p>Importing runtime reports from ZIP files on application startup.</p>
+</li>
+<li>
+<p>Configuration for converting office formats to PDF using LibreOffice.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

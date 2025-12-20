@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabbed Application Mode :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Tabbed Application Mode</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This add-on allows you to open views in separate tabs within the main view, allowing users to simultaneously access multiple views in a single browser tab and switch between them easily. It also supports opening multiple views within the same main view tab, creating a view stack represented by breadcrumbs.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="tabbed mode overview" src="_images/tabbed-mode-overview.png" width="1214"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Installation</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This add-on requires the Enterprise <a href="https://www.jmix.io/subscription-plans-and-prices/" rel="noopener" target="_blank">subscription</a>. If you don’t have the subscription, see the <a class="xref page" href="../account-management.html#enterprise-trial">Enterprise Trial</a> section for how to get a trial version.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For automatic installation, use a dedicated project template:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="project template" src="_images/project-template.png" width="912"/>
+</div>
+</div>
+<div class="paragraph">
+<p>For manual installation:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Make sure the premium repository is defined in <code>build.gradle</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">repositories {
+    // ...
+    maven {
+        url = 'https://global.repo.jmix.io/repository/premium'
+        credentials {
+            username = rootProject['premiumRepoUser']
+            password = rootProject['premiumRepoPass']
+        }
+    }</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add the following dependency to your <code>build.gradle</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.tabbedmode:jmix-tabbedmode-flowui-starter'</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Change base class of the <code>MainView.java</code> from <code>StandardMainView</code> to <code>StandardTabbedModeMainView</code>.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.tabbedmode.app.main.StandardTabbedModeMainView;
+
+@Route("")
+@ViewController(id = "MainView")
+@ViewDescriptor(path = "main-view.xml")
+public class MainView extends StandardTabbedModeMainView {
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>In the <code>main-view.xml</code>, change the <code>xmlns</code> attribute value of the <code>mainView</code> element to use the XSD schema from the add-on:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;mainView xmlns="http://jmix.io/schema/tabmod/main-view"
+          title="msg://MainView.title"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then replace <code>initialLayout</code> with the following <code>workArea</code> definition:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;workArea id="workArea"
+          classNames="jmix-work-area"&gt;
+    &lt;mainTabSheet id="mainTabSheet"
+                  classNames="jmix-main-tabsheet"
+                  tabsDraggable="true"
+                  width="100%" height="100%"&gt;
+        &lt;actions&gt;
+            &lt;action id="closeThisTabAction" type="tabmod_closeThisTab"/&gt;
+            &lt;action id="closeOthersTabsAction" type="tabmod_closeOtherTabs"/&gt;
+            &lt;action id="closeAllTabsAction" type="tabmod_closeAllTabs"/&gt;
+        &lt;/actions&gt;
+    &lt;/mainTabSheet&gt;
+    &lt;initialLayout id="initialLayout"
+                   classNames="jmix-initial-layout"
+                   width="100%" height="100%"&gt;
+    &lt;/initialLayout&gt;
+&lt;/workArea&gt;</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

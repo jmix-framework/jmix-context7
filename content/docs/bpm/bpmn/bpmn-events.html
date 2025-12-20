@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Events</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In BPMN, the term 'event' has two meanings. It refers to both a visual element, typically a circle, and the actual occurrence. The connection between the two is achieved through <a href="#event-subscriptions">Event Subscriptions</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_event_element_types"><a class="anchor" href="#_event_element_types"></a>Event Element Types</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Events in a process are classified by their position: <strong>start</strong>, <strong>intermediate</strong>, or <strong>end</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Events are categorized by their activating triggers, such as <strong>message</strong>, <strong>timer</strong>, or <strong>error</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Events can be either <strong>catching</strong> or <strong>throwing</strong>. A catching event waits for something to happen. A throwing event triggers itself instead of reacting to a trigger. Every start event is a catching event, and every end event is a throwing event.</p>
+</div>
+<div class="paragraph">
+<p>Most events can be attached tasks, sub-process, or call activities. They are known as <strong>boundary</strong> events. While the activity is running, the event is listening for a designated type of trigger. Boundary events are always <strong>catching</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Events can be <strong>interrupting</strong> and <strong>non-interrupting</strong>. Interrupting events stop the current process or activity and redirect it to an alternative path, while non-interrupting events let the process continue while triggering events alongside it.</p>
+</div>
+<div class="paragraph">
+<p>This classification is summarized below:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.667%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-middle">Name</th>
+<th class="tableblock halign-left valign-middle">Start</th>
+<th class="tableblock halign-left valign-middle">Intermediate Catching</th>
+<th class="tableblock halign-left valign-middle">Intermediate Throwing</th>
+<th class="tableblock halign-left valign-middle">Boundary</th>
+<th class="tableblock halign-left valign-middle">End</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><a href="#none-events">None</a></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="none start" src="../_images/bpmn-events/elements/none-start.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="none intermediate throwing" src="../_images/bpmn-events/elements/none-intermediate-throwing.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="none end" src="../_images/bpmn-events/elements/none-end.png" width="42"/></span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><a href="#message-events">Message</a></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="message start" src="../_images/bpmn-events/elements/message-start.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="message intermediate catching" src="../_images/bpmn-events/elements/message-intermediate-catching.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="message boundary" src="../_images/bpmn-events/elements/message-boundary.png" width="105"/></span></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><a href="#timer-events">Timer</a></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="timer start" src="../_images/bpmn-events/elements/timer-start.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="timer intermediate catching" src="../_images/bpmn-events/elements/timer-intermediate-catching.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="timer boundary" src="../_images/bpmn-events/elements/timer-boundary.png" width="105"/></span></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><a href="#error-events">Error</a></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="error start" src="../_images/bpmn-events/elements/error-start.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="error boundary" src="../_images/bpmn-events/elements/error-boundary.png" width="105"/></span></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="error end" src="../_images/bpmn-events/elements/error-end.png" width="42"/></span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><a href="#cancel-events">Cancel</a></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="cancel end" src="../_images/bpmn-events/elements/cancel-end.png" width="42"/></span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><a href="#compensation-events">Compensation</a></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="compensation start" src="../_images/bpmn-events/elements/compensation-start.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="compensation intermediate throwing" src="../_images/bpmn-events/elements/compensation-intermediate-throwing.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="compensation boundary" src="../_images/bpmn-events/elements/compensation-boundary.png" width="105"/></span></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><a href="#signal-events">Signal</a></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="signal none" src="../_images/bpmn-events/elements/signal-none.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="signal intermediate catching" src="../_images/bpmn-events/elements/signal-intermediate-catching.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="signal intermediate throwing" src="../_images/bpmn-events/elements/signal-intermediate-throwing.png" width="42"/></span></p></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="signal boundary" src="../_images/bpmn-events/elements/signal-boundary.png" width="105"/></span></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><a href="#terminate-end-event">Terminate</a></p></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"></td>
+<td class="tableblock halign-left valign-middle"><p class="tableblock"><span class="image"><img alt="terminate end" src="../_images/bpmn-events/elements/terminate-end.png" width="42"/></span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Not all BPMN 2.0 events are supported in Jmix BPM. See the <a href="#workarounds">Workarounds for Unsupported Events</a> section for methods to achieve similar functionality.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="event-subscriptions"><a class="anchor" href="#event-subscriptions"></a>Event Subscriptions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Event subscriptions is a mechanism that connect events as process elements to their specific occurrences. Essentially, when a process has an event subscription, it means that it is set up to react when such an event occurs.</p>
+</div>
+<div class="paragraph">
+<p>Event subscriptions can be created either during deployment or at runtime, depending on the event type:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Start events</strong> – an event-based start event (message, timer, error, compensation, signal) creates an event subscription upon deployment of the process definition. When the corresponding event occurs, a new process instance starts.</p>
+</li>
+<li>
+<p><strong>Intermediate events / boundary events</strong> – when the process execution arrives at one of these catching events, it pauses and creates a subscription. When the corresponding event occurs, (e.g., a message is received, or a timer expires), the process engine checks the list of active subscriptions for a matching entry. The execution resumes once the match is found.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To help identify the correct process instance to initiate or the execution to resume, event subscriptions are configured with <strong>correlation parameters</strong>. All subscriptions and their parameters are stored in the <code>ACT_RU_EVENT_SUBSCR</code> database table.</p>
+</div>
+<div class="sect2">
+<h3 id="_event_subscriptions_api"><a class="anchor" href="#_event_subscriptions_api"></a>Event Subscriptions API</h3>
+<div class="sect3">
+<h4 id="_creating_event_subscriptions"><a class="anchor" href="#_creating_event_subscriptions"></a>Creating Event Subscriptions</h4>
+<div class="paragraph">
+<p>You can create event subscriptions programmatically. For example, you can start a process instance by sending a message:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// Start a process instance with a message
+ProcessInstance processInstance = runtimeService.startProcessInstanceByMessage("orderPlaced", processVariables);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_querying_event_subscriptions"><a class="anchor" href="#_querying_event_subscriptions"></a>Querying Event Subscriptions</h4>
+<div class="paragraph">
+<p>You can query for existing event subscriptions to see which processes are waiting for specific events. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;EventSubscription&gt; messageSubscriptions = runtimeService.createEventSubscriptionQuery()
+    .eventType("message")
+    .list();</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_getting_event_subscriptions"><a class="anchor" href="#_getting_event_subscriptions"></a>Getting Event Subscriptions</h4>
+<div class="paragraph">
+<p>You can get a list of subscriptions using <code>RuntimeService</code> API.
+For example, signal subscriptions:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// Query for all signal event subscriptions
+List&lt;EventSubscription&gt; signalSubscriptions = runtimeService.createEventSubscriptionQuery()
+    .eventType("signal")
+    .list();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For other types of events, use <code>"message"</code>, <code>"error"</code>, and <code>"compensate"</code>  respectively.</p>
+</div>
+<div class="paragraph">
+<p>For timers, use <code>ManagementService</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Job&gt; timerJobs = managementService.createTimerJobQuery().list();</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_triggering_event_subscriptions"><a class="anchor" href="#_triggering_event_subscriptions"></a>Triggering Event Subscriptions</h4>
+<div class="paragraph">
+<p>You can trigger event subscription when the corresponding event occurs. For example, to trigger a message event:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">runtimeService.messageEventReceived("orderPlaced", executionId, processVariables);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_deleting_event_subscriptions"><a class="anchor" href="#_deleting_event_subscriptions"></a>Deleting Event Subscriptions</h4>
+<div class="paragraph">
+<p>You can delete event subscriptions if they are no longer necessary. For example, to delete a specific event subscription:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">runtimeService.createEventSubscriptionQuery()
+    .eventType("message")
+    .processInstanceId(processInstanceId)
+    .singleResult();</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_handling_events_with_listeners"><a class="anchor" href="#_handling_events_with_listeners"></a>Handling Events with Listeners</h4>
+<div class="paragraph">
+<p>See the <a class="xref page" href="../listeners.html">Listeners</a> section.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="none-events"><a class="anchor" href="#none-events"></a>None Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>None events are unspecified events, also called "blank" events.</p>
+</div>
+<div class="sect2">
+<h3 id="none-start-event"><a class="anchor" href="#none-start-event"></a>None Start Event</h3>
+<div class="paragraph">
+<p>A <strong>none start event</strong> technically means that the trigger for starting the process instance is unspecified.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A none start event is a circle with no inner icon. In other words, with no trigger type.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="none start event" src="../_images/bpmn-events/none-start-event.png" width="150"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>None start event has two specific properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Form</strong> — defines a user interface when the process is to be started manually. See the <a class="xref page" href="../forms.html">Process Forms</a> section for details.</p>
+</li>
+<li>
+<p><strong>Process variables</strong> — provide information about parameters that are used for starting the process via API.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>The XML representation of a none start event is the normal start event declaration without any sub-element
+(other start event types all have a sub-element declaring the type).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;startEvent id="startEvent1" name="Start"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+  &lt;extensionElements&gt;
+    &lt;jmix:processVariables&gt;
+      &lt;jmix:processVariable name="invoiceId" type="string" /&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/jmix:processVariables&gt;
+    &lt;jmix:formData type="no-form" /&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+  &lt;/extensionElements&gt;
+  &lt;outgoing&gt;Flow_0h77bcd&lt;/outgoing&gt;
+&lt;/startEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — Start event definition.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — Process variable.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td> — Here may be a form definition.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph" id="multiple-start-events">
+<div class="title"><strong>Multiple Start Events</strong></div>
+<p>Although BPMN allows multiple start events, the process technically may have only one <em>none</em> start event. Otherwise, it will cause error at deployment.
+Don’t use more than one <em>none</em> start event like in the picture below:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="multiple start none" src="../_images/bpmn-events/multiple-start-none.png" width="280"/>
+</div>
+</div>
+<div class="paragraph">
+<p>However, it is possible to use multiple start events of other types:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="multiple start events good" src="../_images/bpmn-events/multiple-start-events-good.png" width="300"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You can use several message (or signal) start events provided the messages (or signals) differ.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Start Events of Event Subprocesses</strong></div>
+<p>Event subprocesses can have interrupting or non-interrupting start events.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Interrupting</strong> — when event subprocess ends, the main process to be terminated.</p>
+</li>
+<li>
+<p><strong>Non-interrupting</strong> — event subprocess executes in parallel and comes to its end,
+the main process continues.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="interrupting non events subprocess" src="../_images/bpmn-events/interrupting-non-events-subprocess.png" width="500"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the picture above, the first subprocess interrupts the main process when time is over.
+The second subprocess executes a service task and ends not affecting the main process.</p>
+</div>
+<div class="sect3">
+<h4 id="triggering-start-event"><a class="anchor" href="#triggering-start-event"></a>Triggering None Start Event via API</h4>
+<div class="paragraph">
+<p>The none start event is used when the process instance is started through the API by calling one of the <code>startProcessInstanceByXXX</code> methods.</p>
+</div>
+<div class="paragraph">
+<p>For example,</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">ProcessInstance processInstance = runtimeService
+        .startProcessInstanceByKey("process-id");</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Flowable API uses the term '<em>process definition key</em>' that is equivalent to '<em>process id</em>' in <strong>Jmix Studio</strong>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>See details in the <a class="xref page" href="../flowable-api.html">Flowable API</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="intermediate-none-event"><a class="anchor" href="#intermediate-none-event"></a>Intermediate None Event</h3>
+<div class="paragraph">
+<p><strong>Intermediate none events</strong> can be used to indicate some state achieved in the process.
+The engine itself doesn’t do anything in the event, it just passes through it.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>An intermediate none event is visualized as a circle with a double outline and no inner icon (in other words, no trigger type).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="intermediate none event" src="../_images/bpmn-events/intermediate-none-event.png" width="80"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>Intermediate none event has no specific properties.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>The XML representation of an intermediate none event is the event declaration by <code>intermediateThrowEvent</code> without any sub-element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">  &lt;intermediateThrowEvent id="IntermediateEvent" /&gt;</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="intermrdiate-event-example"><a class="anchor" href="#intermrdiate-event-example"></a>Example</h4>
+<div class="paragraph">
+<p><strong>Intermediate none events</strong> are especially useful for monitoring to understand how the process is doing,
+for example, as milestones or key performance indicators (KPIs).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="none intermediate event example" src="../_images/bpmn-events/none-intermediate-event-example.png" width="600"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="none-end-event"><a class="anchor" href="#none-end-event"></a>None End Event</h3>
+<div class="paragraph">
+<p>A <em>none end event</em> is a type of end event that signifies the completion of a process without any specific outcome or result.
+It does not trigger any subsequent activities or flows in the process.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>None end event is visualized as a circle with a thick outline and no inner icon.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="none end event" src="../_images/bpmn-events/none-end-event.png" width="100"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>None end event has no specific properties.</p>
+</div>
+<div class="listingblock">
+<div class="title"><strong>XML Representation</strong></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">    &lt;endEvent id="end-event" name="End"&gt;
+      &lt;incoming&gt;Flow_0qwib28&lt;/incoming&gt;
+    &lt;/endEvent&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="multiple-end-events">
+<div class="title"><strong>Multiple End Events</strong></div>
+<p>Formally, end event isn’t mandatory. The process ends when there are no activities to execute.
+But it is a good practice to finish each path of the process by the end event.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="end event not mandatory" src="../_images/bpmn-events/end-event-not-mandatory.png" width="250"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Don’t try to bring all flows to the single end event – it only makes your diagram messy.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="end events examples" src="../_images/bpmn-events/end-events-examples.png" width="500"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Multiple end events allow to analyze how processes ended.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="multiple end events" src="../_images/bpmn-events/multiple-end-events.png" width="600"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="timer-events"><a class="anchor" href="#timer-events"></a>Timer Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Timer events in BPMN are events that are triggered based on a predefined time or duration.
+Timer events can be used to control the flow of a process by specifying when certain activities should be executed.</p>
+</div>
+<div class="paragraph">
+<p>Timers can also serve as boundary events, either interrupting or non-interrupting.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="timer events example" src="../_images/bpmn-events/timer-events-example.png" width="500"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="timer-start-event"><a class="anchor" href="#timer-start-event"></a>Timer Start Event</h3>
+<div class="paragraph">
+<p><strong>Timer start event</strong> is used to create process instances at a given time.
+It can be used for processes that should start only once or in specific time intervals.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><a class="xref page" href="bpmn-subprocesses.html#embedded-subprocess">Embedded subprocess</a> cannot have a timer start event,
+but <a class="xref page" href="bpmn-subprocesses.html#event-subprocess">event subprocess</a> can.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A timer start event is visualized as a circle with clock inner icon.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="timer start event" src="../_images/bpmn-events/timer-start-event.png" width="80"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>Timer start event has the <em>Timer</em> properties that define its type and expression.
+See <a href="#timer-types">timer types</a> for details.</p>
+</div>
+<div class="paragraph">
+<p><strong>XML Representation</strong></p>
+</div>
+<div class="paragraph">
+<p>The XML representation of a timer start event is the normal start event declaration, with the timer definition sub-element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;startEvent id="theStart"&gt;
+  &lt;timerEventDefinition&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        . . . <i class="conum" data-value="2"></i><b>(2)</b>
+  &lt;/timerEventDefinition&gt;
+&lt;/startEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Timer event definition.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Definition child element.</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="using-timer-start-event"><a class="anchor" href="#using-timer-start-event"></a>Using Timer Start Event</h4>
+<div class="paragraph">
+<p>In this example, the main process starts by timer event.
+And it has two event subprocesses also starting by timers.
+The first one is non-interruptible, it can do some activities at a certain moment from the process start.
+The second event subprocess has an interruptible timer, that means the main process will be stopped when this timer event fires.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="timer start event example" src="../_images/bpmn-events/timer-start-event-example.png" width="500"/>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Don’t use <code>initiator</code> variable in a process with timer start event, it causes execution error.
+Unless you define and set its value programmatically.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="timer-intermediate-event"><a class="anchor" href="#timer-intermediate-event"></a>Timer Intermediate Event</h3>
+<div class="paragraph">
+<p>A <strong>timer intermediate event</strong> pauses process execution. When the execution reaches this event, a timer begins. Once the timer expires, the process resumes.</p>
+</div>
+<div class="paragraph">
+<p>Timer intermediate event is a <a class="xref page" href="transactions.html#waiting-states">waiting state</a>.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A timer intermediate event is visualized as an intermediate catching event, with the timer icon on the inside.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="timer untermediate catch event" src="../_images/bpmn-events/timer-untermediate-catch-event.png" width="200"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>Timer intermediate event has the <em>Timer</em> properties that define its type and expression.
+See <a href="#timer-types">timer types</a> for details.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A timer intermediate event is defined as an intermediate catching event.
+The specific type sub-element is, in this case, a <code>timerEventDefinition</code> element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;intermediateCatchEvent id="timer"&gt;
+  &lt;timerEventDefinition&gt;
+    &lt;timeDuration&gt;PT8H&lt;/timeDuration&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+  &lt;/timerEventDefinition&gt;
+&lt;/intermediateCatchEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><a href="#timer-types">Timer type</a>, for example, <code>duration</code>.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="timer-types"><a class="anchor" href="#timer-types"></a>Timer Types</h3>
+<div class="paragraph">
+<p>There are three timer types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Duration</strong> – triggers after the specified time period.</p>
+</li>
+<li>
+<p><strong>Cycle</strong> – event repeats a certain number of times or according to <em>Cron expression</em>.</p>
+</li>
+<li>
+<p><strong>Date</strong> – fires at specified date; ignored if date is in the past.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For start timer event duration counts from the moment the process was deployed to server.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="setting-time"><a class="anchor" href="#setting-time"></a>Setting Time</h3>
+<div class="paragraph">
+<p>There are two ways to set the time parameter in timers: using a string in ISO 8601 format or a Cron expression.</p>
+</div>
+<div class="sect3">
+<h4 id="standard-iso-8601"><a class="anchor" href="#standard-iso-8601"></a>ISO 8601</h4>
+<div class="paragraph">
+<p><a href="https://www.iso.org/iso-8601-date-and-time-format.html">ISO 8601</a> is an international standard fpr dates, times and time intervals. For example:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>2035-06-17T07:42:14 – a date representing the year 2035, June 17, at 07 hours, 42 minutes, and 14 seconds.</p>
+</li>
+<li>
+<p>2050:01:01 – a date representing the year 2050, January 1, at 00 hours and 00 minutes.</p>
+</li>
+<li>
+<p>PT30D – a duration of thirty days.</p>
+</li>
+<li>
+<p>PT10M – a duration of ten minutes.</p>
+</li>
+<li>
+<p>P3Y6M4DT12H30M5S – a duration of three years, six months, four days, twelve hours, thirty minutes, and five seconds.</p>
+</li>
+<li>
+<p>R3PT10H – a cyclic period recurring three times every ten hours.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Don’t use very short periods of time, smaller than 3 seconds. BPM isn’t a real-time system.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="cron-expressions"><a class="anchor" href="#cron-expressions"></a>Cron Expressions</h4>
+<div class="paragraph">
+<p>Cron is a time-based job scheduling system used in Unix-like operating systems. It allows users to schedule tasks or commands to run at specific times, dates, or intervals. The term "cron" comes from the word "chronos," which means time in Greek.</p>
+</div>
+<div class="paragraph">
+<p>You can specify time cycle using cron expressions; the example below shows trigger firing every 5 minutes, starting at full hour:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>0 0/5 * * * ?</pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+In <strong>Timer intermediate event</strong> Cron expressions can be used ONLY with a <em>Cyclic</em> timer type.
+Otherwise, it’d be an error when you try to deploy the process.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="message-events"><a class="anchor" href="#message-events"></a>Message Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Message events are events that reference a message definition.
+They are used to model communication between different parts of a business process or between different processes.</p>
+</div>
+<div class="paragraph">
+<p>There are the following types of message events:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#message-start-event">Message start event</a></p>
+</li>
+<li>
+<p><a href="#message-intermediate-catching-event">Message intermediate catching event</a></p>
+</li>
+<li>
+<p>Message boundary catching events</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Message throwing events are not supported in <strong>Jmix BPM</strong>.
+See the <a href="#message-throwing-event-workaround">workaround</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="message events types" src="../_images/bpmn-events/message-events-types.png" width="350"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="message-start-event"><a class="anchor" href="#message-start-event"></a>Message Start Event</h3>
+<div class="paragraph">
+<p>A <strong>message start event</strong> can be used to start a process instance using a named message.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A message start event is visualized as a circle with a message event symbol.
+The symbol is unfilled, to represent the catching (receiving) behavior.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="message start event" src="../_images/bpmn-events/message-start-event.png" width="150"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>Message start event must specify the message it refers to. Missing this will cause a deployment error.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>The XML representation of a message start event is the normal start event declaration with a <code>messageEventDefinition</code> child-element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">    &lt;startEvent id="Message_start_event&gt;
+      &lt;messageEventDefinition id="MessageEventDefinition_invoice"
+            messageRef="new-invoice-message" /&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;/startEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>reference to the message definition.</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="using-message-start-event"><a class="anchor" href="#using-message-start-event"></a>Using Message Start Event</h4>
+<div class="paragraph">
+<p>A process can have one or more message start events, but messages must be different.</p>
+</div>
+<div class="paragraph">
+<p>When a process is deployed, the engine creates a message <a href="#event-subscriptions">subscription</a> for each message start event.
+Any subscriptions from the previous version of the process will be closed.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The name of the message start event must be unique across all deployed process definitions.
+If a process definition containing one or more message start events references a message with the same name
+as a message start event already deployed by a different process definition,
+process engine will throw an exception upon deployment.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_triggering_message_start_event_programmatically"><a class="anchor" href="#_triggering_message_start_event_programmatically"></a>Triggering Message Start Event Programmatically</h4>
+<div class="paragraph">
+<p>When starting a process instance, a message start event can be triggered using <code>startProcessInstanceByMessage</code> methods on the <em>RuntimeService</em>.</p>
+</div>
+<div class="paragraph">
+<p>In API call use exactly message <em>name</em>, not <em>id</em>. For example, we have such message definition:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;message id="green" name="Green" /&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, invoke API method the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">runtimeService.startProcessInstanceByMessage("Green");</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Message start events are not supported on embedded subprocesses.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="message-intermediate-catching-event"><a class="anchor" href="#message-intermediate-catching-event"></a>Message Intermediate Catching Event</h3>
+<div class="paragraph">
+<p>An <strong>intermediate catching message event</strong> catches messages with a specified name.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>An intermediate catching message event is visualized as a typical intermediate event (circle with double outline), with the message icon inside. The message icon is unfilled to indicate its catch semantics.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="message catch event" src="../_images/bpmn-events/message-catch-event.png" width="80"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>The element must specify the message it refers to. Missing this will cause a deployment error.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A message intermediate event is defined as an intermediate catching event.
+The specific type sub-element is a <code>messageEventDefinition</code> element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;intermediateCatchEvent id="catch-message-event"
+    name="Catch message"&gt;
+  &lt;messageEventDefinition id="MessageEventDefinition_16bx9rl"
+    messageRef="message-one" /&gt;
+&lt;/intermediateCatchEvent&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When an intermediate message catch event is entered, a corresponding message subscription is created.
+The process instance stops at this point and waits until the message is received.
+After that, the catch event is completed and the execution continues.</p>
+</div>
+<div class="paragraph">
+<p>Message intermediate catching event is a <a class="xref page" href="transactions.html#waiting-states">waiting state</a>.
+In this example, the process will wait for a message after the completion of <code>Activity 1</code>, and <code>Activity 2</code> will be executed once the message is received.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="message intermediate example" src="../_images/bpmn-events/message-intermediate-example.png" width="400"/>
+</div>
+</div>
+<div class="sect3">
+<h4 id="boundary-message-events"><a class="anchor" href="#boundary-message-events"></a>Boundary Message Events</h4>
+<div class="paragraph">
+<p>An attached intermediate catching message on the boundary of an activity, or <strong>boundary message event</strong> for short,
+catches messages with the same message name as the referenced message definition.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>Boundary message events can be interruptible (with solid double outline) or non-interruptible (with dashed double outline).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="boundary message event" src="../_images/bpmn-events/boundary-message-event.png" width="150"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>The element must specify the message it refers to. Missing this will cause a deployment error.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>Boundary events are defined as child elements of the activity they attached to. Message events must have <code>messageRef</code> attribute referring to existing message definition.</p>
+</div>
+<div class="paragraph">
+<p>Non-interruptible message event has an attribute <code>cancelActivity</code>=<code>false</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;task id="Activity_task" name="Task" /&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;boundaryEvent id="interruptible-message-event" name="Message 1" <i class="conum" data-value="2"></i><b>(2)</b>
+    attachedToRef="Activity_task"&gt;
+  &lt;messageEventDefinition id="MessageEventDefinition_1"
+    messageRef="messageOne" /&gt;
+&lt;/boundaryEvent&gt;
+&lt;boundaryEvent id="non-interruptible-message-event" name="Message 2" <i class="conum" data-value="3"></i><b>(3)</b>
+    cancelActivity="false"
+    attachedToRef="Activity_task"&gt;
+  &lt;messageEventDefinition id="MessageEventDefinition_2" messageRef="messageTwo" /&gt;
+&lt;/boundaryEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A task boundary message events attached to.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Interruptible message event.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Non-interruptible message event.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="using-boundary-message-event"><a class="anchor" href="#using-boundary-message-event"></a>Using Boundary Message Events</h4>
+<div class="paragraph">
+<p>Message events can be used as boundary events, interruptible or non-interruptible:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="message boundary events" src="../_images/bpmn-events/message-boundary-events.png" width="300"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The activity may have several boundary message events.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="signal-events"><a class="anchor" href="#signal-events"></a>Signal Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Signal events are events that reference a <a href="#signal-definition">signal definition</a>.
+Broadcasting a signal will trigger all signal events matching the name of the broadcast signal.
+Signals have a scope, it can be <em>Global</em> or <em>Process instance</em>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="signal events" src="../_images/bpmn-events/signal-events.png" width="400"/>
+</div>
+</div>
+<div class="paragraph">
+<p>There are the following signal events in <strong>Jmix BPM</strong>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#signal-start-event">Signal start event</a></p>
+</li>
+<li>
+<p><a href="#signal-intermediate-catching-event">Signal intermediate catching event</a></p>
+</li>
+<li>
+<p><a href="#signal-intermediate-throwing-event">Signal intermediate throwing event</a></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Signal end event isn’t supported. Use <a href="#signal-throwing-end-event-workaround">workaround</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="signal-start-event"><a class="anchor" href="#signal-start-event"></a>Signal Start Event</h3>
+<div class="paragraph">
+<p>A <strong>signal start event</strong> can be used to start a process instance using a named <a href="#signal-definition">signal definition</a>.
+The process can have one or more signal start events, but signal definitions must differ.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A signal start event is visualized as a circle with a signal event symbol. The symbol is unfilled, to represent the catching (receiving) behavior.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="signal start event" src="../_images/bpmn-events/signal-start-event.png" width="150"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>The element must specify the signal it refers to. Missing this will cause a deployment error.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>The XML representation of a signal start event is the normal start event declaration with a <code>signalEventDefinition</code> child-element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">    &lt;startEvent id="signal-start-event" name="Start"&gt;
+      &lt;signalEventDefinition id="SignalEventDefinition_00paqo6" <i class="conum" data-value="1"></i><b>(1)</b>
+        signalRef="signal-one" /&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+      &lt;outgoing&gt;Flow_0h77bcd&lt;/outgoing&gt;
+    &lt;/startEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Event declaration.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Signal definition reference.</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="using-signal-start-event"><a class="anchor" href="#using-signal-start-event"></a>Using Signal Start Event</h4>
+<div class="paragraph">
+<p>When a process is deployed, the engine creates a signal <a href="#event-subscriptions">subscription</a> for each signal start event.
+Subscriptions of the previous version of the process would be closed.</p>
+</div>
+<div class="paragraph">
+<p>It is allowed to have many process definitions with the signal start event referred to the same signal.
+When the signal fires, all subscriptions be activated and processes started.</p>
+</div>
+<div class="paragraph">
+<p>The signal can be 'fired' from within a process instance using the <em>intermediate signal throw event</em> or through the API methods <code>signalEventReceived</code>.</p>
+</div>
+<div class="paragraph">
+<p>In API call use exactly signal <em>name</em>, not <em>id</em>. For example, we have such signal definition:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;signal id="ready" name="Ready" flowable:scope="global" /&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, invoke API method the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">runtimeService.signalEventReceived("Ready");</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Signal start events are not supported in embedded subprocesses.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="signal-intermediate-catching-event"><a class="anchor" href="#signal-intermediate-catching-event"></a>Signal Intermediate Catching Event</h3>
+<div class="paragraph">
+<p><strong>Signal intermediate catching event</strong> catches signals with the same signal name as the referenced signal
+<a href="#event-subscriptions">subscription</a>.
+Signal intermediate catching event is a <a class="xref page" href="transactions.html#waiting-states">wait state</a>.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>An intermediate signal catch event is visualized as a typical intermediate event (circle with double outline), with the signal icon inside.
+The signal icon is unfilled to indicate its catch semantics.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="signal intermediate catching event" src="../_images/bpmn-events/signal-intermediate-catching-event.png" width="200"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>The element must specify the message it refers to. Missing this will cause a deployment error.</p>
+</div>
+<div class="listingblock">
+<div class="title"><strong>XML Representation</strong></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;intermediateCatchEvent id="signal-catch-event" name="Catch signal"&gt;
+      &lt;incoming&gt;Flow_0qwib28&lt;/incoming&gt;
+      &lt;outgoing&gt;Flow_1itm8do&lt;/outgoing&gt;
+      &lt;signalEventDefinition id="SignalEventDefinition_1" <i class="conum" data-value="1"></i><b>(1)</b>
+        signalRef="signal-one" /&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/intermediateCatchEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — Signal event declaration.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — Reference to the signal definition.</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="using-signal-catch-event"><a class="anchor" href="#using-signal-catch-event"></a>Using Signal Catch Event</h4>
+<div class="paragraph">
+<p>Contrary to other events, such as an error event, a signal is not consumed if it is caught.
+If you have two active signal boundary events catching the same signal event, both boundary events are triggered,
+even if they are part of different process instances.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="signal-intermediate-throwing-event"><a class="anchor" href="#signal-intermediate-throwing-event"></a>Signal Intermediate Throwing Event</h3>
+<div class="paragraph">
+<p>An <strong>intermediate throwing signal event</strong> throws a signal event for a defined signal.
+The signal is broadcast to all catching signal events, starting and intermediate
+(signal  <a href="#event-subscriptions">subscriptions</a>).</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>An intermediate signal throw event is visualized as a typical intermediate event (circle with double outline),
+with the signal icon inside.
+The signal icon is filled to indicate its throw semantics.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="signal throwing event" src="../_images/bpmn-events/signal-throwing-event.png" width="200"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>The element must specify the message it refers to. Missing this will cause a deployment error.</p>
+</div>
+<div class="sect3">
+<h4 id="signal-publication-node"><a class="anchor" href="#signal-publication-node"></a>Signals Publication Mode</h4>
+<div class="paragraph">
+<p>Signals can be published synchronously or asynchronously.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In the default configuration, the signal is delivered synchronously.
+This means that the throwing process instance waits until the signal is delivered to all catching process instances.
+The catching process instances are also notified in the same transaction as the throwing process instance,
+which means that if one of the notified instances produces a technical error (throws an exception),
+all involved instances fail.</p>
+</li>
+<li>
+<p>A signal can also be delivered asynchronously.
+In this case, it is determined which handlers are active at the time the throwing signal event is reached.
+For each active handler, an asynchronous notification message (Job) is stored and delivered by the <code>JobExecutor</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A signal intermediate event is defined as an intermediate throwing event.
+The specific type sub-element is, in this case, a <code>signalEventDefinition</code> element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;intermediateThrowEvent id="Event_sync"&gt;
+  &lt;signalEventDefinition id="SignalEventDefinition_14tnjbf"
+    signalRef="my-signal" /&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;/intermediateThrowEvent&gt;
+
+
+&lt;intermediateThrowEvent id="Event_async"&gt;
+  &lt;signalEventDefinition id="SignalEventDefinition_14tnjbf"
+    signalRef="my-signal" flowable:async="true" /&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+&lt;/intermediateThrowEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Attribute <code>async</code> is omitted, implicitly it is <code>false</code>, the signal will be published synchronously.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Signal be published asynchronously.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="error-events"><a class="anchor" href="#error-events"></a>Error Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Error events in BPMN are typically used to model exceptional or error situations that may arise during the execution of a process.
+They can be attached to activities or subprocesses within a BPMN diagram to define how errors should be handled,
+such as by triggering error handling routines, logging the error, or notifying stakeholders.</p>
+</div>
+<div class="paragraph">
+<p>There are the following types of error events:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#error-start-event">Error start event</a> (in event subprocesses only)</p>
+</li>
+<li>
+<p><a href="#error-boundary-event">Error boundary event</a></p>
+</li>
+<li>
+<p><a href="#error-end-event">Error end event</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="error-start-event"><a class="anchor" href="#error-start-event"></a>Error Start Event</h3>
+<div class="paragraph">
+<p>An <strong>error start event</strong> can be used to trigger an <a class="xref page" href="bpmn-subprocesses.html#event-subprocess">event subprocess</a>.
+It cannot be used for starting a process instance. An error start event is always interrupting.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>An error start event is visualized as a circle with an error event symbol. The symbol is unfilled, to represent the catching (receiving) behavior.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error start event" src="../_images/bpmn-events/error-start-event.png" width="140"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>The element must specify the error it refers to. If this is missing, the subprocess will start for every error event that occurs.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>The XML representation of an error start event is the normal start event declaration with an <code>errorEventDefinition</code> child-element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">  &lt;startEvent id="error-event" name="Error"&gt;
+    &lt;errorEventDefinition id="ErrorEventDefinition_1" <i class="conum" data-value="1"></i><b>(1)</b>
+        errorRef="failure" /&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+  &lt;/startEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Error event declaration.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Reference to error definition.</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_example"><a class="anchor" href="#_example"></a>Example</h4>
+<div class="paragraph">
+<p>In this example, the first task generates BPMN error programmatically.
+At this moment the event subprocess launches and after its completion, the main process is to be terminated.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error start event example" src="../_images/bpmn-events/error-start-event-example.png" width="500"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="error-boundary-event"><a class="anchor" href="#error-boundary-event"></a>Error Boundary Event</h3>
+<div class="paragraph">
+<p>An <strong>error boundary event</strong> catches errors that are thrown within the scope of the activity on which it is defined.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>An error boundary event is visualized as a typical intermediate event (circle with double outline) on the boundary,
+with the error icon inside.
+The error icon is unfilled to indicate its catch semantics.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error boundary event" src="../_images/bpmn-events/error-boundary-event.png" width="180"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>The element must specify the error it refers to. If this is missing, the subprocess will start for every error event that occurs.</p>
+</div>
+<div class="listingblock">
+<div class="title"><strong>XML Representation</strong></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="Activity_1" name="Check error"
+. . .
+&lt;/serviceTask&gt;
+&lt;boundaryEvent id="error-boundary-event" name="Error"
+    attachedToRef="Activity_1"&gt;
+  &lt;errorEventDefinition id="ErrorEventDefinition_1"
+    errorRef="failure" /&gt;
+&lt;/boundaryEvent&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="error-end-event"><a class="anchor" href="#error-end-event"></a>Error End Event</h3>
+<div class="paragraph">
+<p>When process execution arrives at an <strong>error end event</strong>, the current process path ends and an error is thrown.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>An error end event is visualized as a typical end event (circle with a thick border), with the error icon inside.
+The error icon is filled to indicate its throwing semantics.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error end event" src="../_images/bpmn-events/error-end-event.png" width="150"/>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_properties"><a class="anchor" href="#_properties"></a>Properties</h4>
+<div class="paragraph">
+<p>The element must specify the error it refers to. If this is missing, the subprocess will start for every error event that occurs.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>An error end event is represented as an end event, with an <code>errorEventDefinition</code> child element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;endEvent id="Event_01" name="Error"&gt;
+  &lt;incoming&gt;Flow_1i3jqxp&lt;/incoming&gt;
+
+  &lt;errorEventDefinition id="ErrorEventDefinition_11xfxfw" <i class="conum" data-value="1"></i><b>(1)</b>
+    errorRef="failure" /&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+&lt;/endEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declaring error event</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Reference to the error definition, it can be omitted.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="using-error-end-event"><a class="anchor" href="#using-error-end-event"></a>Using Error End Event</h4>
+<div class="paragraph">
+<p>The <strong>error end event</strong> is a throwing event and must have the corresponding catching event.
+It can be an error boundary event if the error end event belongs to a subprocess.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error end event in subprocess" src="../_images/bpmn-events/error-end-event-in-subprocess.png" width="500"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Or error start event if there is an event subprocess.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error end event with event subprocess" src="../_images/bpmn-events/error-end-event-with-event-subprocess.png" width="350"/>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Using error end event without catching error event causes an exception at runtime.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="error end event bad example" src="../_images/bpmn-events/error-end-event-bad-example.png" width="350"/>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>See the <a class="xref page" href="../error-handling.html">Error Handling</a> section for more details.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="compensation-events"><a class="anchor" href="#compensation-events"></a>Compensation Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Compensation events make it possible to undo previous steps in case they partially fail or the outcome is not satisfactory.</p>
+</div>
+<div class="paragraph">
+<p>There are types of compensation events:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#compensation-boundary-event">Compensation boundary event</a></p>
+</li>
+<li>
+<p><a href="#compensation-intermediate-throw-event">Compensation intermediate throwing event</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="compensation-intermediate-throw-event"><a class="anchor" href="#compensation-intermediate-throw-event"></a>Compensation Intermediate Throw Event</h3>
+<div class="paragraph">
+<p><strong>Compensation intermediate throwing event</strong> can be used to trigger compensation.</p>
+</div>
+<div class="sect3">
+<h4 id="triggering-compensation"><a class="anchor" href="#triggering-compensation"></a>Triggering Compensation</h4>
+<div class="paragraph">
+<p>Compensation can either be triggered for a designated activity or for the scope that hosts the compensation event.
+Compensation is performed through execution of the compensation handler associated with an activity.</p>
+</div>
+<div class="paragraph">
+<p>When compensation is thrown for an activity,
+the associated compensation handler is executed the same number of times the activity completed successfully.</p>
+</div>
+<div class="paragraph">
+<p>If compensation is thrown for the current scope, all activities within the current scope are compensated,
+which includes activities on concurrent branches.</p>
+</div>
+<div class="paragraph">
+<p>Compensation is triggered hierarchically:
+if the activity to be compensated is a subprocess,
+compensation is triggered for all activities contained in the subprocess.
+If the subprocess has nested activities, compensation is thrown recursively.
+However, compensation is not propagated to the "upper levels" of the process:
+if compensation is triggered within a subprocess, it is not propagated to activities outside of the subprocess scope.
+The BPMN specification states that compensation is triggered for activities at "the same level of subprocess".</p>
+</div>
+<div class="paragraph">
+<p>In Flowable, compensation is performed in reverse order of execution. This means that whichever activity completed last is compensated first, and so on.</p>
+</div>
+<div class="paragraph">
+<p>The intermediate throwing compensation event can be used to compensate transaction subprocesses that competed successfully.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>An intermediate compensation throw event is visualized as a typical intermediate event (circle with double outline),
+with the compensation icon inside.
+The compensation icon is filled to indicate its throw semantics.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="compensation throwing event" src="../_images/bpmn-events/compensation-throwing-event.png" width="180"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>A compensation throw event has no specific properties.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A compensation intermediate event is defined as an intermediate throwing event. The specific type sub-element is, in this case, a <code>compensateEventDefinition</code> element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;intermediateThrowEvent id="throwCompensation"&gt;
+  &lt;compensateEventDefinition id="CompensateEventDefinition_0s3nsqo" /&gt;
+&lt;/intermediateThrowEvent&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In addition, the optional <code>activityRef</code> attribute can be used to trigger compensation of a specific scope or activity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;intermediateThrowEvent id="throwCompensation"&gt;
+    &lt;compensateEventDefinition id="CompensateEventDefinition_0s3nsqo"
+        activityRef="bookHotel" /&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;/intermediateThrowEvent&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Triggering compensation for specific activity.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="compensation-example"><a class="anchor" href="#compensation-example"></a>Example</h4>
+<div class="paragraph">
+<p>If compensation is triggered within a scope that contains a subprocess, and that subprocess includes activities with compensation handlers,
+the compensation will only be propagated to the subprocess if it has completed successfully at the time the compensation is thrown.</p>
+</div>
+<div class="paragraph">
+<p>If some activities nested within the subprocess have already completed and have attached compensation handlers,
+those handlers will not be executed if the subprocess itself has not yet completed.
+Consider the following example:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="compensation example" src="../_images/bpmn-events/compensation-example.png" width="700"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In this process, we have two concurrent executions: one for the embedded subprocess and another for the "charge credit card" activity.
+Let’s assume both executions have started, and the first concurrent execution is currently waiting for the user to complete the "review bookings" task.</p>
+</div>
+<div class="paragraph">
+<p>The second execution carries out the "charge credit card" activity, during which an error occurs,
+triggering the "cancel booking" event to initiate compensation.</p>
+</div>
+<div class="paragraph">
+<p>At this point, the parallel subprocess has not yet completed, meaning the compensation event is not propagated to it,
+and consequently, the "cancel hotel booking" compensation handler is not executed.</p>
+</div>
+<div class="paragraph">
+<p>If the user task (and, consequently, the embedded subprocess) is completed before the "cancel booking" action is performed,
+compensation will be propagated to the embedded subprocess.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="compensation-boundary-event"><a class="anchor" href="#compensation-boundary-event"></a>Compensation Boundary Event</h3>
+<div class="paragraph">
+<p><strong>Compensation boundary event</strong> can be used to attach a compensation handler to an activity.</p>
+</div>
+<div class="paragraph">
+<p>The compensation boundary event must reference a single compensation handler using a directed association.</p>
+</div>
+<div class="paragraph">
+<p>A compensation boundary event has a different activation policy from other boundary events.
+Other boundary events, such as the signal boundary event, are activated when the activity they are attached to is started.
+When the activity is finished, they are deactivated and the corresponding event subscription is canceled.</p>
+</div>
+<div class="paragraph">
+<p>The compensation boundary event is different.
+The compensation boundary event is activated when the activity it is attached to completes successfully.
+At this point, the corresponding subscription to the compensation events is created.
+The subscription is removed either when a compensation event is triggered or when the corresponding process instance ends.
+From this, it follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When compensation is triggered, the compensation handler associated with the compensation boundary event is invoked the same number of times the activity it is attached to completed successfully.</p>
+</li>
+<li>
+<p>If a compensation boundary event is attached to an activity with <a class="xref page" href="multi-instance-activities.html">multiple instance</a> characteristics, a compensation event subscription is created for each instance.</p>
+</li>
+<li>
+<p>If the process instance ends, the subscriptions to compensation events are canceled.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The compensation boundary event is not supported on embedded subprocesses.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A compensation boundary event is visualized as a typical intermediate event (circle with double outline) on the boundary, with the compensation icon inside. The compensation icon is unfilled to indicate its catching semantics.
+In addition to a compensation boundary event, the following figure shows a compensation handler associated with the boundary event using a unidirectional association.</p>
+</div>
+<div class="paragraph">
+<p>The compensation boundary event must reference a single compensation handler using a directed association.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="compensation boundary event" src="../_images/bpmn-events/compensation-boundary-event.png" width="300"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A compensation boundary event is defined as a typical boundary event:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;boundaryEvent id="Event_1" attachedToRef="Activity_1"&gt;
+  &lt;compensateEventDefinition id="CompensateEventDefinition_05" /&gt;
+&lt;/boundaryEvent&gt;
+
+. . .
+
+&lt;association id="Association_02zt79e"
+associationDirection="One"
+sourceRef="Event_1" targetRef="Activity_1" /&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="cancel-events"><a class="anchor" href="#cancel-events"></a>Cancel Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Cancel events are used in <a class="xref page" href="bpmn-subprocesses.html#transaction-subprocess">transaction subprocesses</a> only.
+They are not available in the palette until you are in a transaction subprocess.</p>
+</div>
+<div class="paragraph">
+<p>There are two types of cancel events:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#cancel-end-event">Cancel end event</a></p>
+</li>
+<li>
+<p><a href="#cancel-boundary-event">Cancel boundary event</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="cancel-end-event"><a class="anchor" href="#cancel-end-event"></a>Cancel End Event</h3>
+<div class="paragraph">
+<p>The <strong>cancel end event</strong> can only be used in combination with a BPMN <a class="xref page" href="bpmn-subprocesses.html#transaction-subprocess">transaction subprocess</a>. When the cancel end event is reached, a cancel event is thrown which must be caught by a cancel boundary event. The cancel boundary event then cancels the transaction and triggers compensation.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A cancel end event is visualized as a typical end event (circle with thick outline), with the cancel icon inside. The cancel icon is completely black, to indicate its throwing semantics.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="cancel end event" src="../_images/bpmn-events/cancel-end-event.png" width="100"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A cancel end event is represented as an end event, with a <code>cancelEventDefinition</code> child element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;endEvent id="myCancelEndEvent"&gt;
+    &lt;cancelEventDefinition /&gt;
+&lt;/endEvent&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="cancel-boundary-event"><a class="anchor" href="#cancel-boundary-event"></a>Cancel Boundary Event</h3>
+<div class="paragraph">
+<p>An attached <strong>intermediate catching cancel event</strong> on the boundary of a transaction subprocess, or <strong>boundary cancel event</strong> for short, is triggered when a transaction is canceled.</p>
+</div>
+<div class="paragraph">
+<p>When the cancel boundary event is triggered, it first interrupts all active executions in the current scope.
+Next, it starts compensation for all active compensation boundary events in the scope of the transaction.</p>
+</div>
+<div class="paragraph">
+<p>Compensation is performed synchronously; in other words, the boundary event waits before compensation is completed before leaving the transaction.
+When compensation is completed, the transaction subprocess is left using any sequence flows running out of the cancel boundary event.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Only a single cancel boundary event is allowed for a transaction subprocess.</p>
+</li>
+<li>
+<p>If the transaction subprocess hosts nested subprocesses, compensation is only triggered for subprocesses that have completed successfully.</p>
+</li>
+<li>
+<p>If a cancel boundary event is placed on a transaction subprocess with multi instance characteristics, if one instance triggers cancellation, the boundary event cancels all instances.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A cancel boundary event is visualized as a typical intermediate event (circle with a double outline) on the boundary, with the cancel icon inside. The cancel icon is unfilled to indicate its catching semantics.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="cancel boundary event" src="../_images/bpmn-events/cancel-boundary-event.png" width="300"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A cancel boundary event is defined as a typical boundary event:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;boundaryEvent id="boundary" attachedToRef="transaction" &gt;
+    &lt;cancelEventDefinition /&gt;
+&lt;/boundaryEvent&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As the cancel boundary event is always interrupting the <code>cancelActivity</code> attribute is not required.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="terminate-end-event"><a class="anchor" href="#terminate-end-event"></a>Terminate end event</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When a <em>terminate end event</em> is reached, all executions of the current process instance or subprocess will be terminated.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A <strong>cancel end event</strong> visualized as a typical end event (circle with thick outline), with a full black circle inside.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="terminate end event" src="../_images/bpmn-events/terminate-end-event.png" width="80"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A terminate end event is represented as an end event, with a <code>terminateEventDefinition</code> child element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;endEvent id="myEndEvent &gt;
+    &lt;terminateEventDefinition  flowable:terminateAll="true"&gt;
+    &lt;/terminateEventDefinition&gt;
+&lt;/endEvent&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The <code>terminateAll</code> attribute is optional (and false by default).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="terminate end event example" src="../_images/bpmn-events/terminate-end-event-example.png" width="500"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-terminate-end-event"><a class="anchor" href="#using-terminate-end-event"></a>Using Terminate End Event</h3>
+<div class="paragraph">
+<p>In this example, we can see two user tasks executed in parallel.
+If the task #2 to be completed first, the execution arrives to the terminate end event.
+At this moment, task #1 will be deleted even it is still active.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="terminate end event example 2" src="../_images/bpmn-events/terminate-end-event-example-2.png" width="700"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the next example, the terminate end event is in a subprocess. When it will be reached, it affects only subprocess.
+So, task #1 will be deleted if it is active, subprocess be terminated, and the main process be continued a normal way.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="bpmn-events-coverage"><a class="anchor" href="#bpmn-events-coverage"></a>BPMN Events Coverage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In Jmix BPM, not all BPMN 2.0 events are supported, and those that are not supported are marked in pink.
+This indicates that while the BPMN 2.0 standard defines a wide range of events,
+Jmix BPM integrates the Flowable BPM engine, which may not implement every event type available in the standard.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="jmix events" src="../_images/bpmn-events/jmix-events.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Not supported events:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Message throwing, intermediate and end event</p>
+</li>
+<li>
+<p>Signal throwing end event</p>
+</li>
+<li>
+<p>Compensation end event</p>
+</li>
+<li>
+<p>Escalation events (all types)</p>
+</li>
+<li>
+<p>Conditional events (all types)</p>
+</li>
+<li>
+<p>Link events (all types)</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Be careful when importing BPMN models from 3rd party design tools:
+not supported events can be shown on the diagram but may cause error at runtime.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="workarounds"><a class="anchor" href="#workarounds"></a>Workarounds for Unsupported Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you’ll find recipes how to implement a desired process logic for elements that are not supported in Jmix BPM.</p>
+</div>
+<div class="sect2">
+<h3 id="message-throwing-event-workaround"><a class="anchor" href="#message-throwing-event-workaround"></a>Message Throwing Event</h3>
+<div class="paragraph">
+<p>First, use <em>signals</em> instead of <em>messages</em> everywhere it is possible. In most cases, these types of events are interchangeable.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="signal instead of message" src="../_images/bpmn-events/signal-instead-of-message.png" width="270"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Second, use a service task with the API call.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="throw message workaround 1" src="../_images/bpmn-events/throw-message-workaround-1.png" width="350"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Service task can be implemented as Spring bean, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component(value = "smpl_MyService")
+public class MyService {
+
+    @Autowired
+    private RuntimeService runtimeService;
+
+    public void sendMessage(String messageName, String executionId) {
+        runtimeService.messageEventReceived(messageName, executionId);
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="signal-throwing-end-event-workaround"><a class="anchor" href="#signal-throwing-end-event-workaround"></a>Signal Throwing End Event</h3>
+<div class="paragraph">
+<p>Use the combination of <em>signal throwing intermediate event</em> and <em>none_end_event</em>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="workaround signal end event" src="../_images/bpmn-events/workaround-signal-end-event.png" width="400"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="compensation-end-event-workaround"><a class="anchor" href="#compensation-end-event-workaround"></a>Compensation End Event</h3>
+<div class="imageblock">
+<div class="content">
+<img alt="compensation end event workaround" src="../_images/bpmn-events/compensation-end-event-workaround.png" width="500"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="escalation-events-workaround"><a class="anchor" href="#escalation-events-workaround"></a>Escalation Events</h3>
+<div class="paragraph">
+<p>It is possible to use BPMN error events instead of escalation in certain scenarios.
+Error events in BPMN are used to handle unexpected errors or exceptions that occur during the execution of a process.
+They can be used to model error handling and recovery mechanisms within a process.</p>
+</div>
+<div class="paragraph">
+<p>Escalation events, on the other hand, are used to escalate a problem to a higher level in the organization or process hierarchy.
+They are typically used when a problem cannot be resolved at the current level and needs to be escalated for further action.</p>
+</div>
+<div class="paragraph">
+<p>So, <em>escalation events</em> are technically very close to <em>error events</em>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="workaround escalation events" src="../_images/bpmn-events/workaround-escalation-events.png" width="600"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="conditional-events-workaround"><a class="anchor" href="#conditional-events-workaround"></a>Conditional Events</h3>
+<div class="paragraph">
+<p>The conditional event defines an event which is triggered if a given condition is evaluated to true.
+It can be used as start event of an event subprocess, as intermediate event and boundary event.
+The start and boundary event can be interrupting and non interrupting.</p>
+</div>
+<div class="paragraph">
+<p>You can implement similar logic by using execution listeners in combination with signal or message event.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="workaround conditional events" src="../_images/bpmn-events/workaround-conditional-events.png" width="350"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="link-events-workaround"><a class="anchor" href="#link-events-workaround"></a>Link Events</h3>
+<div class="paragraph">
+<p>Don’t use <em>link events</em>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Link events can appear on the diagram when importing the XML file from 3rd party tools like Camunda Modeler.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

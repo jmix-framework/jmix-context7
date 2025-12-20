@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Integration Tests :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">UI Integration Tests</h1>
+<div class="paragraph">
+<p>Jmix allows you to write tests for the UI layer. In these tests, you can open views, load data, verify the contents of UI components, make modifications, and simulate user actions such as button clicks.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use the <strong>New → Advanced → UI Integration Test</strong> action in the <strong>Jmix</strong> tool window to quickly create a UI integration test using Studio.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Jmix UI tests start the complete Spring context and can interact with the database like the <a class="xref page" href="integration-tests.html">integration tests</a> of the business logic. They are close to the browser-based end-to-end tests in the sense that they can check a wide range of application functionality, but at the same time they are easy to set up and are executed much faster than browser-based tests.</p>
+</div>
+<div class="paragraph">
+<p>Every new Jmix project includes an example of a UI integration test: the <code>UserUiTest</code> class that verifies the user management views. Let’s take a look at the configuration and logic of the UI tests using this example.</p>
+</div>
+<div class="paragraph">
+<p>To execute UI tests, your project should contain the dependency on the <code>jmix-flowui-test-assist</code> module:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">testImplementation 'io.jmix.flowui:jmix-flowui-test-assist'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The example test class is shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">UserUiTest.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.demo.user;
+
+import com.company.demo.DemoApplication;
+import com.company.demo.entity.User;
+import com.company.demo.view.user.UserDetailView;
+import com.company.demo.view.user.UserListView;
+import io.jmix.core.DataManager;
+import io.jmix.flowui.ViewNavigators;
+import io.jmix.flowui.component.UiComponentUtils;
+import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.textfield.JmixPasswordField;
+import io.jmix.flowui.component.textfield.TypedTextField;
+import io.jmix.flowui.data.grid.DataGridItems;
+import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
+import io.jmix.flowui.testassist.UiTest;
+import io.jmix.flowui.testassist.UiTestUtils;
+import io.jmix.flowui.view.View;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+/**
+ * Sample UI integration test for the User entity.
+ */
+@UiTest <i class="conum" data-value="1"></i><b>(1)</b>
+@SpringBootTest(classes = {DemoApplication.class, FlowuiTestAssistConfiguration.class}) <i class="conum" data-value="2"></i><b>(2)</b>
+public class UserUiTest {
+
+    @Autowired
+    DataManager dataManager; <i class="conum" data-value="3"></i><b>(3)</b>
+
+    @Autowired
+    ViewNavigators viewNavigators;
+
+    @Test <i class="conum" data-value="4"></i><b>(4)</b>
+    void test_createUser() {
+        // Navigate to user list view
+        viewNavigators.view(UiTestUtils.getCurrentView(), UserListView.class).navigate();
+
+        UserListView userListView = UiTestUtils.getCurrentView(); <i class="conum" data-value="5"></i><b>(5)</b>
+
+        // click "Create" button
+        JmixButton createBtn = findComponent(userListView, "createBtn"); <i class="conum" data-value="6"></i><b>(6)</b>
+        createBtn.click();
+
+        // Get detail view
+        UserDetailView userDetailView = UiTestUtils.getCurrentView();
+
+        // Set username and password in the fields
+        TypedTextField&lt;String&gt; usernameField = findComponent(userDetailView, "usernameField");
+        String username = "test-user-" + System.currentTimeMillis();
+        usernameField.setValue(username);
+
+        JmixPasswordField passwordField = findComponent(userDetailView, "passwordField");
+        passwordField.setValue("test-passwd");
+
+        JmixPasswordField confirmPasswordField = findComponent(userDetailView, "confirmPasswordField");
+        confirmPasswordField.setValue("test-passwd");
+
+        // Click "OK"
+        JmixButton commitAndCloseBtn = findComponent(userDetailView, "saveAndCloseBtn");
+        commitAndCloseBtn.click();
+
+        // Get navigated user list view
+        userListView = UiTestUtils.getCurrentView();
+
+        // Check the created user is shown in the table
+        DataGrid&lt;User&gt; usersDataGrid = findComponent(userListView, "usersDataGrid");
+
+        DataGridItems&lt;User&gt; usersDataGridItems = usersDataGrid.getItems();
+        Assertions.assertNotNull(usersDataGridItems);
+
+        usersDataGridItems.getItems().stream()
+                .filter(u -&gt; u.getUsername().equals(username))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    @AfterEach <i class="conum" data-value="7"></i><b>(7)</b>
+    void tearDown() {
+        dataManager.load(User.class)
+                .query("e.username like ?1", "test-user-%")
+                .list()
+                .forEach(u -&gt; dataManager.remove(u));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static &lt;T&gt; T findComponent(View&lt;?&gt; view, String componentId) {
+        return (T) UiComponentUtils.getComponent(view, componentId);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@UiTest</code> annotation defines a JUnit extension to start Vaadin, configure application views and set up authentication.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>@SpringBootTest</code> annotation should declare the application and the <code>jmix-flowui-test-assist</code> module configurations.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>You can inject any Spring beans using the <code>@Autowired</code> annotation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The test case method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><code>UiTestUtils.getCurrentView()</code> method return the view currently opened by navigation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The <code>findComponent()</code> method returns a UI component by its id.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>The method executed after each test case can be used for test data cleanup.</td>
+</tr>
+</table>
+</div>
+
+</article>
+</body>
+</html>

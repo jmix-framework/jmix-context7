@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Authentication</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Authentication is the process of verifying the identity of a user or process that interacts with the system. For example, the system can authenticate users by their username and password. For authenticated users, the system can perform <a class="xref page" href="authorization.html">authorization</a>, which is a check of permissions to a particular resource.</p>
+</div>
+<div class="paragraph">
+<p>Jmix directly uses Spring Security <a href="https://docs.spring.io/spring-security/reference/servlet/authentication/index.html" rel="noopener" target="_blank">servlet authentication</a>, so if you are familiar with this framework, you can easily extend or override the standard authentication mechanism provided by Jmix out-of-the-box.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="current"><a class="anchor" href="#current"></a>Current User</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To determine who is currently authenticated, use the <code>CurrentAuthentication</code> bean. It has the following methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>getUser()</code> returns the currently authenticated user as <a href="https://docs.spring.io/spring-security/site/docs/6.5.x/api/org/springframework/security/core/userdetails/UserDetails.html" rel="noopener" target="_blank">UserDetails</a>. You can cast it to the class of <a class="xref page" href="users.html#entity">users</a> defined in your project.</p>
+</li>
+<li>
+<p><code>getAuthentication()</code> returns the <a href="https://docs.spring.io/spring-security/site/docs/6.5.x/api/org/springframework/security/core/Authentication.html" rel="noopener" target="_blank">Authentication</a> object associated with the current execution thread. The <code>Authentication</code> object stores the names of the user’s roles.</p>
+<div class="paragraph">
+<p>Jmix uses the Spring Security <a href="https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/authority/SimpleGrantedAuthority.html" rel="noopener" target="_blank">SimpleGrantedAuthority</a> class to represent user roles. This class effectively stores a single string representing a role. The format of this string is:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>For <a class="xref page" href="resource-roles.html">resource</a> roles: <code>ROLE_&lt;role-code&gt;</code>, for example, <code>ROLE_system-full-access</code>.</p>
+</li>
+<li>
+<p>For <a class="xref page" href="row-level-roles.html">row-level</a> roles: <code>ROW_LEVEL_ROLE_&lt;role-code&gt;</code>, for example, <code>ROW_LEVEL_ROLE_my-role</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Granted authorities of the appropriate Java class and content can be created from role codes using the <code>RoleGrantedAuthorityUtils</code> class.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can customize the prefix for resource role authorities using the standard Spring mechanism by configuring the  <code>org.springframework.security.config.core.GrantedAuthorityDefaults</code> bean.</p>
+</div>
+<div class="paragraph">
+<p>Similarly, you can adjust the prefix for row-level role authorities using the <code>jmix.security.default-row-level-role-prefix</code> application property.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><code>getLocale()</code> returns the locale of the current user.</p>
+</li>
+<li>
+<p><code>getTimeZone()</code> returns the time zone of the current user. The <a href="#time-zones">next section</a> explains how the user time zone is determined and how it is used by the framework.</p>
+</li>
+<li>
+<p><code>isSet()</code> returns <code>true</code> if the current execution thread is authenticated, that is contains information about the user. If it’s not, <code>getUser()</code>, <code>getLocale()</code> and <code>getTimeZone()</code> methods described above will throw the <code>IllegalStateException</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Below is an example of getting the information about the current user:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private CurrentAuthentication currentAuthentication;
+
+private void printAuthenticationInfo() {
+    UserDetails user = currentAuthentication.getUser();
+    Authentication authentication = currentAuthentication.getAuthentication();
+    Locale locale = currentAuthentication.getLocale();
+    TimeZone timeZone = currentAuthentication.getTimeZone();
+
+    System.out.println(
+            "User: " + user.getUsername() + "\n" +
+                    "Authentication: " + authentication + "\n" +
+                    "Roles: " + getRoleNames(authentication) + "\n" +
+                    "Locale: " + locale.getDisplayName() + "\n" +
+                    "TimeZone: " + timeZone.getDisplayName()
+    );
+}
+
+private String getRoleNames(Authentication authentication) {
+    return authentication.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.joining(","));
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><code>CurrentAuthentication</code> is just a wrapper around <a href="https://docs.spring.io/spring-security/site/docs/6.5.x/api/org/springframework/security/core/context/SecurityContextHolder.html" rel="noopener" target="_blank">SecurityContextHolder</a>, so it is fully compatible with all Spring Security mechanisms.</p>
+</div>
+<div class="paragraph">
+<p>For example, you can use <code>DelegatingSecurityContextRunnable</code> to propagate authentication to new threads as described in <a href="https://docs.spring.io/spring-security/reference/servlet/integrations/concurrency.html" rel="noopener" target="_blank">Spring Security documentation</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="time-zones"><a class="anchor" href="#time-zones"></a>Using Time Zones</h3>
+<div class="paragraph">
+<p>Jmix automatically converts values in UI components between server and user time zones for entity attributes of the following types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>OffsetDateTime</code></p>
+</li>
+<li>
+<p><code>java.util.Date</code> with <code>@Temporal(TemporalType.TIMESTAMP)</code>, which corresponds to the <code>DateTime</code> attribute type in Studio.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Below we explain how to specify the user and server time zones.</p>
+</div>
+<div class="paragraph">
+<p>By default, the <code>User</code> entity implements the <code>HasTimeZone</code> interface with two methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>getTimeZoneId()</code> is implemented in the <code>User</code> entity and returns a time zone set for the user in the database.</p>
+</li>
+<li>
+<p><code>isAutoTimeZone()</code> method returns <code>false</code> by default for all users. You can implement this method in the <code>User</code> entity and return <code>true</code> for all users, or map it to a database column as it is done for <code>getTimeZoneId()</code> to have different values for different users.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The time zone of the current user returned by <code>CurrentAuthentication.getTimeZone()</code> is determined in the following order:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A non-empty value returned by the <code>User.getTimeZoneId()</code> method is used to construct the <code>TimeZone</code> object.</p>
+</li>
+<li>
+<p>If the <code>User.isAutoTimeZone()</code> method returns <code>true</code>, the framework tries to obtain the time zone from the user’s web browser through a <code>DeviceTimeZoneProvider</code> implementation.</p>
+</li>
+<li>
+<p>If both previous steps were unsuccessful, the server default time zone is used.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The server time zone is defined by the server operating system. You can set it explicitly using the <code>user.timezone</code> Java system property or <code>TimeZone</code> class. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SpringBootApplication
+public class DemoApplication {
+
+    public static void main(String[] args) {
+        System.setProperty("user.timezone", "UTC");
+        SpringApplication.run(DemoApplication.class, args);
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We recommend also setting the same time zone for the database. For example, in PostgreSQL you can do it using the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">ALTER DATABASE demo SET timezone TO 'UTC'</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="client"><a class="anchor" href="#client"></a>Client Authentication</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The backend of a Jmix application can have different clients, for example, Jmix UI or REST API. Each client has its own standard authentication mechanism, such as the UI login view or <a class="xref page" href="../rest/access-control.html">REST access token</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="custom-password-validation"><a class="anchor" href="#custom-password-validation"></a>Custom Password Validation</h3>
+<div class="paragraph">
+<p>To implement a custom password validation in the application, create a bean (or multiple beans) implementing the <code>PasswordValidator</code> interface, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.demo.security;
+
+import com.company.demo.entity.User;
+import io.jmix.securityflowui.password.PasswordValidationContext;
+import io.jmix.securityflowui.password.PasswordValidationException;
+import io.jmix.securityflowui.password.PasswordValidator;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MyPasswordValidator implements PasswordValidator&lt;User&gt; {
+
+    @Override
+    public void validate(PasswordValidationContext&lt;User&gt; context) throws PasswordValidationException {
+        if (context.getPassword().length() &lt; 3)
+            throw new PasswordValidationException("Password is too short, must be &gt;= 3 characters");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All password validators will be automatically used in the ChangePassword action dialog.</p>
+</div>
+<div class="paragraph">
+<p>To add the validation to the User detail view, use the <code>PasswordValidation</code> helper bean:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private PasswordValidation passwordValidation;
+
+@Subscribe
+public void onValidation(final ValidationEvent event) {
+    // ...
+    if (entityStates.isNew(getEditedEntity())) {
+        List&lt;String&gt; validationErrors = passwordValidation.validate(getEditedEntity(), passwordField.getValue());
+        if (!validationErrors.isEmpty()) {
+            event.getErrors().add(String.join("\n", validationErrors));
+        }
+    }</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="brute-force-protection"><a class="anchor" href="#brute-force-protection"></a>BruteForce Protection</h3>
+<div class="paragraph">
+<p>The framework has a mechanism for the protection against password brute force cracking.</p>
+</div>
+<div class="paragraph">
+<p>The <a href="#jmix.security.bruteforceprotection.enabled">jmix.security.bruteforceprotection.enabled</a> application property enables the protection. If the protection is enabled, the combination of user login and IP address is blocked for a time interval in case of multiple unsuccessful login attempts. A maximum number of login attempts for the combination of user login and IP address is defined by the <a href="#jmix.security.bruteforceprotection.max-login-attempts-number">jmix.security.bruteforceprotection.max-login-attempts-number</a> application property. Blocking interval in seconds is determined by the <a href="#jmix.security.bruteforceprotection.block-interval">jmix.security.bruteforceprotection.block-interval</a> application property.</p>
+</div>
+<div class="ulist" id="jmix.security.bruteforceprotection.enabled">
+<ul>
+<li>
+<p><code>jmix.security.bruteforceprotection.enabled</code></p>
+<div class="paragraph">
+<p>Enables a mechanism for the protection against password brute force cracking. The default value: <code>false</code>.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="ulist" id="jmix.security.bruteforceprotection.block-interval">
+<ul>
+<li>
+<p><code>jmix.security.bruteforceprotection.block-interval</code></p>
+<div class="paragraph">
+<p>Defines the blocking interval in seconds after exceeding a maximum number of failed login attempts if the <a href="#jmix.security.bruteforceprotection.enabled">jmix.security.bruteforceprotection.enabled</a> property is on. The default value: <code>60 seconds</code>.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="ulist" id="jmix.security.bruteforceprotection.max-login-attempts-number">
+<ul>
+<li>
+<p><code>jmix.security.bruteforceprotection.max-login-attempts-number</code></p>
+<div class="paragraph">
+<p>Defines a maximum number of failed login attempts for the combination of user login and IP address if the <a href="#jmix.security.bruteforceprotection.enabled">jmix.security.bruteforceprotection.enabled</a> property is on. The default value: <code>5</code>.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="system"><a class="anchor" href="#system"></a>System Authentication</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The execution thread can be not authenticated if it was started by an internal scheduler or handles a request from the JMX interface. At the same time, your business logic or data access code usually requires information on who is currently working with the system for logging or authorization.</p>
+</div>
+<div class="paragraph">
+<p>To temporarily associate the current execution thread with a user, use the <code>SystemAuthenticator</code> bean. It has the following methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>withSystem()</code> - accepts a lambda and executes it as the <a class="xref page" href="users.html#built-in">system</a> user.</p>
+</li>
+<li>
+<p><code>withUser()</code> - accepts a username of a regular application user and a lambda and executes the lambda as the given user with their permissions.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Below is an example of authenticating an MBean operation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private SystemAuthenticator systemAuthenticator;
+@Autowired
+private CurrentAuthentication currentAuthentication;
+
+@ManagedOperation
+public String doSomething() {
+    return systemAuthenticator.withSystem(() -&gt; {
+        UserDetails user = currentAuthentication.getUser();
+        System.out.println("User: " + user.getUsername()); // system
+        // ...
+        return "Done";
+    });
+}
+
+@ManagedOperation
+public String doSomething2() {
+    return systemAuthenticator.withUser("admin", () -&gt; {
+        UserDetails user = currentAuthentication.getUser();
+        System.out.println("User: " + user.getUsername()); // admin
+        // ...
+        return "Done";
+    });
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also use the <code>@Authenticated</code> annotation to authenticate an entire bean method as executed by the <code>system</code> user. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private CurrentAuthentication currentAuthentication;
+
+@Authenticated // authenticates the entire method
+@ManagedOperation
+public String doSomething3() {
+    UserDetails user = currentAuthentication.getUser();
+    System.out.println("User: " + user.getUsername()); // system
+    // ...
+    return "Done";
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="authentication-events"><a class="anchor" href="#authentication-events"></a>Authentication Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Spring framework sends specific application events related to authentication.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Studio can help you generate listeners to authentication events. Click <strong>New (+) → Event Listener</strong> in the <strong>Jmix</strong> tool window and select <strong>Authentication Event</strong> in the dialog.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Below is an example of handling authentication events.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class AuthenticationEventListener {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(AuthenticationEventListener.class);
+
+    @EventListener
+    public void onInteractiveAuthenticationSuccess(
+            InteractiveAuthenticationSuccessEvent event) { <i class="conum" data-value="1"></i><b>(1)</b>
+        User user = (User) event.getAuthentication().getPrincipal(); <i class="conum" data-value="2"></i><b>(2)</b>
+        log.info("User logged in: " + user.getUsername());
+    }
+
+    @EventListener
+    public void onAuthenticationSuccess(
+            AuthenticationSuccessEvent event) { <i class="conum" data-value="3"></i><b>(3)</b>
+        User user = (User) event.getAuthentication().getPrincipal(); <i class="conum" data-value="4"></i><b>(4)</b>
+        log.info("User authenticated " + user.getUsername());
+    }
+
+    @EventListener
+    public void onAuthenticationFailure(
+            AbstractAuthenticationFailureEvent event) { <i class="conum" data-value="5"></i><b>(5)</b>
+        String username = (String) event.getAuthentication().getPrincipal(); <i class="conum" data-value="6"></i><b>(6)</b>
+        log.info("User login attempt failed: " + username);
+    }
+
+    @EventListener
+    public void onLogoutSuccess(LogoutSuccessEvent event) { <i class="conum" data-value="7"></i><b>(7)</b>
+        User user = (User) event.getAuthentication().getPrincipal(); <i class="conum" data-value="8"></i><b>(8)</b>
+        log.info("User logged out: " + user.getUsername());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>InteractiveAuthenticationSuccessEvent</code> is sent when a user logs in to the system through UI or REST API.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>InteractiveAuthenticationSuccessEvent</code> contains the user entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>AuthenticationSuccessEvent</code> is sent on any successful authentication including <a href="#system">system</a>.
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Do not use <code>CurrentAuthentication</code> bean to get <a href="#current">current user</a> in this event listener. This event is sent too early in the authentication process and the bean will throw an exception or return a previous authentication object. Instead, get the current user from the <code>AuthenticationSuccessEvent</code> object.
+</td>
+</tr>
+</table>
+</div></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>AuthenticationSuccessEvent</code> contains the user entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><code>AbstractAuthenticationFailureEvent</code> is sent when the authentication attempt has failed, for example because of invalid credentials.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td><code>AbstractAuthenticationFailureEvent</code> contains only the user name provided for authentication.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td><code>LogoutSuccessEvent</code> is sent when the user logs out.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td><code>LogoutSuccessEvent</code> contains the user entity.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="user-session"><a class="anchor" href="#user-session"></a>User Session</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When connecting to a Jmix application via Jmix UI or REST API, a user session based on HTTP session is created. This section provides details on user sessions in different clients, how to manage the session timeout, and how to store custom values in a user session.</p>
+</div>
+<div class="paragraph">
+<p>You can track user sessions at runtime using the <a class="xref page" href="../audit/user-sessions.html">User Sessions</a> view of the <strong>Audit</strong> add-on.</p>
+</div>
+<div class="paragraph">
+<p>The maximum number of sessions per user can be defined using the <a class="xref page" href="../app-properties.html#jmix.core.session.maximum-sessions-per-user">jmix.core.session.maximum-sessions-per-user</a> property.</p>
+</div>
+<div class="sect2">
+<h3 id="sessions-in-ui"><a class="anchor" href="#sessions-in-ui"></a>Sessions in UI</h3>
+<div class="paragraph">
+<p>By default, the UI user session is active as long as at least one browser tab with the application is open. If all browser tabs are closed, the user session lasts for the period defined in the <a href="https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.server.server.servlet.session.timeout" rel="noopener" target="_blank">server.servlet.session.timeout</a> application property.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>server.servlet.session.timeout</code> property affects the embedded web server that is used when deploying the application as executable JAR. If you use WAR deployment to an external web server, use its configuration to set the HTTP session expiration timeout.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following application properties affect the session expiration:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>vaadin.heartbeatInterval</code> - the interval in seconds between heartbeat requests that the client sends to the server while a browser tab is open. The default value is 300 (5 minutes). These heartbeat requests ensure that the session remains active even in the absence of user activity. The interval between requests should be shorter than <code>server.servlet.session.timeout</code>.</p>
+</li>
+<li>
+<p><code>vaadin.closeIdleSessions</code> - if set to <code>true</code>, the heartbeat requests are ignored, and session is expired after the period of inactivity defined in <code>server.servlet.session.timeout</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example, the following application properties set the session timeout to 10 minutes and heartbeat interval to 3 minutes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">server.servlet.session.timeout=10m
+vaadin.heartbeatInterval=90</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See also <a href="https://vaadin.com/docs/latest/flow/advanced/application-lifecycle#application.lifecycle.session" rel="noopener" target="_blank">Vaadin Documentation: User Session</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="sessions-in-rest-api"><a class="anchor" href="#sessions-in-rest-api"></a>Sessions in REST API</h3>
+<div class="paragraph">
+<p>By default, user sessions in REST API are created for each request and expired according to the <code>server.servlet.session.timeout</code> property value. If the client supports cookies, the session will be maintained across all requests with the same cookie.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>Jmix Sessions</strong> subsystem binds user sessions to OAuth2 tokens that are used for authentication in REST endpoints. This allows you to maintain the session across all requests with the same token. To include <strong>Jmix Sessions</strong> in your project, add the following dependency to the <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.sessions:jmix-sessions-starter'</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If the session is lost on the server restart, and the corresponding token is preserved (for example if it is stored in the database), a new session is created for the same token.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="session-attributes"><a class="anchor" href="#session-attributes"></a>Session Attributes</h3>
+<div class="paragraph">
+<p>If you need to share some values across multiple requests within the same user session, use the <code>SessionData</code> bean. It has methods for reading and writing named values stored in the current user session.</p>
+</div>
+<div class="paragraph">
+<p>You can inject the <code>SessionData</code> bean into UI views directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class CustomerListView extends StandardListView&lt;Customer&gt; {
+
+    @Autowired
+    private SessionData sessionData;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In a singleton bean, use <code>SessionData</code> through <code>org.springframework.beans.factory.ObjectProvider</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class CustomerService {
+
+    @Autowired
+    private ObjectProvider&lt;SessionData&gt; sessionDataProvider;
+
+    public void saveSessionValue(String value) {
+        sessionDataProvider.getObject().setAttribute("my-attribute", value);
+    }</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Session attributes can also be used in <a class="xref page" href="../data-access/jpql-extensions.html#session-and-user-attributes">JPQL queries</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

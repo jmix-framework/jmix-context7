@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequence Generation :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Sequence Generation</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The sequence generation mechanism enables obtaining unique numerical values via a single API, independent of the DBMS type.</p>
+</div>
+<div class="paragraph">
+<p>The entry point to this mechanism is the <code>Sequences</code> interface which can be injected to a bean or a screen:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Sequences sequences;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you can use the <code>createNextValue()</code> method to generate the next number in the sequence passed as the parameter:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Long nextNumber = sequences.createNextValue(Sequence.withName("some_seq"));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Sequences</code> interface provides the following methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>createNextValue()</code> – returns the next value in a sequence. The mechanism enables simultaneous management of several sequences, identified by arbitrary strings. The name of the sequence from which you want to retrieve the value is passed in the <code>Sequence.withName()</code> static method.</p>
+<div class="paragraph">
+<p>Sequences do not require initialization. When <code>createNextValue()</code> is called for the first time, the corresponding sequence will be created, and the default value <code>1</code> will be returned.</p>
+</div>
+</li>
+<li>
+<p><code>setCurrentValue()</code> – sets the new initial value for the sequence.</p>
+<div class="paragraph">
+<p>There is a minor difference in what <code>createNextValue()</code> returns first time after calling <code>setCurrentValue()</code> across different databases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>PostgreSQL returns the assigned value plus the increment.</p>
+</li>
+<li>
+<p>Other databases return the assigned value itself.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>deleteSequence()</code> – removes the sequence with specified identifier.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The sequence generation mechanism is implemented for all <a class="xref page" href="../data-model/data-stores.html#supported-databases">supported databases</a>.</p>
+</div>
+<div class="paragraph">
+<p>Sequence parameters can also be managed directly in the database by the rules of the particular DBMS.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The <code>Sequences</code> implementation is based on database sequences or autoincrement fields and does not guarantee a continuous sequence without gaps, it guarantees only the uniqueness of the values. Gaps may happen due to an error or a transaction rollback.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="sequence-usage"><a class="anchor" href="#sequence-usage"></a>Sequence Usage Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Each <code>Sequence</code> instance is characterized by the name, the data store, the start value, and the incremental step. You can use setters to define these parameters when calling the methods mentioned above, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Sequences sequences;
+@ViewComponent
+private InstanceContainer&lt;Document&gt; documentDc;
+
+@Subscribe(target = Target.DATA_CONTEXT)
+public void onPreSave(final DataContext.PreSaveEvent event) {
+    Long number = sequences.createNextValue(Sequence.withName("document_number") <i class="conum" data-value="1"></i><b>(1)</b>
+            .setStore("additional") <i class="conum" data-value="2"></i><b>(2)</b>
+            .setStartValue(10) <i class="conum" data-value="3"></i><b>(3)</b>
+            .setIncrement(10)); <i class="conum" data-value="4"></i><b>(4)</b>
+    documentDc.getItem().setNumber(number);
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Generates new value of the <code>document_number</code> sequence.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Points the <code>Sequence</code> to use the <a class="xref page" href="../data-model/data-stores.html#additional">additional data store</a> by its name. If not set, the main data store is used.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Sets the start number of <code>document_number</code>. If not set, the sequence starts with <code>1</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Defines the incremental step of the sequence. If not set, the increment is <code>1</code>.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

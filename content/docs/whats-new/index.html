@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What’s New :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">What’s New</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section covers new features of Jmix framework and Studio 2.7, as well as some breaking changes to be aware of when upgrading from a previous version of the framework.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="upgrade"><a class="anchor" href="#upgrade"></a>How To Upgrade</h2>
+<div class="sectionbody">
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To create new projects with Jmix 2.7 or to upgrade an existing project, you need Studio 2.7 or later, so <a class="xref page" href="../studio/update.html">update</a> your Jmix Studio plugin first.</p>
+</div>
+<div class="paragraph">
+<p>The minimal supported IntelliJ IDEA version is now 2025.1.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../studio/project.html#upgrading-project">Upgrading Project</a> section for how to upgrade your project using Studio. The automatic migration procedure makes the following changes in your project:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Updates the version of Jmix BOM which in turn defines versions of all dependencies.</p>
+</li>
+<li>
+<p>Updates the version of Jmix Gradle plugin.</p>
+</li>
+<li>
+<p>If your project includes Authorization Server or OpenID Connect add-ons, Studio adds the <code>jmix.resource-server.force-api-security-scope.enabled=false</code> application property for the reason explained <a href="#resource-role-api-scope">below</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See also the full list of <a href="#breaking-changes">breaking changes</a> that can affect your project after the upgrade.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="updated-dependencies"><a class="anchor" href="#updated-dependencies"></a>Updated Dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Vaadin has been updated to <a href="https://github.com/vaadin/platform/releases/tag/24.9.0" rel="noopener" target="_blank">24.9</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="new-features"><a class="anchor" href="#new-features"></a>New Features and Improvements</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="studio"><a class="anchor" href="#studio"></a>Studio Improvements</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The <a class="xref page" href="../studio/role-designer.html">Role Designer</a> now visualizes and manages the role inheritance hierarchy. It shows permissions inherited from base roles as read-only elements. The <strong>Entity</strong> permissions tab now highlights enabled and disabled elements using different colors.</p>
+</li>
+<li>
+<p>The <strong>Add attribute from DB</strong> action in the <a class="xref page" href="../studio/entity-designer.html">Entity Designer</a> allows you to use the "database-first" approach when developing your data model. You can first create a column in a database table, and then import it to the data model as an attribute mapped to the column.</p>
+</li>
+<li>
+<p>If you select the new <strong>Create Data Repository</strong> checkbox in the <strong>New JPA Entity</strong> dialog, Studio creates a data repository for the new entity automatically, and remembers the state of the checkbox for the next entity creation. When creating views for an entity using the <strong>Create Jmix View</strong> wizard, Studio now automatically selects the <strong>Use Data Repositories</strong> checkbox if a data repository for this entity exists.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="groupdatagrid-component"><a class="anchor" href="#groupdatagrid-component"></a>GroupDataGrid Component</h3>
+<div class="paragraph">
+<p>The <code>groupDataGrid</code> component is a data grid that enables the grouping of rows based on the values in one or more columns.</p>
+</div>
+<div class="paragraph">
+<p>See the <a class="xref page" href="../groupdatagrid/index.html">Grouping Data Grid</a> add-on section for information on how to install and use the component.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="card-component"><a class="anchor" href="#card-component"></a>Card Component</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../flow-ui/vc/layouts/card.html">card</a> component is a container designed to present content in a card format. It provides customization options for layout and appearance, allowing for the organization of related content and actions.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="gridlayout-component"><a class="anchor" href="#gridlayout-component"></a>GridLayout Component</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../flow-ui/vc/layouts/gridLayout.html">gridLayout</a> component arranges child components in a responsive, two-dimensional grid system based on the CSS Grid Layout. It allows you to render individual components, <a href="#card-component">cards</a> or fragments, and can be a viable alternative to data grids.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="usermenu-component"><a class="anchor" href="#usermenu-component"></a>UserMenu Component</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../flow-ui/vc/components/userMenu.html">userMenu</a> component allows you to visualize the logged-in user along with related actions such as <strong>Substitute user</strong> and <strong>Log out</strong> in a clear and visually appealing manner.</p>
+</div>
+<div class="paragraph">
+<p>The dropdown menu of the component can contain predefined and custom actions, as well as nested items and other UI components.</p>
+</div>
+<div class="paragraph">
+<p>The new project template now includes the <code>userMenu</code> component in the main view.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="date-filtering"><a class="anchor" href="#date-filtering"></a>Date Filtering</h3>
+<div class="paragraph">
+<p>The <code>genericFilter</code> and <code>propertyFilter</code> components now provides a new comparison operation: <a class="xref page" href="../flow-ui/vc/components/propertyFilter.html#date-equals">date equals</a>. It omits time in datetime values and allows users to easily test if a datetime value is within a particular date.</p>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../flow-ui/vc/components/propertyFilter.html#date-interval">Date Interval</a> dialog now supports arbitrary start and end date, and can be used instead of creating two conditions <code>&gt;=</code> and <code>&lt;</code> when checking if a datetime value is within a range.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="data-repositories"><a class="anchor" href="#data-repositories"></a>Data Repositories</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>JmixDataRepository</code> interface now extends <code>org.springframework.data.repository.ListCrudRepository</code>, and all its <code>findAll()</code> methods that previously returned <code>Iterable</code> now return <code>List</code>.</p>
+</li>
+<li>
+<p>Jmix data repositories now support queries returning scalar values and aggregates. See the <a class="xref page" href="../data-access/data-repositories.html#query-annotation">@Query</a> annotation usage examples.</p>
+</li>
+<li>
+<p>The <code>JmixDataRepository</code> methods returning <code>Page</code> perform additional <code>count</code> request to the database to provide total number of items and pages in the <code>Page</code> object. If you don’t need the number of pages in your logic, use the new <code>findAllSlice()</code> methods returning <code>Slice</code>. This will reduce the load on the database.</p>
+</li>
+<li>
+<p>The new <a class="xref page" href="../flow-ui/data/data-loaders.html#load-from-repository-delegate">loadFromRepositoryDelegate</a> and <a class="xref page" href="../flow-ui/vc/components/simplePagination.html#totalCountByRepositoryDelegate">totalCountByRepositoryDelegate</a> handlers simplify usage of data repositories in views. They allow you to invoke data repositories directly without converting parameters from the <code>LoadContext</code> object. If you select the <strong>Use Data Repositories</strong> checkbox in the <a class="xref page" href="../studio/view-wizard.html#creating-entity-based-views">
+View Creation Wizard</a>, the created view will use the new delegates.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="design-time-reports"><a class="anchor" href="#design-time-reports"></a>Design-Time Reports</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../reports/index.html">Reports</a> add-on now supports defining report structure in annotated Java classes at design time. This approach brings the following benefits:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Report definitions are managed by the version control system (Git).</p>
+</li>
+<li>
+<p>Updates to the reports are included in the new version of the application.</p>
+</li>
+<li>
+<p>Developers can use step-by-step debugger and other IDE tools when working on data loading and other report logic.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The downside comparing to runtime reports is that users cannot modify the report in the running application.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../reports-guide/index.html">Report Generation</a> guide for examples of creating reports at design time.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="rest-data-store"><a class="anchor" href="#rest-data-store"></a>REST DataStore</h3>
+<div class="paragraph">
+<p>The REST DataStore add-on now lets you share entities and service interfaces between integrated applications. This leads to tighter coupling between the applications, but reduces code duplication and development efforts.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../rest-ds/index.html#sharing-code">REST DataStore: Sharing Code Between Applications</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="entity-log"><a class="anchor" href="#entity-log"></a>Entity Log</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../audit/entity-log.html">Entity Log</a> now can track changes in many-to-many attributes on the <a class="xref page" href="../data-modeling-many-to-many-guide/index.html#owning-side">owning side</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="breaking-changes"><a class="anchor" href="#breaking-changes"></a>Breaking Changes</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="jmixdatarepository-method-overriding"><a class="anchor" href="#jmixdatarepository-method-overriding"></a>JmixDataRepository Method Overriding</h3>
+<div class="paragraph">
+<p>If you have overridden <code>findAll</code> methods of <code>JmixDataRepository</code> that previously returned <code>Iterable</code>, you should change the result type to <code>List</code>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public interface OrderRepository extends JmixDataRepository&lt;Order, UUID&gt; {
+
+    // before
+    @Override
+    Iterable&lt;Order&gt; findAll(Sort sort, @Nullable FetchPlan fetchPlan);
+
+    // after
+    @Override
+    List&lt;Order&gt; findAll(Sort sort, @Nullable FetchPlan fetchPlan);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The reason is that now <code>JmixDataRepository</code> implements <code>ListCrudRepository</code> as mentioned <a href="#data-repositories">above</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="required-report-code"><a class="anchor" href="#required-report-code"></a>Required Report Code</h3>
+<div class="paragraph">
+<p>The report code has become a mandatory field. If you edit a report without a code, you will have to enter a value that is unique across all runtime and design-time reports.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="entity-values-comparator"><a class="anchor" href="#entity-values-comparator"></a>Moved EntityValuesComparator</h3>
+<div class="paragraph">
+<p>The <code>io.jmix.flowui.model.impl.EntityValuesComparator</code> class has been moved to the <code>io.jmix.core.comparator</code> package. If you are using this class in your code, update the import statements.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="resource-role-api-scope"><a class="anchor" href="#resource-role-api-scope"></a>Fixed API Scope in Resource Roles</h3>
+<div class="paragraph">
+<p>Due to the resolution of issue <a href="https://github.com/jmix-framework/jmix/issues/4425" rel="noopener" target="_blank">#4425</a>, the API scope in resource roles is now functioning correctly. Consequently, API users who were previously granted permissions through non-API roles will no longer retain those permissions.</p>
+</div>
+<div class="paragraph">
+<p>You can set the <code>jmix.resource-server.force-api-security-scope.enabled</code> application property to false to restore the behavior that existed prior to the resolution of the issue. It will ensure that all API clients continue to function exactly as before.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="changelog"><a class="anchor" href="#changelog"></a>Changelog</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Resolved issues in Jmix Framework:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/jmix-framework/jmix/issues?q=is%3Aclosed+milestone%3A2.7.2" rel="noopener" target="_blank">2.7.2</a></p>
+</li>
+<li>
+<p><a href="https://github.com/jmix-framework/jmix/issues?q=is%3Aclosed+milestone%3A2.7.1" rel="noopener" target="_blank">2.7.1</a></p>
+</li>
+<li>
+<p><a href="https://github.com/jmix-framework/jmix/issues?q=is%3Aclosed+milestone%3A2.7.0" rel="noopener" target="_blank">2.7.0</a></p>
+<div class="paragraph">
+<p>Version 2.7.0 has regressions <a href="https://github.com/jmix-framework/jmix/issues/4850" rel="noopener" target="_blank">#4850</a> and <a href="https://github.com/jmix-framework/jmix/issues/4852" rel="noopener" target="_blank">#4852</a>, affecting frontend-only projects. See the issue comments for temporary workarounds.</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Resolved issues in Jmix Studio:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://youtrack.jmix.io/issues/JST?q=Fixed%20in%20builds:%202.7.1" rel="noopener" target="_blank">2.7.1</a></p>
+</li>
+<li>
+<p><a href="https://youtrack.jmix.io/issues/JST?q=Fixed%20in%20builds:%202.7.0,-2.6.*%20Affected%20versions:%20-SNAPSHOT" rel="noopener" target="_blank">2.7.0</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

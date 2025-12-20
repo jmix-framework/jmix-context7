@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Styling UI Components :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Styling UI Components</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix UI components provide additional features (for example label, helper text, error message, tooltip, etc.), which make them more complex than native HTML elements. They also utilize an HTML feature called <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM" rel="noopener" target="_blank">shadow DOM</a>, which encapsulates their internal HTML structure, and isolates it from the page’s global CSS.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="element shadow dom" src="../_images/themes/element-shadow-dom.png" width="698"/>
+</div>
+<div class="title">Figure 1. Component HTML element structure</div>
+</div>
+<div class="paragraph">
+<p>Because of this, UI components cannot be styled using native HTML element selectors like <code>input {…}</code> and <code>button {…}</code>. Instead, each component exposes a number of <em>parts</em> and <em>states</em> that can be used as selectors in CSS style blocks.</p>
+</div>
+<div class="paragraph">
+<p>For example, if you want to apply a background color and a border to a <a class="xref page" href="../vc/components/textField.html">textField</a>, you need to apply styles to the <strong>shadow part</strong> called <code>input-field</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">vaadin-text-field::part(input-field) {
+  background: white;
+  border: 1px solid black;
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="styled textfield" src="../_images/themes/styled-textfield.png" width="226"/>
+</div>
+<div class="title">Figure 2. TextField with background and border</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="stylable-parts"><a class="anchor" href="#stylable-parts"></a>Stylable Parts of Components</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are several primary types of parts, each of which is associated with a different type of CSS selector.</p>
+</div>
+<div class="sect2">
+<h3 id="root-elements"><a class="anchor" href="#root-elements"></a>Root Elements</h3>
+<div class="paragraph">
+<p>Each UI component has a root HTML element whose name begins with the <code>vaadin-</code> or <code>jmix-</code> prefix, for example <code>vaadin-button</code> or <code>jmix-value-picker</code>. For example, the background color of a button can be changed as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">vaadin-button {
+  background: gray;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="shadow-parts"><a class="anchor" href="#shadow-parts"></a>Shadow Parts</h3>
+<div class="paragraph">
+<p>Shadow parts are elements inside the component’s shadow DOM and are styled using the <code>::part()</code> selector. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">vaadin-text-field::part(input-field) {
+    background: white;
+    border: 1px dotted black;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="regular-child-elements"><a class="anchor" href="#regular-child-elements"></a>Regular Child Elements</h3>
+<div class="paragraph">
+<p>Regular (Light DOM) HTML child elements are styled using the <code>&gt;</code> selector. For example, a <code>label</code> element of a <code>TextField</code> component can be styled as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">vaadin-text-field &gt; label {
+    font-weight: bold;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="component-states"><a class="anchor" href="#component-states"></a>Component States</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Most states of component root elements and their various parts are exposed through state attributes and styled using <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors" rel="noopener" target="_blank">attribute selectors</a> of the form <code>component-name[state]</code>. For example, disabled buttons are identified by the <code>[disabled]</code> selector:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">vaadin-button[disabled] {
+  background: lightgray;
+  color: darkgray;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="style-variants"><a class="anchor" href="#style-variants"></a>Component Style Variants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Many UI components come with built-in style variants, that can be used to change the color, size or other visual aspects of individual component instances through the <code>addThemeVariants()</code>/<code>addThemeNames()</code> Java API or the <code>themeNames</code> XML attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox&gt;
+    &lt;button text="Primary" themeNames="primary"/&gt;
+    &lt;button text="Success" themeNames="success"/&gt;
+    &lt;button text="Tertiary" themeNames="tertiary"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="button theme variants" src="../_images/themes/button-theme-variants.png" width="316"/>
+</div>
+<div class="title">Figure 3. Buttons with applied theme variants</div>
+</div>
+<div class="paragraph">
+<p>These variants are applied to the <code>theme</code> attribute of the root elements of components, and can be targeted using CSS attribute selectors:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">vaadin-button[theme~="primary"] {
+    background-color: purple;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styling-component-instances"><a class="anchor" href="#styling-component-instances"></a>Styling Component Instances</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In you need to apply styles to a specific component instance, you can use the <code>classNames</code> attribute, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField classNames="bordered"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">vaadin-text-field.bordered::part(input-field) {
+    background: white;
+    border: 1px solid black;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="generating-styles-dynamically"><a class="anchor" href="#generating-styles-dynamically"></a>Generating Styles Dynamically</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you need to dynamically generate styles based on some custom logic, you can use the <code>Style</code> API.</p>
+</div>
+<div class="paragraph">
+<p>One approach is to set inline CSS properties on the root element of the component, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixButton myBtn;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    myBtn.getStyle().set("color", "white");
+    myBtn.getStyle().set("background-color", "purple");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A drawback with this approach is that it’s not possible to apply styles to parts of components, or based on their states.</p>
+</div>
+<div class="paragraph">
+<p>Another option is to use CSS properties – either the built-in <a href="https://vaadin.com/docs/latest/styling/lumo/lumo-style-properties" rel="noopener" target="_blank">Lumo properties</a> or custom ones – that are statically applied using CSS, but whose values are set through application logic:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html {
+    --my-button-text-color: darkblue;
+    --my-button-bg-color: yellow;
+}
+
+vaadin-button.my-button {
+  color: var(--my-button-text-color);
+  background-color: var(--my-button-bg-color);
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="myBtn" text="Button" classNames="my-button"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onInit(final InitEvent event) {
+    UI.getCurrent().getElement().getStyle().set("--my-button-text-color", "white");
+    UI.getCurrent().getElement().getStyle().set("--my-button-bg-color", "purple");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The benefit of this approach is that you can target component parts and multiple components using the same style property. This can be used for example to allow users to customize UI styles, save them in a database, and load them when they log in.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

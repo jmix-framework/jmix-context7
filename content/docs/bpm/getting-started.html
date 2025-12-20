@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started with BPM :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Getting Started with BPM</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes how to model and run a simple business process. For that, we will create a process for requesting and approving reimbursement using the BPM add-on runtime tools.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can also create this process using the built-in tools in Jmix Studio. See the <a class="xref page" href="creating-process-in-studio.html">Creating Process in Studio</a> article for instructions.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The process involves three participants:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>an employee who requests a reimbursement;</p>
+</li>
+<li>
+<p>a manager who approves the reimbursement;</p>
+</li>
+<li>
+<p>an accountant who processes payment upon approval.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In terms of BPM, we will be building the following model:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="model" src="_images/quick-start/model.png"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="modeling-process"><a class="anchor" href="#modeling-process"></a>Modeling Process</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Start the application and open the <strong>BPM → Modeler</strong> view. The right panel contains a list of properties for the current process.</p>
+</div>
+<div class="paragraph">
+<p>For our reimbursement process enter the following values:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Process id</strong>: <code>reimbursement</code></p>
+</li>
+<li>
+<p><strong>Name</strong>: <code>Reimbursement</code></p>
+</li>
+<li>
+<p><strong>Documentation</strong>: Add a short description for the process.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="properties" src="_images/quick-start/properties.png" width="1392"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="creating-start-form"><a class="anchor" href="#creating-start-form"></a>Creating Start Form</h3>
+<div class="paragraph">
+<p>Each element on the canvas has its own properties. At the moment the only element present is <code>StartEvent</code>. It represents the <a href="#start-form">Start form</a> seen by the user who is initiating the process. Let’s configure it:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Click on the <code>StartEvent</code> element to select it.</p>
+</li>
+<li>
+<p>Select <code>Input dialog</code> in the <strong>Form Type</strong> field. Its <strong>Open mode</strong> is automatically set to <strong>Dialog</strong>.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="start event" src="_images/quick-start/start-event.png" width="1392"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Next, create input parameters to prompt the user enter values to this form:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Click <span class="image"><img alt='[align="center"' src="_images/quick-start/plus-button.png" width="32"/></span> and add <code>requestNumber</code> parameter with the following properties:</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="request number" src="_images/quick-start/request-number.png" width="602"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Repeat the previous step to create three more input parameters:</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Process variable</th>
+<th class="tableblock halign-left valign-top">Caption</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Editable</th>
+<th class="tableblock halign-left valign-top">Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expenseAmount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expense amount</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decimal (double)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expenseDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expense Date</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Date</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>document</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Document</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">File</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Next, create an input parameter to let users select a manager for approval. This will require a few additional properties:</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Process variable</th>
+<th class="tableblock halign-left valign-top">Caption</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Editable</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Entity name</th>
+<th class="tableblock halign-left valign-top">UI Component</th>
+<th class="tableblock halign-left valign-top">JPQL query</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>manager</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Manager</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ComboBox</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>leave blank<sup>*</sup></em></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><em><sup>*</sup> If no query is specified, this field defaults to</em> <code>select e from User e</code>.</p>
+</div>
+</li>
+<li>
+<p>Set <code>requestNumber</code> as the <strong>Business key</strong> field value. A business key is a domain-specific identifier of a process instance.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>After adding all the parameters, the <strong>Form</strong> section should look as follows:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="form" src="_images/quick-start/form.png" width="340"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creating-approval-task"><a class="anchor" href="#creating-approval-task"></a>Creating Approval Task</h3>
+<div class="paragraph">
+<p>Create a task for approval. It will be represented by the <a href="#approval-form">Approval form</a> seen by the manager assigned to approve the reimbursement.</p>
+</div>
+<div class="paragraph">
+<p>First, add a new element on the canvas:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Click on the <code>StartEvent</code> element to select it.</p>
+</li>
+<li>
+<p>Click the <strong>Append task</strong> <span class="image"><img alt="append task icon" src="_images/quick-start/append-task-icon.png" width="20"/></span> icon.</p>
+</li>
+<li>
+<p>Click the <strong>Change type</strong> <span class="image"><img alt="change type icon" src="_images/quick-start/change-type-icon.png" width="20"/></span> icon and select <strong>User Task</strong> in the drop-down.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="user task" src="_images/quick-start/user-task.gif" width="660"/>
+</div>
+</div>
+</li>
+<li>
+<p>For this User task specify the following <strong>General</strong> properties:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Id</strong>: <code>approval</code></p>
+</li>
+<li>
+<p><strong>Name</strong>: <code>Approval</code></p>
+</li>
+<li>
+<p><strong>Assignee source</strong>: <code>Process variable</code></p>
+</li>
+<li>
+<p><strong>Process variable</strong>: <code>manager</code></p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="manager" src="_images/quick-start/manager.png" width="280"/>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+By default, the built-in <code>initiator</code> process variable is available to assign a task.
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Proceed to the <strong>Form</strong> section and specify the following properties:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Form type</strong>: <code>Input dialog</code></p>
+</li>
+<li>
+<p><strong>Open mode</strong>: <code>Dialog</code> (this will be set by default)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <span class="image"><img alt='[align="center"' src="_images/quick-start/plus-button.png" width="36"/></span> and add the following existing parameters making them non-editable:</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Process variable</th>
+<th class="tableblock halign-left valign-top">Caption</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Editable</th>
+<th class="tableblock halign-left valign-top">Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestNumber</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Request number</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expenseAmount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expense amount</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decimal (double)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expenseDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expense Date</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Date</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>document</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Document</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">File</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Click <span class="image"><img alt='[align="center"' src="_images/quick-start/plus-button.png" width="36"/></span> and create one additional parameter for this form:</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Process variable</th>
+<th class="tableblock halign-left valign-top">Caption</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Editable</th>
+<th class="tableblock halign-left valign-top">Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>comment</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Comment</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Multiline string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>This parameter will be represented by a text field allowing manager to leave notes during the approval step.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creating-outcomes"><a class="anchor" href="#creating-outcomes"></a>Creating Outcomes</h3>
+<div class="paragraph">
+<p>The <strong>Approval</strong> step has two outcomes: approved or rejected. Therefore, the manager making decision should see two buttons on the form.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Make sure the Approval element is selected. Then go to <strong>Outcomes</strong> properties and click <span class="image"><img alt='[align="center"' src="_images/quick-start/plus-button.png" width="36"/></span>.</p>
+</li>
+<li>
+<p>Set properties for the first outcome:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="outcome approve" src="_images/quick-start/outcome-approve.png" width="613"/>
+</div>
+</div>
+</li>
+<li>
+<p>Repeat to create the second outcome:</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;"/>
+<col style="width: 33.3333%;"/>
+<col style="width: 33.3334%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Business id</th>
+<th class="tableblock halign-left valign-top">Caption</th>
+<th class="tableblock halign-left valign-top">Icon</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>reject</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reject</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAN</p></td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Depending on the <strong>Approval</strong> task’s outcome, two scenarios are possible. To indicate a point with several alternative paths, add an Exclusive Gateway element:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Select the <strong>Approval</strong> task element and click <strong>Append Gateway</strong> <span class="image"><img alt="append gateway icon" src="_images/quick-start/append-gateway-icon.png" width="20"/></span>.</p>
+</li>
+<li>
+<p>Select the gateway element and create another user task with <span class="image"><img alt="append task icon" src="_images/quick-start/append-task-icon.png" width="20"/></span> → <span class="image"><img alt="change type icon" src="_images/quick-start/change-type-icon.png" width="20"/></span> → <strong>User Task</strong>.</p>
+</li>
+<li>
+<p>Select the gateway and click <span class="image"><img alt="append end event icon" src="_images/quick-start/append-end-event-icon.png" width="20"/></span> to create <code>EndEvent</code> element.</p>
+</li>
+<li>
+<p>Select the new sequence flows between elements and name them: <code>approved</code> and <code>rejected</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The model should now look like this:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="flows" src="_images/quick-start/flows.png"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Select the <code>approved</code> sequence flow and specify its <strong>Condition</strong> properties:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Condition source</strong>: <code>User task outcome</code></p>
+</li>
+<li>
+<p><strong>User task id</strong>: <code>Approval</code></p>
+</li>
+<li>
+<p><strong>User task outcome</strong>: <code>approve</code></p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="flow approved" src="_images/quick-start/flow-approved.png" width="380"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Similarly, specify <strong>Condition</strong> properties for the <code>rejected</code> sequence flow:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Condition source</strong>: <code>User task outcome</code></p>
+</li>
+<li>
+<p><strong>User task id</strong>: <code>Approval</code></p>
+</li>
+<li>
+<p><strong>User task outcome</strong>: <code>reject</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creating-payment-user-task"><a class="anchor" href="#creating-payment-user-task"></a>Creating Payment User Task</h3>
+<div class="paragraph">
+<p>The other user task in the model is to notify accountants about reimbursement payment approval. It will be represented by the <a href="#payment-form">Payment form</a> available only to accountants.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Select the user task on the canvas then set its <strong>Id</strong> and <strong>Name</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Id</strong>: <code>payment</code></p>
+</li>
+<li>
+<p><strong>Name</strong>: Payment</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For this task we will implement the following behavior: it is sent to all accountants with any of them being able to claim this task. To achieve this, instead of a particular assignee there is an option to specify <strong>Candidate groups</strong> or <strong>Candidate users</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Therefore, let’s create a <strong>Candidate group</strong> for accountants.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Before leaving Modeler, save your model as draft with <span class="image"><img alt="save draft button" src="_images/quick-start/save-draft-button.png" width="32"/></span> button on the toolbar. You can open it any time later using <span class="image"><img alt="open draft button" src="_images/quick-start/open-draft-button.png" width="32"/></span> button.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Go to the <strong>BPM → User groups</strong> view and create a new group named <code>Accountants</code> and set <code>accountants</code> as its code.</p>
+</li>
+<li>
+<p>Set the user type to <strong>Users</strong>.</p>
+</li>
+<li>
+<p>Add users to the group.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="user group" src="_images/quick-start/user-group.png" width="1414"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Users involved in the processes must be granted the <code>BPM: process actor</code> role. This role provides access to BPM views and entities required for starting processes and working with user tasks. You can assign roles in the <strong>Application → Users</strong> view.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Go back to the modeler and select the <code>Payment</code> user task.</p>
+</li>
+<li>
+<p>Find the <strong>Candidate groups</strong> property field and click the edit button <span class="image"><img alt="edit button" src="_images/quick-start/edit-button.png" width="32"/></span> next to it.</p>
+</li>
+<li>
+<p>In the Candidate group editor, add the <code>Accountants</code> group.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="groups" src="_images/quick-start/groups.png" width="756"/>
+</div>
+</div>
+</li>
+<li>
+<p>Configure an input dialog for the <code>Payment</code> task similarly to <code>Approval</code> task. Set the following properties:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Form type</strong>: <code>Input dialog</code></p>
+</li>
+<li>
+<p><strong>Open mode</strong>: <code>Dialog</code> (this will be set by default)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Add input parameters. They match the parameters on the Approval form but the comment field should be non-editable too:</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Process variable</th>
+<th class="tableblock halign-left valign-top">Caption</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Editable</th>
+<th class="tableblock halign-left valign-top">Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>requestNumber</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Request number</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expenseAmount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expense amount</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decimal (double)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expenseDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expense Date</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Date</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>document</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Document</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">File</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>comment</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Comment</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Multiline string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Go back to the canvas and add the <code>EndEvent</code> element <span class="image"><img alt="append end event icon" src="_images/quick-start/append-end-event-icon.png" width="20"/></span> after the <code>Payment</code> task.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="specifying-users-to-start-process"><a class="anchor" href="#specifying-users-to-start-process"></a>Specifying Users to Start Process</h3>
+<div class="paragraph">
+<p>To start a process the user must belong to a special user group. In our case, such group will contain all users.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Open the <strong>User groups</strong> view and create a new group with the following properties:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong>: All users</p>
+</li>
+<li>
+<p><strong>Code</strong>: all-users</p>
+</li>
+<li>
+<p><strong>Type</strong>: All users</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="all users" src="_images/quick-start/all-users.png" width="1392"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Go back to the <strong>Modeler</strong> view and click anywhere on the canvas to display the process properties.</p>
+</li>
+<li>
+<p>Set <strong>Candidate groups</strong> to <code>All users</code> in the <strong>Starter candidates</strong> section.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="users start" src="_images/quick-start/users-start.png" width="385"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="starting-process"><a class="anchor" href="#starting-process"></a>Deploying Process</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The process model is ready to be deployed to the process engine.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Go to the <strong>Modeler</strong> view.</p>
+</li>
+<li>
+<p>Click <strong>Deploy process</strong> <span class="image"><img alt='[align="center"' src="_images/quick-start/deploy-process-button.png" width="32"/></span> on the toolbar.</p>
+</li>
+<li>
+<p>Open the <strong>BPM → Start Process</strong> view.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>New <strong>Reimbursement</strong> process should now be available on the list. This list provides all deployed processes that the current user can start.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="testing-process"><a class="anchor" href="#testing-process"></a>Testing Process</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now that the process is modeled and deployed it can be started. Let’s go through it step by step, observing all the forms we have created.</p>
+</div>
+<div class="sect2">
+<h3 id="start-form"><a class="anchor" href="#start-form"></a>Start Form</h3>
+<div class="paragraph">
+<p>With the current settings, the process can be started by any user on the <strong>BPM → Start Process</strong> view.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Select the <strong>Reimbursement</strong> process and click the <strong>Start process</strong> button.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="start process" src="_images/quick-start/start-process.png" width="1392"/>
+</div>
+</div>
+</li>
+<li>
+<p>Fill in the fields in the form and click the <strong>Start process</strong> button.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="start form" src="_images/quick-start/start-form.png" width="598"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The assigned manager will then receive an incoming approval task.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="approval-form"><a class="anchor" href="#approval-form"></a>Approval Form</h3>
+<div class="paragraph">
+<p>Let’s see how this process looks from the manager’s standpoint. On the previous step, manager <strong>james</strong> was assigned to approve the request.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Log in on behalf of the manager assigned to approve the request.</p>
+</li>
+<li>
+<p>Navigate to the <strong>BPM → My Tasks</strong> view.</p>
+</li>
+<li>
+<p>Select the task from the list and click the <strong>Open Task</strong> button.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="approval step" src="_images/quick-start/approval-step.png" width="1011"/>
+</div>
+</div>
+</li>
+<li>
+<p>Review the request, and then click the <strong>Approve</strong> button.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="approval form" src="_images/quick-start/approval-form.png" width="596"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Upon approval, the request will be sent to an accountant, who will then take care of payment.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="payment-form"><a class="anchor" href="#payment-form"></a>Payment Form</h3>
+<div class="paragraph">
+<p>Accountants will see reimbursements to be paid in their <strong>Group</strong> tasks.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Log in on behalf of any user who is a member of the <strong>Accountants</strong> user group.</p>
+</li>
+<li>
+<p>Open the <strong>BPM → My Tasks</strong> view. Expand the <strong>Group tasks</strong> node.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="group task" src="_images/quick-start/group-task.png" width="1010"/>
+</div>
+</div>
+</li>
+<li>
+<p>Open the task form.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="payment task" src="_images/quick-start/payment-task.png" width="596"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Fields in this form remain read-only until the task is claimed.</p>
+</div>
+</li>
+<li>
+<p>Claim the task using one of the two options:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Click <strong>Claim and resume</strong> button to proceed with this task right away. This will remove the task from the <strong>Group</strong> list and the <strong>Complete button</strong> will appear.</p>
+</li>
+<li>
+<p>Click <strong>Claim and close</strong> to claim the task while postponing its completion. This will close the form and move the task from <strong>Group</strong> tasks to the current user’s <strong>Assigned</strong> tasks list. After that the task is no longer visible to other accountants.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click the <strong>Complete task</strong> button to finish the process. This button is added by default to any task that does not have outcomes specified.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="complete task" src="_images/quick-start/complete-task.png" width="1392"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The process is now complete.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>userMenu :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">userMenu</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>userMenu</code> component displays a button that, when clicked, opens a dropdown menu containing a list of items.</p>
+</div>
+<table class="tableblock frame-all grid-none stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>userMenu</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>UserMenu</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#focusShortcut">focusShortcut</a> -
+<a href="#openOnHover">openOnHover</a> -
+<a class="xref page" href="comboBox.html#overlayClass">overlayClass</a> -
+<a class="xref page" href="../common-attributes.html#tabIndex">tabIndex</a> -
+<a href="#theme-variants">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#title">title</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Handlers</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a> -
+<a href="#UserChangedEvent">UserChangedEvent</a> -
+<a href="#buttonRenderer">buttonRenderer</a> -
+<a href="#headerRenderer">headerRenderer</a></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#actionItem">actionItem</a> -
+<a href="#componentItem">componentItem</a> -
+<a href="#separator">separator</a> -
+<a href="#textItem">textItem</a> -
+<a href="#viewItem">viewItem</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The main button displays a layout that represents a current user.
+Users click this button to access the dropdown menu.</p>
+</div>
+<div class="paragraph">
+<p>The dropdown menu contains a list of actions, each represented by a clickable item or submenu.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="user menu basic" src="../../_images/visual-components/components/user-menu-basic.png" width="240"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Here’s an example of defining a <code>userMenu</code> with default button renderer and several menu items:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userMenu&gt;
+    &lt;items&gt;
+        &lt;viewItem id="profileMenuItem" text="msg://profileMenuItem.text" icon="USER"
+                  viewId="ProfileView"
+                  themeNames="non-checkable"/&gt;
+        &lt;viewItem id="settingsMenuItem" text="msg://settingsMenuItem.text" icon="COG"
+                  viewClass="com.company.onboarding.view.settings.SettingsView"
+                  themeNames="non-checkable"/&gt;
+        &lt;actionItem id="themeMenuItem"
+                    themeNames="non-checkable"&gt;
+            &lt;action id="themeMenuItem" type="userMenu_themeSwitch"/&gt;
+        &lt;/actionItem&gt;
+        &lt;separator/&gt;
+        &lt;actionItem id="logoutMenuItem" ref="logoutAction"
+                    themeNames="non-checkable"/&gt;
+    &lt;/items&gt;
+&lt;/userMenu&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>userMenu</code> defined in the XML descriptor can contain nested elements:</p>
+</div>
+<div class="sect2">
+<h3 id="actionItem"><a class="anchor" href="#actionItem"></a>actionItem</h3>
+<div class="paragraph">
+<p>The <code>actionItem</code> element creates a link between a user menu item and a specific <a class="xref page" href="../../actions/declarative-actions.html">action</a> that should be executed when that item is clicked.</p>
+</div>
+<div class="paragraph">
+<p>You can either define an action declaratively or use the <code>ref</code> attribute to point to the <code>id</code> of an already defined <code>action</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;actions&gt;
+    &lt;action id="logoutAction" text="msg:///actions.logout.text" type="logout"/&gt;
+&lt;/actions&gt;
+&lt;layout&gt;
+    &lt;userMenu id="userMenuActions"&gt;
+        &lt;items&gt;
+            &lt;actionItem id="aboutMenuItem"&gt;
+                &lt;action id="aboutAction" text="msg://aboutAction.text" icon="INFO_CIRCLE_O"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;/actionItem&gt;
+            &lt;actionItem id="logoutMenuItem" ref="logoutAction"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+        &lt;/items&gt;
+    &lt;/userMenu&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declaratively defined action.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Reference to the existing action.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>When a user clicks on an <code>actionItem</code> in the dropdown, Jmix automatically triggers the <code>action</code>.
+You can generate an <code>ActionPerformedEvent</code> handler method for an action to implement its logic:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("userMenuActions.aboutMenuItem.aboutAction")
+public void onUserMenuActionsAboutMenuItemAboutAction(final ActionPerformedEvent event) {
+    notifications.show("About");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Framework provides predefined <a class="xref page" href="../../actions/user-menu-actions.html">User Menu Actions</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="componentItem"><a class="anchor" href="#componentItem"></a>componentItem</h3>
+<div class="paragraph">
+<p>The <code>componentItem</code> element allows you to define custom inner content for <code>userMenu</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userMenu id="userMenuComponent"&gt;
+    &lt;items&gt;
+        &lt;componentItem id="emailItMenuItem"&gt;
+            &lt;hbox padding="false"&gt;
+                &lt;icon icon="MAILBOX"/&gt;
+                &lt;span text="E Mail"/&gt;
+            &lt;/hbox&gt;
+        &lt;/componentItem&gt;
+    &lt;/items&gt;
+&lt;/userMenu&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can generate a <code>UserMenuItem.HasClickListener.ClickEvent</code> handler stub for <code>componentItem</code> using Jmix Studio.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("userMenuComponent.emailItMenuItem")
+public void onUserMenuComponentEmailItMenuItemClick(final UserMenuItem.HasClickListener.ClickEvent&lt;ComponentUserMenuItem&gt; event) {
+    notifications.show("Email: test@river.net");
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="textItem"><a class="anchor" href="#textItem"></a>textItem</h3>
+<div class="paragraph">
+<p>The <code>textItem</code> element holds text and icon.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userMenu id="userMenuText"&gt;
+    &lt;items&gt;
+        &lt;textItem id="contactUsMenuItem" text="msg://contactUsItem.text" icon="PHONE"/&gt;
+    &lt;/items&gt;
+&lt;/userMenu&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can generate a <code>UserMenuItem.HasClickListener.ClickEvent</code> handler stub for <code>textItem</code> using Jmix Studio.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("userMenuText.contactUsMenuItem")
+public void onUserMenuTextContactUsMenuItemClick(final UserMenuItem.HasClickListener.ClickEvent&lt;TextUserMenuItem&gt; event) {
+    notifications.show("Phone number: +6(876)5463");
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="viewItem"><a class="anchor" href="#viewItem"></a>viewItem</h3>
+<div class="paragraph">
+<p>The <code>viewItem</code> element allows you to open a specific view.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userMenu id="userMenuView"&gt;
+    &lt;items&gt;
+        &lt;viewItem id="profileMenuItem" text="msg://profileMenuItem.text" icon="USER"
+                  viewId="ProfileView"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;viewItem id="settingsMenuItem" text="msg://settingsMenuItem.text" icon="COG"
+                  viewClass="com.company.onboarding.view.settings.SettingsView"
+                  openMode="DIALOG"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/items&gt;
+&lt;/userMenu&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Opens a view with the specified id.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Opens a view with the specified class in the <code>DIALOG</code> mode.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="separator"><a class="anchor" href="#separator"></a>separator</h3>
+<div class="paragraph">
+<p>The <code>separator</code> element is used to visually separate items in the dropdown menu.</p>
+</div>
+<div class="paragraph">
+<p>Separators automatically hide if they meet the following conditions:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Several separators go one by one. In this case only one separator remains visible.</p>
+</li>
+<li>
+<p>Separator is the first child and the header renderer is not defined.</p>
+</li>
+<li>
+<p>Separator is the last child.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="nested-items"><a class="anchor" href="#nested-items"></a>Nested Items</h3>
+<div class="paragraph">
+<p>The <code>textItem</code> and <code>componentItem</code> elements support nested items, which allows you to define a hierarchical menu.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="user menu nested" src="../../_images/visual-components/components/user-menu-nested.png" width="330"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userMenu&gt;
+    &lt;items&gt;
+        &lt;textItem id="helpMenuItem"
+                  text="msg://helpMenuItem.text" icon="QUESTION_CIRCLE"
+                  themeNames="non-checkable"&gt;
+            &lt;items&gt;
+                &lt;textItem id="documentationMenuItem" text="msg://documentationMenuItem.text"/&gt;
+                &lt;textItem id="aboutMenuItem" text="msg://aboutMenuItem.text"/&gt;
+            &lt;/items&gt;
+        &lt;/textItem&gt;
+    &lt;/items&gt;
+&lt;/userMenu&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute allows you to assign a specific style from the set of predefined variants.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Tertiary - removes button background</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="user menu theme variant tertiary" src="../../_images/visual-components/components/user-menu-theme-variant-tertiary.png" width="448"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userMenu&gt;
+    &lt;items&gt;
+        &lt;actionItem id="logoutMenuItem" ref="logoutAction"/&gt;
+    &lt;/items&gt;
+&lt;/userMenu&gt;
+
+&lt;userMenu themeNames="tertiary"&gt;
+    &lt;items&gt;
+        &lt;actionItem id="logoutMenuItem" ref="logoutAction"/&gt;
+    &lt;/items&gt;
+&lt;/userMenu&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Non-checkable - removes area that displays check mark</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="user menu theme variant non checkable" src="../../_images/visual-components/components/user-menu-theme-variant-non-checkable.png" width="472"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userMenu&gt;
+    &lt;items&gt;
+        &lt;viewItem id="profileMenuItem" text="msg://profileMenuItem.text" icon="USER"
+                  viewId="ProfileView"/&gt;
+        &lt;viewItem id="settingsMenuItem" text="msg://settingsMenuItem.text" icon="COG"
+                  viewClass="com.company.onboarding.view.settings.SettingsView"/&gt;
+        &lt;actionItem id="themeMenuItem"&gt;
+            &lt;action id="themeMenuItem" type="userMenu_themeSwitch"/&gt;
+        &lt;/actionItem&gt;
+        &lt;separator/&gt;
+        &lt;actionItem id="logoutMenuItem" ref="logoutAction"/&gt;
+    &lt;/items&gt;
+&lt;/userMenu&gt;
+
+&lt;userMenu&gt;
+    &lt;items&gt;
+        &lt;viewItem id="profileMenuItem" text="msg://profileMenuItem.text" icon="USER"
+                  viewId="ProfileView"
+                  themeNames="non-checkable"/&gt;
+        &lt;viewItem id="settingsMenuItem" text="msg://settingsMenuItem.text" icon="COG"
+                  viewClass="com.company.onboarding.view.settings.SettingsView"
+                  themeNames="non-checkable"/&gt;
+        &lt;actionItem id="themeMenuItem"
+                    themeNames="non-checkable"&gt;
+            &lt;action id="themeMenuItem" type="userMenu_themeSwitch"/&gt;
+        &lt;/actionItem&gt;
+        &lt;separator/&gt;
+        &lt;actionItem id="logoutMenuItem" ref="logoutAction"
+                    themeNames="non-checkable"/&gt;
+    &lt;/items&gt;
+&lt;/userMenu&gt;</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>non-checkable</code> theme variant can be defined for both the <code>userMenu</code> and its items individually.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you have a submenu with checkable items, it’s best to define a <code>non-checkable</code> theme variant for each item in the first-level menu individually.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="renderers"><a class="anchor" href="#renderers"></a>Renderers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The framework provides flexibility in customizing the content of the button and the optional menu header.</p>
+</div>
+<div class="sect2">
+<h3 id="button-renderer"><a class="anchor" href="#button-renderer"></a>Button Renderer</h3>
+<div class="paragraph">
+<p>You can set a button renderer either using the <code>setButtonRenderer()</code> method or the <code>@Install</code> annotation.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="user menu button renderer" src="../../_images/visual-components/components/user-menu-button-renderer.png" width="196"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+@Autowired
+private FileStorage fileStorage;
+
+@Install(to = "userMenu", subject = "buttonRenderer")
+private Component userMenuButtonRenderer(final UserDetails userDetails) {
+    if (!(userDetails instanceof User user)) {
+        return null;
+    }
+
+    String userName = generateUserName(user);
+    Avatar avatar = createAvatar(userName, user.getPicture());
+    Span name = uiComponents.create(Span.class);
+    name.setText(userName);
+    name.addClassName(LumoUtility.TextColor.BODY);
+
+    HorizontalLayout content = uiComponents.create(HorizontalLayout.class);
+    content.setAlignItems(FlexComponent.Alignment.CENTER);
+    content.add(avatar, name);
+    content.addClassNames( <i class="conum" data-value="1"></i><b>(1)</b>
+            LumoUtility.Padding.Horizontal.MEDIUM,
+            LumoUtility.Padding.Vertical.SMALL);
+
+    return content;
+}
+
+private String generateUserName(User user) {
+    String userName = String.format("%s %s",
+                    Strings.nullToEmpty(user.getFirstName()),
+                    Strings.nullToEmpty(user.getLastName()))
+            .trim();
+
+    return userName.isEmpty() ? user.getUsername() : userName;
+}
+
+private Avatar createAvatar(String fullName, @Nullable FileRef fileRef) {
+    Avatar avatar = uiComponents.create(Avatar.class);
+    avatar.setName(fullName);
+    avatar.getElement().setAttribute("tabindex", "-1"); <i class="conum" data-value="2"></i><b>(2)</b>
+
+    if (fileRef != null) {
+        StreamResource streamResource = new StreamResource(
+                fileRef.getFileName(),
+                () -&gt; fileStorage.openStream(fileRef));
+        avatar.setImageResource(streamResource); <i class="conum" data-value="3"></i><b>(3)</b>
+    }
+
+    return avatar;
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Default <code>HorizontalLayout</code> padding is too big, we add padding using styles.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>avatar</code> is focusable by default, but it doesn’t provide a Java API to disable focus. Remove the tab index, so only the <code>userMenu</code> component can receive focus.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>avatar</code> gets its content from the given <code>StreamResource</code> by the reference stored in the <code>picture</code> attribute of the <code>User</code> entity.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="header-renderer"><a class="anchor" href="#header-renderer"></a>Header Renderer</h3>
+<div class="paragraph">
+<p>Header renderer defines the content displayed at the top of the menu. You can set a header renderer using either the <code>setButtonRenderer()</code> method or the <code>@Install</code> annotation.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="user menu header renderer" src="../../_images/visual-components/components/user-menu-header-renderer.png" width="234"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+@Autowired
+private FileStorage fileStorage;
+
+@Install(to = "userMenu", subject = "headerRenderer")
+private Component userMenuHeaderRenderer(final UserDetails userDetails) {
+    if (!(userDetails instanceof User user)) {
+        return null;
+    }
+
+    String name = generateUserName(user);
+
+    Avatar avatar = createAvatar(name, user.getPicture());
+    avatar.addThemeVariants(AvatarVariant.LUMO_LARGE);
+    avatar.addClassName("user-menu-avatar");
+
+    Span text = uiComponents.create(Span.class);
+    text.setText(name);
+    text.setClassName("user-menu-text");
+
+    Div content = uiComponents.create(Div.class);
+    content.setClassName("user-menu-header-content"); <i class="conum" data-value="1"></i><b>(1)</b>
+    content.add(avatar, text);
+
+    if (name.equals(user.getUsername())) {
+        text.addClassNames("user-menu-text-subtext");
+    } else {
+        Span subtext = uiComponents.create(Span.class);
+        subtext.setText(user.getUsername());
+        subtext.setClassName("user-menu-subtext");
+
+        content.add(subtext);
+    }
+
+    return content;
+}
+
+private String generateUserName(User user) {
+    String userName = String.format("%s %s",
+                    Strings.nullToEmpty(user.getFirstName()),
+                    Strings.nullToEmpty(user.getLastName()))
+            .trim();
+
+    return userName.isEmpty() ? user.getUsername() : userName;
+}
+
+private Avatar createAvatar(String fullName, @Nullable FileRef fileRef) {
+    Avatar avatar = uiComponents.create(Avatar.class);
+    avatar.setName(fullName);
+    avatar.getElement().setAttribute("tabindex", "-1"); <i class="conum" data-value="2"></i><b>(2)</b>
+
+    if (fileRef != null) {
+        StreamResource streamResource = new StreamResource(
+                fileRef.getFileName(),
+                () -&gt; fileStorage.openStream(fileRef));
+        avatar.setImageResource(streamResource); <i class="conum" data-value="3"></i><b>(3)</b>
+    }
+
+    return avatar;
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Component positions are defined using styles.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>avatar</code> is focusable by default, but it doesn’t provide a Java API to disable focus. Remove the tab index, so only the <code>userMenu</code> component can receive focus.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>avatar</code> gets its content from the given <code>StreamResource</code> by the reference stored in the <code>picture</code> attribute of the <code>User</code> entity.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.user-menu-header-content {
+    display: grid;
+    grid-template: "avatar text"
+                   "avatar subtext";
+    grid-template-columns: auto 1fr;
+    column-gap: var(--lumo-space-s);
+
+    width: 100%;
+    box-sizing: border-box;
+
+    color: var(--lumo-body-text-color);
+    padding: var(--lumo-space-xs) var(--lumo-space-l) var(--lumo-space-xs) var(--lumo-space-s);
+}
+
+.user-menu-header-content &gt; .user-menu-avatar {
+    grid-area: avatar;
+    align-self: center;
+}
+
+.user-menu-header-content &gt; .user-menu-text {
+    grid-area: text;
+
+    color: var(--lumo-body-text-color);
+    font-weight: 700;
+    font-size: var(--lumo-font-size-m);
+}
+
+.user-menu-header-content &gt; .user-menu-text-subtext {
+    grid-row: text / subtext;
+}
+
+.user-menu-header-content &gt; .user-menu-text {
+    align-self: center;
+    text-align: start;
+
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-menu-header-content &gt; .user-menu-subtext {
+    grid-area: subtext;
+    align-self: center;
+    text-align: start;
+
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xs);
+
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html">Common attributes</a> serve the same purpose for all components.</p>
+</div>
+<div class="paragraph">
+<p>The following attributes are specific to <code>userMenu</code>:</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 71.4285%;"/>
+<col style="width: 14.2858%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Default</strong></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="openOnHover"></a>openOnHover</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If the <code>openOnHover</code> attribute is <code>true</code>, the drop-down list of items is opened automatically when the field is focused using a mouse or touch.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html">Common handlers</a> are configured in the same way for all components.
+The following handlers are specific to <code>userMenu</code>:</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="UserChangedEvent"></a>UserChangedEvent</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>io.jmix.flowui.kit.component.usermenu.JmixUserMenu.UserChangedEvent</code> is fired when the user associated with the user menu component changes.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="buttonRenderer"></a>buttonRenderer</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the <code>Renderer</code> responsible to render the button’s content based on the current user. See <a href="#button-renderer">Button Renderer</a>.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="headerRenderer"></a>headerRenderer</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the <code>Renderer</code> responsible to render the header’s content based on the current user. See <a href="#header-renderer">Header Renderer</a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+</article>
+</body>
+</html>

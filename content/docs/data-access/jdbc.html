@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using JDBC :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Using JDBC</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>While Jmix primarily uses JPA for data access, there are several scenarios where direct JDBC access might be necessary, such as executing complex SQL queries, performing batch operations, or invoking stored procedures.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+We recommend using <a class="xref page" href="data-manager.html">DataManager</a> and fall back to JDBC only when required.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can use <code>JdbcTemplate</code> or <code>JdbcClient</code> classes provided by Spring to execute requests on the JDBC level.</p>
+</div>
+<div class="paragraph">
+<p>Both <code>JdbcTemplate</code> and <code>JdbcClient</code> automatically participate in Spring-managed <a class="xref page" href="transactions.html">transactions</a>, so you can use them alongside JPA operations within the same transaction.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jdbc-template"><a class="anchor" href="#jdbc-template"></a>Using JdbcTemplate</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>JdbcTemplate</code> is a classic Spring Framework class that simplifies JDBC operations by handling resource management and exception translation.</p>
+</div>
+<div class="paragraph">
+<p>To use <code>JdbcTemplate</code> for accessing the <a class="xref page" href="../data-model/data-stores.html#main">main data store</a>, simply inject it into your bean:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private JdbcTemplate jdbcTemplate;
+
+public Map&lt;String, BigDecimal&gt; getCustomerAmounts(CustomerGrade grade) {
+    return jdbcTemplate.query(
+            """
+            select c.NAME, sum(o.AMOUNT)
+            from CUSTOMER c join ORDER_ o on c.ID = o.CUSTOMER_ID
+            where c.GRADE = ?
+            group by c.NAME
+            """,
+            (ResultSet rs) -&gt; {
+                Map&lt;String, BigDecimal&gt; result = new HashMap&lt;&gt;();
+                while (rs.next()) {
+                    result.put(rs.getString(1), rs.getBigDecimal(2));
+                }
+                return result;
+            },
+            grade.getId()
+    );
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need to access an <a class="xref page" href="../data-model/data-stores.html#additional">additional data store</a>, inject the corresponding <code>javax.sql.DataSource</code> and create a new instance of <code>JdbcTemplate</code>. In the following example, <code>JdbcTemplate</code> is created for the <code>db1</code> data store:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+@Qualifier("db1DataSource")
+private DataSource db1DataSource;
+
+public List&lt;String&gt; loadFooNames() {
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(db1DataSource);
+    return jdbcTemplate.queryForList("select NAME from SAMPLE_FOO", String.class);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jdbc-client"><a class="anchor" href="#jdbc-client"></a>Using JdbcClient</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>JdbcClient</code>, introduced in Spring Framework 6.1, provides a more modern and fluent API for JDBC operations.</p>
+</div>
+<div class="paragraph">
+<p>To use <code>JdbcClient</code> for accessing the <a class="xref page" href="../data-model/data-stores.html#main">main data store</a>, simply inject it into your bean:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private JdbcClient jdbcClient;
+
+public Map&lt;String, BigDecimal&gt; getCustomerAmountsByJdbcClient(CustomerGrade grade) {
+    return jdbcClient.sql("""
+                select c.NAME, sum(o.AMOUNT)
+                from CUSTOMER c join ORDER_ o on c.ID = o.CUSTOMER_ID
+                where c.GRADE = :grade
+                group by c.NAME
+                """)
+            .param("grade", grade.getId())
+            .query((ResultSet rs) -&gt; {
+                Map&lt;String, BigDecimal&gt; result = new HashMap&lt;&gt;();
+                while (rs.next()) {
+                    result.put(rs.getString(1), rs.getBigDecimal(2));
+                }
+                return result;
+            });
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need to access an <a class="xref page" href="../data-model/data-stores.html#additional">additional data store</a>, inject the corresponding <code>javax.sql.DataSource</code> and create a new instance of <code>JdbcClient</code>. In the following example, <code>JdbcClient</code> is created for the <code>db1</code> data store:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+@Qualifier("db1DataSource")
+private DataSource db1DataSource;
+
+public List&lt;String&gt; loadFooNamesByJdbcClient() {
+    JdbcClient jdbcClient = JdbcClient.create(db1DataSource);
+    return jdbcClient.sql("select NAME from SAMPLE_FOO").query(String.class).list();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="stored-procedures"><a class="anchor" href="#stored-procedures"></a>Calling Stored Procedures</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use the Spring’s <code>SimpleJdbcCall</code> class to execute stored procedures. It provides better parameter handling and database metadata support than <code>JdbcTemplate</code>.</p>
+</div>
+<div class="paragraph">
+<p>The following example shows how to call a PostgresSQL stored procedure located in the main data store.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">CREATE OR REPLACE FUNCTION get_customer_stats(
+    p_customer_id UUID,
+    OUT total_orders INTEGER,
+    OUT total_amount DECIMAL(19,2)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    SELECT
+        COUNT(*),
+        COALESCE(SUM(AMOUNT), 0)
+    INTO
+        total_orders,
+        total_amount
+    FROM ORDER_
+    WHERE CUSTOMER_ID = p_customer_id;
+END;
+$$;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private JdbcTemplate jdbcTemplate;
+
+public record CustomerStats(Integer totalOrders, BigDecimal totalAmount) {
+}
+
+public CustomerStats callStoredProcedure(UUID customerId) {
+    // Using SimpleJdbcCall for stored procedure
+    SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
+            .withFunctionName("get_customer_stats")
+            .withoutProcedureColumnMetaDataAccess()
+            .declareParameters(
+                    new SqlParameter("p_customer_id", Types.OTHER), // UUID type
+                    new SqlOutParameter("total_orders", Types.INTEGER),
+                    new SqlOutParameter("total_amount", Types.DECIMAL)
+            );
+
+    // Execute the stored procedure
+    Map&lt;String, Object&gt; result = jdbcCall.execute(customerId);
+
+    // Extract results
+    Integer totalOrders = (Integer) result.get("total_orders");
+    BigDecimal totalAmount = (BigDecimal) result.get("total_amount");
+
+    return new CustomerStats(totalOrders, totalAmount);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need to call a procedure from an additional data store, create the <code>JdbcTemplate</code> instance for the corresponding <code>javax.sql.DataSource</code> as described <a href="#jdbc-template">above</a>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

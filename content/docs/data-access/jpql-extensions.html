@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPQL Extensions :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">JPQL Extensions</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes <a href="https://en.wikibooks.org/wiki/Java_Persistence/JPQL" rel="noopener" target="_blank">Java Persistence Query Language</a> extensions that can be used in Jmix applications.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="session-and-user-attributes"><a class="anchor" href="#session-and-user-attributes"></a>Session and User Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../security/authentication.html#session-attributes">Session attributes</a> created using <code>SessionData</code> are available in any JPQL query with the <code>session_</code> prefix. For example, you can set an attribute using <code>SessionData</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ObjectProvider&lt;SessionData&gt; sessionDataProvider;
+
+void setCustomerCodeInSession(String code) {
+    sessionDataProvider.getObject().setAttribute("customerCode", code);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then you can use the <code>customerCode</code> attribute value in a query as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">select e from Customer e where e.code = :session_customerCode</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Similar to session attributes, you can access attributes of the currently authenticated user through parameters with the <code>current_user_</code> prefix. For example, if the <a class="xref page" href="../security/users.html#entity">user entity</a> has the <code>email</code> attribute, you can use it in a query as follows (provided that the <code>Customer.manager</code> attribute is a reference to the user entity):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">select e from Customer e where e.manager.email = :current_user_email</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You don’t have to set the value for the <code>session_customerCode</code> or <code>current_user_email</code> parameter. They will be assigned automatically before the query execution. This is especially useful in the framework features where you don’t have full control over the execution of the query, like <a class="xref page" href="../security/row-level-roles.html#jpql-policy">JPQL policies</a> of row-level roles or JPQL conditions of the <a class="xref page" href="../flow-ui/vc/components/genericFilter.html">genericFilter</a> component.</p>
+</div>
+<div class="paragraph">
+<p>You can also use the <code>current_locale</code> predefined query parameter in the same way as parameters with the <code>current_user_</code> prefix.</p>
+</div>
+<div class="paragraph">
+<p>For example, you can write a JPQL query like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-JPQL hljs" data-lang="JPQL">select e from Region e where e.locale = :current_locale</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The parameter value is derived from the locale of the current user session, which is obtained from the <a class="xref page" href="../security/authentication.html#current">CurrentAuthentication</a> object.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+User attributes (<code>current_user_*</code>) are retrieved upon user login and stored in memory. Consequently, if the corresponding values are updated in the database, they are not immediately accessible to the application code.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="case-insensitive-substring-search"><a class="anchor" href="#case-insensitive-substring-search"></a>Case-Insensitive Substring Search</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use the <code>(?i)</code> prefix in the value of a query parameter to easily specify conditions for case-insensitive search by any part of the string. For example, consider the query:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select c from Customer c where c.name like :name</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you pass the <code>(?i)%doe%</code> string as a value of the <code>name</code> parameter, the query will return <code>John Doe</code> if such a record exists in the database, even though the case of characters is different. It will happen because the framework will run the SQL query with the <code>lower(C.NAME) like ?</code> condition and <code>%doe%</code> parameter value.</p>
+</div>
+<div class="paragraph">
+<p>Note that such search will not use the index on the <code>name</code> field, even if such exists in the database.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="functions"><a class="anchor" href="#functions"></a>Functions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The table below lists the JPQL functions and their level of support in Jmix.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 14.2857%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Function</th>
+<th class="tableblock halign-left valign-top">Support</th>
+<th class="tableblock halign-left valign-top">Query</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">Aggregate Functions</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT AVG(o.quantity) FROM Order o</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported: aggregate functions with scalar expression (EclipseLink feature)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT AVG(o.quantity)/2.0 FROM Order o</em></code></p>
+<p class="tableblock"><code><em>SELECT AVG(o.quantity * o.price) FROM Order o</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ALL, ANY, SOME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT emp FROM Employee emp WHERE emp.salary &gt; ALL (SELECT m.salary FROM app_Manager m WHERE m.department = emp.department)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Arithmetic Functions (INDEX, SIZE, ABS, SQRT, MOD)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT w.name FROM Course c JOIN c.studentWaitlist w WHERE c.name = 'Calculus' AND INDEX(w) = 0</code></p>
+<p class="tableblock"><code>  SELECT w.name FROM Course c WHERE c.name = 'Calculus' AND SIZE(c.studentWaitlist) = 1</code></p>
+<p class="tableblock"><code>  SELECT w.name FROM Course c WHERE c.name = 'Calculus' AND ABS(c.time) = 10</code></p>
+<p class="tableblock"><code>  SELECT w.name FROM Course c WHERE c.name = 'Calculus' AND SQRT(c.time) = 10.5</code></p>
+<p class="tableblock"><code>  SELECT w.name FROM Course c WHERE c.name = 'Calculus' AND MOD(c.time, c.time1) = 2</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">CASE Expressions</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT e.name, f.name, CONCAT(CASE WHEN f.annualMiles &gt; 50000 THEN 'Platinum ' WHEN f.annualMiles &gt; 25000 THEN 'Gold ' ELSE '' END, 'Frequent Flyer')
+FROM Employee e JOIN e.frequentFlierPlan f</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported: CASE in UPDATE query</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>UPDATE Employee e SET e.salary = CASE e.rating WHEN 1 THEN e.salary * 1.1 WHEN 2 THEN e.salary * 1.05 ELSE e.salary * 1.01 END</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Date Functions (CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT e FROM Order e WHERE e.date = CURRENT_DATE</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">EclipseLink Functions (CAST, REGEXP, EXTRACT)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT EXTRACT(YEAR FROM e.createTs) FROM MyEntity e WHERE EXTRACT(YEAR FROM e.createTs) &gt; 2012</code></p>
+<p class="tableblock"><code>  SELECT e FROM MyEntity e WHERE e.name REGEXP '.*'</code></p>
+<p class="tableblock"><code>  SELECT CAST(e.number text) FROM MyEntity e WHERE e.path LIKE CAST(:ds$myEntityDs.id text)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported: CAST in GROUP BY clause</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT e FROM Order e WHERE e.amount &gt; 100 GROUP BY CAST(e.orderDate date)</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">Entity Type Expression</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported: entity type passed as a parameter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT e FROM Employee e WHERE TYPE(e) IN (:empType1, :empType2)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported: direct link to an entity type</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT e FROM Employee e WHERE TYPE(e) IN (app_Exempt, app_Contractor)</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">Function Invocation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported: function result in comparison clauses</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT u FROM User u WHERE function('DAYOFMONTH', u.createTs) = 1</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported: function result as is</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT u FROM User u WHERE function('hasRoles', u.createdBy, u.login)</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT e FROM Employee e, IN(e.projects) p WHERE p.budget &gt; 1000000</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IS EMPTY collection</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT e FROM Employee e WHERE e.projects IS EMPTY</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">KEY/VALUE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT v.location.street, KEY(i).title, VALUE(i) FROM VideoStore v JOIN v.videoInventory i WHERE v.location.zipcode = '94301' AND VALUE(i) &gt; 0</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">Literals</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT e FROM Employee e WHERE e.name = 'Bob'</code></p>
+<p class="tableblock"><code>  SELECT e FROM Employee e WHERE e.id = 1234</code></p>
+<p class="tableblock"><code>  SELECT e FROM Employee e WHERE e.id = 1234L</code></p>
+<p class="tableblock"><code>  SELECT s FROM Stat s WHERE s.ratio &gt; 3.14F</code></p>
+<p class="tableblock"><code>  SELECT s FROM Stat s WHERE s.ratio &gt; 3.14e32D</code></p>
+<p class="tableblock"><code>  SELECT e FROM Employee e WHERE e.active = TRUE</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported: date and time literals</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT e FROM Employee e WHERE e.startDate = {d'2012-01-03'}</em></code></p>
+<p class="tableblock"><code> <em>SELECT e FROM Employee e WHERE e.startTime = {t'09:00:00'}</em></code></p>
+<p class="tableblock"><code> <em>SELECT e FROM Employee e WHERE e.version = {ts'2012-01-03 09:00:00.000000001'}</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">MEMBER OF</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported: fields or query results</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT d FROM app_Department d WHERE (select e from Employee e where e.id = :eParam) MEMBER OF d.employees</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported: literals</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT e FROM Employee e WHERE 'write code' MEMBER OF e.codes</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NEW in SELECT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT NEW com.company.example.CustomerDetails(c.id, c.status, o.count) FROM Customer c JOIN c.orders o WHERE o.count &gt; 100</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NULLIF/COALESCE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT NULLIF(emp.salary, 10) FROM Employee emp</code></p>
+<p class="tableblock"><code>  SELECT COALESCE(emp.salary, emp.salaryOld, 10) FROM Employee emp</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NULLS FIRST, NULLS LAST in order by</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT h FROM GroupHierarchy h ORDER BY h.level DESC NULLS FIRST</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">String Functions (CONCAT, SUBSTRING, TRIM, LOWER, UPPER, LENGTH, LOCATE)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT x FROM Magazine x WHERE CONCAT(x.title, 's') = 'JDJs'</code></p>
+<p class="tableblock"><code>  SELECT x FROM Magazine x WHERE SUBSTRING(x.title, 1, 1) = 'J'</code></p>
+<p class="tableblock"><code>  SELECT x FROM Magazine x WHERE LOWER(x.title) = 'd'</code></p>
+<p class="tableblock"><code>  SELECT x FROM Magazine x WHERE UPPER(x.title) = 'D'</code></p>
+<p class="tableblock"><code>  SELECT x FROM Magazine x WHERE LENGTH(x.title) = 10</code></p>
+<p class="tableblock"><code>  SELECT x FROM Magazine x WHERE LOCATE('A', x.title, 4) = 6</code></p>
+<p class="tableblock"><code>  SELECT x FROM Magazine x WHERE TRIM(TRAILING FROM x.title) = 'D'</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported: TRIM with trim char</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT x FROM Magazine x WHERE TRIM(TRAILING 'J' FROM x.title) = 'D'</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">Subquery</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT goodCustomer FROM Customer goodCustomer WHERE goodCustomer.balanceOwed &lt; (SELECT AVG(c.balanceOwed) FROM Customer c)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported: path expression instead of entity name in subquery’s FROM</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT c FROM Customer c WHERE (SELECT AVG(o.price) FROM c.orders o) &gt; 100</em></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" rowspan="2"><p class="tableblock">TREAT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) p WHERE p.budget &gt; 1000000</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Not supported: TREAT in WHERE clauses</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><em>SELECT e FROM Employee e JOIN e.projects p WHERE TREAT(p as LargeProject).budget &gt; 1000000</em></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="macros"><a class="anchor" href="#macros"></a>Macros</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>JPQL query text can include macros, which are processed before the query is executed. They are converted into the executable JPQL and can additionally modify the set of query parameters.</p>
+</div>
+<div class="paragraph">
+<p>The macros solve the following problems:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Provide a workaround for the limitation of JPQL, which makes it impossible to express the condition of dependency of a given field on current time (for example, expressions like "current_date - 1" do not work).</p>
+</li>
+<li>
+<p>Enable comparing <code>Timestamp</code> type fields (the date/time fields) with a date.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="macro-between"><a class="anchor" href="#macro-between"></a>@between</h3>
+<div class="paragraph">
+<p>Has the format <code>@between(field_name, moment1, moment2, time_unit)</code> or <code>@between(field_name, moment1, moment2, time_unit, user_timezone)</code>, where</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>field_name</code> is the name of the compared attribute.</p>
+</li>
+<li>
+<p><code>moment1</code>, <code>moment2</code> - start and end points of the time interval where the value of <code>field_name</code> should fall into. Each of the points should be defined by an expression containing the <code>now</code> variable with an addition or subtraction of an integer number.</p>
+</li>
+<li>
+<p><code>time_unit</code> - defines the unit for time interval added to or subtracted from <code>now</code> in the time point expressions and time points rounding precision. May be one of the following: <code>year</code>, <code>month</code>, <code>day</code>, <code>hour</code>, <code>minute</code>, <code>second</code>.</p>
+</li>
+<li>
+<p><code>user_timezone</code> - an optional argument that if set, defines that the current user’s time zone must be considered in the query.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The macro gets converted to the following expression in JPQL: <code>field_name &gt;= :moment1 and field_name &lt; :moment2</code>.</p>
+</div>
+<div class="paragraph">
+<p>Example 1. Customer was created today:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select c from Customer where @between(c.createTs, now, now+1, day)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Example 2. Customer was created within the last 10 minutes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select c from Customer where @between(c.createTs, now-10, now, minute)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Example 3. Documents dated within the last 5 days, considering current user time zone:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select d from Doc where @between(d.createTs, now-5, now, day, user_timezone)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="macro-today"><a class="anchor" href="#macro-today"></a>@today</h3>
+<div class="paragraph">
+<p>Has the format <code>@today(field_name)</code> or <code>@today(field_name, user_timezone)</code> and helps to define a condition checking that the attribute value is within the current day. Essentially, this is a special case of the <code>@between</code> macro.</p>
+</div>
+<div class="paragraph">
+<p>Example. Customer was created today:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select d from Doc where @today(d.createTs)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="macro-date-equals"><a class="anchor" href="#macro-date-equals"></a>@dateEquals</h3>
+<div class="paragraph">
+<p>Has the format <code>@dateEquals(field_name, parameter)</code> or <code>@dateEquals(field_name, parameter, user_timezone)</code> and allows you to define a condition checking that <code>field_name</code> value (in <code>Timestamp</code> format) is within the day passed as <code>parameter</code>.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select d from Doc where @dateEquals(d.createTs, :param)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can pass the current date using the <code>now</code> parameter. To set an offset in days, use <code>now</code>  with <code>+</code> or <code>-</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select d from sales_Doc where @dateEquals(d.createTs, now-1)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="macro-date-before"><a class="anchor" href="#macro-date-before"></a>@dateBefore</h3>
+<div class="paragraph">
+<p>Has the format <code>@dateBefore(field_name, parameter)</code> or <code>@dateBefore(field_name, parameter, user_timezone)</code> and allows you to define a condition checking that <code>field_name</code> value (in <code>Timestamp</code> format) is earlier than the date passed as <code>parameter</code>.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select d from Doc where @dateBefore(d.createTs, :param, user_timezone)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can pass the current date using the <code>now</code> attribute. To set an offset in days, use <code>now</code>  with <code>+</code> or <code>-</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select d from sales_Doc where @dateBefore(d.createTs, now+1)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="macro-date-after"><a class="anchor" href="#macro-date-after"></a>@dateAfter</h3>
+<div class="paragraph">
+<p>Has the format <code>@dateAfter(field_name, parameter)</code> or <code>@dateAfter(field_name, parameter, user_timezone)</code> and allows you to define a condition that the date of the <code>field_name</code> value (in <code>Timestamp</code> format) is after or equal to the date passed as <code>parameter</code>.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select d from Doc where @dateAfter(d.createTs, :param)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can pass the current date using the <code>now</code> attribute. To set an offset in days, use <code>now</code>  with <code>+</code> or <code>-</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select d from Doc where @dateAfter(d.createTs, now-1)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="macro-enum"><a class="anchor" href="#macro-enum"></a>@enum</h3>
+<div class="paragraph">
+<p>Allows you to use a fully qualified enum constant name instead of its database identifier. This simplifies searching for enum usages throughout the application code.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select d from Doc where d.type = @enum(com.company.sample.entity.DocType.INVOICE)</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

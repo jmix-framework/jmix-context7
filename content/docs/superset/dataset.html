@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Dataset</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will create a database connection and a dataset in Apache Superset.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="database-connection"><a class="anchor" href="#database-connection"></a>Create Database Connection</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When Superset is started, you can create a connection to the database that contains data for dashboards. In the previous steps, when you configured Superset containers in <code>docker-compose-non-dev.yml</code> file, you created the <code>jmix_database</code> service which starts the <code>PostgreSQL</code>. This database is used in the Jmix application, and now you will configure a connection to this database in Superset.</p>
+</div>
+<div class="paragraph">
+<p>Click on the <strong>Database Connections</strong> item in Superset settings:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="settings databsase connections" src="_images/settings-databsase-connections.png" width="204"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Create new database connection. In the opened dialog, select <code>PostgreSQL</code> type and enter connection details:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="new database connection" src="_images/new-database-connection.png" width="498"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click to <strong>CONNECT</strong> button and then to <strong>FINISH</strong> button. Now the connection to the <code>jmix_database</code> service is created.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dataset"><a class="anchor" href="#dataset"></a>Create Dataset</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In Apache Superset, a dataset refers to a collection of data that can be used for creating charts. It can be either a physical dataset, which represents a table or view in a database, or a virtual dataset, which is a query that can be saved and reused as a dataset.</p>
+</div>
+<div class="paragraph">
+<p>In the Onboarding database, the <code>USER_</code> table has a foreign key to <code>DEPARTMENT</code>. To visualize users data by departments, you have to use the second option - a query that will be reused as a dataset.</p>
+</div>
+<div class="paragraph">
+<p>In the top menu, navigate to <strong>SQL</strong> and select <strong>SQL Lab</strong>. In the opened screen fill the fields as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>DATABASE</strong>: <code>Jmix Onboarding</code></p>
+</li>
+<li>
+<p><strong>SCHEMA</strong>: <code>public</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Now you should write a query that will be used as a dataset. Since you need a dashboard to visualize employee salaries including the department of each employee, you need to select the following columns:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>user’s full name</p>
+</li>
+<li>
+<p>department</p>
+</li>
+<li>
+<p>salary</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>So the resulting query will look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-SQL hljs" data-lang="SQL">SELECT CONCAT(first_name, ' ', last_name) full_name, dpr.name department_name, usr.salary
+FROM public.user_ usr
+INNER join department dpr on usr.department_id = dpr.id</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use <code>INNER JOIN</code> here to avoid users without department (<code>admin</code> user). If you run this query you will see the following result:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="sql lab" src="_images/sql-lab.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Save the query and call it <strong>Employees' salaries</strong>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

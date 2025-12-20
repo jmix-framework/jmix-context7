@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2. Calendar Navigation :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">2. Calendar Navigation</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Users require the ability to navigate to previous and subsequent dates or to a specific time within time-grid calendar display modes. This functionality is currently missing.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="date-navigation"><a class="anchor" href="#date-navigation"></a>Date Navigation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>FullCalendar</code> provides methods for navigating forward and backward. The navigation "step" (daily, weekly, monthly, etc.) is determined by the current calendar display mode.</p>
+</div>
+<div class="paragraph">
+<p>First, add navigation buttons above the calendar in the <strong>MyCalendar</strong> view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox&gt;
+    &lt;button id="previousButton" icon="ANGLE_LEFT"/&gt;
+    &lt;button id="nextButton" icon="ANGLE_RIGHT"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, implement calendar navigation using these steps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Inject the <code>FullCalendar</code> component.</p>
+</li>
+<li>
+<p>Subscribe to the <a class="xref page" href="../flow-ui/vc/components/button.html#ClickEvent">ClickEvent</a> for the <code>previousButton</code></p>
+</li>
+<li>
+<p>Subscribe to the <a class="xref page" href="../flow-ui/vc/components/button.html#ClickEvent">ClickEvent</a> for the <code>nextButton</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>We will use the following methods of the <code>FullCalendar</code> component:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>navigateToPrevious()</code>.</p>
+</li>
+<li>
+<p><code>navigateToNext()</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As a result, users will be able to navigate to the next and previous months.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private FullCalendar calendar;
+
+@Subscribe(id = "previousButton", subject = "clickListener")
+public void onPreviousButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    calendar.navigateToPrevious();
+}
+
+@Subscribe(id = "nextButton", subject = "clickListener")
+public void onNextButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    calendar.navigateToNext();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="time-scrolling"><a class="anchor" href="#time-scrolling"></a>Time Scrolling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, the <code>FullCalendar</code> component displays the month display mode, which may be redundant due to the small number of events, plus it does not show the time grid. Let’s change the initial calendar display mode and set up the time to which the component should scroll initially.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;calendar:calendar id="calendar"
+                   initialDisplayMode="TIME_GRID_WEEK"
+                   scrollTime="PT9h"
+                   height="100%"
+                   width="100%"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>scrollTime</code> attribute accepts a string in ISO-8601 duration format (as used by the <code>java.time.Duration</code> class). For instance:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>"P1d"</code> - 1 day.</p>
+</li>
+<li>
+<p><code>"PT1h"</code> - 1 hour.</p>
+</li>
+<li>
+<p><code>"PT30m"</code> - 30 minutes.</p>
+</li>
+<li>
+<p><code>"P1dT1h30m"</code> - 1 day plus 1 hour and 30 minutes.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="getting started result" src="_images/getting-started-result.png" width="1353"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

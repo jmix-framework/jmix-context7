@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Declarative Actions :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Declarative Actions</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can specify a set of actions in an XML screen descriptor for any component that implements the <code>HasActions</code> interface (<a class="xref page" href="../vc/components/dataGrid.html">dataGrid</a>, <a class="xref page" href="../vc/components/entityComboBox.html">entityComboBox</a>, <a class="xref page" href="../vc/components/entityPicker.html">entityPicker</a>, and others), or in the view itself. You can do it in the <code>actions</code> element, which contains nested <code>action</code> elements.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, a set of actions is declared for a <code>dataGrid</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox&gt;
+    &lt;button action="departmentsTable.create"/&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+    &lt;button action="departmentsTable.edit"/&gt;
+    &lt;button action="departmentsTable.sayHello"/&gt;
+&lt;/hbox&gt;
+&lt;dataGrid id="departmentsTable" dataContainer="departmentsDc"&gt;
+    &lt;actions&gt;
+        &lt;action id="create" type="list_create"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;action id="edit" type="list_edit"/&gt;
+        &lt;action id="sayHello" text="Say hello" icon="SMILEY_O"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/actions&gt;
+    &lt;columns&gt;
+        &lt;column property="name"/&gt;
+        &lt;column property="hrManager"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>list_create</code> and <code>list_edit</code> actions are <a class="xref page" href="standard-actions.html">standard actions</a>. Their properties and behaviour are defined by their types.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>sayHello</code> action properties are defined in-place. Its handler is defined in the view controller.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Buttons associated with actions get their properties: text, icon, etc.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>sayHello</code> action handler should be defined in the view controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("departmentsTable.sayHello")
+public void onDepartmentsTableSayHello(final ActionPerformedEvent event) {
+    notifications.create("Hello").show();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The actions are displayed by the <code>dataGrid</code> as the context menu items:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="declarative actions 1" src="../_images/actions/declarative-actions-1.png" width="601"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Action Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>action</code> element can have the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>id</code> - identifier, which should be unique within the <code>HasActions</code> component.</p>
+</li>
+<li>
+<p><code>type</code> - defines an action type.</p>
+<div class="paragraph">
+<p>If this attribute is set, the framework finds a class having the <code>@ActionType</code> annotation with the specified value, and uses it to instantiate the action. See <a class="xref page" href="standard-actions.html">Standard Actions</a> for how to use action types provided by the framework and <a class="xref page" href="custom-action-type.html">Custom Action Types</a> for how to create your own types.</p>
+</div>
+<div class="paragraph">
+<p>If the <code>type</code> attribute is not set, the framework creates an instance of the <code>BaseAction</code> class.</p>
+</div>
+</li>
+<li>
+<p><code>text</code> - action text. A linked button will use it to display the action.</p>
+</li>
+<li>
+<p><code>description</code> - action description. A linked button will use its value for the <a class="xref page" href="../vc/common-attributes.html#title">title</a> attribute.</p>
+</li>
+<li>
+<p><code>enabled</code> - whether the action and linked button are enabled: <code>true</code>, <code>false</code>.</p>
+</li>
+<li>
+<p><code>visible</code> - whether the action and linked button are visible: <code>true</code>, <code>false</code>.</p>
+</li>
+<li>
+<p><code>icon</code> - action icon. A linked button will display it.</p>
+</li>
+<li>
+<p><code>actionVariant</code> - defines a variant of the action and sets the <a class="xref page" href="../vc/components/button.html#variants">variant</a> of the linked button: <code>DEFAULT</code>, <code>PRIMARY</code>, <code>DANGER</code>, <code>SUCCESS</code>.</p>
+</li>
+<li>
+<p><code>shortcutCombination</code> - a <a class="xref page" href="../keyboard-shortcuts.html">keyboard shortcut</a> to execute the action. For example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;action id="someAction" text="Some action"
+        shortcutCombination="CONTROL-ALT-M"/&gt;</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="obtaining-action-in-controller"><a class="anchor" href="#obtaining-action-in-controller"></a>Obtaining Action in Controller</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can inject any declared in XML action into the view controller in the same way as other view components. It allows you to configure the action programmatically. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private BaseAction someAction;
+
+@ViewComponent("departmentsTable.sayHello")
+private BaseAction departmentsTableSayHello;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    someAction.setEnabled(false);
+    departmentsTableSayHello.setVariant(ActionVariant.SUCCESS);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

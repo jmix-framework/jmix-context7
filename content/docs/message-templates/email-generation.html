@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3. Email Generation from Templates :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">3. Email Generation from Templates</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s walk through an example of generating an email from subject and message body templates created in the previous section.</p>
+</div>
+<div class="paragraph">
+<p>Before we begin, confirm that the <a class="xref page" href="../email/index.html">Email Sending</a> add-on is installed. If it is not currently installed, please install it before continuing.</p>
+</div>
+<div class="paragraph">
+<p>Next, configure the required email <a class="xref page" href="../email/configuration.html">sending parameters</a> to enable successful email delivery.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-button"><a class="anchor" href="#adding-button"></a>Adding Notify by Email Button</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s add a <strong>Notify by Email</strong> button to the booking list view. This button will allow users to send an email notification to the creator of the booking selected in the data grid.</p>
+</div>
+<div class="paragraph">
+<p>Find <code>booking-list-view.xml</code> in the <strong>Jmix</strong> tool window and double-click it. The view designer appears. Select <code>actions</code> within the <strong>Jmix UI</strong> hierarchy panel or in the XML descriptor. Next click the <strong>Add</strong> button in the component inspector panel. From the drop-down list, choose <strong>Action</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add email action" src="_images/add-email-action.png" width="1082"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Select the <code>list_itemTracking</code> action in the <strong>Add Action</strong> dialog. The <code>list_itemTracking</code> action will automatically become active only when a specific item is selected in the associated <code>dataGrid</code>.</p>
+</div>
+<div class="paragraph">
+<p>Configure the following attributes for this action:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;action id="notifyEmail"
+        type="list_itemTracking"
+        icon="ENVELOPE"
+        text="msg://notifyEmail.text"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, in the <code>buttonsPanel</code> hbox, add a button and associate it with the newly created action.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+    &lt;!--...--&gt;
+    &lt;button id="notifyEmailButton" action="bookingsDataGrid.notifyEmail"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="generate-email"><a class="anchor" href="#generate-email"></a>Generating an Email from the Template</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Generate an <code>ActionPerformedEvent</code> handler method for the <code>notifyEmailButton</code> action. Add the logic to it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataGrid&lt;Booking&gt; bookingsDataGrid;
+
+@Autowired
+private MessageTemplatesGenerator messageTemplatesGenerator; <i class="conum" data-value="1"></i><b>(1)</b>
+
+@Autowired
+private Emailer emailer; <i class="conum" data-value="2"></i><b>(2)</b>
+
+@Autowired
+private Notifications notifications; <i class="conum" data-value="3"></i><b>(3)</b>
+
+@Subscribe("bookingsDataGrid.notifyEmail")
+public void onBookingsDataGridNotifyEmail(final ActionPerformedEvent event) {
+    Booking booking = bookingsDataGrid.getSingleSelectedItem();
+    User creator = booking.getCreator(); <i class="conum" data-value="4"></i><b>(4)</b>
+
+    String email = creator.getEmail();
+    if (email == null) {
+        showNoEmailNotification(creator); <i class="conum" data-value="5"></i><b>(5)</b>
+        return;
+    }
+
+    List&lt;String&gt; messages = messageTemplatesGenerator.generateMultiTemplate()
+            .withTemplateCodes("booking-email-subject", "booking-email-body") <i class="conum" data-value="6"></i><b>(6)</b>
+            .withParams(
+                    Map.of(
+                            "booking", booking,
+                            "today", new Date()
+                    )) <i class="conum" data-value="7"></i><b>(7)</b>
+            .generate();
+
+    EmailInfo emailInfo = EmailInfoBuilder.create()
+            .setAddresses(email)
+            .setSubject(messages.get(0))
+            .setBody(messages.get(1))
+            .setBodyContentType("text/html; charset=UTF-8")
+            .build(); <i class="conum" data-value="8"></i><b>(8)</b>
+
+    try {
+        emailer.sendEmail(emailInfo); <i class="conum" data-value="9"></i><b>(9)</b>
+    } catch (EmailException e) {
+        showSendingErrorNotification(email);
+    }
+
+    showSendingSuccessNotification(email); <i class="conum" data-value="10"></i><b>(10)</b>
+}
+
+private void showSendingErrorNotification(String email) {
+    notifications.create("Failed to send email to %s".formatted(email))
+            .withThemeVariant(NotificationVariant.LUMO_ERROR)
+            .show();
+}
+
+private void showNoEmailNotification(User creator) {
+    notifications.create("%s did not specify an email".formatted(creator.getDisplayName()))
+            .withThemeVariant(NotificationVariant.LUMO_ERROR)
+            .show();
+}
+
+private void showSendingSuccessNotification(String email) {
+    notifications.create("The message has been successfully sent to %s".formatted(email))
+            .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
+            .show();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A bean for generating messages from templates.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>A bean for sending emails.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>A bean for displaying notifications to the user.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Fetches the selected <code>booking</code> and its <code>creator</code> from the <code>bookingsDataGrid</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Checks if the <code>creator</code> has an email address. If not, a notification is displayed, and the method exits.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Generates the message subject and body using FreeMarker templates (<code>booking-email-subject</code> and <code>booking-email-body</code>).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Passes dynamic parameters (<code>booking</code>, <code>today</code>) to the templates.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>Constructs an <code>EmailInfo</code> object with the recipient’s email, subject, body, and content type.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="9"></i><b>9</b></td>
+<td>Attempts to send the email using the <code>emailer</code> bean. If an error occurs, a failure notification is displayed.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="10"></i><b>10</b></td>
+<td>Displays a success notification if the email is sent successfully.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="sending-viewing-email"><a class="anchor" href="#sending-viewing-email"></a>Email Sending and Viewing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s verify the functionality of the template-based email generation process. This test ensures that booking details are accurately populated into the message template and delivered to the intended recipient.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Launch the application and navigate to the <strong>Application → Bookings</strong> view.</p>
+</li>
+<li>
+<p>Create a new booking instance by clicking the <strong>Create</strong> button. When creating the booking, make sure to select an existing user with a valid email address from the creator selection dropdown. This email address will be used to receive the generated email. Fill in the other required fields with relevant test data.</p>
+</li>
+<li>
+<p>In the bookings data grid, locate and select the booking you just created. Once selected, click the <strong>Notify by Email</strong> button. This action will trigger the email generation and sending process.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="notify by email" src="_images/notify-by-email.png" width="876"/>
+</div>
+</div>
+</li>
+<li>
+<p>The application should display a notification indicating that the email has been successfully sent.</p>
+</li>
+<li>
+<p>After observing the successful notification, open your email client and check the inbox of the user whose email address was used for the booking. Verify that the email was received and that the content of the email is accurately populated from the booking details and the pre-configured message template.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="resulting email" src="_images/resulting-email.png" width="1132"/>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you learned how to work with message templates to automate email notifications within your app.</p>
+</div>
+<div class="paragraph">
+<p>You gained practical experience in adding the <strong>Notify by Email</strong> button to a view, configuring an action to trigger the email sending process, and writing the code to dynamically generate an email message using data from the selected entity.</p>
+</div>
+<div class="paragraph">
+<p>You also learned the importance of configuring email sending parameters and ensuring the Email Sending add-on is installed.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

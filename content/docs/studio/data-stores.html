@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Stores :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Data Stores</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>When a Jmix application is created, the main <a class="xref page" href="../data-model/data-stores.html">data store</a> already exists and can be accessed from the <a class="xref page" href="tool-window.html">Jmix Tool Window</a>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data tree" src="_images/data-tree.png" width="363"/>
+</div>
+</div>
+<div class="paragraph">
+<p>By double-clicking, you can open the properties dialog of the data store. By default, HSQLDB is set as a database type.</p>
+</div>
+<div class="imageblock text-center" id="database-properties">
+<div class="content">
+<img alt="data properties" src="_images/data-properties.png" width="851"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The following properties are available both for the main and additional data stores:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Database type</strong> - type of the database server. You can select one of the available databases from the list.</p>
+</li>
+<li>
+<p><strong>Database URL</strong> - a host, port, and database name.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Connection params</strong> - other connection parameters. The format of the connection parameters depends on the selected DBMS. The string should include a separator between the database name and parameters. You can use the pencil button in the right part of the <strong>Connection params</strong> field to enter connection parameters conveniently. In this case, Studio automatically forms the connection string by adding DBMS-specific separator characters.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data params" src="_images/data-params.png" width="636"/>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Show raw URL</strong> - shows connection parameters as URL.</p>
+</li>
+<li>
+<p><strong>Integrated Security</strong> - enables the corresponding authentication option when connecting to the Microsoft SQL Server 2012+ database.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Database user</strong> and <strong>Password</strong> - database connection credentials.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you use <a class="xref page" href="profile-specific-properties.html">profile-specific configuration files</a>, the <a class="xref page" href="data-stores.html">Data Store Properties</a> editor will read and write properties to and from the profile instead of <code>application.properties</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can use placeholders of the following type <code>${VAR:default_value}</code> where VAR is an environment variable to set database properties.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data vars" src="_images/data-vars.png" width="851"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Studio resolves the placeholders and uses the resulting values for all operations with the database: test connection, recreate, update, Liquibase diff, and so on.</p>
+</div>
+<div class="paragraph">
+<p><strong>Supported DB Types</strong> section contains the <strong>Enable support for several DB types</strong> checkbox. If this checkbox is activated, you can select more than one supported databases. Studio will generate one set of Liquibase migration scripts supporting all selected database types.</p>
+</div>
+<div class="paragraph">
+<p><strong>Database Identifiers Length Mode</strong> section allows you to select one of the three available modes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Oracle</strong> - maximum 30 symbols length of tables, columns, indexes, other names.</p>
+</li>
+<li>
+<p><strong>Postgres</strong> - maximum 64 symbols length of tables, columns, indexes, other names.</p>
+</li>
+<li>
+<p><strong>Unlimited</strong> - unlimited length of tables, columns, indexes, other names.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="additional-data-store"><a class="anchor" href="#additional-data-store"></a>Additional Data Store</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To create additional data store, use <a href="#data-store-actions">an action</a> from the context menu. Another way is to select the one from  <strong>Advanced</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="new" src="_images/new.png" width="427"/>
+</div>
+</div>
+<div class="paragraph">
+<p>See the description of the <a href="#database-properties">database properties</a> common for both the main and additional data stores above.</p>
+</div>
+<div class="imageblock text-center" id="db-schema-management">
+<div class="content">
+<img alt="data schema" src="_images/data-schema.png" width="776"/>
+</div>
+</div>
+<div class="paragraph">
+<p>For the additional data store, specify <strong>Data store name</strong> and select an option in the <strong>DB Schema Management</strong> section:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Disabled</strong> - Studio doesn’t track database schema changes for this data store. This is the default mode.</p>
+</li>
+<li>
+<p><strong>Update Only</strong> - provides the Update action and creates Liquibase changelogs.</p>
+</li>
+<li>
+<p><strong>Create and Update</strong> - provides the Update and Recreate actions and creates Liquibase scripts.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="unsupported-database"><a class="anchor" href="#unsupported-database"></a>Connecting to Unsupported Databases</h3>
+<div class="paragraph">
+<p>You can define an additional data store connected to a database not supported by Jmix natively.</p>
+</div>
+<div class="paragraph">
+<p>This feature is currently in the preview state and disabled by default. To enable it, press <code>Shift</code> twice, select the <strong>Jmix Features</strong> item in the opened list and check the <strong>Generic Database Support for Additional Data Store</strong> checkbox.</p>
+</div>
+<div class="paragraph">
+<p>After enabling it, when you create an additional data store, you will see the <code>Generic DB</code> option in the <strong>Database type</strong> dropdown. If you select this option, Studio will allow you to enter the following parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>DBMS type</strong> - an arbitrary identifier of the database type, used also as a prefix for the database-specific classes (explained below). Enter a short string containing only lowercase alphanumeric characters, for example, <code>foo</code>.</p>
+</li>
+<li>
+<p><strong>Database URL</strong> - the full JDBC connection URL, for example, <code>jdbc:foosql://localhost/database</code>.</p>
+</li>
+<li>
+<p><strong>Driver class name</strong> - the class name of the JDBC driver, for example <code>org.foosql.Driver</code>.</p>
+</li>
+<li>
+<p><strong>Driver artifact</strong> - JDBC driver artifact coordinates, for example, <code>org.foosql:foosql:1.0.0</code>.</p>
+</li>
+<li>
+<p><strong>Connection test query</strong> - an SQL query for testing the connection, for example, <code>select 1</code>.</p>
+</li>
+<li>
+<p><strong>Database platform</strong> - a class extending <code>org.eclipse.persistence.platform.database.DatabasePlatform</code> which describes the database for the EclipseLink ORM framework. You can select an existing class if it suits your database or choose the <code>Create DatabasePlatform class</code> option to create a new class.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data store unsupported" src="_images/data-store-unsupported.png" width="776"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will create the usual <code>Myds1StoreConfiguration</code> class with the required beans in the base package. It will also create the following stubs in the <code>&lt;base-package&gt;/dbms</code> package:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>FooPlatform</code> - a class extending <code>DatabasePlatform</code>. It describes the database for the EclipseLink ORM framework.</p>
+</li>
+<li>
+<p><code>FooDbmsFeatures</code> - a class implementing the <code>DbmsFeatures</code> interface. It describes the database for the Jmix framework.</p>
+</li>
+<li>
+<p><code>FooSequenceSupport</code> - a class implementing the <code>SequenceSupport</code> interface. It describes how sequences should be handled in this database.</p>
+</li>
+<li>
+<p><code>FooDbTypeConverter</code> - a class implementing the <code>DbTypeConverter</code> interface. It defines methods for converting data between Java objects and JDBC parameters and results.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Studio will also add the <code>org.foosql:foosql:1.0.0</code> dependency to your <code>build.gradle</code> file.</p>
+</div>
+<div class="paragraph">
+<p>Now you should implement the methods in the generated stubs appropriately. Use framework classes like <code>JmixPostgreSQLPlatform</code>, <code>PostgresqlDbmsFeatures</code>, and so on as examples.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-store-actions"><a class="anchor" href="#data-store-actions"></a>Data Store Actions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By right-clicking the data store item in the Jmix project tree, you can open its context menu:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data actions" src="_images/data-actions.png" width="623"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The number of actions shown in the menu depends on the data store type and DB schema management mode.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>New → Additional Data Store</strong> - opens the dialog for creating a new data store.</p>
+</li>
+<li>
+<p><strong>New → Liquibase Changelog</strong> - creates a new empty <a class="xref page" href="../data-model/db-migration.html#changelogs">changelog</a> file.</p>
+</li>
+<li>
+<p><strong>Manage Data Store</strong> - opens the dialog to edit data store settings.</p>
+</li>
+<li>
+<p><strong>Delete Data Store</strong> - removes the data store along with all associated configuration files and Liquibase changelogs.</p>
+</li>
+<li>
+<p><strong>Recreate</strong> - recreates database belonging to the selected data store. Applicable for the main data store and additional data stores with <strong>Create and Update</strong> <a href="#db-schema-management">schema management</a> type.</p>
+</li>
+<li>
+<p><strong>Update</strong> - updates database schema for the selected data store. Applicable for the main data store and additional data stores with <strong>Update Only</strong> and <strong>Create and Update</strong> schema management types.</p>
+</li>
+<li>
+<p><strong>Generate Liquibase Changelog</strong> - generates changelog files for the selected data store by comparing the data model with the database schema. Applicable for the main data store and additional data stores with <strong>Update Only</strong> and <strong>Create and Update</strong> schema management types.</p>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Refer to the <a class="xref page" href="../data-model/db-migration.html#ignoring-existing-tables">Database Schema Migration → Ignoring Existing Tables</a> section for instructions on how to exclude existing tables from handling by Studio.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This feature is free to use in small projects with up to 10 entities and roles. In a larger project, it requires a Sprint, Enterprise, or BPM <a class="xref page" href="subscription.html#subscription">subscription</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><strong>Check Liquibase Changelog Includes</strong> - checks that includes in the root changelog correspond to the add-ons used in the project. If there is a mismatch, Studio shows a notification dialog and suggests adding or removing includes.</p>
+</li>
+<li>
+<p><strong>Aggregate Liquibase Changelogs</strong> - allows you to combine multiple recent changelogs into a single file, eliminating duplicate actions within changesets.</p>
+<div class="paragraph">
+<p>This feature can be used by developers before each commit to a shared code repository. It helps to maintain a tidy collection of changelogs and reduces the application startup time due to fewer changesets.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>Aggregate Liquibase Changelogs</strong> action launches a wizard that enables the developer to customize the aggregated changelog.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This feature is free to use in small projects with up to 10 entities and roles. In a larger project, it requires a Sprint, Enterprise, or BPM <a class="xref page" href="subscription.html#subscription">subscription</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><strong>Generate Model from Database</strong> - <a class="xref page" href="reverse-engineering.html">generates a data model</a> from a database.</p>
+</li>
+<li>
+<p><strong>Jump to Source</strong> - opens a Spring configuration class.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

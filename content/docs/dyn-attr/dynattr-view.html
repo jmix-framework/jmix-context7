@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Displaying Dynamic Attributes :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Displaying Dynamic Attributes</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you create a new detail or list view in the project with the Dynamic Attributes add-on installed, the framework provides the ability to use the <a href="#using-dynamicattributes-facet">dynamicAttributes</a> facet in XML descriptors.</p>
+</div>
+<div class="paragraph">
+<p>Another method to show dynamic attributes in views is by employing the <a href="#dynamic-attributes-panel">DynamicAttributesPanel</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-dynamicattributes-facet"><a class="anchor" href="#using-dynamicattributes-facet"></a>Using dynamicAttributes Facet</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>dynamicAttributes</code> facet enables the display of dynamic attributes in <code>DataGrid</code> or <code>FormLayout</code> associated with a data container containing entities with dynamic attributes.</p>
+</div>
+<div class="paragraph">
+<p>Include the <code>dynamicAttributes</code> facet to the <code>facets</code> section of the view XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:dynattr="http://jmix.io/schema/dynattr/flowui"
+      title="msg://carDetailView.title"
+      focusComponent="form"&gt;
+    &lt;facets&gt;
+        &lt;dynattr:dynamicAttributes/&gt;
+        &lt;dataLoadCoordinator auto="true"/&gt;
+    &lt;/facets&gt;
+    &lt;!--...--&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Subsequently, you can choose this view within the <strong>Category attribute details</strong> on the <a class="xref page" href="dynattr-managing.html#visibility">Visibility</a> tab.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dynamic-attributes-panel"><a class="anchor" href="#dynamic-attributes-panel"></a>Using DynamicAttributesPanel</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If an entity implements the <code>Categorized</code> interface, you have the option to use the <code>DynamicAttributesPanel</code> component to showcase the dynamic attributes associated with the entity. This component facilitates the selection of a category for a specific entity instance and the specification of values for the dynamic attributes within that category.</p>
+</div>
+<div class="paragraph">
+<p>To integrate the <code>DynamicAttributesPanel</code> component into a detail view, follow these steps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Make sure the <code>category</code> attribute is included into the fetch plan of your categorized entity:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance id="carDc"
+              class="com.company.demo.entity.Car"&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="category" fetchPlan="_base"/&gt;
+        &lt;/fetchPlan&gt;
+        &lt;loader/&gt;
+    &lt;/instance&gt;
+&lt;/data&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add the <code>dynamicAttributesPanel</code> visual component to the view:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout&gt;
+    &lt;formLayout id="form" dataContainer="carDc"&gt;
+        &lt;textField id="numberField" property="number"/&gt;
+        &lt;textField id="modelField" property="model"/&gt;
+        &lt;dynattr:dynamicAttributesPanel dataContainer="carDc"
+                                        categoryFieldVisible="true"/&gt;
+    &lt;/formLayout&gt;
+    &lt;!--...--&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

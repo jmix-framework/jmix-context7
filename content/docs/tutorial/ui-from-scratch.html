@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7. Creating UI from Scratch :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">7. Creating UI from Scratch</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>At this stage, the application has everything in place for Administrators and HR Managers: they can set up departments and onboarding steps, manage users, generate and track onboarding steps for each user.</p>
+</div>
+<div class="paragraph">
+<p>Now you need to create UI for users to manage their own onboarding process. A user should be able to enter the system and open the <code>My Onboarding</code> view which shows their onboarding steps. Each step can be marked as done by selecting a checkbox. Overdue steps should be highlighted.</p>
+</div>
+<div class="paragraph">
+<p>Below is a mockup of the <code>My Onboarding</code> view:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="my onboarding" src="_images/ui-from-scratch/my-onboarding.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Previously, you created UI by generating and modifying CRUD views for entities. In this chapter, you will create the <code>My Onboarding</code> view from scratch.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-blank-view"><a class="anchor" href="#create-blank-view"></a>Creating Blank View</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If your application is running, stop it using the <strong>Stop</strong> button (<span class="image"><img alt="suspend" src="_images/common/suspend.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Jmix</strong> tool window, click <strong>New</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) → <strong>View</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screen 1" src="_images/ui-from-scratch/create-screen-1.png" width="367"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>Create Jmix View</strong> window, select the <code>Blank view</code> template:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screen 2" src="_images/ui-from-scratch/create-screen-2.png" width="776"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>On the next step of the wizard, enter:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Descriptor name</strong>: <code>my-onboarding-view</code></p>
+</li>
+<li>
+<p><strong>Controller name</strong>: <code>MyOnboardingView</code></p>
+</li>
+<li>
+<p><strong>Package name</strong>: <code>com.company.onboarding.view.myonboarding</code></p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screen 3" src="_images/ui-from-scratch/create-screen-3.png" width="776"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>On the next step of the wizard, change the view title to <code>My onboarding</code>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screen 4" src="_images/ui-from-scratch/create-screen-4.png" width="726"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Create</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will create an empty view and open it in the designer:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screen 5" src="_images/ui-from-scratch/create-screen-5.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The new view will also be added to the main menu. Double-click on the <strong>User Interface</strong> → <strong>Main Menu</strong> item in the <strong>Jmix</strong> tool window and switch to the <strong>Structure</strong> tab. Drag and drop <code>MyOnboardingView</code> to the top:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screen 6" src="_images/ui-from-scratch/create-screen-6.png" width="1142"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Run the application by clicking the <strong>Debug</strong> button (<span class="image"><img alt="start debugger" src="_images/common/start-debugger.svg"/></span>) in the main toolbar. Open <code>http://localhost:8080</code> in your web browser and log in to the application.</p>
+</div>
+<div class="paragraph">
+<p>Click on the <code>My onboarding</code> item in the <code>Application</code> menu and make sure your empty view is opened.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="add-table"><a class="anchor" href="#add-table"></a>Adding Data Grid</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s begin with adding to the view a data grid displaying onboarding steps of the current user.</p>
+</div>
+<div class="sect2">
+<h3 id="define-data-container"><a class="anchor" href="#define-data-container"></a>Defining Data Container</h3>
+<div class="paragraph">
+<p>First, add a data container which will provide a collection of <code>UserStep</code> entities for the data grid. Click <strong>Add Component</strong> in the actions panel, select the <code>Data components</code> section, and double-click the <code>Collection</code> item. In the <strong>Data Container Properties Editor</strong> window, select <code>UserStep</code> in the <strong>Entity</strong> field and click <strong>OK</strong>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="data container 1" src="_images/ui-from-scratch/data-container-1.gif"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Studio will create the collection container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="userStepsDc" class="com.company.onboarding.entity.UserStep"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader id="userStepsDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from UserStep e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="load-data"><a class="anchor" href="#load-data"></a>Loading Data</h3>
+<div class="paragraph">
+<p>First of all, remove the <code>readOnly="true"</code> attribute from the generated loader, because we are going to modify and save the entities shown in this view. You can do it in the component inspector or right in the XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;loader id="userStepsDl"&gt;
+    &lt;query&gt;
+        &lt;![CDATA[select e from UserStep e]]&gt;
+    &lt;/query&gt;
+&lt;/loader&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The default query will load all <code>UserStep</code> instances, but you need to select only steps of the current user and in a particular order. Let’s modify the query using JPQL Query Designer. Select <code>userStepsDc</code> container in the <strong>Jmix UI</strong> structure panel and click the value of the <code>query</code> attribute. Then add a <code>where</code> clause by <code>user</code> attribute with the <code>:user</code> parameter and an <code>order by</code> clause by <code>sortValue</code> attribute.</p>
+</div>
+<div class="paragraph">
+<p>The resulting query should be as below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;query&gt;
+    &lt;![CDATA[select e from UserStep e
+    where e.user = :user
+    order by e.sortValue asc]]&gt;
+&lt;/query&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The next task is to provide a value for the <code>:user</code> parameter. You can do it in the <code>BeforeShowEvent</code> handler. Switch to the <code>MyOnboardingView</code> controller class, click <strong>Generate Handler</strong> button in the top actions panel and select <code>Controller handlers</code> → <code>BeforeShowEvent</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="data container 3" src="_images/ui-from-scratch/data-container-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>. Studio will generate a handler method stub:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "MyOnboardingView", layout = MainView.class)
+@ViewController(id = "MyOnboardingView")
+@ViewDescriptor(path = "my-onboarding-view.xml")
+public class MyOnboardingView extends StandardView {
+    @Subscribe
+    public void onBeforeShow(final BeforeShowEvent event) {
+
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you need to get the currently logged-in user and set it to the loader’s query parameter.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Code Snippets</strong> in the actions panel to generate code for obtaining the current user:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data container 4" src="_images/ui-from-scratch/data-container-4.gif"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Then inject the <code>userStepsDl</code> loader using the <strong>Inject</strong> button in the actions panel, set the <code>:user</code> parameter to the current user and invoke its <code>load()</code> method to execute the query and load data into the collection container.</p>
+</div>
+<div class="paragraph">
+<p>The resulting code for loading data into the collection container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private CurrentAuthentication currentAuthentication;
+
+@ViewComponent
+private CollectionLoader&lt;UserStep&gt; userStepsDl;
+
+@Subscribe
+public void onBeforeShow(final BeforeShowEvent event) {
+    final User user = (User) currentAuthentication.getUser();
+    userStepsDl.setParameter("user", user);
+    userStepsDl.load();
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>In entity list and detail views generated by Studio, data loading is by default triggered by the <code>DataLoadCoordinator</code> facet:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That’s why you didn’t invoke <code>load()</code> method of data loaders in the CRUD views created in previous chapters.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="set-up-data-grid"><a class="anchor" href="#set-up-data-grid"></a>Setting up Data Grid</h3>
+<div class="paragraph">
+<p>Right-click the <code>layout</code> element of the <strong>Jmix UI</strong> structure panel and select the <strong>Add Component</strong> item in the context menu. Find and double-click the <code>DataGrid</code> component. Select <code>userStepsDc</code> data container and unselect all <strong>Actions</strong> checkboxes in the <strong>DataGrid</strong> dialog:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="table 1" src="_images/ui-from-scratch/table-1.png" width="741"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>As you can see, the created data grid doesn’t have a column for displaying the Step name:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="userStepsDataGrid" dataContainer="userStepsDc" width="100%"&gt;
+    &lt;columns&gt;
+        &lt;column property="dueDate"/&gt;
+        &lt;column property="completedDate"/&gt;
+        &lt;column property="sortValue"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Step</code> is a reference attribute and is not included in the fetch plan and data grid by default. You already saw this situation in the <a class="xref page" href="data-in-ui.html#rearrange-data-grid-columns">previous chapter</a> when displayed a data grid of UserSteps in the User detail view.</p>
+</div>
+<div class="paragraph">
+<p>Add the <code>step.name</code> attribute to columns and fetch plan, and remove the unneeded <code>sortValue</code> column.</p>
+</div>
+<div class="paragraph">
+<p>At this stage, the view XML should be as below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://myOnboardingView.title"&gt;
+    &lt;data&gt;
+        &lt;collection id="userStepsDc" class="com.company.onboarding.entity.UserStep"&gt;
+            &lt;fetchPlan extends="_base"&gt;
+                &lt;property name="step" fetchPlan="_base"/&gt;
+            &lt;/fetchPlan&gt;
+            &lt;loader id="userStepsDl"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from UserStep e
+                    where e.user = :user
+                    order by e.sortValue asc]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;layout&gt;
+        &lt;dataGrid id="userStepsDataGrid" dataContainer="userStepsDc" width="100%"&gt;
+            &lt;columns&gt;
+                &lt;column property="step.name"/&gt;
+                &lt;column property="dueDate"/&gt;
+                &lt;column property="completedDate"/&gt;
+            &lt;/columns&gt;
+        &lt;/dataGrid&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Make sure your current user (perhaps it’s <code>admin</code>) has a few UserSteps generated in the User detail view. Refresh <code>My onboarding</code> view and see your onboarding steps:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="table 3" src="_images/ui-from-scratch/table-3.png"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="add-component-column"><a class="anchor" href="#add-component-column"></a>Adding Component Column</h3>
+<div class="paragraph">
+<p>In this section, you will add a column with checkboxes to mark onboarding steps done. You already did this <a class="xref page" href="data-in-ui.html#component-column">before</a> for the UserSteps table in the User edit screen.</p>
+</div>
+<div class="paragraph">
+<p>In the XML descriptor, add the <code>completed</code> column:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;columns&gt;
+    &lt;column key="completed" sortable="false" width="4em" flexGrow="0"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the controller, inject the <code>UiComponents</code> factory. Generate <code>renderer</code> handler for the <code>completed</code> column and implement it as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+
+@Supply(to = "userStepsDataGrid.completed", subject = "renderer")
+private Renderer&lt;UserStep&gt; userStepsDataGridCompletedRenderer() {
+    return new ComponentRenderer&lt;&gt;(userStep -&gt; {
+        Checkbox checkbox = uiComponents.create(Checkbox.class);
+        checkbox.setValue(userStep.getCompletedDate() != null);
+        checkbox.addValueChangeListener(e -&gt; {
+            if (userStep.getCompletedDate() == null) {
+                userStep.setCompletedDate(LocalDate.now());
+            } else {
+                userStep.setCompletedDate(null);
+            }
+        });
+        return checkbox;
+    });
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh <code>My onboarding</code> view and test your latest changes:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="gen column 1" src="_images/ui-from-scratch/gen-column-1.png"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="add-labels"><a class="anchor" href="#add-labels"></a>Adding Labels</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The data grid is almost ready, now let’s add the labels displaying counters of total, completed and overdue steps.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add Component</strong> in the actions panel and drag and drop <code>Layouts</code> → <code>VBox</code> (vertical box) to the <code>layout</code> element of the <strong>Jmix UI</strong> structure panel before <code>userStepsDataGrid</code>. Then add three <code>HTML</code> → <code>Span</code> components into <code>vbox</code>.</p>
+</div>
+<div class="paragraph">
+<p>Set the label identifiers as below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout&gt;
+    &lt;vbox&gt;
+        &lt;span id="totalStepsLabel"/&gt;
+        &lt;span id="completedStepsLabel"/&gt;
+        &lt;span id="overdueStepsLabel"/&gt;
+    &lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you need to calculate and set their values programmatically in the controller. Switch to the <code>MyOnboardingView</code> controller, inject the labels and <code>userStepsDc</code> collection container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private Span completedStepsLabel;
+
+@ViewComponent
+private Span overdueStepsLabel;
+
+@ViewComponent
+private Span totalStepsLabel;
+
+@ViewComponent
+private CollectionContainer&lt;UserStep&gt; userStepsDc;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then add a couple of methods for calculating and assigning counters:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void updateLabels() {
+    totalStepsLabel.setText("Total steps: " + userStepsDc.getItems().size());
+
+    long completedCount = userStepsDc.getItems().stream()
+            .filter(us -&gt; us.getCompletedDate() != null)
+            .count();
+    completedStepsLabel.setText("Completed steps: " + completedCount);
+
+    long overdueCount = userStepsDc.getItems().stream()
+            .filter(us -&gt; isOverdue(us))
+            .count();
+    overdueStepsLabel.setText("Overdue steps: " + overdueCount);
+}
+
+private boolean isOverdue(UserStep us) {
+    return us.getCompletedDate() == null
+            &amp;&amp; us.getDueDate() != null
+            &amp;&amp; us.getDueDate().isBefore(LocalDate.now());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Finally, invoke the <code>updateLabels()</code> method from two event handlers:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Invoke <code>updateLabels()</code> from the existing <code>BeforeShowEvent</code> handler:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onBeforeShow(final BeforeShowEvent event) {
+    // ...
+    updateLabels();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So the labels will be updated on screen opening.</p>
+</div>
+</li>
+<li>
+<p>Click <strong>Generate Handler</strong> and select <code>Data container handlers</code> → <code>userStepsDc</code> → <code>ItemPropertyChangeEvent</code>:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="label 2" src="_images/ui-from-scratch/label-2.png"/>
+</div>
+</div>
+</li>
+<li>
+<p>Invoke the <code>updateLabels()</code> method from the handler you just generated:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "userStepsDc", target = Target.DATA_CONTAINER)
+public void onUserStepsDcItemPropertyChange(final InstanceContainer.ItemPropertyChangeEvent&lt;UserStep&gt; event) {
+    updateLabels();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With the help of the <code>ItemPropertyChangeEvent</code> handler, the labels will be updated when you change their <code>completedDate</code> attribute using the checkboxes in the table.</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh <code>My onboarding</code> view and test the label values:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="label 3" src="_images/ui-from-scratch/label-3.png"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="save-changes-and-close-view"><a class="anchor" href="#save-changes-and-close-view"></a>Saving Changes and Closing View</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now you can change the state of the onboarding steps but the changes are lost if you reopen the view. Let’s add the <code>Save</code> button to save and close the view and the <code>Discard</code> button to close without saving.</p>
+</div>
+<div class="paragraph">
+<p>First, click <strong>Add Component</strong> in the actions panel, drag <code>Layouts</code> → <code>HBox</code> (horizontal box) and drop it below <code>userStepsDataGrid</code>. Then add two buttons into it.</p>
+</div>
+<div class="paragraph">
+<p>Set the button ids and titles as shown below. For the <code>Save</code> button, set <code>primary</code> in the <code>themeNames</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox&gt;
+    &lt;button id="saveButton" text="Save" themeNames="primary"/&gt;
+    &lt;button id="discardButton" text="Discard"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Generate button click handlers using the <strong>Jmix UI</strong> inspector panel → <strong>Handlers</strong> tab.</p>
+</div>
+<div class="paragraph">
+<p>Inject <code>DataContext</code> into controller class and implement click handlers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataContext dataContext;
+
+@Subscribe(id = "saveButton", subject = "clickListener")
+public void onSaveButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    dataContext.save(); <i class="conum" data-value="1"></i><b>(1)</b>
+    close(StandardOutcome.SAVE); <i class="conum" data-value="2"></i><b>(2)</b>
+}
+
+@Subscribe(id = "discardButton", subject = "clickListener")
+public void onDiscardButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    close(StandardOutcome.DISCARD); <i class="conum" data-value="2"></i><b>(2)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>DataContext</code> tracks changes in entities loaded into data containers. When you invoke its <code>save()</code> method, all changed instances are saved to the database.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>close()</code> method closes the view. It accepts an "outcome" object that can be analysed by the calling code.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh <code>My onboarding</code> view and see the buttons in action:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="buttons 3" src="_images/ui-from-scratch/buttons-3.png"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styling-data-grid"><a class="anchor" href="#styling-data-grid"></a>Styling Data Grid</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The last requirement for <code>My onboarding</code> view is to highlight overdue steps by changing font color of the <code>Due date</code> cells. You will do it by writing some CSS and using it in the data grid.</p>
+</div>
+<div class="paragraph">
+<p>First, assign the <code>onboarding-steps</code> class to the data grid by adding it to the <code>classNames</code> property:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="theme 1" src="_images/ui-from-scratch/theme-1.png" width="282"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Then select <code>dueDate</code> column, switch to <strong>Handlers</strong> tab of the component inspector and generate the <code>partNameGenerator</code> handler for the column. Implement it as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "userStepsDataGrid.dueDate", subject = "partNameGenerator")
+private String userStepsDataGridDueDatePartNameGenerator(final UserStep userStep) {
+    return isOverdue(userStep) ? "overdue-step" : null;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The handler accepts UserStep instance of the rendered row and returns a name to use in a CSS selector for this column.</p>
+</div>
+<div class="paragraph">
+<p>Finally, open <code>onboarding.css</code> file from the <strong>User Interface</strong> → <strong>Themes</strong> section of the <strong>Jmix</strong> tool window and add the following CSS code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">vaadin-grid.onboarding-steps::part(overdue-step) {
+    color: red;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the selector above, <code>vaadin-grid.onboarding-steps</code> specifies the particular data grid instance, and <code>::part(overdue-step)</code> points to the cells that need to be highlighted.</p>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh <code>My onboarding</code> view and test the style for overdue steps:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="theme 4" src="_images/ui-from-scratch/theme-4.png"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you have developed from scratch an entire view working with data.</p>
+</div>
+<div class="paragraph">
+<p>You have learned that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Query of a <a class="xref page" href="../flow-ui/data/data-loaders.html">data loader</a> can contain parameters. Parameter values can be set in a <code>BeforeShowEvent</code> handler or any other view or UI component event handler.</p>
+</li>
+<li>
+<p>To trigger data loading, you should either invoke the <code>load()</code> method of the data loader in an event handler, or add  the <a class="xref page" href="../flow-ui/facets/dataLoadCoordinator.html">dataLoadCoordinator</a> facet to the screen.</p>
+</li>
+<li>
+<p><a class="xref page" href="../flow-ui/vc/layouts/vbox.html">vbox</a> and <a class="xref page" href="../flow-ui/vc/layouts/hbox.html">hbox</a> layouts are used to place UI components vertically or horizontally. The root <code>layout</code> is itself a vertical box.</p>
+</li>
+<li>
+<p>The <code>save()</code> method of <a class="xref page" href="../flow-ui/data/data-context.html">DataContext</a> saves all changed entities to the database.</p>
+</li>
+<li>
+<p>A view can be closed programmatically by the <code>close()</code> method provided by the base <code>View</code> class.</p>
+</li>
+<li>
+<p>The CSS file located in the project theme can define styles to be used by UI components.</p>
+</li>
+<li>
+<p>The <code>partNameGenerator</code> handler should be used to change the style of a table cell.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../studio/code-snippets.html">Code Snippets</a> palette can be used to quickly find and generate code working with the framework API.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

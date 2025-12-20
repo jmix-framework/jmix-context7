@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Configuration :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Menu Configuration</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>MenuConfig</code> is a special class that loads the main menu structure based on a file specified in the <a class="xref page" href="ui-properties.html#jmix.ui.menu-config">jmix.ui.menu-config</a> property.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use <a class="xref page" href="../studio/menu-designer.html">Studio menu designer</a> to define the menu structure.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>When you create a new project in Studio, it generates the <code>menu.xml</code> file that defines the structure of the application main menu.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;menu-config xmlns="http://jmix.io/schema/flowui/menu"&gt;
+    &lt;menu id="main-menu"
+          title="msg://com.company.onboarding/menu.application.title"
+          description="Application menu items"
+          opened="true"
+          icon="DOT_CIRCLE"
+          classNames="application-menu"&gt;
+        &lt;item id="Department.list"/&gt;
+        &lt;separator/&gt;
+        &lt;item view="City.list" id="cities"/&gt;
+    &lt;/menu&gt;
+&lt;/menu-config&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are two <a class="xref page" href="../studio/menu-designer.html#menu-modes">modes</a> of loading files that define menu structure: composite (default) and single. Use the <a class="xref page" href="ui-properties.html#jmix.ui.composite-menu">jmix.ui.composite-menu</a> property to switch these modes.</p>
+</div>
+<div class="paragraph">
+<p>Let’s consider the <code>menu.xml</code> file in detail.</p>
+</div>
+<div class="paragraph">
+<p><code>menu-config</code> is the root XML element. Elements of <code>menu-config</code> form a tree structure where <code>menu</code> elements are branches and <code>item</code> and <code>separator</code> elements are leaves.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="menu-attributes"><a class="anchor" href="#menu-attributes"></a>Menu Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>menu</code> is a nested element of <code>menu-config</code>. It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>id</code> — a unique identifier of the element.</p>
+</li>
+<li>
+<p><code>title</code> — a title of the <code>menu</code> element. If not set, the title is determined by the rule explained <a href="#defining-menu-title">below</a>.</p>
+</li>
+<li>
+<p><code>description</code> — a text description to be shown as tooltip on mouse hover. You can use localized messages from the <a class="xref page" href="../localization/message-bundles.html">message bundle</a>.</p>
+</li>
+<li>
+<p><code>icon</code> — an icon of the <code>menu</code> element.</p>
+</li>
+<li>
+<p><code>classNames</code> — defines a class name for the menu item.</p>
+</li>
+<li>
+<p><code>opened</code> — defines whether the <code>menu</code> element is initially expanded. The default value is <code>false</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;menu id="main-menu"
+      title="msg://com.company.onboarding/menu.application.title"
+      description="Application menu items"
+      opened="true"
+      icon="DOT_CIRCLE"
+      classNames="application-menu"&gt;
+    &lt;item id="Department.list"/&gt;
+    &lt;separator/&gt;
+    &lt;item view="City.list" id="cities"/&gt;
+&lt;/menu&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="item-attributes"><a class="anchor" href="#item-attributes"></a>Item Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>item</code> is a nested element of <code>menu</code>. For each item you can set attributes, <a href="#item-properties">properties</a>, <a href="#route-parameters">route</a> and <a href="#url-query-parameters">query</a> parameters.</p>
+</div>
+<div class="paragraph">
+<p>The attributes are as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>id</code> — a unique identifier of the element. If no <code>view</code> or <code>bean</code>, attribute is specified, the <code>id</code> is used to point to a view with this <code>id</code>. When the user clicks on the menu item, the corresponding view opens on the main screen.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;item id="Department.list"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>title</code> — a title of the <code>item</code> element. You can use localized messages from the <a class="xref page" href="../localization/message-bundles.html">message bundle</a>. If not set, the title will be determined by the rule explained <a href="#defining-menu-title">below</a>.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;item view="User.list" title="msg://com.company.onboarding.view.user/UserListView.title"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>description</code> — a text description to be shown as tooltip on mouse hover. You can use localized messages from the <a class="xref page" href="../localization/message-bundles.html">message bundle</a>.</p>
+</li>
+<li>
+<p><code>view</code> — a view identifier. It can be used to include one screen into the menu multiple times. When the user clicks on the menu item, the corresponding screen will be opened on the main screen.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;item view="City.list" id="cities1"/&gt;
+&lt;item view="City.list" id="cities2"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>bean</code> — a bean name. Must be used together with <code>beanMethod</code>. When the user clicks on the menu item, the specified method is invoked.</p>
+<div class="listingblock">
+<div class="title">menu.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;item bean="MenuBean"
+      beanMethod="browseCities"
+      title="Show Cities"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MenuBean.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("MenuBean")
+public class MenuBean {
+
+    @Autowired
+    private ViewNavigationSupport viewNavigationSupport;
+
+    public void browseCities() {
+        viewNavigationSupport.navigate(CityListView.class);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can pass parameters from the menu item to the bean method using the <a href="#item-properties">properties</a> nested element. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">menu.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;item bean="MenuBean" beanMethod="openLink"
+      id="openBeanWithParams" title="External Link"&gt;
+    &lt;properties&gt;
+        &lt;property name="url" value="https://jmix.io"/&gt;
+    &lt;/properties&gt;
+&lt;/item&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">MenuBean.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("MenuBean")
+public class MenuBean {
+
+    public void openLink(Map&lt;String, Object&gt; parameters) {
+        String url = (String) parameters.get("url");
+        if (url == null) {
+            return;
+        }
+        UI.getCurrent().getPage().open(url);
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>shortcutCombination</code> — a <a class="xref page" href="keyboard-shortcuts.html">keyboard shortcut</a> for this menu item. For example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;item view="City.list"
+      id="cities3"
+      shortcutCombination="ALT-C"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Shortcuts can also be configured in the <code>application.properties</code> file and then used in the <code>menu.xml</code> file in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="title">menu.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;item view="City.list"
+      id="cities4"
+      shortcutCombination="${sample.menu.city}"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">sample.menu.city=ALT-SHIFT-C</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>icon</code> — an icon of the <code>item</code> element.</p>
+</li>
+<li>
+<p><code>className</code> — defines a class name for the menu item.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="item-properties"><a class="anchor" href="#item-properties"></a>Item Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An <code>item</code> element can have properties to be passed to beans. The nested <code>properties</code> element is a container for such properties, which are defined in the <code>property</code> child elements. A <code>property</code> element can have the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>name</code> — property name.</p>
+</li>
+<li>
+<p><code>value</code> — value to be set for this property.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="route-parameters"><a class="anchor" href="#route-parameters"></a>Route Parameters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An <code>item</code> element can declare route parameters inside its child <code>routeParameters</code> element.</p>
+</div>
+<div class="paragraph">
+<p>The route that defines the URL path of a view can include a route parameter. One example of such a parameter would be the id of a specific entity instance passed to a <a class="xref page" href="views/views.html#standard-detail-view">detail view</a>. The following menu item opens a detail view for a particular department:</p>
+</div>
+<div class="listingblock">
+<div class="title">menu.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;item view="Department.detail" title="HR Department"&gt;
+    &lt;routeParameters&gt;
+        &lt;parameter name="id" value="9b77a432-1610-5147-ff93-e7ee27c26e09"/&gt;
+    &lt;/routeParameters&gt;
+&lt;/item&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="url-query-parameters"><a class="anchor" href="#url-query-parameters"></a>URL Query Parameters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An <code>item</code> element can declare one or multiple query parameters inside its child <code>urlQueryParameters</code> element.</p>
+</div>
+<div class="listingblock">
+<div class="title">menu.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;item view="City.list" title="Query Parameters"&gt;
+    &lt;urlQueryParameters&gt;
+        &lt;parameter name="page" value="3"/&gt;
+        &lt;parameter name="sort" value="desc"/&gt;
+    &lt;/urlQueryParameters&gt;
+&lt;/item&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Query parameters are name-value pairs attached to the end of a URL after a question mark (<code>?</code>). Multiple query parameters are joined together into a query string with an ampersand (<code>&amp;</code>). The example above will create a menu item pointing at the following URL:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>https://example.com/cities?page=3&amp;sort=desc</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="defining-menu-title"><a class="anchor" href="#defining-menu-title"></a>Defining Menu Title</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If the <code>title</code> attribute is not set, the title of a <code>menu</code> or <code>item</code> element is defined as a combination of the <code>menu-config</code> prefix and the element’s <code>id</code>. The resulting string can be used as the key that defines a title in the <a class="xref page" href="../localization/message-bundles.html">message bundle</a>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">messages.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">menu-config.Departments.list = Departments
+menu-config.cities = Cities</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If menu item <code>id</code> is not set, to define a title for such menu item the <code>menu-config</code> prefix may be followed by the view name, or bean name and bean method name, separated by <code>#</code>, depending on which of these attributes are present.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

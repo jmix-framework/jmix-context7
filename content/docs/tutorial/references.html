@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3. References and Unique Attributes :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">3. References and Unique Attributes</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The next feature of your Onboarding application is the management of Departments.</p>
+</div>
+<div class="paragraph">
+<p>New hire belongs to a Department. Each department has a unique name and a reference to HR Manager.</p>
+</div>
+<div class="paragraph">
+<p>In this chapter, you will create:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>Department</code> entity with the link to <code>User</code>.</p>
+</li>
+<li>
+<p>A database table with a foreign key and a unique constraint.</p>
+</li>
+<li>
+<p>CRUD views including UI component for selecting the related entity.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-entity"><a class="anchor" href="#create-entity"></a>Creating Department Entity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>Department</code> entity has the <code>name</code> (unique) attribute and the <code>hrManager</code> attribute which is a reference to the <code>User</code> entity:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="references diagram" src="_images/references/references-diagram.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If your application is running, stop it using the <strong>Stop</strong> button (<span class="image"><img alt="suspend" src="_images/common/suspend.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Jmix</strong> tool window, click <strong>New</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) → <strong>JPA Entity</strong> as you did in the <a class="xref page" href="simple-crud.html#create-entity">previous chapter</a>. In the <strong>New JPA Entity</strong> dialog, enter <code>Department</code> into the <strong>Class</strong> field and select the <strong>Traits</strong> → <strong>Versioned</strong> checkbox:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 1" src="_images/references/create-entity-1.png" width="492"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will create the entity class and open the entity designer:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 2" src="_images/references/create-entity-2.png"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="create-unique-attr"><a class="anchor" href="#create-unique-attr"></a>Creating Unique Attribute</h3>
+<div class="paragraph">
+<p>Let’s add the <code>name</code> attribute to the entity.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) in the <strong>Attributes</strong> toolbar. In the <strong>New Attribute</strong> dialog, enter <code>name</code> into the <strong>Name</strong> field and select the <strong>Mandatory</strong> checkbox:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 3" src="_images/references/create-entity-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Now let’s define a unique constraint for the <code>NAME</code> column in the database. It will ensure there will be no departments with the same name.</p>
+</div>
+<div class="paragraph">
+<p>Switch to the <strong>Indexes</strong> tab at the bottom and click <strong>New Index</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) in the <strong>Database Indexes</strong> toolbar. Studio will add a row to the indexes list:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 4" src="_images/references/create-entity-4.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Select <code>NAME</code> in the <strong>Available attributes</strong> list and click <span class="image"><img alt="arrow right" src="_images/common/arrow-right.svg"/></span> in the toolbar to move it to the <strong>Selected attributes</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Select the <strong>Unique</strong> and <strong>Constraint</strong> checkboxes in the index row and change the name to <code>IDX_DEPARTMENT_UNQ_NAME</code>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 5" src="_images/references/create-entity-5.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If you switch to the <strong>Text</strong> tab of the entity designer, you will see the unique constraint added to the <code>@Table</code> annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "DEPARTMENT", uniqueConstraints = {
+        @UniqueConstraint(name = "IDX_DEPARTMENT_UNQ_NAME", columnNames = {"NAME"})
+})
+@Entity
+public class Department {
+    // ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Using this annotation, Studio will add a unique constraint for the database table to the Liquibase changelog.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="create-reference-attr"><a class="anchor" href="#create-reference-attr"></a>Creating Reference Attribute</h3>
+<div class="paragraph">
+<p>Now create a reference to an HR Manager of the department.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) in the <strong>Attributes</strong> toolbar. In the <strong>New Attribute</strong> dialog, enter <code>hrManager</code> into the <strong>Name</strong> field. Then select:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Attribute type</strong>: <code>ASSOCIATION</code></p>
+</li>
+<li>
+<p><strong>Type</strong>: <code>User</code></p>
+</li>
+<li>
+<p><strong>Cardinality</strong>: <strong>Many to One</strong></p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 6" src="_images/references/create-entity-6.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>You can find the new attribute on the <strong>Text</strong> tab:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JoinColumn(name = "HR_MANAGER_ID")
+@ManyToOne(fetch = FetchType.LAZY)
+private User hrManager;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, the <code>@Table</code> annotation on the class header now defines the index for the foreign key column:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "DEPARTMENT", indexes = {
+        @Index(name = "IDX_DEPARTMENT_HR_MANAGER", columnList = "HR_MANAGER_ID")
+    },
+    // ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can see it on the <strong>Indexes</strong> tab too.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-screens"><a class="anchor" href="#create-screens"></a>Creating CRUD Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s generate CRUD views for the <code>Department</code> entity.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Views</strong> → <strong>Create view</strong> in the actions panel at the top of the entity designer:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screens 1" src="_images/references/create-screens-1.png" width="487"/>
+</div>
+</div>
+<div class="paragraph">
+<p>On the first step of the view creation wizard, select the <code>Entity list and detail views</code> template:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="screen wizard 1" src="_images/common/screen-wizard-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Accept the suggested values on the first two steps of the wizard.</p>
+</div>
+<div class="paragraph">
+<p>On the <strong>Entity list view fetch plan</strong> step, add the <code>hrManager</code> attribute to the selection:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screens 2" src="_images/references/create-screens-2.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you can be sure that the referenced <code>User</code> entity will be loaded together with the root <code>Department</code> entity and displayed in the list view.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+If an attribute is not present in the fetch plan, Studio doesn’t create a visual component for it in the generated views.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>On the next <strong>Entity detail view fetch plan</strong> step, this attribute will be selected automatically:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screens 3" src="_images/references/create-screens-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Accept the values on the <strong>Localizable messages</strong> step and click <strong>Create</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will generate two views: <code>Department.list</code> and <code>Department.detail</code> and open their source code. Close all editor tabs for now - you will make some changes in the generated views later in this chapter.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="run-app"><a class="anchor" href="#run-app"></a>Running the Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Click the <strong>Debug</strong> button (<span class="image"><img alt="start debugger" src="_images/common/start-debugger.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Before running the application, Studio will generate a Liquibase changelog:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 1" src="_images/references/run-app-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, the changelog contains commands for creating the <code>DEPARTMENT</code> table, a unique constraint for the <code>NAME</code> column and the foreign key and the index for the <code>HR_MANAGER_ID</code> column.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Save and run</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will execute the changelog, then build and run the application.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>http://localhost:8080</code> in your web browser and log in to the application with <code>admin</code> / <code>admin</code> credentials.</p>
+</div>
+<div class="paragraph">
+<p>Click on the <code>Departments</code> item in the <code>Application</code> menu. You will see the <code>Department.list</code> view:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 2" src="_images/references/run-app-2.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Create</strong>. The <code>Department.detail</code> view will open:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 3" src="_images/references/run-app-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You can select an HR Manager for the department by clicking the ellipsis button in the picker field. The users list view will open in a dialog window. Select a row in the users table and scroll down to reveal the <strong>Select</strong> button:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 4" src="_images/references/run-app-4.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Select a user and click <strong>Select</strong>. The user will be displayed in the picker field:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 5" src="_images/references/run-app-5.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>. The referenced user will be displayed in the table too:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 6" src="_images/references/run-app-6.png"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="instance-name"><a class="anchor" href="#instance-name"></a>Observing the Instance Name</h3>
+<div class="paragraph">
+<p>You may wonder why the picker field and the table show the <code>[admin]</code> string for the selected user?</p>
+</div>
+<div class="paragraph">
+<p>Jmix has a concept of <em>instance name</em>: a human-readable text that represents an entity instance. It can be defined for any entity using the <code>@InstanceName</code> annotation on a field or a method.</p>
+</div>
+<div class="paragraph">
+<p>The <code>User</code> entity generated by the project template has the following method defining the instance name:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class User implements JmixUserDetails, HasTimeZone {
+    // ...
+
+    @InstanceName
+    @DependsOnProperties({"firstName", "lastName", "username"})
+    public String getDisplayName() {
+        return String.format("%s %s [%s]", (firstName != null ? firstName : ""),
+                (lastName != null ? lastName : ""), username).trim();
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So when the <code>firstName</code> and <code>lastName</code> are empty, the <code>User</code> instance name is <code>username</code> in square brackets, which is what you see in the application at the moment.</p>
+</div>
+<div class="paragraph">
+<p>The Studio entity designer automatically generates the <code>@InstanceName</code> annotation if it encounters an appropriately named attribute: <code>name</code>, <code>description</code>, etc. For example, your <code>Department</code> entity has <code>@InstanceName</code> on its <code>name</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class Department {
+    // ...
+
+    @InstanceName
+    @Column(name = "NAME", nullable = false)
+    @NotNull
+    private String name;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So the department’s name will be displayed in UI if you use a department as a reference in another entity. You will see it later in the tutorial.</p>
+</div>
+<div class="paragraph">
+<p>The entity designer also helps you to define the instance name manually. You can select an attribute for it or generate a method using the <strong>Instance name</strong> field and the button next to it:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="instance name 1" src="_images/references/instance-name-1.png" width="475"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="customize-ui"><a class="anchor" href="#customize-ui"></a>Simple UI Customizations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s make some customizations in the application UI to become more familiar with Jmix features.</p>
+</div>
+<div class="sect2">
+<h3 id="change-attr-caption"><a class="anchor" href="#change-attr-caption"></a>Changing Attribute Caption</h3>
+<div class="paragraph">
+<p>Perhaps you have noticed that the generated caption for the <code>hrManager</code> attribute is not quite correct: it reads <code>Hr manager</code>. Let’s change it to <code>HR Manager</code>.</p>
+</div>
+<div class="paragraph">
+<p>Select the <code>hrManager</code> attribute in the entity designer and click the globe  (<span class="image"><img alt="globe" src="_images/common/globe.svg"/></span>) button next to the attribute name:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="change caption 1" src="_images/references/change-caption-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Localized Message</strong> dialog will appear:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="change caption 2" src="_images/references/change-caption-2.png" width="616"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Change the text and click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>You can view and edit all messages of your project if you double-click the <strong>User Interface</strong> → <strong>Message Bundle</strong> node in the <strong>Jmix</strong> tool window. The message that you have just changed is highlighted below:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="change caption 3" src="_images/references/change-caption-3.png" width="914"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Switch to the application running in your web browser. Refresh the web page. You will see the new caption for the <code>hrManager</code> attribute.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Thanks to the Studio <em>hot deploy</em> feature, you don’t have to restart the application when making changes in the UI.</p>
+</div>
+<div class="paragraph">
+<p>Just save the changes in the IDE (press <code>Ctrl/Cmd+S</code>), wait a couple of seconds and refresh the web page.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="sorting-in-datagrid"><a class="anchor" href="#sorting-in-datagrid"></a>Sorting in DataGrid</h3>
+<div class="paragraph">
+<p>By default, users can sort data grid by a single column. Let’s enable sorting by multiple columns.</p>
+</div>
+<div class="paragraph">
+<p>Find <code>department-list-view.xml</code> in the <strong>Jmix</strong> tool window and double-click it. The view designer appears:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="customize ui 1" src="_images/references/customize-ui-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Studio allows you to preview the layout right inside the IDE. Click the <strong>Start Preview</strong> button:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="customize ui 2" src="_images/references/customize-ui-2.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Studio will build the frontend and after a few seconds you will see the preview panel next to the source code. Depending on your display resolution, you may want to show only the XML editor or the preview at a time. Use the buttons on top of the editor panel to switch the mode:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="customize ui 3" src="_images/references/customize-ui-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Locate <code>departmentsDataGrid</code> in the <strong>Jmix UI</strong> structure panel. The component will be selected in the preview, in the XML editor and in the <strong>Jmix UI</strong> inspector panel in the lower right corner:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="customize ui 4" src="_images/references/customize-ui-4.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Select the checkbox for the <code>multiSort</code> property:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="customize ui 5" src="_images/references/customize-ui-5.png" width="348"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Studio will add the <code>multiSort="true"</code> attribute for the <code>dataGrid</code> XML element.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+It works in the opposite direction too. You can edit the XML directly and view the results in the designer panels and Preview.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Switch to the running application and refresh the page with the Departments list view. Test the sorting by click on the Name column, then on the HR Manager column.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="change-unique-constraint-message"><a class="anchor" href="#change-unique-constraint-message"></a>Changing Unique Constraint Violation Message</h3>
+<div class="paragraph">
+<p>If you try to create another department with the same name, you will see the error message about the unique constraint violation:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="customize ui 8" src="_images/references/customize-ui-8.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The default message is not very user-friendly, but you can easily change it.</p>
+</div>
+<div class="paragraph">
+<p>Double-click the <strong>User Interface</strong> → <strong>Message Bundle</strong> node in the <strong>Jmix</strong> tool window and add the following line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">databaseUniqueConstraintViolation.IDX_DEPARTMENT_UNQ_NAME=A department with the same name already exists</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The message key should start with <code>databaseUniqueConstraintViolation.</code> and end with the name of the database unique constraint. You may notice that the file already contains a similar message for the unique constraint on the <code>username</code> attribute of the <code>User</code> entity.</p>
+</div>
+<div class="paragraph">
+<p>Switch to the application and test your changes. Now the error shows your message:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="customize ui 9" src="_images/references/customize-ui-9.png"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you have built the second feature: management of departments.</p>
+</div>
+<div class="paragraph">
+<p>You have learned that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Studio helps to create reference attributes and generates <a class="xref page" href="../data-model/db-migration.html">Liquibase changelogs</a> with a foreign key and an index.</p>
+</li>
+<li>
+<p>To show a reference attribute in an entity list or detail view, it should be included in the <a class="xref page" href="../data-access/fetching.html#fetch-plan">fetch plan</a> of the view.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../data-model/entities.html#instance-name">instance name</a> is used to show a reference in UI.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../flow-ui/vc/components/entityPicker.html">entityPicker</a> component is used by default to select a reference in a generated detail view.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../data-model/entities.html#uniqueness">uniqueness of entity attributes</a> is maintained on the database level by defining unique constraints.</p>
+</li>
+<li>
+<p>A <a class="xref page" href="../flow-ui/exception-handlers.html#unique-constraint-violation-handler">unique constraint violation</a> message can be easily customized.</p>
+</li>
+<li>
+<p>Captions and messages generated by Studio are stored in the <a class="xref page" href="../localization/message-bundles.html">message bundle</a> of the application.</p>
+</li>
+<li>
+<p>Studio <a class="xref page" href="../studio/hot-deploy.html">hot deploys</a> changes in views and messages to the running application, which saves from restarting the application when developing UI. Changes in entities are not hot deployed.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>urlQueryParameters :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">urlQueryParameters</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/url-query-parameters?genericFilterCondition=property%3Aage_greater_30" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>urlQueryParameters</code> facet is designed for declarative binding of the view state to the URL. It allows you to preserve the view state when <a class="xref page" href="../views/opening-views.html">navigating</a> between views or refreshing the browser page.</p>
+</div>
+<div class="paragraph">
+<p>If the entire view state comes from the database, which is the case for <a class="xref page" href="../views/views.html#standard-detail-view">entity detail views</a>, the entity identifier in the URL route is enough to restore the state. But if some view components contain values that are not stored in the database, you need to encode them in the URL to restore when the view is reinitialised.</p>
+</div>
+<div class="paragraph">
+<p>The obvious example is the entity list view with pagination and filtering. You will want to preserve pagination and filtering parameters when refreshing the browser page and when navigating to a detail view and back.</p>
+</div>
+<div class="paragraph">
+<p>The entire view state encoded in the URL also provides a deep link representing exactly what is shown on the screen.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basic Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To bind pagination and filtering parameters to the URL, define <code>urlQueryParameters</code> and use nested elements to connect existing components by their identifiers. In the following example, the <code>urlQueryParameters</code> facet is used with <code>genericFilter</code> and <code>simplePagination</code> components:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;facets&gt;
+    &lt;urlQueryParameters id="urlQueryParameters"&gt;
+        &lt;pagination component="pagination"/&gt;
+        &lt;genericFilter component="genericFilter"/&gt;
+    &lt;/urlQueryParameters&gt;
+&lt;/facets&gt;
+&lt;layout expand="usersTable"&gt;
+    &lt;genericFilter id="genericFilter"
+                   dataLoader="usersDl"&gt;
+        &lt;properties include=".*"/&gt;
+    &lt;/genericFilter&gt;
+    &lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+        &lt;!-- ... --&gt;
+        &lt;simplePagination id="pagination" dataLoader="usersDl"/&gt;
+    &lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As a result, filtering the <code>User</code> entity list view by the <code>active</code> attribute and selecting the second page will be reflected in the URL like this:</p>
+</div>
+<div class="paragraph">
+<p><code>http://localhost:8080/users?genericFilterCondition=property%3Aactive_equal_true&amp;maxResults=50&amp;firstResult=100</code></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can view and edit facet attributes in Jmix Studio using the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="components"><a class="anchor" href="#components"></a>Supported Components</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="pagination"><a class="anchor" href="#pagination"></a>pagination</h3>
+<div class="paragraph">
+<p>The <code>pagination</code> nested element allows you to connect the <code>urlQueryParameters</code> facet to the <a class="xref page" href="../vc/components/simplePagination.html">simplePagination</a> component.</p>
+</div>
+<div class="paragraph">
+<p>Attributes of the <code>pagination</code> element:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>component</code> - identifier of the pagination component to connect to.</p>
+</li>
+<li>
+<p><code>firstResultParam</code> - (optional) name of the query parameter for representing the beginning of the current page.</p>
+</li>
+<li>
+<p><code>maxResultsParam</code> - (optional) name of the query parameter for representing the page size.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="propertyFilter"><a class="anchor" href="#propertyFilter"></a>propertyFilter</h3>
+<div class="paragraph">
+<p>The <code>propertyFilter</code> nested element allows you to connect the <code>urlQueryParameters</code> facet to the <a class="xref page" href="../vc/components/propertyFilter.html">propertyFilter</a> component.</p>
+</div>
+<div class="paragraph">
+<p>Attributes of the <code>propertyFilter</code> element:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>component</code> - identifier of the <code>propertyFilter</code> component to connect to.</p>
+</li>
+<li>
+<p><code>param</code> - (optional) name of the query parameter for representing the filter value.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="genericFilter"><a class="anchor" href="#genericFilter"></a>genericFilter</h3>
+<div class="paragraph">
+<p>The <code>genericFilter</code> nested element allows you to connect the <code>urlQueryParameters</code> facet to the <code>genericFilter</code> component.</p>
+</div>
+<div class="paragraph">
+<p>Attributes of the <code>genericFilter</code> element:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>component</code> - identifier of the <code>genericFilter</code> component to connect to.</p>
+</li>
+<li>
+<p><code>conditionParam</code> - (optional) name of the query parameter for representing the filter conditions.</p>
+</li>
+<li>
+<p><code>configurationParam</code> - (optional) name of the query parameter for representing the selected filter configuration.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-binding"><a class="anchor" href="#custom-binding"></a>Custom State Binding</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>urlQueryParameters</code> facet allows you to bind any custom view state to the URL.</p>
+</div>
+<div class="paragraph">
+<p>Let’s consider an example of a view with the following components:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;details id="sampleDetails" summaryText="Some details"&gt;
+    &lt;textField id="sampleTextField" datatype="string"/&gt;
+&lt;/details&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Imagine that the goal is to preserve the <code>opened</code> state of the <a class="xref page" href="../vc/layouts/details.html">details</a> layout and the value of the <a class="xref page" href="../vc/components/textField.html">textField</a>.</p>
+</div>
+<div class="paragraph">
+<p>Then you need to implement a binder object and register it in the <code>urlQueryParameters</code> facet:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private static final String DETAILS_OPENED_URL_PARAM = "detailsOpened";
+private static final String TEXT_URL_PARAM = "text";
+
+@ViewComponent
+private UrlQueryParametersFacet urlQueryParameters;
+
+@ViewComponent
+private JmixDetails sampleDetails;
+
+@ViewComponent
+private TypedTextField&lt;String&gt; sampleTextField;
+
+private class SampleUrlQueryParametersBinder extends AbstractUrlQueryParametersBinder { <i class="conum" data-value="1"></i><b>(1)</b>
+
+    public SampleUrlQueryParametersBinder() { <i class="conum" data-value="2"></i><b>(2)</b>
+        sampleDetails.addOpenedChangeListener(event -&gt; {
+            boolean opened = event.isOpened();
+            QueryParameters qp = new QueryParameters(ImmutableMap.of(DETAILS_OPENED_URL_PARAM,
+                    opened ? Collections.singletonList("1") : Collections.emptyList()));
+            fireQueryParametersChanged(new UrlQueryParametersFacet.UrlQueryParametersChangeEvent(this, qp));
+        });
+
+        sampleTextField.addValueChangeListener(event -&gt; {
+            String text = event.getValue();
+            QueryParameters qp = new QueryParameters(ImmutableMap.of(TEXT_URL_PARAM,
+                    text != null ? Collections.singletonList(text) : Collections.emptyList()));
+            fireQueryParametersChanged(new UrlQueryParametersFacet.UrlQueryParametersChangeEvent(this, qp));
+        });
+    }
+
+    @Override
+    public void updateState(QueryParameters queryParameters) { <i class="conum" data-value="3"></i><b>(3)</b>
+        List&lt;String&gt; detailsOpenedStrings = queryParameters.getParameters().get(DETAILS_OPENED_URL_PARAM);
+        if (detailsOpenedStrings != null) {
+            sampleDetails.setOpened("1".equals(detailsOpenedStrings.get(0)));
+        }
+
+        List&lt;String&gt; textStrings = queryParameters.getParameters().get(TEXT_URL_PARAM);
+        if (textStrings != null &amp;&amp; !textStrings.isEmpty()) {
+            sampleTextField.setValue(textStrings.get(0));
+        }
+    }
+
+    @Override
+    public Component getComponent() {
+        return null;
+    }
+}
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    urlQueryParameters.registerBinder(new SampleUrlQueryParametersBinder()); <i class="conum" data-value="4"></i><b>(4)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>- inherit the binder class from the <code>AbstractUrlQueryParametersBinder</code> base class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>- in the binder’s constructor, add component listeners that will invoke the <code>fireQueryParametersChanged()</code> method of the binder when the components' state changes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>- in the binder’s <code>updateState()</code> method, update the state of the components.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>- create the binder instance and register it in the <code>urlQueryParameters</code> facet on view initialization.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>urlQueryParameters</code> facet uses <a href="https://vaadin.com/api/platform/24.8/com/vaadin/flow/router/QueryParameters.html" rel="noopener" target="_blank">QueryParameters</a> class from the Vaadin API to send and receive the query parameters.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

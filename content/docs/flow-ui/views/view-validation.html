@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Validation :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">View Validation</h1>
+<div class="sect1">
+<h2 id="validation-steps"><a class="anchor" href="#validation-steps"></a>Validation Steps</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before the detail view saves data during the execution of <code>closeWithSave()</code> and <code>save()</code> <a class="xref page" href="view-methods.html#methods-of-standard-detail">methods</a>, it validates the data in the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The view invokes the <code>validateUiComponents()</code> method of the <code>ViewValidation</code> bean described <a href="#validateUiComponents">below</a>.</p>
+</li>
+<li>
+<p>If there were no errors on the first step, the view sends the <a class="xref page" href="view-events.html#validation-event">ValidationEvent</a> event, that can be handled in the view controller for additional validation.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="view-validation-bean"><a class="anchor" href="#view-validation-bean"></a>ViewValidation Bean</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>ViewValidation</code> bean contains methods for validating UI components, displaying validation errors and unsaved changes dialogs. It is used by views and dialogs of the framework and add-ons. You can use it in the application views as well.</p>
+</div>
+<div class="paragraph">
+<p>Below we describe the main methods of the <code>ViewValidation</code> bean.</p>
+</div>
+<div class="sect2">
+<h3 id="validateUiComponents"><a class="anchor" href="#validateUiComponents"></a>validateUiComponents</h3>
+<div class="paragraph">
+<p>The <code>validateUiComponents()</code> method accepts a collection of components or a component container. It runs validation for all passed components implementing the <code>SupportsValidation</code> interface and returns the <code>ValidationErrors</code> object which contains validation errors found for the validated components.</p>
+</div>
+<div class="paragraph">
+<p>This method is called by detail views during the execution of <code>closeWithSave()</code> and <code>save()</code> methods.</p>
+</div>
+<div class="paragraph">
+<p>You can call it also in response to user actions, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class SampleView extends StandardView {
+
+    @Autowired
+    private ViewValidation viewValidation;
+
+    @ViewComponent
+    private FormLayout form;
+
+    @Subscribe("validateBtn")
+    public void onValidateBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+        ValidationErrors errors = viewValidation.validateUiComponents(form);
+        if (!errors.isEmpty()) {
+            viewValidation.showValidationErrors(errors);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="showValidationErrors"><a class="anchor" href="#showValidationErrors"></a>showValidationErrors</h3>
+<div class="paragraph">
+<p>The <code>showValidationErrors()</code> method shows a notification with validation errors, if the passed <code>ValidationErrors</code> object is not empty. See the usage example above.</p>
+</div>
+<div class="paragraph">
+<p>The notification title is defined by the message with the <code>validationFail.title</code> key. You can override the default message by specifying a message with this key in your project’s message bundle, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">messages_en.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">validationFail.title = Validation failed</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="showSaveConfirmationDialog"><a class="anchor" href="#showSaveConfirmationDialog"></a>showSaveConfirmationDialog</h3>
+<div class="paragraph">
+<p>The <code>showSaveConfirmationDialog()</code> shows a confirmation dialog about saving or discarding unsaved changes. It is used by <a class="xref page" href="views.html#standard-detail-view">entity detail views</a> when the user closes the view with unsaved changes and <a class="xref page" href="../ui-properties.html#jmix.ui.view.use-save-confirmation">jmix.ui.view.use-save-confirmation</a> property is set to <code>true</code> (which is the default).</p>
+</div>
+<div class="paragraph">
+<p>The dialog uses messages with the following keys:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>dialogs.closeUnsaved.title</code> - the dialog header</p>
+</li>
+<li>
+<p><code>dialogs.saveUnsaved.message</code> - the dialog text</p>
+</li>
+<li>
+<p><code>dialogs.closeUnsaved.save</code> - "save" button text</p>
+</li>
+<li>
+<p><code>dialogs.closeUnsaved.discard</code> - "discard" button text</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can override the default messages by specifying messages with the same keys in your project’s message bundle, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">messages_en.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">dialogs.closeUnsaved.title = You have unsaved changes
+dialogs.saveUnsaved.message = Do you want to save changes before close?
+dialogs.closeUnsaved.save = Save
+dialogs.closeUnsaved.discard = Don't save</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="showUnsavedChangesDialog"><a class="anchor" href="#showUnsavedChangesDialog"></a>showUnsavedChangesDialog</h3>
+<div class="paragraph">
+<p>The <code>showUnsavedChangesDialog()</code> shows a confirmation dialog about discarding unsaved changes. It is used by <a class="xref page" href="views.html#standard-detail-view">entity detail views</a> when the user closes the view with unsaved changes and <a class="xref page" href="../ui-properties.html#jmix.ui.view.use-save-confirmation">jmix.ui.view.use-save-confirmation</a> property is set to <code>false</code>.</p>
+</div>
+<div class="paragraph">
+<p>The dialog uses messages with the following keys:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>dialogs.closeUnsaved.title</code> - the dialog header</p>
+</li>
+<li>
+<p><code>dialogs.closeUnsaved.message</code> - the dialog text</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can override the default messages by specifying messages with the same keys in your project’s message bundle, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">messages_en.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">dialogs.closeUnsaved.title = You have unsaved changes
+dialogs.closeUnsaved.message = Do you want to discard unsaved changes?</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

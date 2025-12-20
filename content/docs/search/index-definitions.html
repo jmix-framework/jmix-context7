@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index Definitions :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Index Definitions</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Search indexes are specified through Java interfaces that outline which entities and attributes should be indexed. It is recommended to create these interfaces for every entity that requires full-text search functionality.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="interface"><a class="anchor" href="#interface"></a>Index Definition Interface</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A Java interface defining an index must adhere to these requirements:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>It can be named arbitrarily.</p>
+</li>
+<li>
+<p>It must be annotated with the <code>@JmixEntitySearchIndex</code> annotation.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntitySearchIndex(entity = Order.class)
+public interface OrderIndexDefinition {
+
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="interface-annotation"><a class="anchor" href="#interface-annotation"></a><code>@JmixEntitySearchIndex</code></h3>
+<div class="paragraph">
+<p>Attributes</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>entity</code> - specifies the entity class associated with this Index Definition. Mandatory.</p>
+</li>
+<li>
+<p><code>indexName</code> - specifies the full name of index that will be used for that entity. Optional. If not set index name is based on <a class="xref page" href="search-properties.html#jmix.search.searchIndexNamePrefix">prefix and entity name</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Indexed entity properties are specified using methods within the interface. These methods must adhere to the following guidelines:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>They should return <code>void</code>.</p>
+</li>
+<li>
+<p>They can be named arbitrarily.</p>
+</li>
+<li>
+<p>They should not accept parameters.</p>
+</li>
+<li>
+<p>They should not contain any implementation logic.</p>
+</li>
+<li>
+<p>Each method should be annotated with the <code>@AutoMappedField</code> annotation.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntitySearchIndex(entity = Order.class)
+public interface OrderIndexDefinition {
+
+    @AutoMappedField(includeProperties =
+            {"number", "product", "customer.status", "customer.lastName"})
+    void orderMapping();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="auto-mapped-field"><a class="anchor" href="#auto-mapped-field"></a>AutoMappedField Annotation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>@AutoMappedField</code> annotation enables you to map specific entity attributes based on their data type (see <a href="#automatic-mapping">below</a>). It can include the following parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>includeProperties</code> - a list of entity attributes to be indexed. It accepts dot notation to specify attributes of related entities. By default, none are indexed for search.</p>
+</li>
+<li>
+<p><code>excludeProperties</code> - a list of entity attributes to be excluded from indexing. It accepts dot notation to specify attributes of related entities. By default, none are excluded.</p>
+</li>
+<li>
+<p><code>analyzer</code> - the name of an analyzer defined in Elasticsearch/OpenSearch to be used in index field mapping. If not specified, the <code>standard</code> analyzer is used.</p>
+</li>
+<li>
+<p><code>indexFileContent</code> - a boolean flag that determines if the content of a file found in matched file properties should be indexed. By default, it is set to <code>true</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Both <code>includeProperties</code> and <code>excludeProperties</code> support <code>*</code> wildcard. It is expanded to local properties at the corresponding level:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>*</code> - local properties of the indexed entity.</p>
+</li>
+<li>
+<p><code>refField.*</code> - local properties of the entity referenced by the <code>refField</code> property.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The wildcard does not apply to back-reference attributes and attributes of entity <a class="xref page" href="../data-model/entities.html#traits">traits</a> such as <code>version</code>, <code>createdBy</code>, etc.</p>
+</div>
+<div class="paragraph">
+<p><code>excludeProperties</code> is beneficial only when <code>includeProperties</code> contains a wildcard to restrict its expansion. For instance:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@AutoMappedField(
+        includeProperties = {"*", "customer.*"},
+        excludeProperties = {"number", "customer.firstName"})
+void orderCustomerMapping();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>An analyzer is employed to alter incoming text values in various manners, including language morphologies. A specified analyzer is utilized during both the indexing and searching phases.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntitySearchIndex(entity = Customer.class)
+public interface CustomerIndexDefinition {
+    @AutoMappedField(
+            includeProperties = {"firstName", "lastName"},
+            analyzer = "german")
+    void customerMapping();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Multiple mapping annotations can be applied to a single method or distributed across multiple methods for some kind of grouping. The examples below illustrate the identical definition:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntitySearchIndex(entity = Order.class)
+public interface OrderIndexDefinition {
+
+    @AutoMappedField(includeProperties =
+            {"number", "product", "customer.status", "customer.lastName"})
+    void orderMapping();
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntitySearchIndex(entity = Order.class)
+public interface OrderIndexDefinition {
+
+    @AutoMappedField(includeProperties = {"number", "product"})
+    @AutoMappedField(includeProperties = {"customer.status", "customer.lastName"})
+    void orderMapping();
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntitySearchIndex(entity = Order.class)
+public interface OrderIndexDefinition {
+
+    @AutoMappedField(includeProperties = {"number", "product"})
+    void orderMapping();
+
+    @AutoMappedField(includeProperties = {"customer.status", "customer.lastName"})
+    void customerMapping();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="automatic-mapping"><a class="anchor" href="#automatic-mapping"></a>Automatic Mapping</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Automatic mapping by the <code>@AutoMappedField</code> annotation is supported for entity attributes of the following types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#textual-attributes">Textual</a></p>
+</li>
+<li>
+<p><a href="#reference-attributes">Reference</a></p>
+</li>
+<li>
+<p><a href="#file-attributes">File</a></p>
+</li>
+<li>
+<p><a href="#enumeration-attributes">Enumerations</a></p>
+</li>
+<li>
+<p><a href="#embedded-attributes">Embedded</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The wildcard encompasses all these attribute types.</p>
+</div>
+<div class="sect2">
+<h3 id="textual-attributes"><a class="anchor" href="#textual-attributes"></a>Textual Attributes</h3>
+<div class="paragraph">
+<p>These attributes are of the <code>String</code> type. It is the most common case, a value of an attribute is used as the indexed value.</p>
+</div>
+<div class="paragraph">
+<p>The field in the index appears as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"textualFieldName": "value"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In case of multiple values:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"textualFieldName": ["value1", "value2"]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="reference-attributes"><a class="anchor" href="#reference-attributes"></a>Reference Attributes</h3>
+<div class="paragraph">
+<p>These are references to related entities. The indexed value comprises solely the instance name of the associated entity, omitting any nested properties. To index nested properties of a related entity, make sure to explicitly incorporate <code>refProperty.nestedProperty</code> or <code>refProperty.*</code> into your mapping.</p>
+</div>
+<div class="paragraph">
+<p>The field in the index appears as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"refFieldName": {
+  "_instance_name": "instanceNameValue"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In case of multiple values:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"refFieldName": {
+  "_instance_name": ["instanceNameValue1", "instanceNameValue2"]
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="file-attributes"><a class="anchor" href="#file-attributes"></a>Files</h3>
+<div class="paragraph">
+<p>These are attributes of the <code>FileRef</code> type referring files in <a class="xref page" href="../files/file-storage.html">File Storage</a>. By default, both the file name and content are utilized as indexed values. If you wish to index only the file name, you must adjust the <code>indexFileContent</code> parameter of <code>@AutoMappedField</code> to <code>false</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@AutoMappedField(
+        includeProperties = {"*"},
+        indexFileContent = false)
+void fileMapping();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The field in the index appears as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"fileRefField": {
+	"_file_name" : "File name",
+	"_content" : "File content if enabled"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In case of multiple values:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"fileRefField": [
+	{
+		"_file_name" : "File name 1",
+		"_content" : "File content 1"
+	},
+	{
+		"_file_name" : "File name 2",
+		"_content" : "File content 2"
+	}
+]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="enumeration-attributes"><a class="anchor" href="#enumeration-attributes"></a>Enumeration Attributes</h3>
+<div class="paragraph">
+<p>In the case of <a class="xref page" href="../data-model/enumerations.html">enumeration</a> attributes, the indexed values include <a class="xref page" href="../localization/message-bundles.html#localizing-data-model">localized values</a> for all available locales.</p>
+</div>
+<div class="paragraph">
+<p>An entry in the index appears as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"enumFieldName": ["enValue", "ruValue"]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If multiple enumeration values are present, each value in all available locales is included, leading to a multiplication of values:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"enumFieldName": ["enValue1", "ruValue1", "enValue2", "ruValue2"]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="embedded-attributes"><a class="anchor" href="#embedded-attributes"></a>Embedded Attributes</h3>
+<div class="paragraph">
+<p>These are references to embedded JPA entities. Adding an embedded attribute implies including all its nested attributes <code>("someEmbeddedProperty" = "someEmbeddedProperty.*")</code>. The index value is determined by the type of the nested attribute, and unsupported types will be ignored.</p>
+</div>
+<div class="paragraph">
+<p>For instance, imagine a root entity with a <code>customer</code> attribute linked to the embedded <code>Customer</code> entity, which holds the <code>firstName</code> and <code>lastName</code> attributes. If you choose to include the <code>customer</code> attribute, it will automatically trigger the inclusion of the <code>customer.firstName</code> and <code>customer.lastName</code> attributes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="nested-attributes"><a class="anchor" href="#nested-attributes"></a>Nested Attributes and Collections</h3>
+<div class="paragraph">
+<p>You can specify nested properties using the dot notation: <code>refProperty.nestedRefProperty.targetDataProperty</code>.</p>
+</div>
+<div class="paragraph">
+<p>Furthermore, the system supports collection attributes, which includes nested collections at various levels. In such cases, the index consolidates all attribute values at the lowest level. For instance, a property like <code>collectionOfReferences.nestedCollectionOfAnotherReferences.name</code> is stored in the following format:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"collectionOfEntityA": {
+	"nestedCollectionOfEntityB": {
+		"name": ["value1", ..., "valueN"]
+	}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Within the array, you’ll find values of the <code>name</code> attribute from all instances of <code>EntityB</code> within all instances of <code>EntityA</code> in the root entity.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="programmatic-mapping"><a class="anchor" href="#programmatic-mapping"></a>Programmatic Mapping</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Instead of using annotations, you can build mapping definition programmatically.</p>
+</div>
+<div class="paragraph">
+<p>To do this, you will need to define a method in your index definition interface. This method should satisfy the following conditions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>It must be a default method.</p>
+</li>
+<li>
+<p>It can be named arbitrarily.</p>
+</li>
+<li>
+<p>It can accept Spring beans as parameters for custom configuration.</p>
+</li>
+<li>
+<p>It must return the <code>MappingDefinition</code> type.</p>
+</li>
+<li>
+<p>It must be annotated with <code>@ManualMappingDefinition</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Within the method body, you can create a mapping definition using <code>MappingDefinition.builder()</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntitySearchIndex(entity = Customer.class)
+public interface CustomerIndexDefinition {
+    @ManualMappingDefinition <i class="conum" data-value="1"></i><b>(1)</b>
+    default MappingDefinition mapping(FilePropertyValueExtractor filePropertyValueExtractor) { <i class="conum" data-value="2"></i><b>(2)</b>
+        return MappingDefinition.builder()
+                .addElement(
+                        MappingDefinitionElement.builder()
+                                .includeProperties("*") <i class="conum" data-value="3"></i><b>(3)</b>
+                                .excludeProperties("hobby", "maritalStatus") <i class="conum" data-value="4"></i><b>(4)</b>
+                                .withFieldMappingStrategyClass(AutoMappingStrategy.class) <i class="conum" data-value="5"></i><b>(5)</b>
+                                .withPropertyValueExtractor(filePropertyValueExtractor) <i class="conum" data-value="6"></i><b>(6)</b>
+                                .build()
+                )
+                .build();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@ManualMappingDefinition</code> annotation marks methods with manual creation of mapping definition.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>You can pass Spring beans as parameters for custom mapping configuration.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The list of properties that should be indexed. Here the <code>*</code> wildcard is used to include all local properties of the indexed <code>Customer</code> entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The list of properties that should not be indexed.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The <code>FieldMappingStrategy</code> implementation class that should be used to map properties. The mapping strategy can also be defined as instance using the <code>withFieldMappingStrategy()</code> method with the strategy instance as a parameter.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>An explicit property value extractor. For example, a <code>FilePropertyValueExtractor</code> instance can be used for processing attributes of the <code>FileRef</code> type.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+There can be only one method with programmatic mapping. If a method with programmatic mapping exists, all mapping annotations are ignored.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="indexable-predicate"><a class="anchor" href="#indexable-predicate"></a>Indexable Predicate</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Indexing process can have additional instance-level condition.
+It can be added by configuring Indexable Predicate. This predicate applies to each entity instance during indexing and defines if it should be indexed or not.</p>
+</div>
+<div class="paragraph">
+<p>It doesn’t apply during deletion.</p>
+</div>
+<div class="paragraph">
+<p>To configure Indexable Predicate add method that fulfils the following requirements:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>With default modifier.</p>
+</li>
+<li>
+<p>With any name.</p>
+</li>
+<li>
+<p>With return type - <code>Predicate&lt;TargetEntity&gt;</code>, where 'TargetEntity' is the value of <code>entity()</code> parameter of current annotation.</p>
+</li>
+<li>
+<p>With Spring beans required for predicate logic as parameters.</p>
+</li>
+<li>
+<p>Annotated with <code>@IndexablePredicate</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Actual predicate should be created within method body and returned as a result.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Instance passed to predicate includes only declared indexable properties, others are unfetched. To get access to them you need to reload instance with proper fetch plan within predicate.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntitySearchIndex(entity = Customer.class)
+public interface CustomerIndexDefinition {
+    @AutoMappedField(
+            includeProperties = {"firstName", "lastName"},
+            analyzer = "german")
+    void customerMapping();
+
+    @IndexablePredicate
+    default Predicate&lt;Customer&gt; indexCustomerWithGoldStatusOnlyPredicate(DataManager dataManager) {
+        return (instance) -&gt; {
+            Id&lt;Customer&gt; id = Id.of(instance);
+            Customer reloadedInstance = dataManager.load(id)
+                    .fetchPlanProperties("status")
+                    .one();
+            Status status = reloadedInstance.getStatus();
+            return Status.GOLD.equals(status);
+        };
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

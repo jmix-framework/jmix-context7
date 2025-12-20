@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Tasks</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In BPMN, a <strong>task</strong> is an atomic activity within a process flow that represents work performed by a person or an application.
+Tasks are the fundamental elements that define the units of work in a business process.</p>
+</div>
+<div class="paragraph">
+<p><em>Atomic</em> means that it cannot be broken down further in the process model.
+If an activity can be decomposed into smaller units, a <a class="xref page" href="bpmn-subprocesses.html">subprocess</a> should be used instead.</p>
+</div>
+<div class="paragraph">
+<p>Tasks are connected by <a class="xref page" href="bpmn-sequence-flow.html">sequence flows</a> to define the order of execution within the process.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="task-type"><a class="anchor" href="#task-type"></a>Task Types</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>BPMN defines several types of tasks to represent different behaviors and performers.
+These task types are graphically annotated with symbols in the top left corner of the task shape.
+The task types include:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Abstract Task</dt>
+<dd>
+<p>A task that does not have a specific type defined.
+It is used when the task’s behavior is not specified in detail.</p>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Processes with <em>abstract tasks</em> can be deployed, but the task will be ignored by the engine.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</dd>
+<dt class="hdlist1"><a class="xref page" href="bpmn-user-task.html">User Task</a></dt>
+<dd>
+<p>Performed by a human user with the assistance of a software application.</p>
+</dd>
+<dt class="hdlist1"><a class="xref page" href="bpmn-service-task.html">Service Task</a></dt>
+<dd>
+<p>Uses a web service, automated application, or other service to perform the task.</p>
+</dd>
+<dt class="hdlist1">Manual Task</dt>
+<dd>
+<p>Performed without the aid of any business process execution engine. <strong>Not supported in Jmix BPM</strong>.</p>
+</dd>
+<dt class="hdlist1"><a class="xref page" href="bpmn-business-rule-task.html">Business Rule Task</a></dt>
+<dd>
+<p>Provides input to a business rules engine and gets the output.</p>
+</dd>
+<dt class="hdlist1"><a class="xref page" href="bpmn-script-task.html">Script Task</a></dt>
+<dd>
+<p>Executed by a business process engine by running a predefined script.</p>
+</dd>
+<dt class="hdlist1"><a class="xref page" href="jmix-entity-data-task.html">Entity Data Task</a></dt>
+<dd>
+<p>Allows to manipulate Jmix entities from within the business process.</p>
+</dd>
+<dt class="hdlist1"><a class="xref page" href="jmix-email-task.html">Email Sending Task</a></dt>
+<dd>
+<p>Allows to send emails from within the business process.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="common-task-properties"><a class="anchor" href="#common-task-properties"></a>Common Task Properties</h2>
+<div class="sectionbody">
+<div class="paragraph" id="task-id">
+<div class="title"><strong>Task Id</strong></div>
+<p>The task <em>Id</em> is generated automatically, you can change it to more meaningful.
+It helps to make logs be understandable better.</p>
+</div>
+<div class="paragraph" id="naming-tasks">
+<div class="title"><strong>Naming Tasks</strong></div>
+<p>Tasks are typically named using a verb + object syntax, such as "Approve Order" or "Send Invoice".</p>
+</div>
+<div class="paragraph">
+<p>Task name maximum length is 255 characters.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="additional-markers"><a class="anchor" href="#additional-markers"></a>Additional Markers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Tasks can also be annotated with markers to indicate specific behaviors such as:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Looping</dt>
+<dd>
+<p>It indicates that a task will repeat until a certain condition is met. <strong>Not supported in Jmix BPM</strong>.</p>
+</dd>
+<dt class="hdlist1">Multi-Instance</dt>
+<dd>
+<p>It indicates that a task will be executed multiple times, either in parallel or sequentially.
+See the <a class="xref page" href="multi-instance-activities.html">Multi-Instance</a> section for details.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="extension-properties"><a class="anchor" href="#extension-properties"></a>Extension Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Extension properties can be added to the task.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="extension properties" src="../_images/bpmn-service-task/extension-properties.png" width="460"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In XML, extension properties are defined by <code>jmix:property</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="service-task" name="Service Task" &gt;
+&lt;!--    . . .   --&gt;
+&lt;extensionElements&gt;
+&lt;!--   . . .    --&gt;
+    &lt;jmix:properties&gt;
+      &lt;jmix:property name="color" value="red" /&gt;
+    &lt;/jmix:properties&gt;
+  &lt;/extensionElements&gt;
+&lt;/serviceTask&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="execution-listeners"><a class="anchor" href="#execution-listeners"></a>Execution Listeners</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can define execution listeners for the task. See <a class="xref page" href="../listeners.html#execution-listeners">Execution listeners</a>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

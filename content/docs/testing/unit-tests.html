@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Tests :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Unit Tests</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A unit test is the narrowest variant of an automated test.</p>
+</div>
+<div class="paragraph">
+<p>The term "unit test" is used to describe different concepts, including the automated testing in general. We will refer to a unit test as an automated test that verifies behaviour on a particular class or set of classes without dependencies (that is mainly without Spring context and database).</p>
+</div>
+<div class="paragraph">
+<p>Jmix automatically includes the <a href="https://junit.org/junit5/" rel="noopener" target="_blank">JUnit 5</a> test framework as well as <a href="https://site.mockito.org/" rel="noopener" target="_blank">Mockito</a> for mocking dependencies.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="testing-isolated-functionality"><a class="anchor" href="#testing-isolated-functionality"></a>Testing Isolated Functionality</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To demonstrate the process of creating a unit test, let’s consider the functionality of calculating a total for a given list of <code>OrderLine</code> instances associated with an <code>Order</code>.</p>
+</div>
+<div class="paragraph">
+<p>There is a dedicated class called <code>OrderAmountCalculation</code> that handles this calculation. It is not a Spring bean, but just a regular Java class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class OrderAmountCalculation {
+
+    public BigDecimal calculateTotalAmount(List&lt;OrderLine&gt; orderLines) {
+
+        return orderLines.stream()
+                .map(this::totalPriceForOrderLine)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal totalPriceForOrderLine(OrderLine orderLine) {
+
+        BigDecimal productPrice = orderLine.getProduct().getPrice();
+        BigDecimal quantity = BigDecimal.valueOf(orderLine.getQuantity());
+
+        return productPrice.multiply(quantity);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>An example unit test for this functionality:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">class OrderAmountCalculationTest {
+
+    private OrderAmountCalculation orderAmountCalculation;
+    private static final BigDecimal USD499 = BigDecimal.valueOf(499.0);
+    private Product iPad;
+
+    @Test
+    void calculateTotalAmount() {
+
+        // given:
+        orderAmountCalculation = new OrderAmountCalculation(); <i class="conum" data-value="1"></i><b>(1)</b>
+
+        // and:
+        iPad = new Product(); <i class="conum" data-value="2"></i><b>(2)</b>
+        iPad.setName("Apple iPad");
+        iPad.setPrice(USD499);
+
+        // and:
+        OrderLine twoIpads = new OrderLine();
+        twoIpads.setProduct(iPad);
+        twoIpads.setQuantity(2.0);
+
+        // when:
+        var totalAmount = orderAmountCalculation.calculateTotalAmount(
+                List.of(twoIpads)
+        );
+
+        // then:
+        assertThat(totalAmount) <i class="conum" data-value="3"></i><b>(3)</b>
+                .isEqualByComparingTo(BigDecimal.valueOf(998.0));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>OrderAmountCalculation</code> class is instantiated via the constructor without using Spring.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Entities are created by calling the constructor (without the usage of Jmix <code>Metadata</code> APIs).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Assertion of the calculation result is done via AssertJ assertions.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This test class does not contain any Spring Boot test annotations (like <code>@SpringBootTest</code>), so the test doesn’t use the Spring context and therefore runs very fast. But the lack of the Spring context in the test also means that it is not possible to use <code>@Autowired</code> in the test class to get instances of Spring beans. If the class under test has any dependencies to Spring beans, those dependencies have to be instantiated manually.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="mocking-with-mockito"><a class="anchor" href="#mocking-with-mockito"></a>Mocking with Mockito</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For unit tests the limitation mentioned above is acceptable as the scope of the test case is normally an isolated functionality of a single class.</p>
+</div>
+<div class="paragraph">
+<p>Let’s consider the following example: there is a class that invokes the Jmix <code>TimeSource</code> API to get the current date. It is used to count the number of bookings that have been placed in this year for a given customer.</p>
+</div>
+<div class="paragraph">
+<p>Here is the implementation of that class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class RecentOrdersCounter {
+    private final TimeSource timeSource;
+
+    public RecentOrdersCounter(TimeSource timeSource) {
+        this.timeSource = timeSource;
+    }
+
+    public long countFromThisYear(Customer customer) {
+        return customer.getOrders().stream()
+                .filter(this::fromThisYear)
+                .count();
+    }
+
+    private boolean fromThisYear(Order order) {
+        int thisYear = timeSource.now().toLocalDate().getYear();
+        return thisYear == order.getDate().getYear();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The class is annotated with <code>@Component</code> to let Spring automatically instantiate it and inject the dependencies. But if you want to test this functionality in a unit test, you need to manually instantiate the <code>RecentOrdersCounter</code> class and provide an instance of <code>TimeSource</code> to its constructor.</p>
+</div>
+<div class="paragraph">
+<p>To test the <code>RecentOrdersCounter</code> functionality, you might want to check the following:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Assuming we have two orders: one from 2019 and one from 2020, when the current year is 2020 we expect to have a count of one.</p>
+</div>
+</blockquote>
+</div>
+<div class="paragraph">
+<p>To achieve this, you need to control what <code>TimeSource</code> returns as now and simulate the fact that the current year is 2020.</p>
+</div>
+<div class="paragraph">
+<p>Mockito is a mocking library that supports this kind of emulation. It is available in Jmix projects by default.</p>
+</div>
+<div class="paragraph">
+<p>Here is an example on how this test case could look like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+class RecentOrdersCounterTest {
+
+    TimeSource timeSourceMock = mock(TimeSource.class); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    LocalDateTime MAR_01_2020 = LocalDate.of(2020, 3, 1).atStartOfDay();
+
+    @Test
+    void given_itIs2020_and_customerWithOneOrderIn2020_when_countFromThisYear_then_resultIs1() {
+
+        // given:
+        when(timeSourceMock.now())
+                .thenReturn(ZonedDateTime.of(MAR_01_2020, ZoneId.systemDefault()));  <i class="conum" data-value="2"></i><b>(2)</b>
+
+        // and:
+        RecentOrdersCounter counter = new RecentOrdersCounter(timeSourceMock); <i class="conum" data-value="3"></i><b>(3)</b>
+
+        // and:
+        Customer customer = new Customer();
+        Order orderFrom2020 = orderWithDate(LocalDate.of(2020, 2, 5));
+        Order orderFrom2019 = orderWithDate(LocalDate.of(2019, 5, 1));
+        customer.setOrders(List.of(orderFrom2020, orderFrom2019));
+
+        // when:
+        long recentOrdersCount = counter.countFromThisYear(customer);
+
+        // then:
+        assertThat(recentOrdersCount)
+                .isEqualTo(1);
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>Mockito.mock()</code> method creates an emulated instance that you can use to control the behavior of the class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Invocation of <code>Mockito.when()</code> defines that when the method <code>now()</code> is called on the <code>TimeSource</code>, it should return <code>2020-03-01</code> as <code>ZonedDateTime</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>When instantiating the counter class, the mock (emulated instance) of the <code>TimeSource</code> is passed to the constructor.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you want to test your Spring components in unit tests, use constructor based injection instead of <code>@Autowired</code> on the class fields.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>More information about using Mockito can be found in its <a href="https://site.mockito.org/" rel="noopener" target="_blank">documentation</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="verify-behavior-with-assertions"><a class="anchor" href="#verify-behavior-with-assertions"></a>Verifying Behavior with Assertions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Assertions can be expressed using the <a href="https://assertj.github.io/doc/" rel="noopener" target="_blank">AssertJ</a> library.</p>
+</div>
+<div class="paragraph">
+<p>The AssertJ DSL provides a fluent API to perform validations on results of the classes under test. The assertion methods (like <code>assertThat</code>) should be statically imported from <code>org.assertj.core.api.Assertions</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import static org.assertj.core.api.Assertions.assertThat;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here is a simple example of an AssertJ assertion for a String:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// given:
+String customerName = "Mike Myers";
+
+// expect:
+assertThat(customerName)
+        .startsWith("Mike")
+        .endsWith("Myers");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that it is possible to chain multiple assertions that belong to the same result object.</p>
+</div>
+<div class="paragraph">
+<p>In case of a failing test, JUnit / AssertJ will provide a proper error message about the difference between the expectation and the actual behaviour:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Expecting actual:
+  "Mike Myers"
+to end with:
+  "Murphy"</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Depending on the type of the object, AssertJ provides different assertion methods to compare values. For example, when comparing lists, AssertJ provides <code>hasSize</code> and <code>contains</code> methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// given:
+String bruceWillis = "Bruce Willis";
+String mikeMyers = "Mike Myers";
+String eddiMurphy = "Eddi Murphy";
+
+// when:
+List&lt;String&gt; customers = List.of(mikeMyers, eddiMurphy);
+
+// expect:
+assertThat(customers)
+        .hasSize(2)
+        .contains(eddiMurphy)
+        .doesNotContain(bruceWillis);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more information about assertions, read the <a href="https://assertj.github.io/doc/" rel="noopener" target="_blank">AssertJ documentation</a>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

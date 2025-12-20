@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using DataManager :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Using DataManager</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>DataManager</code> is the main interface for CRUD (Create, Read, Update, Delete) operations on entities. It allows you to load graphs of entities by ID or query, to save changed instances or remove them. You can use <a class="xref page" href="entity-events.html">entity event</a> listeners to perform actions on loading and saving of particular entities. <code>DataManager</code> maintains cross-datastore references for both JPA, DTO, and mixed entity graphs.</p>
+</div>
+<div class="paragraph">
+<p>You can inject <code>DataManager</code> to a Spring bean or a screen controller, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class CustomerService {
+
+    @Autowired
+    private DataManager dataManager;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the examples below, we skip the definition and assume that the <code>dataManager</code> variable is a reference to <code>DataManager</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="load"><a class="anchor" href="#load"></a>Loading Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>DataManager</code> provides a fluent API for loading entities. Use <code>load()</code> methods accepting entity class or <code>Id</code> as entry points to this API.</p>
+</div>
+<div class="sect2">
+<h3 id="load-by-id"><a class="anchor" href="#load-by-id"></a>Loading Entity by Id</h3>
+<div class="paragraph">
+<p>The following method loads an entity by its identifier value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Customer loadById(UUID customerId) {
+    return dataManager.load(Customer.class) <i class="conum" data-value="1"></i><b>(1)</b>
+            .id(customerId)                 <i class="conum" data-value="2"></i><b>(2)</b>
+            .one();                         <i class="conum" data-value="3"></i><b>(3)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Entry point to the fluent loader API.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>id()</code> method accepts the identifier value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>one()</code> method loads the entity instance. If there is no entity with the given identifier, the method throws <code>IllegalStateException</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The identifier can also be specified using <code>Id&lt;E&gt;</code> class which contains information about the entity type. Then the application code doesn’t need to use concrete type of the entity identifier (<code>UUID</code>, <code>Long</code>, etc.) and the loading code becomes even shorter:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Customer loadByGenericId(Id&lt;Customer&gt; customerId) {
+    return dataManager.load(customerId).one();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the entity with the given identifier may not exist, instead of <code>one()</code> terminal method use <code>optional()</code> which returns <code>Optional&lt;E&gt;</code>. In the example below, if the entity not found, a new instance is created and returned:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Customer loadOrCreate(UUID customerId) {
+    return dataManager.load(Customer.class)
+            .id(customerId)
+            .optional() <i class="conum" data-value="1"></i><b>(1)</b>
+            .orElse(dataManager.create(Customer.class));
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Returns <code>Optional&lt;Customer&gt;</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can also load a list of entities by their identifiers passed to the <code>ids()</code> method, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadByIds(UUID id1, UUID id2) {
+    return dataManager.load(Customer.class)
+            .ids(id1, id2)
+            .list();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Entities in the result list have the same order as provided identifiers.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="load-all"><a class="anchor" href="#load-all"></a>Loading All Entities</h3>
+<div class="paragraph">
+<p>The following method loads all instances of the entity in a list:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadAll() {
+    return dataManager.load(Customer.class).all().list();
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Load all instances only if you are sure that the number of rows in the corresponding table is always low. Otherwise, use a <a href="#load-by-query">query</a>, <a href="#load-by-conditions">conditions</a> and/or <a href="#paging-and-sorting">paging</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="load-by-query"><a class="anchor" href="#load-by-query"></a>Loading Entities by Query</h3>
+<div class="paragraph">
+<p>When working with relational databases, use <a href="https://en.wikibooks.org/wiki/Java_Persistence/JPQL" rel="noopener" target="_blank">JPQL</a> queries to load data. See the <a class="xref page" href="jpql-extensions.html">JPQL Extensions</a> for information on how JPQL in Jmix differs from the JPA standard. Also note that <code>DataManager</code> can execute only "select" queries.</p>
+</div>
+<div class="paragraph">
+<p>The following method loads a list of entities using a full JPQL query and two parameters:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadByFullQuery() {
+    return dataManager.load(Customer.class)
+            .query("select c from sample_Customer c where c.email like :email and c.grade = :grade")
+            .parameter("email", "%@company.com")
+            .parameter("grade", CustomerGrade.PLATINUM)
+            .list();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>query()</code> method of the fluent loader interface accepts both full and abbreviated query string. The latter should be created in accordance with the following rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You can always omit the <code>"select &lt;alias&gt;"</code> clause.</p>
+</li>
+<li>
+<p>If the <code>"from"</code> clause contains a single entity and you don’t need a specific alias for it, you can omit the <code>"from &lt;entity&gt; &lt;alias&gt; where"</code> clause. In this case, the framework assumes that the alias is <code>e</code>.</p>
+</li>
+<li>
+<p>You can use positional parameters and pass their values right to the <code>query()</code> method as additional arguments.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Below is an abbreviated equivalent of the previous example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadByQuery() {
+    return dataManager.load(Customer.class)
+            .query("e.email like ?1 and e.grade = ?2", "%@company.com", CustomerGrade.PLATINUM)
+            .list();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>An example of a more complex abbreviated query with join:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Order&gt; loadOrdersByProduct(String productName) {
+    return dataManager.load(Order.class)
+            .query("from sample_Order o, sample_OrderLine l " +
+                    "where l.order = o and l.product.name = ?1", productName)
+            .list();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="load-by-conditions"><a class="anchor" href="#load-by-conditions"></a>Loading Entities by Conditions</h3>
+<div class="paragraph">
+<p>You can use conditions instead of a JPQL query to filter results. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadByConditions() {
+    return dataManager.load(Customer.class)
+            .condition(                                                      <i class="conum" data-value="1"></i><b>(1)</b>
+                LogicalCondition.and(                                        <i class="conum" data-value="2"></i><b>(2)</b>
+                    PropertyCondition.contains("email", "@company.com"),     <i class="conum" data-value="3"></i><b>(3)</b>
+                    PropertyCondition.equal("grade", CustomerGrade.PLATINUM) <i class="conum" data-value="3"></i><b>(3)</b>
+                )
+            )
+            .list();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>condition()</code> method accepts a single root condition.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>LogicalCondition.and()</code> method creates AND condition with the given nested conditions.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Property conditions compare entity attributes with the specified values.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you need a single property condition, pass it directly to the <code>condition()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadByCondition() {
+    return dataManager.load(Customer.class)
+            .condition(PropertyCondition.contains("email", "@company.com"))
+            .list();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>PropertyCondition</code> lets you specify properties of referenced entities, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Order&gt; loadByCondition() {
+    return dataManager.load(Order.class)
+            .condition(PropertyCondition.contains("customer.email", "@company.com"))
+            .list();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="load-scalars"><a class="anchor" href="#load-scalars"></a>Loading Scalar and Aggregate Values</h3>
+<div class="paragraph">
+<p>Besides entity instances, <code>DataManager</code> can load scalar and aggregate values in the form of <a class="xref page" href="../data-model/entities.html#key-value">key-value entities</a>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>loadValues(String query)</code> method loads a list of <code>KeyValueEntity</code> instances populated with a given query results. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String getCustomerPurchases(LocalDate fromDate) {
+    List&lt;KeyValueEntity&gt; kvEntities = dataManager.loadValues(
+            "select o.customer, sum(o.amount) from sample_Order o " +
+                    "where o.date &gt;= :date group by o.customer")
+            .store("main")                      <i class="conum" data-value="1"></i><b>(1)</b>
+            .properties("customer", "sum")      <i class="conum" data-value="2"></i><b>(2)</b>
+            .parameter("date", fromDate)
+            .list();
+
+    StringBuilder sb = new StringBuilder();
+    for (KeyValueEntity kvEntity : kvEntities) {
+        Customer customer = kvEntity.getValue("customer");  <i class="conum" data-value="3"></i><b>(3)</b>
+        BigDecimal sum = kvEntity.getValue("sum");          <i class="conum" data-value="3"></i><b>(3)</b>
+        sb.append(customer.getName()).append(" : ").append(sum).append("\n");
+    }
+    return sb.toString();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Specify data store where the requested entities are located. Omit this method if the entity is located in the main data store.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Specify names of the resulting key-value entity attributes. The order of the properties must correspond to the columns in the query result set.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Get loaded values from the key-value entity attributes.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>loadValue(String query, Class valueType)</code> method loads a single value of the given type by the query. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">BigDecimal getTotal(LocalDate toDate) {
+    return dataManager.loadValue(
+                "select sum(o.amount) from sample_Order o where o.date &gt;= :date",
+                BigDecimal.class    <i class="conum" data-value="1"></i><b>(1)</b>
+            )
+            .store("main")          <i class="conum" data-value="2"></i><b>(2)</b>
+            .parameter("date", toDate)
+            .one();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The type of the returned value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Specify data store where the requested entities are located. Omit this method if the entity is located in the main data store.</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="load-scalars-limitations"><a class="anchor" href="#load-scalars-limitations"></a>Limitations</h4>
+<div class="paragraph">
+<p>The <code>loadValues()</code> and <code>loadValue()</code> have the following limitations:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The query must be a valid JPQL query for the single specified data store. It can contain only persistent attributes of JPA entities.</p>
+</li>
+<li>
+<p><a class="xref page" href="../data-model/entities.html#cross-data-store-ref">Cross-datastore references</a> are not supported.</p>
+</li>
+<li>
+<p>These methods are not implemented in <a class="xref page" href="../rest-ds/index.html">REST DataStore</a>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="paging-and-sorting"><a class="anchor" href="#paging-and-sorting"></a>Paging and Sorting</h3>
+<div class="paragraph">
+<p>When you load entities using <code>all()</code>, <code>query()</code> or <code>condition()</code> methods, you can also sort results and split them into pages.</p>
+</div>
+<div class="paragraph">
+<p>Use <code>firstResult()</code> and <code>maxResults()</code> methods for paging:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadPageByQuery(int offset, int limit) {
+    return dataManager.load(Customer.class)
+            .query("e.grade = ?1", CustomerGrade.BRONZE)
+            .firstResult(offset)
+            .maxResults(limit)
+            .list();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use <code>sort()</code> method for sorting results:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadSorted() {
+    return dataManager.load(Customer.class)
+            .condition(PropertyCondition.contains("email", "@company.com"))
+            .sort(Sort.by("name"))
+            .list();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <code>Sort.by()</code> method, you can specify properties of referenced entities, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Order&gt; loadSorted() {
+    return dataManager.load(Order.class)
+            .all()
+            .sort(Sort.by("customer.name"))
+            .list();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When loading by a JPQL query, you can also use the standard <code>order by</code> clause in the query:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadByQuerySorted() {
+    return dataManager.load(Customer.class)
+            .query("e.grade = ?1 order by e.name", CustomerGrade.BRONZE)
+            .list();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="lock"><a class="anchor" href="#lock"></a>Using Locks</h3>
+<div class="paragraph">
+<p>The <code>lockMode()</code> method accepting the <code>jakarta.persistence.LockModeType</code> enum values can be used for locking JPA entities on the database level. For example, the following example obtains a pessimistic lock using a <code>select …​ for update</code> SQL statement:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadAndLock() {
+    return dataManager.load(Customer.class)
+            .query("e.email like ?1", "%@company.com")
+            .lockMode(LockModeType.PESSIMISTIC_WRITE)
+            .list();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="save"><a class="anchor" href="#save"></a>Saving Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use <code>save()</code> method to save new and modified entities in the database.</p>
+</div>
+<div class="paragraph">
+<p>In the simplest form, the method accepts an entity instance and returns a saved instance:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Customer saveCustomer(Customer entity) {
+    return dataManager.save(entity);
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Usually the passed and returned instances are not the same. The returned instance can be affected by entity event listeners, database triggers or access control rights. So if you need to save an entity and then continue working with it, always use the instance returned from the <code>save()</code> method.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you don’t need the saved instance immediately, use the <code>saveWithoutReload()</code> method. This will improve performance because <code>DataManager</code> will not fetch the saved entity back from the database. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void saveCustomerWithoutReload(Customer entity) {
+    dataManager.saveWithoutReload(entity);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>save()</code> method can accept multiple instances at once. In this case, it returns the <code>EntitySet</code> object which can be used to easily get the saved instances. In the example below, we create and save two linked entities, and return one of them:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Order createOrderWithCustomer() {
+    Customer customer = dataManager.create(Customer.class);
+    customer.setName("Alice");
+
+    Order order = dataManager.create(Order.class);
+    order.setCustomer(customer);
+
+    EntitySet savedEntities = dataManager.save(order, customer); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    return savedEntities.get(order); <i class="conum" data-value="2"></i><b>(2)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Save two linked entities. The order of <code>save()</code> parameters is not important.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>EntitySet.get()</code> method lets you obtain the saved instance by its source instance.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you need to save a collection of entities (<code>List</code>, <code>Set</code>, etc.), and return the saved instances, use the <code>saveAll()</code> method. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">EntitySet saveCustomers(List&lt;Customer&gt; entities) {
+    return dataManager.saveAll(entities);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>saveWithoutReload()</code> method also accepts multiple instances and collections. Use it instead of <code>save()</code> and <code>saveAll()</code> if you don’t need the saved entities for further actions.</p>
+</div>
+<div class="paragraph">
+<p>The most powerful form of the <code>save()</code> method accepts <code>SaveContext</code> object that can be used to add multiple instances and specify additional parameters of saving. In the example below, we save a collection of entities using <code>SaveContext</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">EntitySet saveUsingContext(List&lt;Customer&gt; entities) {
+    SaveContext saveContext = new SaveContext();
+    for (Customer entity : entities) {
+        saveContext.saving(entity);
+    }
+    return dataManager.save(saveContext);
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="save-performance"><a class="anchor" href="#save-performance"></a>Save Performance</h3>
+<div class="paragraph">
+<p>There are a few techniques for improving performance of the save operation. They are especially useful if you are working with a large collection of entities.</p>
+</div>
+<div class="paragraph">
+<p>First of all, instead of passing each entity instance to separate calls of the <code>save(entity)</code> method, consider saving all entities (if the collection is not very large, say, less than 1000) in a single transaction by invoking the save method once for the whole collection.</p>
+</div>
+<div class="paragraph">
+<p>If you don’t need the saved instances immediately, use <code>saveWithoutReload()</code> method. To achieve the same result when using the <code>SaveContext</code> object, invoke the <code>setDiscardSaved(true)</code> method on it. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void saveAndReturnNothing(List&lt;Customer&gt; entities) {
+    // create SaveContext and set its 'discardSaved' property
+    SaveContext saveContext = new SaveContext().setDiscardSaved(true);
+    for (Customer entity : entities) {
+        saveContext.saving(entity);
+    }
+    dataManager.save(saveContext);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you don’t need to check current user security permissions, use <code>UnconstrainedDataManager</code> to get an additional performance gain. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void saveByUnconstrainedDataManager(List&lt;Customer&gt; entities) {
+    // use 'UnconstrainedDataManager' which bypasses security
+    dataManager.unconstrained().saveWithoutReload(entities);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the collection is large (more than 1000 instances), it is vital for the good performance to split the save operation to batches. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void saveInBatches(List&lt;Customer&gt; entities) {
+    // save by 100 instances
+    for (int i = 0; i &lt; entities.size(); i += 100) {
+        int endIndex = Math.min(i + 100, entities.size());
+        List&lt;Customer&gt; batch = entities.subList(i, endIndex);
+        dataManager.saveWithoutReload(batch);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See the comparison of different saving methods in the <a href="https://github.com/jmix-framework/jmix-data-performance-tests" rel="noopener" target="_blank">jmix-data-performance-tests</a> project on GitHub.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="remove"><a class="anchor" href="#remove"></a>Removing Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use <code>remove()</code> method to remove entities from the database.</p>
+</div>
+<div class="paragraph">
+<p>In the simplest form, the method accepts an entity instance to remove:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void removeCustomer(Customer entity) {
+    dataManager.remove(entity);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>remove()</code> method can accept multiple instances, arrays and collections:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void removeCustomers(List&lt;Customer&gt; entities) {
+    dataManager.remove(entities);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you remove linked entities, the order of parameters can be important. First pass the entities that depend on the others, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void removeOrderWithCustomer(Order order) {
+    dataManager.remove(order, order.getCustomer());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you don’t have an entity instance but only its identifier, construct the <code>Id</code> object from the identifier and pass it to the <code>remove()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void removeCustomer(UUID customerId) {
+    dataManager.remove(Id.of(customerId, Customer.class));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need to specify additional parameters of the remove operation, for example to turn off <a class="xref page" href="../data-model/soft-deletion.html">soft deletion</a> and completely remove from the database an entity with the soft delete trait, use the <code>save()</code> method with <code>SaveContext</code> and pass the removed entities to its <code>removing()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void hardDelete(Product product) {
+    dataManager.save(
+            new SaveContext()
+                    .removing(product)
+                    .setHint(PersistenceHints.SOFT_DELETION, false)
+    );
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="transactions"><a class="anchor" href="#transactions"></a>Transactions in DataManager</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When working with JPA entities, <code>DataManager</code> by default joins the current transaction or creates and commits a new one if there is no existing transaction.</p>
+</div>
+<div class="paragraph">
+<p>You can manage transactions using annotations or <code>TransactionTemplate</code> as described in the <a class="xref page" href="transactions.html">Transaction Management</a> section.</p>
+</div>
+<div class="paragraph">
+<p>Besides, <code>DataManager</code> allows you to control its own internal transactional behavior.</p>
+</div>
+<div class="paragraph">
+<p>When loading data using the fluent API, you can use the <code>joinTransaction(false)</code> method to begin and commit a separate transaction for this operation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Customer loadCustomerInSeparateTransaction(UUID customerId) {
+    return dataManager.load(Customer.class)
+            .id(customerId)
+            .joinTransaction(false)
+            .one();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When saving entities, use the <code>setJoinTransaction(false)</code> method of <code>SaveContext</code> to to begin and commit a separate transaction for the operation with this context:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void saveCustomerInSeparateTransaction(Customer entity) {
+    SaveContext saveContext = new SaveContext().saving(entity)
+            .setJoinTransaction(false);
+    dataManager.save(saveContext);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="security"><a class="anchor" href="#security"></a>Security in DataManager</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>DataManager</code> performs the <a class="xref page" href="../security/resource-roles.html#entity-policy">entity policy</a> checks:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the user has no rights to CREATE, UPDATE or DELETE action, the <code>save()</code> and <code>remove()</code> methods will throw the <code>io.jmix.core.security.AccessDeniedException</code> exception on the corresponding operation.</p>
+</li>
+<li>
+<p>If the user has no rights to the READ action, the <code>load()</code> methods will return the empty result: <code>null</code> or an empty list. This applies only to the root entity of the loaded object graph; the references are always loaded.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>DataManager</code> also respects the <a class="xref page" href="../security/row-level-roles.html#policies">row-level policies</a>. The JPQL policy affects only the root entity of the loaded object graph, while the predicate policy affects the root entity and all linked entities.</p>
+</div>
+<div class="paragraph">
+<p>The <code>UnconstrainedDataManager</code> interface has the same methods as <code>DataManager</code> but it doesn’t check the security policies. You can use it instead of the <code>DataManager</code> to bypass the security in your code, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UnconstrainedDataManager unconstrainedDataManager;
+
+public Customer loadByIdUnconstrained(UUID customerId) {
+    return unconstrainedDataManager.load(Customer.class)
+            .id(customerId)
+            .one();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See more information about security in the <a class="xref page" href="../security/authorization.html#data-access-checks">Data Access Checks</a> section.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

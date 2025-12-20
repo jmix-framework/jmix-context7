@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2. Properties Mapping :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">2. Properties Mapping</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this chapter, you will:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create additional attributes for the <code>KanbanTask</code> entity.</p>
+</li>
+<li>
+<p>Add UI fields for editing these new attributes.</p>
+</li>
+<li>
+<p>Map Kanban task card fields to the corresponding <code>KanbanTask</code> entity attributes.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="additional-attribute-creation"><a class="anchor" href="#additional-attribute-creation"></a>Enhancing KanbanTask Entity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Kanban task cards can display specific fields of a Kanban task entity. Here’s a list of all supported attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>id</code> - any standard identifier type. Required attribute.</p>
+</li>
+<li>
+<p><code>status</code> - String or enumeration type. Required attribute.</p>
+</li>
+<li>
+<p><code>text</code> - String type. Required attribute.</p>
+</li>
+<li>
+<p><code>color</code> - String type. The string value must be formatted in CSS color.</p>
+</li>
+<li>
+<p><code>dueDate</code> - any standard date type.</p>
+</li>
+<li>
+<p><code>priority</code> - String or enumeration type.</p>
+</li>
+<li>
+<p><code>progress</code> - integer number type.</p>
+</li>
+<li>
+<p><code>swimlane</code> - String or enumeration type.</p>
+</li>
+<li>
+<p><code>tags</code> - String type. The string value must be a comma-separated sequence of tags without space symbols.</p>
+</li>
+<li>
+<p><code>userAvatar</code> - <code>FileRef</code> or a byte array type.</p>
+</li>
+<li>
+<p><code>username</code> - String type.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To begin, you’ll need to add all attributes <strong>except</strong> <code>swimlane</code> to the <code>KanbanTask</code> entity.</p>
+</div>
+<div class="paragraph">
+<p>Open the <code>KanbanTask.java</code> class and define the additional attributes.</p>
+</div>
+<div class="paragraph">
+<p>Now you need to add attributes to the detail view. Use the <strong>Add to Views</strong> (<span class="image"><img alt="add attribute to screens" src="_images/add-attribute-to-screens.svg"/></span>) button in the <strong>Attributes</strong> toolbar:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add to view action" src="_images/add-to-view-action.png" width="538"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The appeared dialog window will show all views that display the <code>KanbanTask</code> entity. Select only <code>KanbanTask.detail</code> view:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add to view action 2" src="_images/add-to-view-action-2.png" width="561"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Sequentially add the remaining attributes.</p>
+</div>
+<div class="paragraph">
+<p>Studio will add the corresponding UI fields to <code>formLayout</code> of the <code>KanbanTask.detail</code> view:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="additional fields generation result" src="_images/additional-fields-generation-result.png" width="342"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Restart the application to generate Liquibase changelogs.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="additional attributes changelog" src="_images/additional-attributes-changelog.png" width="1036"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Save and run</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Open the <code>KanbanTask.detail</code> view in your browser. New attributes are available for editing.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="additional fields ui" src="_images/additional-fields-ui.png" width="1143"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="properties-mapping"><a class="anchor" href="#properties-mapping"></a>Mapping Entity Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To map an entity attribute to a Kanban card field, you need to add a <a class="xref page" href="kanban-component.html#propertiesMapping">propertiesMapping</a> element to the <code>kanban</code> component.</p>
+</div>
+<div class="paragraph">
+<p>Locate <code>kanban-task-list-view.xml</code> in the <strong>Jmix</strong> tool window and double-click it. Select <code>kanban</code> within the <strong>Jmix UI</strong> hierarchy panel or in the XML descriptor. Next, click the <strong>Add</strong> button in the component inspector panel. From the drop-down list, choose <code>PropertiesMapping</code>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add properties mapping" src="_images/add-properties-mapping.png" width="463"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the dialog window that opens, enter the following attribute mapping:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="basic attribute mapping" src="_images/basic-attribute-mapping.png" width="571"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Fill in the remaining attributes using the component inspector or the XML markup of the <code>propertyMapping</code> element:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="attribute mapping" src="_images/attribute-mapping.png" width="400"/>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+To display the user’s avatar in the Kanban card, add the <code>picture</code> attribute to the <code>User</code> entity. Detailed instructions can be found in the <a class="xref page" href="../tutorial/images.html">Working with Images</a> section of the Tutorial.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To display these attributes on the card, you need to enable visibility for the corresponding attributes of the <code>kanban</code> component.</p>
+</div>
+<div class="paragraph">
+<p>Select <code>kanban</code> within the <strong>Jmix UI</strong> hierarchy panel or in the XML markup. Next, check the <code>taskDueDateVisible</code>, <code>taskPriorityVisible</code>, <code>taskProgressVisible</code>, <code>taskTagsVisible</code>, <code>taskUserAvatarVisible</code> boxes.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="kanban additional attributes" src="_images/kanban-additional-attributes.png" width="1170"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. The appearance of the cards will be changed.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="kanban task list view updated" src="_images/kanban-task-list-view-updated.png" width="1143"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Now the changes you make to the card will be displayed on the Kanban board.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="filled card" src="_images/filled-card.png" width="1143"/>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="kanban task list view updated 2" src="_images/kanban-task-list-view-updated-2.png" width="1143"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_summary"><a class="anchor" href="#_summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section has explained how to map your Jmix entity’s attributes to the fields displayed on Kanban cards. You have learned how to customize the information presented on each card by connecting the <code>kanban</code> component with your data model.</p>
+</div>
+<div class="paragraph">
+<p>This section has covered:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Defining mappings:</strong> You have discovered how to use the <code>propertiesMapping</code> element within the <code>kanban</code> component to link entity attributes to Kanban card fields.</p>
+</li>
+<li>
+<p><strong>Supported fields:</strong> You have understood the available fields (for example, <code>text</code>, <code>dueDate</code>, <code>priority</code>, <code>tags</code>) that you can map to your entity attributes.</p>
+</li>
+<li>
+<p><strong>Customizing card appearance:</strong> You have learned how to control the visibility of specific fields on the Kanban cards.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

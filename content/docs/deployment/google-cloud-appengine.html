@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Cloud :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Google Cloud</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before starting the guide, create an account and ensure that you have access to the <a href="https://console.cloud.google.com/" rel="noopener" target="_blank">Google Cloud Console</a>. We will use Google App Engine for the application deploy.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+We will use PostgreSQL as a database for this guide.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="sdk"><a class="anchor" href="#sdk"></a>SDK Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Install the Cloud SDK. <a href="https://cloud.google.com/sdk/docs/install" rel="noopener" target="_blank">See the documentation</a>.</p>
+</div>
+<div class="paragraph">
+<p>Install the <code>app-engine-java</code> component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gcloud components install app-engine-java</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_google_cloud_project_setup"><a class="anchor" href="#_google_cloud_project_setup"></a>Google Cloud Project Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To run the application in Google Cloud, you need to create a <strong>Project</strong>. Inside the project, you need to create an <strong>Application</strong> that will run the deployed JAR file and <strong>Database</strong> that will be used by the application. We will use Google Cloud SDK command line interface to do this, but it is also possible to use Google Cloud Web console.</p>
+</div>
+<div class="paragraph">
+<p>The first step is project creation. Type the following command in the terminal:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gcloud init</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After issuing this command, you will be asked about init configuration. Init with new configuration using your account and create a new project. For this example, the name <code>jmix-application</code> will be used.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">This account has no projects.
+
+Would you like to create one? (Y/n)?  Y
+
+Enter a Project ID. Note that a Project ID CANNOT be changed later.
+Project IDs must be 6-30 characters (lowercase ASCII, digits, or
+hyphens) in length and start with a lowercase letter. *jmix-application*</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, we need to associate billing account with the project. It may be free of charge, but it is required in order to be able to deploy applications.</p>
+</div>
+<div class="paragraph">
+<p>To do this, find your billing account ID:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gcloud alpha billing accounts list</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see output similar to this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">ACCOUNT_ID            NAME                OPEN  MASTER_ACCOUNT_ID
+019961-BB112F-B3C8E6  My Billing Account  True</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Link your project with the account ID by executing the command and use your account ID as a parameter:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gcloud alpha billing projects link jmix-application --billing-account=019961-BB112F-B3C8E6</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, we need to set up default project for the Google Cloud SDK and enable the following cloud APIs that we need to deploy the application:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>SQL Admin API</p>
+</li>
+<li>
+<p>Cloud Build API</p>
+</li>
+<li>
+<p>Cloud Debugger API</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gcloud config set project jmix-application
+gcloud services enable sqladmin.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable clouddebugger.googleapis.com</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The next step: create a Google App Engine application inside the project. This application will be responsible for running the uploaded JAR file. To create the application, issue the following command in the console:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gcloud app create</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the list of the geographical locations select one for your application deploy. For this example we will use <code>europe-west2</code>.</p>
+</div>
+<div class="paragraph">
+<p>After the application is created, we can set up the database. The database name will be <code>sampledb</code>. It will be created inside the PostgreSQL instance named <code>sample</code>. The instance will be placed in the same region and zone as the application - <code>europe-west2</code>.</p>
+</div>
+<div class="paragraph">
+<p>For the PostgreSQL database type, we need to specify server parameters. You can find all possible parameters (CPU and Memory) <a href="https://cloud.google.com/sql/docs/postgres/create-instance#machine-types" rel="noopener" target="_blank">on this page</a>.</p>
+</div>
+<div class="paragraph">
+<p>To create a PostgreSQL database instance, execute the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gcloud sql instances create sample --database-version=POSTGRES_12 --tier=db-custom-1-3840 --region=europe-west2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create the database for the application and change the password for the default user using the following commands:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gcloud sql databases create sampledb --instance=sample
+gcloud sql users set-password postgres --instance=sample --prompt-for-password</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We have our database up and running. To continue, you need to write down the following information:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Database name (in this example <code>sampledb</code>).</p>
+</li>
+<li>
+<p>Database username (by default it is <code>postgres</code>).</p>
+</li>
+<li>
+<p>Database password (the password that you assigned during database creation).</p>
+</li>
+<li>
+<p>Cloud-specific instance connection name.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Get the connection name of the instance in the format <code>project-id:zone-id:instance-id</code> by running the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gcloud sql instances describe sample</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Find <strong>connectionName</strong> property in the output data. For our case it will look like <code>jmix-application:europe-west2:sample</code></p>
+</div>
+<div class="paragraph">
+<p>The cloud environment is set up and ready.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="prepare-app"><a class="anchor" href="#prepare-app"></a>Preparing Application</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="database-connection"><a class="anchor" href="#database-connection"></a>Defining Database Connection</h3>
+<div class="paragraph">
+<p>Since we have more than one database connections now (local and Google Cloud Database), we need to configure additional properties file that will contain connection properties specific for the Google Cloud environment.</p>
+</div>
+<div class="paragraph">
+<p>To switch between different configurations, we will use <a href="https://docs.spring.io/spring-boot/reference/features/profiles.html" rel="noopener" target="_blank">Runtime Profiles</a>. For our case, we will use profile name <code>gae</code>.</p>
+</div>
+<div class="paragraph">
+<p>Let’s create <code>application-gae.properties</code> file according to naming rules described in the <a href="https://docs.spring.io/spring-boot/reference/features/external-config.html#features.external-config.files.profile-specific" rel="noopener" target="_blank">Spring Boot Documentation</a>.</p>
+</div>
+<div class="paragraph">
+<p>In this file we need to specify database connection properties and cloud-specific spring boot application diagnostic context path.</p>
+</div>
+<div class="paragraph">
+<p>For our application, the file may look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">gae.conn.name = jmix-application:europe-west2:sample
+gae.database = sampledb
+
+main.datasource.username = postgres
+main.datasource.password = &lt;password that you specified&gt;
+main.datasource.url = jdbc:postgresql://google/${gae.database}?useSSL=false&amp;cloudSqlInstance=${gae.conn.name}&amp;socketFactory=com.google.cloud.sql.postgres.SocketFactory&amp;user=${main.datasource.username}&amp;password=${main.datasource.password}
+
+management.contextPath = /_ah</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="cloud-specific-settings"><a class="anchor" href="#cloud-specific-settings"></a>Cloud-Specific Settings</h3>
+<div class="paragraph">
+<p>To run the application in the Google Cloud AppEngine, we need to create the execution environment configuration file named <code>app.yaml</code>. Create this file in your source code, the path is: <code>src/main/appengine/app.yaml</code>.</p>
+</div>
+<div class="paragraph">
+<p>In this file we need to specify application execution runtime, environment variables and scaling parameters. You can find more information about configuration file in <a href="https://cloud.google.com/appengine/docs/flexible/java/configuring-your-app-with-app-yaml" rel="noopener" target="_blank">the Google Cloud documentation</a>.</p>
+</div>
+<div class="paragraph">
+<p>For our case, we specify the minimum set of parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Java 17 as an execution environment.</p>
+</li>
+<li>
+<p>Active Spring runtime profile name (<code>gae</code>).</p>
+</li>
+<li>
+<p>Temporary directory path.</p>
+</li>
+<li>
+<p>No scaling.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>So the file may look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">runtime: java11
+env_variables:
+  SPRING_PROFILES_ACTIVE: "gae"
+  JMIX_CORE_WORKDIR: "/tmp/.jmix/work"
+manual_scaling:
+  instances: 1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The applicatin is configured, now we need to alter the build script to enable application deploy using Google Cloud SDK.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="deploy-task"><a class="anchor" href="#deploy-task"></a>Deploy Task</h3>
+<div class="paragraph">
+<p>First, we need to add Google Cloud plugin to import its Gradle tasks. You can do it by specifying the following in the beginning of the build script:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.cloud.tools:appengine-gradle-plugin:2.4.1'
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then we need to apply this plugin along with Spring Boot plugin. Add the following line as an addition to the Spring Boot plugin application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">apply plugin: 'com.google.cloud.tools.appengine'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the dependencies section, add the cloud connector:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation('com.google.cloud.sql:postgres-socket-factory:1.2.0') {
+    exclude group: 'com.google.guava', module: 'guava'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Finally, add the deployment task definition to the end of the build file and specify project ID in it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">appengine {  // App Engine tasks configuration
+    deploy {   // deploy configuration
+        projectId = 'jmix-application'
+        version = '1'
+    }
+    stage {
+        artifact = "${buildDir}/libs/${project.name}-${project.version}.jar"
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now our application is ready for deploy.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="deploy"><a class="anchor" href="#deploy"></a>Deploying Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to deploy the application to the Google Cloud, execute the following command in the command line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">./gradlew appengineDeploy</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Gradle will use Google Cloud SDK and upload the application Jar file to the cloud execution environment.</p>
+</div>
+<div class="paragraph">
+<p>You should see a console output similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Beginning deployment of service [default]...
+Created .gcloudignore file. See `gcloud topic gcloudignore` for details.
+#============================================================#
+#= Uploading 1 file to Google Cloud Storage                 =#
+#============================================================#
+File upload done.
+Updating service [default].............................done.
+Setting traffic split for service [default]..................................done.
+Deployed service [default] to [https://jmix-application.nw.r.appspot.com]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice the URL in the last line. This is the address that you can use to get access to the deployed application.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

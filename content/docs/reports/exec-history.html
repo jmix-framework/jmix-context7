@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Execution History :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Report Execution History</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Reports add-on provides a mechanism of a report execution history management with the following features:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Save execution history for each report. The system administrator can use the report execution history to find out how often a report is executed, how much processing time is spent on a report, by which user and when a report was run, what errors occurred during the execution.</p>
+</li>
+<li>
+<p>Clean outdated report execution history.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The report execution history is disabled by default and can be enabled by setting the <a class="xref page" href="configuration.html#jmix.reports.history-recording-enabled">jmix.reports.history-recording-enabled</a> application property to <code>true</code>.</p>
+</div>
+<div class="paragraph">
+<p>The execution history view is considered administrative and was not added to the main menu. To view the execution history, go to the report list view (the <strong>Reports</strong> → <strong>Reports</strong> menu item), select some report, and click on the <strong>Execution history</strong> button.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="execution_history_action"><a class="anchor" href="#execution_history_action"></a>Execution History Action</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can open execution history in any view using <code>ShowExecutionReportHistoryAction</code> and an associated button or a component context menu item.</p>
+</div>
+<div class="paragraph">
+<p><code>io.jmix.reportsflowui.action.ShowExecutionReportHistoryAction</code> - a <a class="xref page" href="../flow-ui/actions/standard-actions.html">standard action</a> for displaying the report execution history. It should be defined for a <code>Button</code> or a list component (<code>DataGrid</code>, <code>TreeDataGrid</code>).</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of using the declarative action for the <code>DataGrid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+    &lt;!-- ... --&gt;
+    &lt;button id="historyBtn" action="literatureTypesDataGrid.showHistory"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;/hbox&gt;
+&lt;dataGrid id="literatureTypesDataGrid"
+          width="100%"
+          minHeight="20em"
+          dataContainer="literatureTypesDc"&gt;
+    &lt;actions&gt;
+        &lt;!-- ... --&gt;
+        &lt;action id="showHistory" type="report_showExecutionReportHistory"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/actions&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Add a button with report history action.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>type</code> attribute defines a specific <code>report_showExecutionReportHistory</code> action type, provided by the framework.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Example of programmatically creating the action together with a button declared in the view XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixButton historyBtn;
+
+@Autowired
+private Actions actions;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    ShowExecutionReportHistoryAction&lt;LiteratureType&gt; action =
+            actions.create(ShowExecutionReportHistoryAction.ID);
+    historyBtn.setAction(action);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the action is performed, a modal <strong>Execution history</strong> dialog will open where reports related to the current view will be displayed. After clicking on the <strong>Execution History</strong> button, the execution history for the selected reports will be displayed.</p>
+</div>
+<div class="paragraph">
+<p>"Cancelled" flag means that the user launched the report as a background task, and then canceled it.</p>
+</div>
+<div class="paragraph">
+<p>Execution history is also recorded even for reports which are not yet saved to the database, but launched from the report detail view (by clicking the <strong>Run</strong> button).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="history_output_documents"><a class="anchor" href="#history_output_documents"></a>Output Documents</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The mechanism provides an ability to save output documents - report results files - in the <a class="xref page" href="../files/index.html">file storage</a>. This feature consumes a file storage disk space; it is configured separately and is disabled by default. To enable it, define the <a class="xref page" href="configuration.html#jmix.reports.save-output-documents-to-history">jmix.reports.save-output-documents-to-history</a> application property to <code>true</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.reports.save-output-documents-to-history = true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, if you select an item in the execution history table, the <strong>Download document</strong> button becomes available. Click the button to download a document that is a report result file.</p>
+</div>
+<div class="paragraph">
+<p>Reports with <a class="xref page" href="creation/templates.html#table_output">table</a> output type do not have result files, so the execution history of such reports does not save any output documents.</p>
+</div>
+<div class="paragraph">
+<p>If you run the report programmatically using the <code>createAndSaveReport()</code> method, it saves another copy of the same result document to the file storage. These two files are put to the file storage independently.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="execution_history_cleanup"><a class="anchor" href="#execution_history_cleanup"></a>History Cleanup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use Quartz Job Scheduler to clean up the report execution history periodically.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include Quartz add-on in your project as described in the <a class="xref page" href="../quartz/index.html#installation">Quartz / Installation</a> section.</p>
+</li>
+<li>
+<p>Create a job class and call <code>ReportExecutionHistoryRecorder.cleanupHistory()</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("ReportHistoryCleaner")
+public class ReportHistoryCleanJob implements Job {
+    @Autowired
+    private ReportExecutionHistoryRecorder reportExecutionHistoryRecorder;
+
+    @Override
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        reportExecutionHistoryRecorder.cleanupHistory();
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>In the running application, open the <strong>Quartz → Quartz jobs</strong> view, and configure a job for the <code>ReportHistoryCleanJob</code> class.</p>
+</li>
+<li>
+<p>Alternatively, if you want to configure the job at development time, add the following beans to the main application class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+JobDetail reportHistoryCleanJob() {
+    return JobBuilder.newJob()
+            .ofType(ReportHistoryCleanJob.class)
+            .storeDurably()
+            .withIdentity("reportHistoryClean")
+            .build();
+}
+
+@Bean
+Trigger reportHistoryCleanTrigger() {
+    return TriggerBuilder.newTrigger()
+            .forJob(reportHistoryCleanJob())
+            .startNow()
+            .withSchedule(CronScheduleBuilder.cronSchedule("0 0 1 * * ?")) <i class="conum" data-value="1"></i><b>(1)</b>
+            .build();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Schedule for nightly, for example, <code>0 0 1 * * ?</code></td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Set up the report history cleanup configuration properties:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="configuration.html#jmix.reports.history-cleanup-max-days">jmix.reports.history-cleanup-max-days</a> - 730 days by default.</p>
+</li>
+<li>
+<p><a class="xref page" href="configuration.html#jmix.reports.history-cleanup-max-items-per-report">jmix.reports.history-cleanup-max-items-per-report</a> - 1000 by default.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>When the report execution history is cleaned up, the associated output document is also deleted from the file storage.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Constraints :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">UI Constraints</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The UI Constraints add-on allows you to control the visibility and accessibility of UI components using declarative policies defined in resource roles.</p>
+</div>
+<div class="paragraph">
+<p>For example, a button can be made inactive, a data grid can be hidden, and so on.</p>
+</div>
+<div class="paragraph">
+<p>Any UI component or <a class="xref page" href="../flow-ui/actions.html">action</a> can be managed by the UI Constraints, even if the component is not bound to data model and is not affected by entity operation and entity attribute <a class="xref page" href="../security/resource-roles.html#policies">policies</a>. The only condition is that the component must have an ID.</p>
+</div>
+<div class="paragraph">
+<p>This feature saves you from writing code that analyzes user’s roles or specific permissions and manages the component state in your application views. It also allows you to fine-tune the access control at runtime by editing roles in the <strong>Security → Resource roles</strong> views.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Installation</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This add-on requires the Enterprise <a href="https://www.jmix.io/subscription-plans-and-prices/" rel="noopener" target="_blank">subscription</a>. If you don’t have the subscription, see the <a class="xref page" href="../account-management.html#enterprise-trial">Enterprise Trial</a> section for how to get a trial version.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For automatic installation through Jmix Marketplace, follow instructions in the <a class="xref page" href="../add-ons.html#installation">Add-ons</a> section.</p>
+</div>
+<div class="paragraph">
+<p>For manual installation, follow the steps below.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Configure access to the premium repository.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the premium repository to your <code>build.gradle</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">repositories {
+    // ...
+    maven {
+        url = 'https://global.repo.jmix.io/repository/premium'
+        credentials {
+            username = rootProject['premiumRepoUser']
+            password = rootProject['premiumRepoPass']
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add premium repository credentials to <code>~/.gradle/gradle.properties</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">premiumRepoUser=123456123456
+premiumRepoPass=abcdefabcdef</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Get the repository credentials from your license key: the first part of the key before dash is the repository user name, the part after dash is the password. For example, if your key is <code>123456123456-abcdefabcdef</code>, then the user name is <code>123456123456</code> and the password is <code>abcdefabcdef</code>.</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Add dependencies to your <code>build.gradle</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.uiconstraints:jmix-uiconstraints-starter'</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="usage"><a class="anchor" href="#usage"></a>Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The UI Constraints add-on provides <em>UI component policies</em> that can be specified in <a class="xref page" href="../security/resource-roles.html">resource roles</a> either at development time using annotated Java interfaces or at runtime using the role management views.</p>
+</div>
+<div class="paragraph">
+<p>The <code>@UiComponentPolicy</code> annotation that is used in Java interfaces is described <a href="#ui-component-policy-annotation">below</a>.</p>
+</div>
+<div class="paragraph">
+<p>The runtime role editor can be accessed through the <strong>Security → Resource roles</strong> main menu item. When the UI Constraints add-on is included in the project, the dropdown list of policies will include the <strong>UI component policy</strong> item:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="resource role policies" src="_images/resource-role-policies.png" width="373"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The UI component policy editor allows you to specify a target view, select existing components from a dropdown list and specify the policy action and effect:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="ui component policy" src="_images/ui-component-policy.png" width="776"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Unlike entity and entity attribute policies, the UI component policy is "denying", that is it can only make a UI component or action less visible or accessible than it was before applying the policy. For example, if some entity attribute is visible due to an entity attribute policy, a UI component policy can make the corresponding UI component invisible if it specifies <code>VISIBLE</code> action with <code>DENY</code> effect. See more information about effects <a href="#effect">below</a>.</p>
+</div>
+<div class="paragraph">
+<p>UI component policies are applied at the end of the view opening process, after sending the <a class="xref page" href="../flow-ui/views/view-events.html#ready-event">ReadyEvent</a>. By this moment, all view initialization is complete and other policies are applied.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ui-component-policy-annotation"><a class="anchor" href="#ui-component-policy-annotation"></a>UiComponentPolicy Annotation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>@UiComponentPolicy</code> annotation allows you to define UI constraints in <a class="xref page" href="../security/resource-roles.html">resource role</a> interfaces at development time.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.demo.security;
+
+import com.company.demo.view.customer.CustomerDetailView;
+import com.company.demo.view.customer.CustomerListView;
+import io.jmix.security.role.annotation.ResourceRole;
+import io.jmix.uiconstraints.annotation.UiComponentPolicy;
+import io.jmix.uiconstraints.annotation.UiComponentPolicyAction;
+import io.jmix.uiconstraints.annotation.UiComponentPolicyEffect;
+
+@ResourceRole(name = "EmployeeRole", code = EmployeeRole.CODE, scope = "UI")
+public interface EmployeeRole {
+    String CODE = "employee-role";
+
+    @UiComponentPolicy(
+            viewClass = CustomerListView.class,
+            componentIds = {"customersDataGrid.importCustomersAction"},
+            action = UiComponentPolicyAction.ENABLED,
+            effect = UiComponentPolicyEffect.DENY
+    )
+    @UiComponentPolicy(
+            viewClass = CustomerDetailView.class,
+            componentIds = {"commentsPane"},
+            action = UiComponentPolicyAction.VISIBLE,
+            effect = UiComponentPolicyEffect.DENY
+    )
+    void customers();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Attributes of the <code>@UiComponentPolicy</code> annotation are described below.</p>
+</div>
+<div class="sect2">
+<h3 id="view-class-and-view-id"><a class="anchor" href="#view-class-and-view-id"></a>viewClass and viewId</h3>
+<div class="paragraph">
+<p>UI component policy is defined for components inside a view. The view can be specified either by the <code>viewClass</code> or by the <code>viewId</code> attribute.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="component-ids"><a class="anchor" href="#component-ids"></a>componentIds</h3>
+<div class="paragraph">
+<p>Each <code>@UiComponentPolicy</code> annotation can define policies for one or more UI components of a view. Their ID must be listed in the <code>componentIds</code> attribute. A policy can be applied to UI components of the following types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A visual component (<code>textField</code>, <code>button</code>, <code>vbox</code>, <code>div</code>, etc.) of a given view. For example: <code>firstNameField</code>, <code>importButton</code>.</p>
+</li>
+<li>
+<p>An action that belongs to a given view. For example: <code>save</code>.</p>
+</li>
+<li>
+<p>An action that belongs to a UI component. For example: <code>userGrid.edit</code>.</p>
+</li>
+<li>
+<p>A component or an action located inside a fragment. For example: <code>addressFragment.cityField</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="action"><a class="anchor" href="#action"></a>action</h3>
+<div class="paragraph">
+<p>UI component policy supports two types of actions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>VISIBLE</code> - manages the visibility of the component.</p>
+</li>
+<li>
+<p><code>ENABLED</code> - manages the accessibility of the component. If the component supports the read-only state, it will be set to read-only. Otherwise, it will be disabled.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="effect"><a class="anchor" href="#effect"></a>effect</h3>
+<div class="paragraph">
+<p>The <code>effect</code> attribute can have two values: <code>ALLOW</code> and <code>DENY</code>.</p>
+</div>
+<div class="paragraph">
+<p>By default, if no UI component policies are applied, all UI components in the view have their initial visibility and accessibility state. Data-bound components are visible and accessible if a corresponding entity attribute policy exists.</p>
+</div>
+<div class="paragraph">
+<p>If the <code>DENY</code> effect is specified in a UI component policy, it hides or disables a UI component or action. This is the usual use case for a UI component policy.</p>
+</div>
+<div class="paragraph">
+<p>The <code>ALLOW</code> effect can be used if you need to override the effect of another UI component policy that has been applied to the same component by a different role. For example, if a user has already been assigned the A role and this role prevents access to a certain UI component, using the B role with the <code>ALLOW</code> effect will restore access to that component.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>ALLOW</code> effect cannot show or enable a component that was hidden or disabled by its initial state or because by the absence of an enabling entity or entity attribute policy.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4. Advanced Notifications with Message Templates :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">4. Advanced Notifications with Message Templates</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before we begin, please ensure the <a class="xref page" href="../notifications/index.html">Notifications</a> add-on is installed. If it is not currently installed, please install it before continuing.</p>
+</div>
+<div class="paragraph">
+<p>In this section, you will:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Set up the Notifications add-on.</p>
+</li>
+<li>
+<p>Create a <code>Plain text</code> template using the template editor.</p>
+</li>
+<li>
+<p>Add parameters to a template.</p>
+</li>
+<li>
+<p>Create a notification that leverages this template, demonstrating its practical application.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="set-up-notifications-add-on"><a class="anchor" href="#set-up-notifications-add-on"></a>Setting Up the Notifications Add-on</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For a detailed example of configuring the Notifications add-on, please refer to the <a class="xref page" href="../notifications/configuration.html">Configuration</a> section. Here, we’ll provide a concise overview of the key steps.</p>
+</div>
+<div class="paragraph">
+<p>Proceed with the following actions:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a set of <code>NotificationType</code> instances and register them via <code>NotificationTypesRepository</code> within your main application class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private NotificationTypesRepository notificationTypesRepository;
+
+@EventListener
+public void onApplicationContextRefreshed(final ContextRefreshedEvent event) {
+    notificationTypesRepository.registerTypes(
+            new NotificationType("info", "INFO_CIRCLE"),
+            new NotificationType("warn", "WARNING")
+    );
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add a notification indicator component to the <code>main-view.xml</code> file:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;mainView xmlns="http://jmix.io/schema/flowui/main-view"
+          xmlns:ntf="http://jmix.io/schema/notifications/ui"
+          title="msg://MainView.title"&gt;
+        &lt;navigationBar&gt;
+            &lt;header id="header" classNames="jmix-main-view-header"&gt;
+                &lt;drawerToggle id="drawerToggle"
+                              classNames="jmix-main-view-drawer-toggle"
+                              themeNames="contrast"
+                              ariaLabel="msg://drawerToggle.ariaLabel"/&gt;
+                &lt;h1 id="viewTitle" classNames="jmix-main-view-title"/&gt;
+            &lt;/header&gt;
+            &lt;ntf:notificationsIndicator id="ntfIndicator" classNames="me-m"/&gt;
+        &lt;/navigationBar&gt;</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-message-template"><a class="anchor" href="#creating-message-template"></a>Creating Message Template</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Launch the application. Navigate to the <strong>Message Templates</strong> view. Click the <strong>Create</strong> button to start creating a new template.</p>
+</div>
+<div class="paragraph">
+<p>After clicking <strong>Create</strong>, the template designer will open. Configure the template as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong>: Enter a user-friendly name for the template, such as <code>Booking Notification</code>.</p>
+</li>
+<li>
+<p><strong>Code</strong>: Set the template code to <code>booking-notification</code>.</p>
+</li>
+<li>
+<p><strong>Type</strong>: Select <strong>Plain text</strong> as the template type.</p>
+</li>
+<li>
+<p><strong>Content</strong>: Define the content of the template:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Hello ${booking.creator.firstName!"Guest"}!
+
+Thank you for booking your date and time for ${booking.title}.
+Your time starts at ${booking.startDate?datetime} and ends at ${booking.endDate?datetime}
+
+The booking took place ${today?date}.
+
+Have a nice day,
+Developer team.
+
+Developer
+www.jmix.io</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This template is formatted using <a class="xref page" href="message-templates.html#placeholders">placeholders</a> with Apache FreeMarker Template Engine syntax.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="template notifications details" src="_images/template-notifications-details.png" width="773"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-template-params"><a class="anchor" href="#adding-template-params"></a>Adding Template Parameters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Switch to the <strong>Parameters</strong> tab of template designer. Click the <strong>Create</strong> button. Provide the following parameter details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong>: The name of the parameter as it will appear in the parameter input form: <code>Booking</code>.</p>
+</li>
+<li>
+<p><strong>Alias</strong>: A unique identifier used to reference the parameter within the template: <code>booking</code>.</p>
+</li>
+<li>
+<p><strong>Type</strong>: The data type of the parameter. Select the <code>Entity</code> type.</p>
+</li>
+<li>
+<p><strong>Entity</strong>: Select the <code>Booking</code> entity to be used as the parameter.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="template parameter" src="_images/template-parameter.png" width="641"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click the <strong>OK</strong> button.</p>
+</div>
+<div class="paragraph">
+<p>Create the <strong>Today</strong> parameter and set its type to <code>Date</code>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="template notifications params" src="_images/template-notifications-params.png" width="616"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Once the template is configured, save it.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-notification"><a class="anchor" href="#create-notification"></a>Creating a Notification</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Navigate to the <strong>Notifications</strong> view. Click the <strong>Create notification</strong> button to begin creating a new notification. Configure the notification as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Subject</strong>: the subject of the notification - <code>Booking information</code>.</p>
+</li>
+<li>
+<p><strong>Type</strong>: select the notification type you created earlier in this section. Choose <code>Info</code>.</p>
+</li>
+<li>
+<p><strong>Recipients</strong>: list of recipients of the notification. Start typing a username in the field, and select the appropriate users from the list.</p>
+</li>
+<li>
+<p>Select the <strong>Use message template</strong> checkbox. A template selection field will appear below.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="notification step 1" src="_images/notification-step-1.png" width="728"/>
+</div>
+</div>
+</li>
+<li>
+<p>Click the <strong>…​</strong> button in the <strong>Message template</strong> field.</p>
+</li>
+<li>
+<p>The message template selection dialog will open. Choose the previously created template, <code>Booking Notification</code>, and click the <strong>Select</strong> button.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="notification step 2" src="_images/notification-step-2.png" width="1025"/>
+</div>
+</div>
+</li>
+<li>
+<p>After that, a dialog box will appear, prompting you to enter values for the parameters you previously defined for the template. Fill in the required fields with the appropriate values. Click <strong>OK</strong>.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="notification step 3" src="_images/notification-step-3.png" width="701"/>
+</div>
+</div>
+</li>
+<li>
+<p>After you click <strong>OK</strong> in the notification creation dialog, the notification will be saved and displayed to the specified user.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="viewing-notification"><a class="anchor" href="#viewing-notification"></a>Viewing Notification</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Log in as the <code>Mari</code> user.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Note that user <code>Mari</code> must have one of the following <a class="xref page" href="../notifications/configuration.html#roles">roles</a> to view notifications:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Notifications: In-app notifications reader</strong></p>
+</li>
+<li>
+<p><strong>Notifications: combines sender and reader</strong></p>
+</li>
+<li>
+<p><strong>Notifications: administrator</strong></p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Look for the notification indicator, located in the upper-right corner of the main view, and click it. The <strong>In-app notifications</strong> dialog window will appear, showing a list of unread or recent notifications:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="in app notifications" src="_images/in-app-notifications.png" width="1063"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Double-click on a notification to view its full content:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="in app notification open" src="_images/in-app-notification-open.png" width="930"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You’ll notice that the parameter values you provided when creating the notification have been automatically inserted into the corresponding placeholders within the message template, personalizing the notification content.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you have successfully:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Configured the <a class="xref page" href="../notifications/index.html">Notifications</a> add-on.</p>
+</li>
+<li>
+<p>Created a reusable <code>Plain Text</code> message template using the <a class="xref page" href="message-templates.html#parameter-details">template editor</a>.</p>
+</li>
+<li>
+<p>Defined <a class="xref page" href="message-templates.html#parameters">parameters</a> for the message template, enabling dynamic content.</p>
+</li>
+<li>
+<p>Created and sent a notification that leverages the message template, demonstrating a practical application of advanced notification features.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

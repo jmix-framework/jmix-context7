@@ -1,0 +1,73 @@
+<Path>Layouts > FormLayout > FormLayout with ResponsiveSteps</Path>
+
+responsiveSteps are used to determine the visual style of the formLayout depending on the size of the container. The following attributes can be configured: minWidth - the minimum width for which the selected style will be applied. columns - the number of columns that will be displayed in the selected step. labelsPosition - an optional parameter that specifies how labels are displayed. Please note: to use ASIDE labels, you need to wrap the component in a formItem. formItem - a special wrapper for formLayout, which controls the position of the labels and the display of the component in the form. To configure the label, enabled and visible attributes, use formItem
+
+form-layout-responsive-steps.xml
+
+<view xmlns="http://jmix.io/schema/flowui/view">
+    <layout>
+        <split width="100%" themeNames="splitter-spacing" splitterPosition="66">
+            <formLayout>
+                <responsiveSteps>
+                    <responsiveStep minWidth="0" columns="1" labelsPosition="TOP"/>
+                    <responsiveStep minWidth="30em" columns="1" labelsPosition="ASIDE"/>
+                    <responsiveStep minWidth="40em" columns="2" labelsPosition="TOP"/>
+                    <responsiveStep minWidth="50em" columns="2" labelsPosition="ASIDE"/>
+                    <responsiveStep minWidth="60em" columns="4" labelsPosition="TOP"/>
+                </responsiveSteps>
+                <formItem label="TextField">
+                    <textField/>
+                </formItem>
+                <formItem label="DateTimePicker">
+                    <dateTimePicker/>
+                </formItem>
+                <formItem label="TextArea">
+                    <textArea/>
+                </formItem>
+                <formItem label="Checkbox">
+                    <checkbox/>
+                </formItem>
+                <formItem label="TextArea with column span" colspan="2">
+                    <textArea/>
+                </formItem>
+                <formItem label="PasswordField">
+                    <passwordField/>
+                </formItem>
+                <formItem label="EmailField">
+                    <emailField/>
+                </formItem>
+            </formLayout>
+            <formLayout>
+                <responsiveSteps>
+                    <responsiveStep minWidth="0" columns="1"/>
+                </responsiveSteps>
+
+                <textField label="TextField"/>
+                <dateTimePicker label="DateTimePicker"/>
+                <textArea label="TextArea"/>
+                <checkbox label="Checkbox"/>
+                <textArea label="TextArea with column span" colspan="2"/>
+                <passwordField label="PasswordField"/>
+                <emailField label="EmailField"/>
+            </formLayout>
+        </split>
+    </layout>
+</view>
+
+
+
+
+FormLayoutResponsiveStepsSample.java
+
+package io.jmix.uisamples.view.flowui.containers.formlayout.responsivesteps;
+
+import io.jmix.flowui.view.StandardView;
+import io.jmix.flowui.view.ViewController;
+import io.jmix.flowui.view.ViewDescriptor;
+
+@ViewController("form-layout-responsive-steps")
+@ViewDescriptor("form-layout-responsive-steps.xml")
+public class FormLayoutResponsiveStepsSample extends StandardView {
+}
+
+

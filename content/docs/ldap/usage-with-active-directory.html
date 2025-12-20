@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usage with Active Directory :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Usage with Active Directory</h1>
+<div class="paragraph">
+<p>The add-on provides a separate Security Configuration for using it with Active Directory. Since Active Directory supports its own non-standard authentication options, such as authentication with the domain username in the form <code>user@domain</code> instead of an LDAP distinguished name, Spring Security provides a separate <code>AuthenticationProvider</code>, which is customized for a typical Active Directory setup.</p>
+</div>
+<div class="paragraph">
+<p>If you are going to work with Active Directory, set the property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.ldap.use-active-directory-configuration = true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By setting this property you instruct the application to use the <code>ActiveDirectoryLdapAuthenticationProvider</code> which is more suitable for usage with Active Directory.</p>
+</div>
+<div class="paragraph">
+<p>You should specify the user search filter used by <code>ActiveDirectoryLdapAuthenticationProvider</code> for searching the user:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.ldap.user-search-filter = (&amp;(objectClass=user)(userPrincipalName={0}))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the example above users will enter their username in the form <code>username@domain</code>.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively you may configure the authentication provider in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.ldap.user-search-filter = (&amp;(objectClass=user)(sAMAccountName={1}))
+jmix.ldap.active-directory-domain = somedomain</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, users will have to type only their username (without domain) on the login form.</p>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Task :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Script Task</h1>
+<div class="sect1">
+<h2 id="overview"><a class="anchor" href="#overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <strong>script task</strong> is a task that executes a <em>Groovy</em> script when it is reached in the process flow.</p>
+</div>
+<div class="paragraph">
+<p>Commonly, script tasks are used when we need to initialize process variables,
+set default values, evaluate expressions,
+and do some calculations — everything that can be done with a small piece of code.</p>
+</div>
+<div class="paragraph">
+<p>But not limited to the above. You can implement any business logic inside your script, it’s up to you.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Jmix BPM supports only Groovy scripts. But the original Flowable product allows JavaScript as well.
+Be attentive when importing process models from external sources.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A script task is visualized as a typical BPMN 2.0 task (rounded rectangle), with a small 'script' icon in the top-left corner of the rectangle.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="script task" src="../_images/bpmn-script-task/script-task.png" width="150"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A script task is defined by specifying the <code>script</code> and the <code>scriptFormat</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;scriptTask id="script-task" name="Script task"
+    scriptFormat="groovy"  <i class="conum" data-value="1"></i><b>(1)</b>
+    flowable:resultVariable="result"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+      &lt;script&gt;
+        printlnt "This is a script" <i class="conum" data-value="3"></i><b>(3)</b>
+        return "OK"
+    &lt;/script&gt;
+&lt;/scriptTask&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — Script type (only Groovy)</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — Result variable (optional)</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td> — Script body</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="properties"><a class="anchor" href="#properties"></a>Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Script task has the following specific properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>scriptFormat</strong>: an extended attribute that specifies the script language; currently, only Groovy is supported. See <a href="https://groovy-lang.org/documentation.html" rel="noopener" target="_blank">Groovy language documentation</a>.</p>
+</li>
+<li>
+<p><strong>script</strong>: the script to execute. Use the <strong>Script editor</strong> to edit it.</p>
+</li>
+<li>
+<p><strong>resultVariable</strong>: This optional attribute saves the evaluation result in a variable with the specified name within the execution context. See <a href="#script-result">details</a>.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="script task properties" src="../_images/bpmn-script-task/script-task-properties.png" width="473"/>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+The script body cannot be empty, otherwise it causes a parsing error during deployment.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="variables-scripts"><a class="anchor" href="#variables-scripts"></a>Variables in Scripts</h3>
+<div class="paragraph">
+<p>All process variables that are accessible through the execution that arrives in the script task can be used within the script.
+In this example, the script variable 'inputArray' is in fact a process variable (array of integers).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;script&gt;
+    sum = 0
+    for ( i in inputArray ) {
+        sum += i
+    }
+&lt;/script&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It’s also possible to set process variables in a script, simply by calling</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">execution.setVariable("variableName", variableValue)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, no variables are stored automatically.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="script-result"><a class="anchor" href="#script-result"></a>Script Result</h3>
+<div class="paragraph">
+<p>The return value of a script task can be assigned to an existing process variable or a new one.
+To specify the target variable, you can set it in the <strong>Result variable</strong> field in the properties panel of the script task.</p>
+</div>
+<div class="paragraph">
+<p>When a script task is executed, the script’s return value will be automatically assigned to the specified process variable.
+If the variable doesn’t exist, Flowable will create a new one with the same name as the <strong>Result variable</strong> field.</p>
+</div>
+<div class="paragraph">
+<p>By leveraging the <strong>Result variable</strong> field, you can integrate the results of script tasks into your process variables,
+enabling you to store, manipulate, and access data throughout the process execution.</p>
+</div>
+<div class="paragraph">
+<p>The return value of a script can be assigned to an existing variable or to a new process variable.
+You can set it in the <em>Result variable</em> field in the properties panel.</p>
+</div>
+<div class="paragraph">
+<p>In the script, you can use the <em>'return'</em> operator. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def a = "abc"
+return a</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If there is no <em>'return'</em> in your script, as a result will be taken result of the last line, in this example it’d be "JMIX".</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">String a = "abc".toUpperCase()
+String b = "jmix".toUpperCase()</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

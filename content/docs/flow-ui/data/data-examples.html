@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using Data Components :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Using Data Components</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section provides practical examples of working with data components.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="declarative-usage"><a class="anchor" href="#declarative-usage"></a>Declarative Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Usually, data components are defined and bound to visual components declaratively in the view XML descriptor. If you create a view for an entity using Studio, you can see the top-level <code>&lt;data&gt;</code> element which contains the data component declarations.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of data components in a detail view for the <code>User</code> entity that has a to-one reference to <code>Department</code> and a to-many reference to the <code>UserStep</code> entity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;instance id="userDc"
+              class="com.company.onboarding.entity.User"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+        &lt;fetchPlan extends="_base"&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+            &lt;property name="department" fetchPlan="_base"/&gt;
+            &lt;property name="steps" fetchPlan="_base"&gt;
+                &lt;property name="step" fetchPlan="_base"/&gt;
+            &lt;/property&gt;
+        &lt;/fetchPlan&gt;
+        &lt;loader/&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+        &lt;collection id="stepsDc" property="steps"/&gt; <i class="conum" data-value="5"></i><b>(5)</b>
+    &lt;/instance&gt;
+    &lt;collection id="departmentsDc" class="com.company.onboarding.entity.Department"&gt; <i class="conum" data-value="6"></i><b>(6)</b>
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader&gt; <i class="conum" data-value="7"></i><b>(7)</b>
+            &lt;query&gt;
+                &lt;![CDATA[select e from Department e
+                order by e.name asc]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The root <code>data</code> element defines the <a class="xref page" href="data-context.html">DataContext</a> instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>InstanceContainer</code> of the <code>User</code> entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The optional <a class="xref page" href="../../data-access/fetching.html#fetch-plan">fetchPlan</a> attribute defines the object graph that should be eagerly loaded from the database.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>InstanceLoader</code> that loads the <code>User</code> instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><code>CollectionPropertyContainer</code> for the nested <code>UserStep</code> entity. It is bound to the <code>User.steps</code> collection attribute.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>A standalone <code>CollectionContainer</code> for the <code>Department</code> entity. It can be used as a source of dropdown items for selecting a department.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td><code>CollectionLoader</code> that loads the <code>Department</code> entity instances using the specified query.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The data containers defined above can be used in visual components as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="usernameField" dataContainer="userDc" property="username"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;formLayout id="form" dataContainer="userDc"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;textField id="firstNameField" property="firstName"/&gt;
+    &lt;textField id="lastNameField" property="lastName"/&gt;
+    &lt;entityComboBox id="departmentField" property="department"
+                    itemsContainer="departmentsDc"/&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+&lt;/formLayout&gt;
+&lt;dataGrid id="stepsDataGrid" width="100%" minHeight="10em"
+          dataContainer="stepsDc"&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+    &lt;columns&gt;
+        &lt;column property="step"/&gt;
+        &lt;column property="dueDate"/&gt;
+        &lt;column property="completedDate"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Standalone fields have <code>dataContainer</code> and <code>property</code> attributes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>formLayout</code> component propagates <code>dataContainer</code> to its fields, so they need only the <code>property</code> attribute.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>entityComboBox</code> field has also the <code>itemsContainer</code> attribute to get the list of dropdown items.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>dataGrid</code> has only the <code>dataContainer</code> attribute.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="programmatic-usage"><a class="anchor" href="#programmatic-usage"></a>Programmatic Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Data components can be created and used in visual components programmatically.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, we create a detail view with the same data and visual components as defined in the previous section using only Java code without any XML descriptor.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "users2/:id", layout = MainView.class)
+@ViewController("User.detail2")
+public class UserDetailViewProgrammatic extends StandardDetailView&lt;User&gt; {
+
+    @Autowired
+    private DataComponents dataComponents; <i class="conum" data-value="1"></i><b>(1)</b>
+    @Autowired
+    private UiComponents uiComponents;
+    @Autowired
+    private FetchPlans fetchPlans;
+    @Autowired
+    private Metadata metadata;
+
+    private InstanceContainer&lt;User&gt; userDc;
+    private InstanceLoader&lt;User&gt; userDl;
+    private CollectionPropertyContainer&lt;UserStep&gt; stepsDc;
+    private CollectionContainer&lt;Department&gt; departmentsDc;
+    private CollectionLoader&lt;Department&gt; departmentsDl;
+
+    @Subscribe
+    public void onInit(InitEvent event) {
+        createDataComponents();
+        createUiComponents();
+    }
+
+    private void createDataComponents() {
+        DataContext dataContext = dataComponents.createDataContext();
+        getViewData().setDataContext(dataContext); <i class="conum" data-value="2"></i><b>(2)</b>
+
+        userDc = dataComponents.createInstanceContainer(User.class);
+
+        userDl = dataComponents.createInstanceLoader();
+        userDl.setContainer(userDc); <i class="conum" data-value="3"></i><b>(3)</b>
+        userDl.setDataContext(dataContext); <i class="conum" data-value="4"></i><b>(4)</b>
+
+        FetchPlan userFetchPlan = fetchPlans.builder(User.class)
+                .addFetchPlan(FetchPlan.BASE)
+                .add("department", FetchPlan.BASE)
+                .add("steps", FetchPlan.BASE)
+                .add("steps.step", FetchPlan.BASE)
+                .build();
+        userDl.setFetchPlan(userFetchPlan);
+
+        stepsDc = dataComponents.createCollectionContainer(
+                UserStep.class, userDc, "steps"); <i class="conum" data-value="5"></i><b>(5)</b>
+
+        departmentsDc = dataComponents.createCollectionContainer(Department.class);
+
+        departmentsDl = dataComponents.createCollectionLoader();
+        departmentsDl.setContainer(departmentsDc);
+        departmentsDl.setDataContext(dataContext);
+        departmentsDl.setQuery("select e from Department e"); <i class="conum" data-value="6"></i><b>(6)</b>
+        departmentsDl.setFetchPlan(FetchPlan.BASE);
+    }
+
+    private void createUiComponents() {
+        TypedTextField&lt;String&gt; usernameField = uiComponents.create(TypedTextField.class);
+        usernameField.setValueSource(new ContainerValueSource&lt;&gt;(userDc, "username")); <i class="conum" data-value="7"></i><b>(7)</b>
+        getContent().add(usernameField);
+
+        FormLayout formLayout = uiComponents.create(FormLayout.class);
+        getContent().add(formLayout);
+
+        TypedTextField&lt;String&gt; firstNameField = uiComponents.create(TypedTextField.class);
+        firstNameField.setValueSource(new ContainerValueSource&lt;&gt;(userDc, "firstName"));
+        formLayout.add(firstNameField);
+
+        TypedTextField&lt;String&gt; lastNameField = uiComponents.create(TypedTextField.class);
+        lastNameField.setValueSource(new ContainerValueSource&lt;&gt;(userDc, "lastName"));
+        formLayout.add(lastNameField);
+
+        EntityComboBox&lt;Department&gt; departmentField = uiComponents.create(EntityComboBox.class);
+        departmentField.setValueSource(new ContainerValueSource&lt;&gt;(userDc, "department"));
+        departmentField.setItems(departmentsDc); <i class="conum" data-value="8"></i><b>(8)</b>
+        formLayout.add(departmentField);
+
+        DataGrid&lt;UserStep&gt; dataGrid = uiComponents.create(DataGrid.class);
+        dataGrid.addColumn(metadata.getClass(UserStep.class).getPropertyPath("step.name"));
+        dataGrid.setItems(new ContainerDataGridItems&lt;&gt;(stepsDc)); <i class="conum" data-value="9"></i><b>(9)</b>
+        getContent().add(dataGrid);
+        getContent().expand(dataGrid);
+
+        Button okButton = uiComponents.create(Button.class);
+        okButton.setText("OK");
+        okButton.addClickListener(clickEvent -&gt; closeWithSave());
+        getContent().add(okButton);
+
+        Button cancelButton = uiComponents.create(Button.class);
+        cancelButton.setText("Cancel");
+        cancelButton.addClickListener(clickEvent -&gt; closeWithDiscard());
+        getContent().add(cancelButton);
+    }
+
+    @Override
+    protected InstanceContainer&lt;User&gt; getEditedEntityContainer() { <i class="conum" data-value="10"></i><b>(10)</b>
+        return userDc;
+    }
+
+    @Subscribe
+    protected void onBeforeShow(BeforeShowEvent event) { <i class="conum" data-value="11"></i><b>(11)</b>
+        userDl.load();
+        departmentsDl.load();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>DataComponents</code> is a factory to create data components.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>DataContext</code> instance is registered in the view for standard save action to work properly.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>userDl</code> loader will load data to <code>userDc</code> container.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <code>userDl</code> loader will merge loaded entities into the data context for change tracking.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The <code>stepsDc</code> is created as a property container.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>A query is specified for the <code>departmentsDl</code> loader.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td><code>ContainerValueSource</code> is used to bind single fields to containers.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td><code>CollectionContainer</code> is directly used to provide items to combo boxes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="9"></i><b>9</b></td>
+<td><code>ContainerDataGridItems</code> is used to bind DataGrids to containers.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="10"></i><b>10</b></td>
+<td><code>getEditedEntityContainer()</code> is overridden to specify the container instead of <code>@EditedEntityContainer</code> annotation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="11"></i><b>11</b></td>
+<td>Loads data before opening the view. The edited entity id will be set to <code>userDl</code> by the framework automatically.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dependencies-between-data-components"><a class="anchor" href="#dependencies-between-data-components"></a>Dependencies Between Data Components</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Sometimes you need to load and display data that depends on other data in the same view. For example, on the image below the left table displays the list of users (<code>User</code> entity) and the right one displays the list of onboarding steps (<code>UserStep</code> entity) for the selected user. The right list is refreshed each time the selected item in the left list changes.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="dependent tables" src="../_images/data/dependent-tables.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the <code>User</code> entity contains the <code>steps</code> attribute that is a one-to-many collection. So the simplest way to implement the view is to load the list of users with a <a class="xref page" href="../../data-access/fetching.html#fetch-plan">fetch plan</a> containing the <code>steps</code> attribute and use a <a class="xref page" href="property-containers.html">property container</a> to hold the list of dependent <code>UserStep</code> lines. Then bind the left table to the master container and the right table to the property container.</p>
+</div>
+<div class="paragraph">
+<p>But this approach has the following performance implication: you will load <code>UserStep</code> instances for all users from the left table, even though you display the <code>UserStep</code> lines only for a single user at a time. This is why we recommend using property containers and deep fetch plans having collection attributes only when loading a single master item, for example, in the user detail view.</p>
+</div>
+<div class="paragraph">
+<p>Also, the master entity may have no direct property pointing to the dependent entity. In this case, the above approach with a property container would not work at all.</p>
+</div>
+<div class="paragraph">
+<p>The common approach to organize relations between data in a view is to use queries with parameters. The dependent loader contains a query with a parameter that links data to the master, and when the current item in the master container changes, you set the parameter and trigger the dependent loader.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of the view which has two dependent container/loader pairs and the tables bound to them.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="Users with onboarding steps"
+      focusComponent="usersTable"&gt;
+    &lt;data readOnly="true"&gt;
+        &lt;collection id="usersDc"
+                    class="com.company.onboarding.entity.User"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="usersDl"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from User e order by e.username asc]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+        &lt;collection id="userStepsDc"
+                    class="com.company.onboarding.entity.UserStep"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="userStepsDl"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from UserStep e where e.user = :user
+                    order by e.sortValue asc]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets/&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+    &lt;layout&gt;
+        &lt;formLayout&gt;
+            &lt;dataGrid id="usersTable"
+                      dataContainer="usersDc"&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+                &lt;columns&gt;
+                    &lt;column property="username"/&gt;
+                    &lt;column property="firstName"/&gt;
+                    &lt;column property="lastName"/&gt;
+                &lt;/columns&gt;
+            &lt;/dataGrid&gt;
+            &lt;dataGrid id="userStepsTable"
+                      dataContainer="userStepsDc"&gt; <i class="conum" data-value="5"></i><b>(5)</b>
+                &lt;columns&gt;
+                    &lt;column property="step.name"/&gt;
+                    &lt;column property="dueDate"/&gt;
+                    &lt;column property="completedDate"/&gt;
+                &lt;/columns&gt;
+            &lt;/dataGrid&gt;
+        &lt;/formLayout&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Master container and loader.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Dependent container and loader.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <a class="xref page" href="../facets/dataLoadCoordinator.html">DataLoadCoordinator</a> facet is not used, so we will trigger the loaders programmatically in the controller.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Master table.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Dependent table.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "users-with-steps", layout = MainView.class)
+@ViewController("UserWithStepsListView")
+@ViewDescriptor("user-with-steps-list-view.xml")
+@LookupComponent("usersTable")
+@DialogMode(width = "50em", height = "37.5em")
+public class UserWithStepsListView extends StandardListView&lt;User&gt; {
+
+    @ViewComponent
+    private CollectionLoader&lt;User&gt; usersDl;
+    @ViewComponent
+    private CollectionLoader&lt;UserStep&gt; userStepsDl;
+
+    @Subscribe
+    public void onBeforeShow(final BeforeShowEvent event) {
+        usersDl.load(); <i class="conum" data-value="1"></i><b>(1)</b>
+    }
+
+    @Subscribe(id = "usersDc", target = Target.DATA_CONTAINER)
+    public void onUsersDcItemChange(final InstanceContainer.ItemChangeEvent&lt;User&gt; event) {
+        userStepsDl.setParameter("user", event.getItem()); <i class="conum" data-value="2"></i><b>(2)</b>
+        userStepsDl.load();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The master loader is triggered in the <code>BeforeShowEvent</code> handler.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>In the <code>ItemChangeEvent</code> handler of the master container, a parameter is set to the dependent loader and it is triggered.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The <a class="xref page" href="../facets/dataLoadCoordinator.html">DataLoadCoordinator</a> facet allows you to link data components declaratively without writing any Java code.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-sorting"><a class="anchor" href="#custom-sorting"></a>Custom Sorting</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Sorting of UI tables by entity attributes is performed by <code>CollectionContainerSorter</code> which is set for a <a class="xref page" href="collection-container.html">CollectionContainer</a>. The standard implementation sorts data in memory if it fits in one page of loaded data, otherwise it sends a new request to the database with the appropriate "order by" clause. The "order by" clause is created by the <code>JpqlSortExpressionProvider</code> bean.</p>
+</div>
+<div class="paragraph">
+<p>Some entity attributes can require a special implementation of sorting. Below we explain how to customize sorting on a simple example: suppose there is the <code>Department</code> entity with a <code>num</code> attribute of type <code>String</code>, but we know that the attribute actually stores only numeric values. So we want the sort order to be <code>1</code>, <code>2</code>, <code>3</code>, <code>10</code>, <code>11</code>. With the default behavior, the order would be <code>1</code>, <code>10</code>, <code>11</code>, <code>2</code>, <code>3</code>.</p>
+</div>
+<div class="paragraph">
+<p>First, create a subclass of the <code>CollectionContainerSorter</code> class for sorting in memory:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.app;
+
+import com.company.onboarding.entity.Department;
+import io.jmix.core.Sort;
+import io.jmix.core.comparator.EntityValuesComparator;
+import io.jmix.core.metamodel.model.MetaClass;
+import io.jmix.core.metamodel.model.MetaPropertyPath;
+import io.jmix.flowui.model.BaseCollectionLoader;
+import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.impl.CollectionContainerSorter;
+import org.springframework.beans.factory.BeanFactory;
+
+import java.util.Comparator;
+import java.util.Objects;
+
+public class CustomCollectionContainerSorter extends CollectionContainerSorter {
+
+    public CustomCollectionContainerSorter(CollectionContainer&lt;?&gt; container,
+                                           BaseCollectionLoader loader,
+                                           BeanFactory beanFactory) {
+        super(container, loader, beanFactory);
+    }
+
+    @Override
+    protected Comparator&lt;?&gt; createComparator(Sort.Order sortOrder, MetaClass metaClass) {
+        MetaPropertyPath metaPropertyPath = Objects.requireNonNull(
+                metaClass.getPropertyPath(sortOrder.getProperty()));
+
+        if (metaPropertyPath.getMetaClass().getJavaClass().equals(Department.class)
+                &amp;&amp; "num".equals(metaPropertyPath.toPathString())) {
+            boolean isAsc = sortOrder.getDirection() == Sort.Direction.ASC;
+            return Comparator.comparing((Department e) -&gt;
+                            e.getNum() == null ? null : Integer.valueOf(e.getNum()),
+                    new EntityValuesComparator&lt;&gt;(isAsc, metaClass, beanFactory));
+        }
+        return super.createComparator(sortOrder, metaClass);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create the sorter in the required view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class DepartmentListView2 extends StandardListView&lt;Department&gt; {
+
+    @ViewComponent
+    private CollectionContainer&lt;Department&gt; departmentsDc;
+
+    @ViewComponent
+    private CollectionLoader&lt;Department&gt; departmentsDl;
+
+    @Autowired
+    private BeanFactory beanFactory;
+
+    @Subscribe
+    public void onInit(final InitEvent event) {
+        Sorter sorter = new CustomCollectionContainerSorter(departmentsDc, departmentsDl, beanFactory);
+        departmentsDc.setSorter(sorter);
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If your sorter defines some global behavior, create your own factory that instantiates sorters system-wide:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.app;
+
+import io.jmix.flowui.model.BaseCollectionLoader;
+import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.model.Sorter;
+import io.jmix.flowui.model.SorterFactory;
+import jakarta.annotation.Nullable;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+
+@Primary
+@Component
+public class CustomSorterFactory extends SorterFactory {
+
+    @Override
+    public Sorter createCollectionContainerSorter(CollectionContainer container,
+                                                  @Nullable BaseCollectionLoader loader) {
+        return new CustomCollectionContainerSorter(container, loader, beanFactory);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, you can create own implementation of <code>JpqlSortExpressionProvider</code> for sorting at the database level:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.app;
+
+import com.company.onboarding.entity.Department;
+import io.jmix.core.metamodel.model.MetaPropertyPath;
+import io.jmix.data.impl.DefaultJpqlSortExpressionProvider;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+
+@Primary
+@Component
+public class CustomSortExpressionProvider extends DefaultJpqlSortExpressionProvider {
+
+    @Override
+    public String getDatatypeSortExpression(MetaPropertyPath metaPropertyPath, boolean sortDirectionAsc) {
+        if (metaPropertyPath.getMetaClass().getJavaClass().equals(Department.class)
+                &amp;&amp; "num".equals(metaPropertyPath.toPathString())) {
+            return String.format("CAST({E}.%s BIGINT)", metaPropertyPath);
+        }
+        return String.format("{E}.%s", metaPropertyPath);
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

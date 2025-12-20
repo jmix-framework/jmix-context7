@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Executor :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Job Executor</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <strong>Job Executor</strong> is a key component responsible for managing and executing asynchronous jobs within the  process engine.
+It handles tasks such as timers, asynchronous continuations, and other background processes that need to be executed outside the main process flow.
+By offloading these tasks, the job executor ensures that the main execution thread remains responsive and efficient.</p>
+</div>
+<div class="paragraph">
+<p>The job executor operates in a multithreaded environment, allowing it to process multiple jobs concurrently.
+It retrieves jobs from the database, executes them, and updates their status accordingly.
+This mechanism is essential for implementing features like delayed tasks and scheduled events in business processes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="job-types"><a class="anchor" href="#job-types"></a>Job Types</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are two primary types of jobs managed by the job executor:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Timer Jobs</strong>: These are scheduled to trigger at specific times,
+often associated with boundary events in BPMN models.</p>
+</li>
+<li>
+<p><strong>Async Jobs</strong>: Created when a task is marked with the <code>flowable:async="true"</code> attribute,
+indicating that it should be executed asynchronously.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="execution-flow"><a class="anchor" href="#execution-flow"></a>Execution Flow</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>When a process instance reaches a point where an async job or timer is necessary,
+the job executor inserts a corresponding entry into the <code>ACT_RU_JOB</code> table.</p>
+</li>
+<li>
+<p>For timer jobs, a thread periodically checks for jobs that are due and triggers them accordingly.</p>
+</li>
+<li>
+<p>For async jobs, once an API call that creates the job is successfully committed,
+a transaction listener activates the job executor to execute the job.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

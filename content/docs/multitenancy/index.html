@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multitenancy :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Multitenancy</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on allows you to build multitenant Jmix applications where data from multiple tenants is stored in a single database. A single instance of the application can cater to multiple tenants, defined as groups of users who are isolated from each other and have access only to specific (often read-only) data.</p>
+</div>
+<div class="paragraph">
+<p>In a multitenant Jmix application, there are two main categories of data:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Common Data</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Data that is shared among all tenants in the application.</p>
+</li>
+<li>
+<p>Tenants have read-only access to this common data, which is universally accessible but cannot be modified by individual tenants.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Tenant-Specific Data</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Data specific to each tenant and not visible or accessible to other tenants.</p>
+</li>
+<li>
+<p>Tenants have full access to their own tenant-specific data, allowing them to interact with and modify this data as needed without affecting data belonging to other tenants.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By implementing multitenancy in Jmix applications, developers can efficiently manage and deliver services to multiple clients or user groups, ensuring data isolation, security, and personalized access controls based on the specific needs of each tenant. This approach optimizes data organization and access while maintaining data privacy and integrity across different user groups.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The <a class="xref page" href="../rest/index.html">REST API</a> add-on does not fully support multitenancy. It doesn’t separate entity instances by tenants.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For automatic installation through Jmix Marketplace, follow instructions in the <a class="xref page" href="../add-ons.html#installation">Add-ons</a> section.</p>
+</div>
+<div class="paragraph">
+<p>For manual installation, add the following dependencies to your <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.multitenancy:jmix-multitenancy-starter'
+implementation 'io.jmix.multitenancy:jmix-multitenancy-flowui-starter'</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Important Note for Single Menu Mode Applications</strong></p>
+</div>
+<div class="paragraph">
+<p>If your application uses <a class="xref page" href="../studio/menu-designer.html#menu-modes">Single menu mode</a>, you should manually add menu items after installing an add-on.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the <a class="xref page" href="../studio/menu-designer.html">Menu Designer</a> in Jmix Studio.</p>
+</li>
+<li>
+<p>Navigate to the <strong>Structure</strong> tab.</p>
+</li>
+<li>
+<p>Available menu items are displayed in the left panel.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add menu items" src="../_images/addons/add-menu-items.png" width="958"/>
+</div>
+</div>
+</li>
+<li>
+<p>To add items:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Select the desired items and click the <code>&gt;</code> (<strong>Add Selected</strong>) button.</p>
+</li>
+<li>
+<p>Or, drag-and-drop them from the left panel into the current menu structure on the right.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This step is required because applications in <strong>Single</strong> menu mode do not automatically merge add-on menus with the existing structure.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="how-it-works"><a class="anchor" href="#how-it-works"></a>How it Works</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In your project, tenant-specific entities should include a String attribute annotated with <code>@TenantId</code>. When a tenant user loads these entities, the framework applies a <code>WHERE</code> condition based on the tenant-id attribute to the JPQL query to fetch only the data relevant to the user’s tenant. Additionally, the tenant-id attribute gets automatically assigned to the current user’s tenant when saving new entities.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+There is no automatic filtering for native SQL, so tenant users should not have access to any functionality that provides access to native SQL or Groovy code (<a class="xref page" href="../jmx-console/index.html">JMX Console</a>, creating <a class="xref page" href="../reports/index.html">reports</a>, etc.).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In your project, the <code>User</code> entity should include a tenant-id attribute. This attribute must be assigned a specific value for all tenant users. Users without a value in this attribute (those not linked to any specific tenant) can access data from all tenants. This setup is suitable for <em>global administrators</em> who are responsible for configuring tenants and overseeing the entire system.</p>
+</div>
+<div class="paragraph">
+<p>The following entities of Jmix modules have <code>sysTenantId</code> attribute and support multitenancy:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>EntityLogItem</code></p>
+</li>
+<li>
+<p><code>SendingMessage</code></p>
+</li>
+<li>
+<p><code>SendingAttachment</code></p>
+</li>
+<li>
+<p><code>Report</code></p>
+</li>
+<li>
+<p><code>ReportGroup</code></p>
+</li>
+<li>
+<p><code>ResourceRoleEntity</code></p>
+</li>
+<li>
+<p><code>RowLevelRoleEntity</code></p>
+</li>
+<li>
+<p><code>FilterConfiguration</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="managing-tenants"><a class="anchor" href="#managing-tenants"></a>Managing Tenants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on provides the <strong>Multitenancy → Tenants</strong> view that enables global administrators to create and modify tenants.</p>
+</div>
+<div class="paragraph">
+<p>The tenant registration entity has two attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Tenant id</strong> - an identifier utilized in tenant-specific entities. It cannot be changed after creation.</p>
+</li>
+<li>
+<p><strong>Tenant name</strong> - a descriptive name of the tenant.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="tenants view" src="_images/tenants-view.png" width="1070"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="tenant-users"><a class="anchor" href="#tenant-users"></a>Tenant Users</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In multitenant applications, users within different tenants can have the same login names. To ensure that each <code>username</code> attribute is unique across the entire application, tenant users should register with a username that includes tenant-id prefix. For instance, if there are two different users named Alice in <code>t1</code> and <code>t2</code> tenants, their usernames should be <code>t1|alice</code> and <code>t2|alice</code>, respectively.</p>
+</div>
+<div class="paragraph">
+<p>Tenant users can log in to the application by providing the complete username, including the tenant-id, such as <code>t1|alice</code>.</p>
+</div>
+<div class="paragraph">
+<p>There are two ways to log in tenant users to the application:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The first way is to use a URL parameter that includes the tenant-id when accessing the login screen, for example <code>http://localhost:8080/login?tenantId=t1</code>. In this case, users can simply enter their login name without the tenant-id prefix, like just <code>alice</code>.</p>
+<div class="paragraph">
+<p>You also have the option to set a custom name for the URL parameter by using the <code>jmix.multitenancy.tenantIdUrlParamName application</code> application property.</p>
+</div>
+</li>
+<li>
+<p>Users can provide the full username including the tenant-id, for example <code>t1|alice</code>.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You can implement your own scheme of unique usernames instead of the method described above.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>User Substitution</strong></p>
+</div>
+<div class="paragraph">
+<p>A user belonging to a specific tenant should only be <a class="xref page" href="../security/users.html#user-substitution">substituted</a> by users from the same tenant.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuring-users"><a class="anchor" href="#configuring-users"></a>Configuring Users</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, we will explain the process of setting up user management and authentication in your project to support multitenancy.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Add a string attribute to your <code>User</code> entity and annotate it with the <code>@TenantId</code> annotation:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@TenantId
+@Column(name = "TENANT")
+private String tenant;
+
+public String getTenant() {
+    return tenant;
+}
+
+public void setTenant(String tenant) {
+    this.tenant = tenant;
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add the <code>tenant</code> column to the data grid in <code>user-list-view.xml</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;column property="tenant"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add field for selecting tenant in <code>user-detail-view.xml</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;comboBox id="tenantField" property="tenant" readOnly="true"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add the following to the <code>UserDetailView</code> class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixComboBox&lt;String&gt; tenantField;
+
+@Autowired
+private TenantProvider tenantProvider;
+
+@Autowired
+private MultitenancyUiSupport multitenancyUiSupport;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    // ...
+    tenantField.setItems(multitenancyUiSupport.getTenantOptions());
+}
+
+@Subscribe
+public void onInitEntity(final InitEntityEvent&lt;User&gt; event) {
+    // ...
+    tenantField.setReadOnly(false);
+}
+
+@Subscribe
+public void onBeforeShow(final BeforeShowEvent event) {
+    // ...
+    String currentTenantId = tenantProvider.getCurrentUserTenantId();
+    if (!currentTenantId.equals(TenantProvider.NO_TENANT)
+            &amp;&amp; Strings.isNullOrEmpty(tenantField.getValue())) {
+        tenantField.setReadOnly(true);
+        tenantField.setValue(currentTenantId);
+    }
+}
+
+@Subscribe("tenantField")
+public void onTenantFieldComponentValueChange(final AbstractField.ComponentValueChangeEvent&lt;JmixComboBox&lt;String&gt;, String&gt; event) {
+    usernameField.setValue(
+            multitenancyUiSupport.getUsernameByTenant(usernameField.getValue(), event.getValue())
+    );
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>To enable the usage of identical login names across various tenants as <a href="#tenant-users">previously explained</a>, include the following code snippet in your <code>LoginView</code> class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private MultitenancyUiSupport multitenancyUiSupport;
+
+private Location currentLocation; <i class="conum" data-value="1"></i><b>(1)</b>
+
+@Override
+public void beforeEnter(BeforeEnterEvent event) {
+    currentLocation = event.getLocation();
+    super.beforeEnter(event);
+}
+
+@Subscribe("login")
+public void onLogin(final LoginEvent event) {
+    String username = multitenancyUiSupport.getUsernameByLocation(event.getUsername(), currentLocation);
+
+    try {
+        loginViewSupport.authenticate(
+                AuthDetails.of(username, event.getPassword())
+                        .withLocale(login.getSelectedLocale())
+                        .withRememberMe(login.isRememberMe())
+        );
+    } catch (BadCredentialsException | DisabledException | LockedException | AccessDeniedException e) {
+        log.info("Login failed", e);
+        event.getSource().setError(true);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Use the <code>com.vaadin.flow.router.Location</code> object to work with the current URL.</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuring-security"><a class="anchor" href="#configuring-security"></a>Configuring Security</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When setting up roles for tenant users, do not include the tenant-id attributes in entity attribute policies to hide them from users. For instance, if the <code>Customer</code> entity is specific to a certain tenant and includes a <code>tenant</code> attribute annotated with <code>@TenantId</code>, the role granting access to this entity should explicitly specify the attributes and exclude the <code>tenant</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ResourceRole(name = "UsersRole", code = UsersRole.CODE, scope = "UI")
+public interface UsersRole {
+    String CODE = "users-role";
+
+    @EntityAttributePolicy(entityClass = Customer.class,
+            attributes = {"id", "name", "region", "version"},
+            action = EntityAttributePolicyAction.MODIFY)
+    @EntityPolicy(entityClass = Customer.class, actions = EntityPolicyAction.ALL)
+    void customer();
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="role-assignment"><a class="anchor" href="#role-assignment"></a>Role Assignment</h3>
+<div class="paragraph">
+<p>Role assignments are restricted to users within the same tenant.</p>
+</div>
+<div class="paragraph">
+<p>When assigning roles within the administration interface, the system enforces tenant isolation as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>From <strong>Application → Users</strong> View</p>
+<div class="paragraph">
+<p>When using the <strong>Role assignment</strong> button in the <strong>Application → Users</strong> view:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Only roles belonging to the same tenant as the selected user are displayed.</p>
+</li>
+<li>
+<p>Roles from other tenants are automatically filtered out and remain hidden.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>From <strong>Security → Resource Roles</strong> / <strong>Security → Row-level Roles</strong> Views</p>
+<div class="paragraph">
+<p>When using the <strong>Assign to users</strong> button in the <strong>Security → Resource roles</strong> or <strong>Security → Row-level roles</strong> views:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Users from all tenants are displayed in the selection dialog.</p>
+</li>
+<li>
+<p>However, the system prevents confirming the selection if you choose users from different tenants.</p>
+</li>
+<li>
+<p>A warning notification is displayed when attempting to assign roles across tenant boundaries.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

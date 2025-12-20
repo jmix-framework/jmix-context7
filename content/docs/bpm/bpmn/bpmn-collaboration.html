@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaboration :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Collaboration</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A collaboration represents the interaction between multiple participants in a business process. Each participant is defined with a unique ID and name, and is associated with a specific process definition through the processRef attribute.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_graphical_notation"><a class="anchor" href="#_graphical_notation"></a>Graphical Notation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A collaboration does not have a distinct visual representation on its own. However, the presence of at least one <a class="xref page" href="bpmn-pools-lanes.html#pools">pool</a> indicates that it is part of a collaboration.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_xml_representation"><a class="anchor" href="#_xml_representation"></a>XML Representation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the XML, a collaboration is defined by the <code>&lt;collaboration&gt;</code> element containing <code>&lt;participant&gt;</code> child elements. Each <code>&lt;participant&gt;</code> is associated with a specific process via the <code>processRef</code> attribute, which references the ID of the process definition.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;definitions . . .
+
+  &lt;collaboration id="Collaboration_1px6goz" name="Collaboration"&gt;
+    &lt;participant id="Participant_1" name="Participant One" processRef="Process_01" /&gt;
+    &lt;participant id="Participant_2" name="Participant Two" processRef="Process_02" /&gt;
+  &lt;/collaboration&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="properties"><a class="anchor" href="#properties"></a>Properties</h2>
+<div class="sectionbody">
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Id</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The id of the collaboration.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The name of the collaboration.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="meassge-flows"><a class="anchor" href="#meassge-flows"></a>Message Flows</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Collaboration objects often involve message flows, which illustrate the communication between different pools.
+Message flows indicate how information or tasks are exchanged between participants, enhancing the understanding of inter-process interactions.</p>
+</div>
+<div class="paragraph">
+<p>A message flow is depicted as a dotted line in BPMN and is used to illustrate the flow of messages between two participants (pools) that are prepared to send and receive them. It does not imply a specific order for the messages exchanged.</p>
+</div>
+<div class="paragraph">
+<p>Message flows can connect:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Two nodes in different pools</p>
+</li>
+<li>
+<p>A node in one pool to a different pool</p>
+</li>
+<li>
+<p>Two pools</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>However, message flows cannot link nodes within the same pool.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Behavior</strong></div>
+<p>Flowable does not handle the actual reception of messages, as this depends on the application environment.
+Developers must implement the logic for receiving messages, which may include connecting to external services like JMS or REST APIs.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Documentation Purpose</strong></div>
+<p>While message flows are useful for visualizing interactions between processes, they are typically not considered during the execution of business processes. Their primary role is to serve as documentation tools to clarify how different entities communicate within a BPMN model.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use collaborations in different scenarios. In the first case, using the collaboration allows to place the main process and its subprocess on the single diagram:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="collaboration example 1" src="../_images/bpmn-collaboration/collaboration-example-1.png" width="800"/>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Message flows just illustrate that the same subprocess is called from the different points of the main process.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This approach can be more convenient than storing the main process and its subprocess in separate XML files.</p>
+</div>
+<div class="paragraph">
+<p>In the second case, the inter-process communications can be modeled:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="collaboration example 2" src="../_images/bpmn-collaboration/collaboration-example-2.png" width="800"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Here, the process <strong>One</strong> sends a message to start process <strong>Two</strong>, and then waits until a message from the process <strong>Two</strong> will be received. Or the timer event fires and the signal from process <strong>One</strong> starts process <strong>Three</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Again, it is better to see all collaborating processes together.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

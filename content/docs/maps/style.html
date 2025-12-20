@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Styling :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Styling</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>Style</code> object enable developers to customize the color, size, font, and other visual properties of map <a class="xref page" href="features-geometries.html">features</a>.</p>
+</div>
+<div class="paragraph">
+<p>Styles can also be applied at the <a class="xref page" href="layers-sources.html">layer</a> level, defining a consistent appearance for all features within a layer.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styling-point-features"><a class="anchor" href="#styling-point-features"></a>Styling Point Features</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can customize the appearance of a <a class="xref page" href="features-geometries.html#point-feature">PointFeature</a> by defining a <code>PointStyle</code> object with properties like <code>image</code>, <code>fill</code>, <code>stroke</code>, and <code>text</code>, then applying it to the feature.</p>
+</div>
+<div class="sect2">
+<h3 id="basic-point-style"><a class="anchor" href="#basic-point-style"></a>Basic Point Style with Image</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private PointFeature createStyledPoint() {
+    return new PointFeature(GeometryUtils.createPoint(22, 25))
+            .withStyles(
+                    new PointStyle()
+                            .withImage(new CircleStyle()
+                                    .withRadius(7)
+                                    .withFill(new Fill("#E7003E"))
+                                    .withStroke(new Stroke()
+                                            .withWidth(2.0)
+                                            .withColor("#710067")))
+                            .build());
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="style point" src="_images/style-point.png" width="480"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="text-point-labels"><a class="anchor" href="#text-point-labels"></a>Text Labels for Points</h3>
+<div class="paragraph">
+<p>Using text instead of an image for the <code>PointFeature</code> allows you to display textual labels directly on the map at specified coordinates, providing clarity and context to the displayed data.</p>
+</div>
+<div class="paragraph">
+<p>When utilizing text for <code>PointFeature</code>, you can customize the appearance of the text by adjusting properties like <code>font</code>, <code>fill</code>, <code>textAlign</code>, etc.</p>
+</div>
+<div class="paragraph">
+<p>The example below demonstrates using textual label instead of an image for the <code>PointFeature</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private PointFeature createTextPoint() {
+    return new PointFeature(GeometryUtils.createPoint(15, 15))
+            .withStyles(
+                    new PointStyle()
+                            .withText(new TextStyle()
+                                    .withText("Africa")
+                                    .withFont("20px sans-serif")
+                                    .withFill(new Fill("#5E4BD8"))
+                                    .withStroke(new Stroke()
+                                            .withWidth(2.)
+                                            .withColor("#A368D5")))
+                            .build());
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="style point text" src="_images/style-point-text.png" width="479"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="point-icons"><a class="anchor" href="#point-icons"></a>Using Icons for Points</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Font Icons</strong></p>
+<div class="paragraph">
+<p>Example using Font Awesome 7 Free icons:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private PointFeature createPointWithFontIcons() {
+    return new PointFeature(GeometryUtils.createPoint(0, 43))
+            .withStyles(new Style()
+                    .withText(new TextStyle()
+                            .withText("\uf015")
+                            .withFont("24px 'Font Awesome 7 Free'")));
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="styles font icons" src="_images/styles-font-icons.png" width="288"/>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+To use icon fonts, like Font Awesome, you must include them in your project
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><strong>SVG Icons</strong></p>
+<div class="paragraph">
+<p>The <code>IconStyle</code> class provides several methods for setting icons on points.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>withVaadinIcon()</code> method accepts any <code>VaadinIcon</code> enum value.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private PointFeature createPointWithVaadinIcons() {
+    return new PointFeature(GeometryUtils.createPoint(11, 45))
+            .withStyles(new Style()
+                    .withImage(new IconStyle()
+                            .withVaadinIcon(VaadinIcon.USER)
+                            .withColor("#1B1BB3")
+                    ));
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="styles vaadin icons" src="_images/styles-vaadin-icons.png" width="250"/>
+</div>
+</div>
+</li>
+<li>
+<p><code>withLumoIcon()</code> - sets icon from the Lumo icon set. You can adjust the size and color.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private PointFeature createPointWithLumoIcons() {
+    return new PointFeature(GeometryUtils.createPoint(12, 47))
+            .withStyles(new Style()
+                    .withImage(new IconStyle()
+                            .withLumoIcon(LumoIcon.SEARCH)
+                            .withIconHeight("32px")
+                            .withIconWidth("32px")
+                            .withColor("#621448"))
+            );
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="styles lumo icons" src="_images/styles-lumo-icons.png" width="250"/>
+</div>
+</div>
+</li>
+<li>
+<p><code>withIconFromSet()</code> - uses icons from your own icon sets (see <a class="xref page" href="../flow-ui/icons/custom-icons.html">Custom Icons</a>). The icon’s predefined color may affect the final appearance.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private PointFeature createCustomPoint() {
+    return new PointFeature(GeometryUtils.createPoint(4, 33))
+            .withStyles(new Style()
+                    .withImage(new IconStyle()
+                            .withIconFromSet(StarIcons.CIRCLE))
+            );
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="styles custom icons" src="_images/styles-custom-icons.png" width="255"/>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Icons from custom sets have predefined colors (fill=<code>"#1E90FF"</code>). If you also call <code>withColor("…​")</code>, OpenLayers will combine both colors. For instance:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">            .withStyles(new Style()
+                    .withImage(new IconStyle()
+                            .withIconFromSet(StarIcons.CIRCLE)
+                            .withColor("yellow"))
+            );
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="styles custom green icons" src="_images/styles-custom-green-icons.png" width="255"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To color exclusively via Java API, set your icon’s fill to <code>"#FFF"</code> (white).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><code>withIconName()</code> - sets icon from icon set with the following format: <code>"collectionName:iconName"</code>.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private PointFeature createPointWithIconName() {
+    return new PointFeature(GeometryUtils.createPoint(0, 30))
+            .withStyles(new Style()
+                    .withImage(new IconStyle()
+                            .withIconName("vaadin:user")));
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="styles icon name" src="_images/styles-icon-name.png" width="257"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styling-marker-features"><a class="anchor" href="#styling-marker-features"></a>Styling Marker Features</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To change the marker icon, refer the following example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private MarkerFeature createStyledMarker() {
+    MarkerFeature feature = new MarkerFeature(GeometryUtils.createPoint(20, 20));
+    feature.removeAllStyles();
+    return feature.withStyles(new Style()
+                    .withImage(new IconStyle()
+                            .withSrc("icons/icon.png")
+                            .withScale(0.05)));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Additionally, an example of customizing marker icons based on the geo-object’s attributes is provided in the <a class="xref page" href="dispay-markers.html#use-markers">Use Custom Markers</a> section.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="style marker" src="_images/style-marker.png" width="491"/>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You can also apply the examples from <a href="#point-icons">Using Icons for Points</a> to set icons as markers for a <code>MarkerFeature</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styling-linestring-features"><a class="anchor" href="#styling-linestring-features"></a>Styling LineString Features</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To change the style for a <code>LineStringFeature</code>, you typically define a <code>LineStringStyle</code> object with the desired appearance properties like <code>stroke</code>, <code>fill</code>, etc., and then apply that style to the <code>LineStringFeature</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private LineStringFeature createStyledLineString() {
+    LineString lineString = geometries.createLineString(new Coordinate[]{
+            new Coordinate(13, 20),
+            new Coordinate(13, 32),
+            new Coordinate(25, 17)});
+    return new LineStringFeature(lineString)
+            .withStyles(
+                    new LineStringStyle()
+                            .withStroke(new Stroke()
+                                    .withWidth(3.)
+                                    .withColor("#F60018"))
+                            .build());
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="style line string" src="_images/style-line-string.png" width="476"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styling-polygon-features"><a class="anchor" href="#styling-polygon-features"></a>Styling Polygon Features</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Changing the style for a <code>PolygonFeature</code> involves defining a new <code>PolygonStyle</code> with desired properties like <code>fill</code>, <code>stroke</code>, etc., and applying this style to the <code>PolygonFeature</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private PolygonFeature createStyledPolygon() {
+    LinearRing shell = geometries.createLinearRing(new Coordinate[]{
+            new Coordinate(1.2457020544488762, 42.476628901048684),
+            new Coordinate(-0.054875980233204155, 52.77260344863316),
+            new Coordinate(29.858418817454655, 46.105591288830624),
+            new Coordinate(1.2457020544488762, 42.476628901048684),
+    });
+    return new PolygonFeature(geometries.createPolygon(shell))
+            .withStyles(
+                    new PolygonStyle()
+                            .withFill(new Fill("rgba(1, 147, 154, 0.2)"))
+                            .withStroke(new Stroke()
+                                    .withWidth(3.)
+                                    .withColor("#123EAB"))
+                            .build());
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="style polygon" src="_images/style-polygon.png" width="476"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="select-mode-styles"><a class="anchor" href="#select-mode-styles"></a>Selecting Mode Styles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every feature type in the vector source has default styles for the <a class="xref page" href="editing-geometries.html#select-mode">select mode</a>. These styles are automatically applied when a user selects a feature on the map. To customize the selection styles, each feature provides methods for adding your own styles.</p>
+</div>
+<div class="paragraph">
+<p>For instance, here’s how you can add custom selection styles to a <code>PolygonFeature</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private PolygonFeature createPolygonWithSelectStyles() {
+    Polygon polygon = GeometryUtils.createPolygon(new Coordinate[]{
+            new Coordinate(-64.75370117729211, 32.30679527567045),
+            new Coordinate(-80.18546220891433, 25.760830653727623),
+            new Coordinate(-80.18546220891433, 25.760830653727623),
+            new Coordinate(-66.11846996297967, 18.4077981563645),
+            new Coordinate(-64.75370117729211, 32.30679527567045),
+    });
+    return new PolygonFeature(polygon)
+            .withSelectStyles(
+                    new PolygonStyle()
+                            .withFill(new Fill("rgba(255, 61, 0, 0.2)"))
+                            .withStroke(new Stroke()
+                                    .withWidth(4d)
+                                    .withColor("#FF3D00"))
+                            .build());
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="styles select" src="_images/styles-select.gif" width="455"/>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+To apply the same selection style to all features in the source, set the select styles on the vector layer.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="modify-mode-styles"><a class="anchor" href="#modify-mode-styles"></a>Modifying Mode Styles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Vector sources provide the <a class="xref page" href="editing-geometries.html#modify-mode">modify mode</a>. When activated, this mode generates points at the geometry’s vertices, allowing for modifications such as adding new vertices and changing existing vertex positions. This mode also defines the styles for these generated vertices, which are displayed on the map to represent the geometry.</p>
+</div>
+<div class="paragraph">
+<p>For example, here’s how to set custom styles for polygon vertex points:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private PolygonFeature createPolygonWithModifyStyles() {
+    Polygon polygon = GeometryUtils.createPolygon(new Coordinate[]{
+            new Coordinate(77.2048761253423, 28.605384389707353),
+            new Coordinate(75.78484389126132, 26.895539146773086),
+            new Coordinate(78.00224596797739, 27.170451672755192),
+            new Coordinate(77.2048761253423, 28.605384389707353)});
+
+    return new PolygonFeature(polygon)
+            .withModifyStyles(
+                    new PointStyle()
+                    .withImage(new CircleStyle()
+                            .withRadius(6)
+                            .withFill(new Fill("rgba(149, 107, 214, 0.5)"))
+                            .withStroke(new Stroke()
+                                    .withWidth(2d)
+                                    .withColor("#2F0571")))
+                    .build());
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="styles modify" src="_images/styles-modify.gif" width="290"/>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+To apply the same modify styles to all features in the source, set the modify styles on the vector layer.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

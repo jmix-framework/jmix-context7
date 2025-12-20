@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Containers :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Property Containers</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>InstancePropertyContainer</code> and <code>CollectionPropertyContainer</code> are designed to work with entity instances and collections that are attributes of other entities.</p>
+</div>
+<div class="paragraph">
+<p>You can define property containers in the XML descriptor in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;instance id="userDc"
+          class="com.company.onboarding.entity.User"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;fetchPlan extends="_base"&gt;
+        &lt;property name="department" fetchPlan="_base"/&gt;
+        &lt;property name="steps" fetchPlan="_base"&gt;
+            &lt;property name="step" fetchPlan="_base"/&gt;
+        &lt;/property&gt;
+        &lt;property name="hobbies" fetchPlan="_base"/&gt;
+    &lt;/fetchPlan&gt;
+    &lt;loader/&gt;
+    &lt;collection id="stepsDc" property="steps"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+&lt;/instance&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>InstanceContainer</code> stores an instance of the <code>User</code> entity that has the <code>steps</code> attribute.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>CollectionPropertyContainer</code> stores a collection of <code>UserStep</code> entity instances located in the <code>steps</code> attribute of the <code>User</code> entity.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="methods"><a class="anchor" href="#methods"></a>Methods</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Property containers implement the <code>Nested</code> interface that defines methods to get the master container and the name of its attribute to bind the property container to. In the example with <code>User</code> and <code>UserStep</code> entities, the master container is the one storing the <code>User</code> instance.</p>
+</div>
+<div class="paragraph">
+<p><code>InstancePropertyContainer</code> works directly with the attribute of the master entity. It means that if you invoke its <code>setItem()</code> method, the value will be set to the corresponding master entity attribute and its <code>ItemPropertyChangeEvent</code> listener will be invoked.</p>
+</div>
+<div class="paragraph">
+<p><code>CollectionPropertyContainer</code> contains a copy of the master collection and its methods behave as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>getMutableItems()</code> returns the mutable list of entities and changes in the list are reflected in the underlying property. That is, if you remove an item from this list, the master attribute will be changed and the <code>ItemPropertyChangeEvent</code> listener will be invoked on the master container.</p>
+</li>
+<li>
+<p><code>getDisconnectedItems()</code> returns the mutable list of entities, but changes in the list are not reflected in the underlying property. That is, if you remove an item from this list, the master attribute will stay the same.</p>
+</li>
+<li>
+<p><code>setItems()</code> sets a collection of entities to the container and the underlying property. The <code>ItemPropertyChangeEvent</code> listener is invoked on the master container.</p>
+</li>
+<li>
+<p><code>setDisconnectedItems()</code> sets a collection of entities to the container, but the underlying master attribute will stay the same.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>getDisconnectedItems()</code> and <code>setDisconnectedItems()</code> methods can be used to temporarily change the representation of the collection in UI, for example to filter a table:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionPropertyContainer&lt;UserStep&gt; stepsDc;
+@Autowired
+private MetadataTools metadataTools;
+
+private void filterByDueDate(LocalDate dueDate) {
+    List&lt;UserStep&gt; filtered = getEditedEntity().getSteps().stream()
+            .filter(userStep -&gt; userStep.getDueDate().isAfter(dueDate))
+            .collect(Collectors.toList());
+    stepsDc.setDisconnectedItems(filtered);
+}
+
+private void resetFilter() {
+    stepsDc.setDisconnectedItems(getEditedEntity().getSteps());
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

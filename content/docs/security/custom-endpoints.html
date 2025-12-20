@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Endpoints :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Custom Endpoints</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Requests to the Jmix application are protected by the Spring Security framework. This section explains how you can configure access to custom API endpoints.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="general-information"><a class="anchor" href="#general-information"></a>General Information</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To gain a deep understanding of how endpoint security works, read the relevant sections of the Spring Security documentation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://docs.spring.io/spring-security/reference/servlet/architecture.html" rel="noopener" target="_blank">Spring Security Architecture</a></p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html" rel="noopener" target="_blank">Authorize HttpServletRequests</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Spring Security uses special <a href="https://docs.spring.io/spring-security/reference/servlet/architecture.html#servlet-securityfilterchain" rel="noopener" target="_blank">SecurityFilterChain</a> beans to determine which URLs should be protected. Each <code>SecurityFilterChain</code> bean is configured by the <a href="https://docs.spring.io/spring-security/reference/servlet/configuration/java.html#jc-httpsecurity" rel="noopener" target="_blank">HttpSecurity</a> builder. An application can have multiple <code>SecurityFilterChain</code> beans declared. In this case, it is extremely important to indicate their correct order. See the <a href="https://docs.spring.io/spring-security/reference/servlet/configuration/java.html#_multiple_httpsecurity_instances" rel="noopener" target="_blank">Multiple HttpSecurity Instances</a> section of the Spring Security documentation for how to configure multiple <code>HttpSecurity</code> objects.</p>
+</div>
+<div class="paragraph">
+<p>Each Jmix application by default contains a security configuration that extends the <a href="https://vaadin.com/docs/latest/security/enabling-security#security-configuration-class" rel="noopener" target="_blank">VaadinWebSecurity</a> class. This configuration sets up access to internal Vaadin endpoints and delegates all requests authorization to Jmix and Vaadin mechanisms (grants access to views using view controller annotation or by analyzing user’s resource roles). <code>SecurityFilterChain</code> created by this configuration always has the lowest priority and is always invoked last. The <a href="#custom-endpoints-security">Custom Endpoints Security</a> section below explains how to define you own <code>SecurityFilterChain</code> to protect custom endpoints. The <a href="#static-public-resources">Static Public Resources</a> section explains how to completely bypass Spring Security for some URLs.</p>
+</div>
+<div class="paragraph">
+<p>Add-ons like <a class="xref page" href="../oidc/index.html">OpenID Connect</a> or <a class="xref page" href="../authorization-server/index.html">Authorization Server</a> bring their own <code>SecurityFilterChain</code> beans that protect authorization or resource server endpoints. These beans are always invoked before the one from the UI module. See the <a href="#token-based-authentication">Token Based Authentication</a> section below for how to protect API endpoints when using these add-ons.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="static-public-resources"><a class="anchor" href="#static-public-resources"></a>Static Public Resources</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To completely ignore Spring Security rules for static public resources, create a configuration class extending <code>FlowuiVaadinWebSecurity</code> and register your public URL patterns with the <code>ignoring()</code> method of <code>WebSecurity</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.demo.security;
+
+import io.jmix.securityflowui.security.FlowuiVaadinWebSecurity;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+
+@Configuration
+public class DemoSecurityConfiguration extends FlowuiVaadinWebSecurity {
+
+    @Override
+    protected void configure(WebSecurity web) throws Exception {
+        web.ignoring().requestMatchers("/images/**");
+        super.configure(web);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The example configuration above gives public access to all files located inside the <code>src/main/resources/public/images</code> directory of your project (see how to serve static content in the <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/web.html#web.servlet.spring-mvc.static-content" rel="noopener" target="_blank">Spring Boot documentation</a>).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-endpoints-security"><a class="anchor" href="#custom-endpoints-security"></a>Custom Endpoints Security</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To define custom security rules for endpoints, declare a new <code>SecurityFilterChain</code> bean. It is important that the order of this bean must be less than the order of <code>SecurityFilterChain</code> beans provided by Jmix framework.</p>
+</div>
+<div class="paragraph">
+<p>You can find order value constants used by Jmix in the <code>JmixSecurityFilterChainOrder</code> interface. The rule of thumb is to use the <code>JmixSecurityFilterChainOrder.CUSTOM</code>, <code>JmixSecurityFilterChainOrder.CUSTOM - 10</code> and similar values for your security filter chains.</p>
+</div>
+<div class="paragraph">
+<p>A simple <code>SecurityFilterChain</code> bean definition may look as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+@Order(JmixSecurityFilterChainOrder.CUSTOM)
+SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
+    http.securityMatcher("/public-api/**")
+            .authorizeHttpRequests(authorize -&gt;
+                    authorize.anyRequest().permitAll()
+            );
+    return http.build();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The configuration above grants access to all requests that match the <code>/public-api/**</code> pattern.</p>
+</div>
+<div class="sect2">
+<h3 id="public-endpoints-example"><a class="anchor" href="#public-endpoints-example"></a>Public Endpoints</h3>
+<div class="paragraph">
+<p>Let’s assume that you have a controller with two methods, and you want these methods to be available for any user without authentication.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestController
+public class GreetingController {
+
+    @PostMapping("/greeting/hello")
+    public String hello() {
+        return "Hello!";
+    }
+
+    @GetMapping("/greeting/public/hi")
+    public String hi() {
+        return "Hi!";
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Public access can be configured using the following configuration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Configuration
+public class AnonymousControllerSecurityConfiguration {
+
+    @Bean
+    @Order(JmixSecurityFilterChainOrder.CUSTOM) <i class="conum" data-value="1"></i><b>(1)</b>
+    SecurityFilterChain greetingFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher("/greeting/**") <i class="conum" data-value="2"></i><b>(2)</b>
+                .authorizeHttpRequests(authorize -&gt;
+                        authorize.anyRequest().permitAll() <i class="conum" data-value="3"></i><b>(3)</b>
+                )
+                .csrf(csrf -&gt; csrf.disable()); <i class="conum" data-value="4"></i><b>(4)</b>
+        JmixHttpSecurityUtils.configureAnonymous(http); <i class="conum" data-value="5"></i><b>(5)</b>
+        return http.build();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>JmixSecurityFilterChainOrder.CUSTOM</code> order is less than any other Jmix security filter chain order, so your filter chain will be used before any filter chain from Jmix.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><a href="https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html#security-matchers" rel="noopener" target="_blank">securityMatcher()</a> is used to determine whether a given <code>HttpSecurity</code> should be applied to the request. The request matcher from the example will match requests with URLs that follow the pattern <code>/greeting/**</code>. Requests for other URLs will be processed by a default security filter chain from Jmix UI module.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>permitAll()</code> instruction grants access to endpoints.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Disables CSRF for POST requests.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The invocation of <code>JmixHttpSecurityUtils.configureAnonymous(http)</code> configures anonymous authentication by setting the anonymous user returned by the Jmix <code>UserRepository</code> to the security context.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="http-basic-authentication-example"><a class="anchor" href="#http-basic-authentication-example"></a>HTTP Basic Authentication</h3>
+<div class="paragraph">
+<p>The example demonstrates how to protect controller endpoints using <a href="https://en.wikipedia.org/wiki/Basic_access_authentication" rel="noopener" target="_blank">HTTP Basic authentication</a>.</p>
+</div>
+<div class="paragraph">
+<p>The controller class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestController
+@RequestMapping("/api")
+public class BasicGreetingController {
+
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello!";
+    }
+
+    @GetMapping("/public/hi")
+    public String publicHi() {
+        return "Hi!";
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Requests with URLs matching the <code>/api/**</code> pattern should be protected with HTTP Basic authentication, while requests to <code>/api/public/**</code> should be available to all users. This can be achieved by using the configuration below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Configuration
+public class BasicControllerSecurityConfiguration {
+
+    @Bean
+    @Order(JmixSecurityFilterChainOrder.CUSTOM) <i class="conum" data-value="1"></i><b>(1)</b>
+    SecurityFilterChain basicControllerFilterChain(
+            HttpSecurity http,
+            AuthenticationManager authenticationManager) throws Exception {
+        http.securityMatcher("/api/**") <i class="conum" data-value="2"></i><b>(2)</b>
+                .authorizeHttpRequests(requests -&gt;
+                        requests
+                                .requestMatchers("/api/public/**").permitAll() <i class="conum" data-value="3"></i><b>(3)</b>
+                                .anyRequest().authenticated() <i class="conum" data-value="4"></i><b>(4)</b>
+                )
+                .httpBasic(Customizer.withDefaults()) <i class="conum" data-value="5"></i><b>(5)</b>
+                .authenticationManager(authenticationManager); <i class="conum" data-value="6"></i><b>(6)</b>
+        return http.build();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>JmixSecurityFilterChainOrder.CUSTOM</code> order is less than any other Jmix security filter chain order, so your filter chain will be used before any filter chain from Jmix.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Security matcher indicates that the HttpSecurity will only be applied for <code>/api/**</code> requests.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>If the request is selected by security matcher then we can provide further rules. All requests for <code>/api/public/**</code> must be permitted without authentication.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>All requests that don’t match the <code>/api/public/**</code> pattern defined above must be authenticated.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Enable basic authentication.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Use the <code>AuthenticationManager</code> configured by Jmix for basic authentication.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Requests to <code>/api/**</code> endpoints must contain a header in the form of <code>Authorization: Basic &lt;credentials&gt;</code>, where <code>&lt;credentials&gt;</code> is the Base64 encoding of username and password joined by a single colon. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">GET /api/hello HTTP/1.1
+Host: server.example.com
+Authorization: Basic YWRtaW46YWRtaW4=</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+In this example, public access to <code>/api/public/**</code> could be alternatively configured using another <code>SecurityFilterChain</code> bean that has <code>securityMatcher("/api/public/**")</code> and an order less than the current one, e.g. <code>JmixSecurityFilterChainOrder.CUSTOM - 10</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="token-based-authentication"><a class="anchor" href="#token-based-authentication"></a>Token Based Authentication</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can protect custom endpoints using bearer tokens issued by the <a class="xref page" href="../authorization-server/index.html">Authorization Server</a> or an external identity provider, such as Keycloak, when using the <a class="xref page" href="../oidc/index.html">OpenID Connect</a> add-on. The security configurations of the Authorization Server and the OpenID Connect add-ons provide extension points for this purpose. In the context of the OAuth 2.1 specification, your application that hosts the protected endpoints acts as a <strong>resource server</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Suppose you have a REST controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestController
+public class GreetingController {
+
+    @PostMapping("/greeting/hello")
+    public String hello() {
+        return "Hello!";
+    }
+
+    @GetMapping("/greeting/public/hi")
+    public String hi() {
+        return "Hi!";
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are several ways to determine which endpoints should be protected with token-based authentication and which can be accessed anonymously.</p>
+</div>
+<div class="sect2">
+<h3 id="application-properties"><a class="anchor" href="#application-properties"></a>Application Properties</h3>
+<div class="paragraph">
+<p>The simplest way to determine which endpoints of a resource server should be protected and which should have public access, is by using the following application properties:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># All endpoints that match the given pattern will require a bearer token
+jmix.resource-server.authenticated-url-patterns = /greeting/**
+
+# However, endpoints that match the following pattern will be accessible without a token
+jmix.resource-server.anonymous-url-patterns = /greeting/public/**</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="url-patterns-providers"><a class="anchor" href="#url-patterns-providers"></a>URL Patterns Providers</h3>
+<div class="paragraph">
+<p>Another way to define which endpoints need to be protected with token-based authentication is to create a bean implementing the <code>AuthenticatedUrlPatternsProvider</code> interface and return a list of URL patterns from its <code>getAuthenticatedUrlPatterns()</code> method. This approach is more flexible and allows you to define more complex rules for endpoint protection.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class GreetingAuthenticatedUrlPatternsProvider implements AuthenticatedUrlPatternsProvider {
+
+    @Override
+    public List&lt;String&gt; getAuthenticatedUrlPatterns() {
+        return List.of("/greeting/**");
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Resource server endpoints that must be accessed anonymously can be defined in the same way using the <code>AnonymousUrlPatternsProvider</code> interface.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class GreetingAnonymousUrlPatternsProvider implements AnonymousUrlPatternsProvider {
+
+    @Override
+    public List&lt;String&gt; getAnonymousUrlPatterns() {
+        return List.of("/greeting/public/**");
+    }
+
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="request-matcher-provider"><a class="anchor" href="#request-matcher-provider"></a>RequestMatcher Provider</h3>
+<div class="paragraph">
+<p>Application properties and URL patterns providers allow you to define endpoints protection rules that operate on a collection of strings with URL patterns. If you need more complex rules than just the URL pattern, such as the HTTP method as well, you can implement the <code>AuthenticatedRequestMatcherProvider</code> interface and return a <code>RequestMatcher</code> object from its <code>getAuthenticatedRequestMatcher()</code> method.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class GreetingAuthenticatedRequestMatcherProvider implements AuthenticatedRequestMatcherProvider {
+
+    @Override
+    public RequestMatcher getAuthenticatedRequestMatcher() {
+        return new AntPathRequestMatcher("/greeting/**", HttpMethod.POST.name());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>RequestMatcher</code> for public endpoints of the resource server can be defined in the same way using the <code>AnonymousRequestMatcherProvider</code> interface.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class GreetingAnonymousRequestMatcherProvider implements AnonymousRequestMatcherProvider {
+
+    @Override
+    public RequestMatcher getAnonymousRequestMatcher() {
+        return new AntPathRequestMatcher("/greeting/public/**", HttpMethod.GET.name());
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="accessing-resource-server-endpoints"><a class="anchor" href="#accessing-resource-server-endpoints"></a>Accessing Resource Server Endpoints</h3>
+<div class="paragraph">
+<p>After any of the above configurations are defined, all requests to protected <code>/greeting/**</code> endpoints of the resource server will require a bearer access token in the <code>Authorization</code> header. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">GET /greeting/hello HTTP/1.1
+Host: server.example.com
+Authorization: Bearer &lt;ACCESS_TOKEN&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="troubleshooting"><a class="anchor" href="#troubleshooting"></a>Troubleshooting</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you come across a 401 Unauthorized or 403 Forbidden HTTP error or have any other issues related to endpoint security, then it’s very likely that Spring Security <a href="https://docs.spring.io/spring-security/reference/servlet/architecture.html#servlet-logging" rel="noopener" target="_blank">logging</a> will help you to understand what is going on.</p>
+</div>
+<div class="paragraph">
+<p>To enable the logging add the following application property with DEBUG or TRACE value to the <code>application.properties</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">logging.level.org.springframework.security = TRACE</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

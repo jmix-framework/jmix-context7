@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jmix View :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Jmix View</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Any Jmix view can serve as a process form. This enables more complex user interactions compared to <a class="xref page" href="../input-dialog.html">Input Dialog</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-jmix-view-process-form"><a class="anchor" href="#creating-jmix-view-process-form"></a>Creating a Process Form</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A Jmix view process form is a regular application view that includes annotations to carry process-related details.</p>
+</div>
+<div class="sect2">
+<h3 id="_converting_existing_view"><a class="anchor" href="#_converting_existing_view"></a>Converting Existing View</h3>
+<div class="paragraph">
+<p>To convert a regular view to process form:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the <a href="#processform">@ProcessForm</a> annotation to the controller class. Declare outcomes, parameters, and output variables as appropriate.</p>
+</li>
+<li>
+<p>Inject and bind process variables using <a href="#processvariable">@ProcessVariable</a>.</p>
+</li>
+<li>
+<p>Handle button clicks to complete the task using <a href="#process-form-context">ProcessFormContext</a>.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Avoid converting views that are already in use. It is best to create a new view to serve as a process form.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_jmix_studio"><a class="anchor" href="#_using_jmix_studio"></a>Using Jmix Studio</h3>
+<div class="paragraph">
+<p>To create a process form using Jmix Studio:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click <strong>New → View</strong> to open <a class="xref page" href="../../studio/view-wizard.html">View Creation Wizard</a>.</p>
+</li>
+<li>
+<p>Select the <strong>BPM Process form</strong> template.</p>
+<div class="paragraph">
+<p><span class="image"><img alt="view wizard bpm process form" src="../_images/jmix-view-forms/view-wizard-bpm-process-form.png" width="776"/></span></p>
+</div>
+</li>
+<li>
+<p>Configure the form template and the element it is intended for:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Select <strong>Form template</strong> from the two options:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Process Form with Process Variables</strong>: this form will render components to a set of process variables you select.</p>
+</li>
+<li>
+<p><strong>Process Form for Entity Instance</strong>: this form will render components for specific entity instance attributes along with any added process variables.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Select <strong>Form type</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>User task form</strong>: this form is intended for user task elements.</p>
+</li>
+<li>
+<p><strong>Start form</strong>: this form is intended for start event elements.</p>
+<div class="paragraph">
+<p><span class="image"><img alt="jmix view wizard 1" src="../_images/jmix-view-forms/jmix-view-wizard-1.png" width="776"/></span></p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>In case of <strong>Process form for entity instance</strong>, specify the entity class, variable name, and configure the fetch plan.</p>
+</li>
+<li>
+<p>Specify process variables.</p>
+</li>
+<li>
+<p>In case of <strong>User task form</strong> specify form outcomes. The defaults are <code>submit</code> and <code>reject</code>. Edit these or add more.</p>
+</li>
+<li>
+<p>Add localizable messages.</p>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The form will appear among other views in your applications.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="set-up-element"><a class="anchor" href="#set-up-element"></a>Setting up Element with a Process Form</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Once you created a process form, you can set up an element to use it.
+Follow the steps below:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the <a class="xref page" href="../menu-views/modeler-web.html">Modeler</a>.</p>
+</li>
+<li>
+<p>Select the appropriate element (User Task or Start Event).</p>
+<table class="tableblock frame-none grid-none stretch">
+<colgroup>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="imageblock">
+<div class="content">
+<img alt="user task" src="../_images/jmix-view-forms/user-task.png" width="120"/>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><span class="image"><img alt="form section" src="../_images/jmix-view-forms/form-section.png" width="456"/></span></p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Set <strong>Form type</strong> to <code>Jmix view</code>.</p>
+</li>
+<li>
+<p>Set <strong>Open mode</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Dialog</strong>: to display form in a dialog.</p>
+</li>
+<li>
+<p><strong>Navigate</strong>: to display form as a view at its own URL.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Specify <strong>View id</strong>. The list of options will include all application views annotated with <code>@ProcessForm</code>. Modeler will recognize the process form and complete the remaining settings based on its annotations.</p>
+</li>
+<li>
+<p>If there are any <a href="#process-form-with-parameters">form parameters</a>, configure them with value source accordingly.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The process form is now set up for use in the selected element.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="processform"><a class="anchor" href="#processform"></a>@ProcessForm</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Adding <code>@ProcessForm</code> to a view controller class converts a view to a process form and makes the <a class="xref page" href="../menu-views/modeler-web.html">Modeler</a> aware of it. This annotation can include the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>To restrict the use of a form to specific processes, specify the process keys in the <code>allowedProcessKeys</code> attribute:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ProcessForm(allowedProcessKeys = {"process-1", "process-2"})</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>To declare form outcomes, use the <code>outcomes</code> attribute:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ProcessForm(
+        outcomes = { <i class="conum" data-value="1"></i><b>(1)</b>
+                @Outcome(id = "approve"),
+                @Outcome(id = "reject")
+        }
+)</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>To specify output variables, use the <code>outputVariables</code> attribute:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ProcessForm(
+        outputVariables = {
+                @OutputVariable(name = "order", type = Order.class),
+                @OutputVariable(name = "comment", type = String.class)
+        }
+)</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>To set a process variable only upon completing a task with a specific outcome, combine the <code>outcomes</code> and <code>outputVariables</code> attributes as follows:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ProcessForm(
+   outcomes = {
+      @Outcome(
+         id = "approve",
+         outputVariables = {
+            @OutputVariable(name = "nextActor", type = User.class) <i class="conum" data-value="1"></i><b>(1)</b>
+         }
+      ),
+      @Outcome(
+        id = "reject",
+           outputVariables = {
+              @OutputVariable(name = "rejectionReason", type = String.class) <i class="conum" data-value="2"></i><b>(2)</b>
+        }
+      )
+   },
+   outputVariables = {
+      @OutputVariable(name = "comment", type = String.class) <i class="conum" data-value="3"></i><b>(3)</b>
+   }
+)</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>nextActor</code> variable is set when the task is completed with the <code>approve</code> outcome.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>rejectionReason</code> variable is set when the task is completed with the <code>reject</code> outcome.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>comment</code> variable is set in all cases.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>To declare <a href="#process-form-with-parameters">form parameters</a> use the <code>params</code> attribute. Then, set <code>@ProcessFormParam</code> on class fields to link them to those parameters.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ProcessForm(
+        params = {
+                @Param(name = "nextActor"),
+                @Param(name = "entityPickerCaption")
+        }
+)
+
+    //...
+
+    @ProcessFormParam
+    private String nextActor;
+
+    @ProcessFormParam
+    private String entityPickerCaption;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>@ProcessFormParam</code> can take a <code>name</code> attribute. If no name is explicitly specified, the default name is derived from the field name.
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="processvariable"><a class="anchor" href="#processvariable"></a>@ProcessVariable</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>@ProcessVariable</code> can be set on class fields and view components. It indicates that the process variable’s value will be set to that field when the process form opens. In the case of a view component, the variable’s value will be set in that component.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ProcessVariable
+private Date date;
+
+@ViewComponent
+@ProcessVariable(name = "order")
+private EntityPicker&lt;Order&gt; orderEntityPicker;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If no <code>name</code> is explicitly specified, the default process variable name is derived from the field name.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="process-form-context"><a class="anchor" href="#process-form-context"></a>ProcessFormContext</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>ProcessFormContext</code> object contains information about the definition of the process being started or the user task that needs to be completed. Use <code>ProcessFormContext</code> when the process form is opened from the <a class="xref page" href="../menu-views/start-process-view.html">Start Process</a> or <a class="xref page" href="../menu-views/my-tasks.html">My Tasks</a> views. To open a process form with an injected <code>ProcessFormContext</code> programmatically, use the <a href="#opening-forms-programmatically">ProcessFormViews</a> bean.</p>
+</div>
+<div class="paragraph" id="start-form-example">
+<p>Consider the following example of starting a process:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ProcessVariable
+private Date date;
+
+@ViewComponent
+@ProcessVariable(name = "order")
+private EntityPicker&lt;Order&gt; orderEntityPicker;
+
+@Autowired
+private ProcessFormContext processFormContext;
+
+@Subscribe("startProcessBtn")
+public void onStartProcessBtnClick(ClickEvent&lt;JmixButton&gt; event) {
+    processFormContext.processStarting() <i class="conum" data-value="1"></i><b>(1)</b>
+            .withBusinessKey("order-1") <i class="conum" data-value="2"></i><b>(2)</b>
+            .addProcessVariable("date", date)
+            .addProcessVariable("order", orderEntityPicker.getValue()) <i class="conum" data-value="3"></i><b>(3)</b>
+            .start(); <i class="conum" data-value="4"></i><b>(4)</b>
+    closeWithDefaultAction(); <i class="conum" data-value="5"></i><b>(5)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Creates a <code>ProcessStarting</code> instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Sets a business key to the process instance.<a id="business-key"></a></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Adds a process variable.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Starts the actual process.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Closes the opened window.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph" id="task-form-example">
+<p>Consider the following example of completing a user task:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ProcessFormContext processFormContext;
+
+@Subscribe("rejectBtn")
+protected void onRejectBtnClick(ClickEvent&lt;JmixButton&gt; event) {
+    processFormContext.taskCompletion() <i class="conum" data-value="1"></i><b>(1)</b>
+            .withOutcome("reject") <i class="conum" data-value="2"></i><b>(2)</b>
+            .saveInjectedProcessVariables() <i class="conum" data-value="3"></i><b>(3)</b>
+            .complete(); <i class="conum" data-value="4"></i><b>(4)</b>
+    closeWithDefaultAction(); <i class="conum" data-value="5"></i><b>(5)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Creates a <code>TaskCompletion</code> instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Sets a task outcome.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Indicates that values of class fields annotated with the <code>@ProcessVariables</code> should be collected and saved as process variables.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Completes the actual task.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Closes the opened window.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="start-process-form"><a class="anchor" href="#start-process-form"></a>Start Process Form</h3>
+<div class="paragraph">
+<p>Let’s look at the example of the process form that is used as a start form.
+The form displays two fields:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A text field to enter the order number.</p>
+</li>
+<li>
+<p>An <code>entityPicker</code> to select the manager. The manager can be the next process actor.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>View XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://com.company.bpmex1.view.forms/startProcessForm.title"&gt;
+    &lt;layout&gt;
+        &lt;formLayout&gt;
+            &lt;textField id="orderNumber"
+                       label="msg://com.company.bpmex1.view.forms/orderNumber"
+                       datatype="string"/&gt;
+            &lt;entityPicker id="managerEntityPicker"
+                          metaClass="User"
+                          label="msg://managerEntityPicker.caption"&gt;
+                &lt;actions&gt;
+                    &lt;action id="lookup" type="entity_lookup"/&gt;
+                    &lt;action id="clear" type="entity_clear"/&gt;
+                &lt;/actions&gt;
+            &lt;/entityPicker&gt;
+        &lt;/formLayout&gt;
+        &lt;hbox id="actionsPanel" spacing="true"&gt;
+            &lt;button id="startProcessBtn"
+                    icon="CHECK"
+                    text="msg://com.company.bpmex1.view.forms/startProcessBtn.text"/&gt;
+        &lt;/hbox&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>View controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewController("OrderApprovalStartForm")
+@ViewDescriptor("order-approval-start-form.xml")
+@ProcessForm <i class="conum" data-value="1"></i><b>(1)</b>
+public class OrderApprovalStartForm extends StandardView {
+
+    @ViewComponent
+    @ProcessVariable <i class="conum" data-value="2"></i><b>(2)</b>
+    private TypedTextField&lt;String&gt; orderNumber;
+
+    @ViewComponent
+    @ProcessVariable(name = "manager") <i class="conum" data-value="3"></i><b>(3)</b>
+    private EntityPicker&lt;User&gt; managerEntityPicker;
+
+    @Autowired
+    private ProcessFormContext processFormContext; <i class="conum" data-value="4"></i><b>(4)</b>
+
+    @Subscribe("startProcessBtn")
+    public void onStartProcessBtnClick(ClickEvent&lt;JmixButton&gt; event) {
+        processFormContext.processStarting()
+                .withBusinessKey(orderNumber.getValue()) <i class="conum" data-value="5"></i><b>(5)</b>
+                .saveInjectedProcessVariables() <i class="conum" data-value="6"></i><b>(6)</b>
+                .start();
+        closeWithDefaultAction();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@ProcessForm</code> annotation indicates that this view is a process form and the view will be available in the modeler.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>We declare that the injected <code>orderNumber</code> UI component is a process variable. Since we develop a start process form,
+the variable has no value yet, but the annotation will be used on process start.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The same as 2, but here the <code>manager</code> process variable name differs from the <code>managerEntityPicker</code> field name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>ProcessFormContext</code> is the object that we use to start the process.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>When we start the process, we can pass an optional process instance business key.
+We use the <code>orderNumber</code> here.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The <code>saveInjectedProcessVariables()</code> saves values of the fields annotated with
+the <code>@ProcessVariables</code> as process variables on process start.
+<div class="paragraph">
+<p>Instead of using <code>saveInjectedProcessVariables()</code> method you can explicitly add process variables one by one:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("startProcessBtn")
+public void onStartProcessBtnClick(ClickEvent&lt;JmixButton&gt; event) {
+    processFormContext.processStarting()
+            .withBusinessKey(orderNumber.getValue())
+            .addProcessVariable("orderNumber", orderNumber.getValue())
+            .addProcessVariable("manager",managerEntityPicker.getValue())
+            .start();
+    closeWithDefaultAction();
+}</code></pre>
+</div>
+</div></td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="task-process-form"><a class="anchor" href="#task-process-form"></a>Task Process Form</h3>
+<div class="paragraph">
+<p>Let’s look at the example of the task process form that displays two fields:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The first one will display a value of the existing process variable - <code>orderNumber</code>.</p>
+</li>
+<li>
+<p>The second field will be used for the new process variable - <code>comment</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Approve</strong> and <strong>Reject</strong> buttons complete the user task with the corresponding outcome.</p>
+</div>
+<div class="paragraph">
+<p>View XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://orderApprovalTaskForm.title"&gt;
+    &lt;layout&gt;
+        &lt;formLayout&gt;
+            &lt;textField id="orderNumber" readOnly="true"
+                       label="msg://orderNumber"/&gt;
+            &lt;textField id="commentField" label="msg://comment"/&gt;
+        &lt;/formLayout&gt;
+        &lt;hbox id="actionsPanel" spacing="true"&gt;
+            &lt;button id="approveBtn" icon="CHECK" text="msg://approveBtn.text"/&gt;
+            &lt;button id="rejectBtn" icon="BAN" text="msg://rejectBtn.text"/&gt;
+        &lt;/hbox&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>View controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewController("OrderApprovalTaskForm")
+@ViewDescriptor("order-approval-task-form.xml")
+@ProcessForm(
+        outcomes = { <i class="conum" data-value="1"></i><b>(1)</b>
+                @Outcome(id = "approve"),
+                @Outcome(id = "reject")
+        }
+)
+public class OrderApprovalTaskForm extends StandardView {
+
+    @ViewComponent
+    @ProcessVariable <i class="conum" data-value="2"></i><b>(2)</b>
+    private TypedTextField&lt;String&gt; orderNumber;
+
+    @ViewComponent
+    @ProcessVariable(name = "comment") <i class="conum" data-value="3"></i><b>(3)</b>
+    private TypedTextField&lt;String&gt; commentField;
+
+    @Autowired
+    private ProcessFormContext processFormContext;
+
+    @Subscribe("approveBtn")
+    protected void onApproveBtnClick(ClickEvent&lt;JmixButton&gt; event) {
+        processFormContext.taskCompletion()
+                .withOutcome("approve")
+                .saveInjectedProcessVariables() <i class="conum" data-value="4"></i><b>(4)</b>
+                .complete();
+        closeWithDefaultAction();
+    }
+
+    @Subscribe("rejectBtn")
+    protected void onRejectBtnClick(ClickEvent&lt;JmixButton&gt; event) {
+        processFormContext.taskCompletion()
+                .withOutcome("reject")
+                .addProcessVariable("comment", commentField.getValue()) <i class="conum" data-value="5"></i><b>(5)</b>
+                .complete();
+        closeWithDefaultAction();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The form defines two possible outcomes that can be used in a sequence flow node condition in the modeler.
+This information is used by the modeler only.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>orderNumber</code> variable has been already set on process start.
+Because of the <code>@ProcessVariable</code> annotation,
+the value of the <code>orderNumber</code> process variables will be set to the <code>orderNumber</code> text field when the form is displayed.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The comment variable is not set yet, but the <code>@ProcessVariable</code> annotation will be taken into account
+when we complete the task in the button click listener.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Values of all fields annotated with the <code>@ProcessVariable</code> will be saved as process variables on task completion.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>An alternative way to define process variables. Instead of using the <code>saveInjectedProcessVariables()</code> method,
+you can define process variables directly.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="opening-forms-programmatically"><a class="anchor" href="#opening-forms-programmatically"></a>Opening Forms Programmatically</h3>
+<div class="paragraph">
+<p>Use the <code>ProcessFormViews</code> service to open start process forms and task process forms defined in the modeler.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, the button in the list view opens the start process form.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private RepositoryService repositoryService;
+
+@Autowired
+protected ProcessFormViews processFormViews;
+
+@Subscribe("startProcessBtn")
+public void onStartProcessBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery() <i class="conum" data-value="1"></i><b>(1)</b>
+            .processDefinitionKey("order-process")
+            .latestVersion()
+            .singleResult();
+
+    processFormViews.openStartProcessForm(processDefinition, this); <i class="conum" data-value="2"></i><b>(2)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Get a process definition by key.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Show the start process form with the provided process definition.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To open a task form, use the <code>openTaskProcessForm()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private TaskService taskService;
+
+@Autowired
+private ProcessFormViews processFormViews;
+
+@Subscribe("openTaskBtn")
+public void onOpenTaskBtnClick(ClickEvent&lt;JmixButton&gt; event) {
+
+    Task task = taskService.createTaskQuery()
+            .processDefinitionKey("approve-order-process")
+            .taskAssignee("admin")
+            .active()
+            .orderByTaskCreateTime()
+            .list()
+            .get(0);
+
+    processFormViews.openTaskProcessForm(task, this);
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="process-form-with-parameters"><a class="anchor" href="#process-form-with-parameters"></a>Process Form with Parameters</h3>
+<div class="paragraph">
+<p>Process forms can accept external parameters to adjust their behavior or appearance, such as changing component captions. In contrast to process variables, these form parameters have a narrower scope and are only available within the specific form (unless you save their value to a process variable).</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Form parameters are declared with the <a href="#processform">@ProcessForm</a> annotation and its <code>params</code> attribute. They are linked to a class field using the <code>@ProcessFormParam</code> annotation.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To illustrate, let’s consider the scenario where you need a form for selecting the next process actor. This form should feature an <code>EntityPicker</code> component to select a user that is then saved to a process variable. Also, this form will be reused at various steps in the process, so it would be nice to parametrize caption for the entity picker.</p>
+</div>
+<div class="paragraph">
+<p>There will be two form parameters overall:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>nextActor</code> – to save the user selected in the <code>EntityPicker</code> for further use in the process.</p>
+</li>
+<li>
+<p><code>entityPickerCaption</code> – to customize the caption on the <code>EntityPicker</code> component based on the process step.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>View XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://com.company.bpmex1.view.forms/actorSelectionForm.title"&gt;
+    &lt;layout spacing="true"&gt;
+        &lt;formLayout width="20em"&gt;
+            &lt;entityPicker id="userEntityPicker"
+                          metaClass="User"
+                          property="username"&gt;
+                &lt;actions&gt;
+                    &lt;action id="lookup" type="entity_lookup"/&gt;
+                    &lt;action id="clear" type="entity_clear"/&gt;
+                &lt;/actions&gt;
+            &lt;/entityPicker&gt;
+        &lt;/formLayout&gt;
+        &lt;hbox spacing="true"&gt;
+            &lt;button id="completeTaskBtn" icon="CHECK" text="msg://completeTask"/&gt;
+        &lt;/hbox&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>View controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ProcessForm(
+        params = {
+                @Param(name = "nextActor"),
+                @Param(name = "entityPickerCaption")
+        }
+)
+public class ActorSelectionForm extends StandardView {
+
+    @Autowired
+    private ProcessFormContext processFormContext;
+
+    @ViewComponent
+    private EntityPicker&lt;String&gt; userEntityPicker;
+
+
+    //...
+
+    @ProcessFormParam
+    private String nextActor;
+
+    @ProcessFormParam
+    private String entityPickerCaption;
+
+    @Subscribe
+    private void onBeforeShow(BeforeShowEvent event) {
+        userEntityPicker.setLabel(entityPickerCaption);
+    }
+
+    @Subscribe("completeTaskBtn")
+    private void onCompleteTaskBtnClick(ClickEvent&lt;JmixButton&gt; event) {
+        processFormContext.taskCompletion()
+                .addProcessVariable(nextActor, userEntityPicker.getValue())
+                .complete();
+        closeWithDefaultAction();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To get a full list of process form parameters, use the <code>ProcessFormContext</code> object:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;FormParam&gt; formParams = processFormContext.getFormData().getFormParams();</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

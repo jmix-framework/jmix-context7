@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started with Search :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Getting Started with Search</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide provides instructions on initiating Search functionality within your application.</p>
+</div>
+<div class="paragraph">
+<p>Suppose you wish to introduce a few entities to your application and enable searching across their attributes.</p>
+</div>
+<div class="paragraph">
+<p>To begin, follow these steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include Search in your project following the guidelines in the <a class="xref page" href="index.html#installation">installation</a> section.</p>
+</li>
+<li>
+<p><a class="xref page" href="index.html#connecting-to-search-engine-service">Configure</a> connection based on the service’s location.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-model-views-creation"><a class="anchor" href="#data-model-views-creation"></a>Create Data Model and Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s create the classes listed below:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The <code>Status</code> enumeration with the <code>SILVER</code> and <code>GOLD</code> values.</p>
+</li>
+<li>
+<p>The <code>Customer</code> entity with the fields:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>firstName</code> with <code>String</code> type</p>
+</li>
+<li>
+<p><code>lastName</code> with <code>String</code> type</p>
+</li>
+<li>
+<p><code>status</code> with <code>Status</code> type</p>
+</li>
+<li>
+<p><code>card</code> with <code>FileRef</code> type</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The <code>Order</code> entity with the fields:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>date</code> with <code>Date</code> type</p>
+</li>
+<li>
+<p><code>number</code> with <code>String</code> type</p>
+</li>
+<li>
+<p><code>amount</code> with <code>Integer</code> type</p>
+</li>
+<li>
+<p><code>product</code> with <code>String</code> type</p>
+</li>
+<li>
+<p><code>customer</code> with association to <code>Customer</code>, many-to-one cardinality</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Set up the <a class="xref page" href="../data-model/entities.html#instance-name">instance name</a> for the <code>Order</code> entity to be displayed as the search result.</p>
+</div>
+<div class="paragraph">
+<p>Create detail and list views for the <code>Customer</code> and <code>Order</code> entities.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="index-definition"><a class="anchor" href="#index-definition"></a>Create Index Definition Interface</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Next, it is necessary to establish an Index Definition - an interface outlining which entities and attributes are to be indexed. Suppose we intend to search orders based on their number, product name, customer status, or customer last name. Within the Index Definition, we will define a method to specify the required attributes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntitySearchIndex(entity = Order.class)
+public interface OrderIndexDefinition {
+
+    @AutoMappedField(includeProperties =
+            {"number", "product", "customer.status", "customer.lastName"})
+    void orderMapping();
+}</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The interface should be annotated with <code>@JmixEntitySearchIndex</code> with the required parameter <code>entity</code>.</p>
+</li>
+<li>
+<p>The interface can be named arbitrarily.</p>
+</li>
+<li>
+<p>The <code>@AutoMappedField</code> annotation automatically maps requested properties. Here, we will utilize the <code>includeProperties</code> parameter to indicate the attributes to be indexed.</p>
+</li>
+<li>
+<p>The method can be named at your discretion.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configure-index-naming"><a class="anchor" href="#configure-index-naming"></a>Configure Index Naming</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, index name is formed as <code>&lt;prefix&gt;&lt;entity_name&gt;</code>. Default prefix is <code>search_index_</code>.</p>
+</div>
+<div class="paragraph">
+<p>As you may utilize the same Elasticsearch/OpenSearch service across multiple projects, it is advisable to customize the default prefix for unique index names. To implement this change, add the following property to your <code>application.properties</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.search.search-index-name-prefix = demo_prefix_</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As alternative way you can specify full index name in <code>indexName</code> attribute of <code>@JmixEntitySearchIndex</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configure-indexing-queue"><a class="anchor" href="#configure-indexing-queue"></a>Configure Indexing Queue Processing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Jmix application monitors data modifications but does not automatically synchronize them with search engine service. To ensure regular updates of indexes, simply add the <a class="xref page" href="../quartz/index.html">Quartz</a> add-on to the project. The Search add-on will leverage Quartz for scheduled processing of the indexing queue using default configurations.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-search-view"><a class="anchor" href="#create-search-view"></a>Create Search View</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create an empty view named <strong>Search</strong> by utilizing the <code>Blank view</code> Studio template.</p>
+</li>
+<li>
+<p>Click <strong>Add Component</strong> in the actions panel, find the <code>SearchField</code> item, and then double-click it.</p>
+</li>
+<li>
+<p>The newly added <code>searchField</code> element will appear in both the <strong>Jmix UI</strong> structure panel and in the XML. You can configure attributes like <code>id</code>, <code>height</code>, <code>width</code>, etc., in the same way as it is done for other <a class="xref page" href="../flow-ui/vc/components.html">UI components</a>.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;search:searchField id="searchField"/&gt;</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Now, the view includes a text field for inputting the search term and a button to execute the search.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="test-searching"><a class="anchor" href="#test-searching"></a>Test Searching in Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now, we are ready to launch and test the application.</p>
+</div>
+<div class="paragraph">
+<p>Initially, add some instances of the <code>Customer</code> and <code>Order</code> entities.</p>
+</div>
+<div class="paragraph">
+<p>Navigate to the <strong>Search</strong> view to locate customers with the <code>Silver</code> status.</p>
+</div>
+<div class="paragraph">
+<p>The search outcomes will appear in the <strong>Search results</strong> view.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="search result" src="_images/search-result.png" width="1138"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Clicking on a result will redirect you to the entity detail view.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>End-to-end UI Tests :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">End-to-end UI Tests</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>End-to-end UI tests simulate real user interactions within a web browser, validating the entire application workflow. They run quickly and can be repeated easily, saving time compared to manual testing.</p>
+</div>
+<div class="paragraph">
+<p>In Jmix, you can use <strong>Masquerade</strong> to automate end-to-end UI testing for your applications. This testing library helps you use the Page Object pattern for all parts of Jmix UI, including views, components, dialogs, notifications, and composites. It is based on <a href="https://www.selenium.dev/documentation/webdriver/" rel="noopener" target="_blank">Selenium WebDriver</a> and <a href="https://github.com/selenide/selenide" rel="noopener" target="_blank">Selenide</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Masquerade is for applications that are built with <strong>Jmix 2.6</strong> or newer.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_install_masquerade"><a class="anchor" href="#_install_masquerade"></a>Install Masquerade</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To install Masquerade, follow the steps below:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Ensure that your project uses Jmix 2.6 or newer. See the <a class="xref page" href="../studio/project.html#upgrading-project">Upgrading Project</a> section for how to upgrade using Studio.</p>
+</li>
+<li>
+<p>Specify the dependency in the project <code>build.gradle</code> file as <code>testImplementation</code>:</p>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre>testImplementation 'io.jmix.masquerade:jmix-masquerade'</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_selenide"><a class="anchor" href="#_using_selenide"></a>Using Selenide</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Masquerade is based on Selenide, so you can use any of its methods.
+Consider an example, typical of test automation, that logs in to a Jmix application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class SelenideTest {
+
+    @Test
+    void selenideLogin() {
+        Selenide.open("/");
+
+        $(byId("vaadinLoginUsername")).shouldHave(value("admin"));
+        $(byChained(byId("vaadinLoginUsername"), byTagName("input")))
+                .setValue("")
+                .setValue("admin");
+
+        $(byId("vaadinLoginPassword")).shouldHave(value("admin"));
+        $(byChained(byId("vaadinLoginPassword"), byTagName("input")))
+                .setValue("")
+                .setValue("admin");
+
+        $(byCssSelector("[slot='submit']")).click();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The standard <code>Selenide.$</code> method takes a selector as an argument, such as <code>byId</code>. As a result, a <code>SelenideElement</code> object will be returned, with which further actions can be performed.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Please see <a href="https://selenide.org/documentation.html" rel="noopener" target="_blank">Selenide API</a> to learn about more methods.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_create_test_with_masquerade"><a class="anchor" href="#_create_test_with_masquerade"></a>Create Test with Masquerade</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Masquerade emphasizes the use of <a href="#wrappers">wrappers</a> for various Jmix components, allowing for better organization and management of tests. Let’s create a test that logs in to a Jmix application using Masquerade. This will involve two steps:</p>
+</div>
+<div class="sect2">
+<h3 id="_step_1_create_a_view_wrapper"><a class="anchor" href="#_step_1_create_a_view_wrapper"></a>Step 1. Create a View Wrapper</h3>
+<div class="paragraph">
+<p>A basic Jmix project includes a login view from the start. Create a <a href="#view_wrapper">view wrapper</a> to represent this view and its components under test:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In the <code>src/test/java</code> directory, within the <code>com.company.testproject</code> package create a new package named <code>view</code>. Then, create a Java class named <code>LoginView</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre>TestProject/
+└── src/
+    ├── main/
+    └── test/
+        └── java/
+            └── com.company.testproject
+                └── test_support
+                    └── view
+                       └── LoginView.java</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add <a href="#component_wrapper">component wrappers</a> along with get methods for each component needed for the test:</p>
+<div class="listingblock">
+<div class="title">LoginView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@TestView
+public class LoginView extends View&lt;LoginView&gt; {
+
+    @FindBy(css = "[slot='submit']")
+    private Button button;
+
+    @FindBy(id = "vaadinLoginUsername")
+    private TextField username;
+
+    @FindBy(id = "vaadinLoginPassword")
+    private PasswordField password;
+
+    public Button getButton() {
+        return button;
+    }
+
+    public TextField getUsernameField() {
+        return username;
+    }
+
+    public PasswordField getPasswordField() {
+        return password;
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_step_2_create_a_test_class"><a class="anchor" href="#_step_2_create_a_test_class"></a>Step 2. Create a Test Class</h3>
+<div class="paragraph">
+<p>The test class will invoke methods from the wrapper to go through the login scenario. Follow the steps below to create it:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In the <code>src/test/java</code> directory, within the <code>com.company.testproject</code> package create a new package named <code>ui-autotest</code>. Then create a Java class named <code>LoginUiTest</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre>TestProject/
+└── src/
+    ├── main/
+    └── test/
+        └── java/
+            ├── com.company.testproject
+            │   └── test_support
+            │       └── view
+            │          └── LoginView.java
+            └────── ui_autotest
+                    └── LoginUiTest.java</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Define a sequence of actions for your test scenario:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class LoginUiTest {
+
+    @Test
+    public void loginAsAdmin() {
+
+        Selenide.open("/"); <i class="conum" data-value="1"></i><b>(1)</b>
+
+        LoginView loginView = $j(LoginView.class); <i class="conum" data-value="2"></i><b>(2)</b>
+
+        loginView.getUsernameField()
+                .shouldHave(value("admin"))
+                .setValue("")
+                .setValue("admin");
+
+        loginView.getPasswordField()
+                .shouldHave(value("admin"))
+                .setValue("")
+                .setValue("admin");
+
+        loginView.getButton()
+                .shouldHave(text("Log in"))
+                .click();
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Open the login page using the standard Selenide method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Use the <code>Masquerade.$j</code> method to select the view wrapper and call its methods.</td>
+</tr>
+</table>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix_test_ids"><a class="anchor" href="#jmix_test_ids"></a>Jmix Test IDs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Masquerade may assist you in generating a special <code>j-test-id</code> (Jmix test ID) attribute for each component created with the <code>UiComponents</code> factory.
+Such ids simplify identifying elements on the page. To enable this feature, set <a class="xref page" href="../flow-ui/ui-properties.html#jmix.ui.ui-test-mode">jmix.ui.ui-test-mode</a> to true:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.ui.ui-test-mode = true</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+ID generation can impact the performance. It is recommended to use this property only for a test application profile.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The default test id value will match the id already given to a component:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="masquerade j test id" src="_images/masquerade-j-test-id.png" width="848"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If a component had no id, its test id will be generated based on its data binding, <code>action</code>, or <code>text</code> attribute.</p>
+</div>
+<div class="paragraph">
+<p>To work with an element directly by its <code>j-test-id</code>, use the <code>Masquerade.$j</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">$j("myButton").click();</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="wrappers"><a class="anchor" href="#wrappers"></a>Wrappers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Wrappers are classes that represent different parts of Jmix UI and encapsulate interactions with them. They help you separate test scenarios from the complexities of the UI under test. There are five types of wrappers.</p>
+</div>
+<div class="sect2">
+<h3 id="view_wrapper"><a class="anchor" href="#view_wrapper"></a>View Wrapper</h3>
+<div class="paragraph">
+<p>A view wrapper encapsulates a view, providing a simplified and consistent interface to interact with its components. A view wrapper does not have to include all components of the corresponding view – add just those that are needed for tests.</p>
+</div>
+<div class="paragraph">
+<p>Consider a simple view wrapper example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@TestView(id = "MyView") <i class="conum" data-value="1"></i><b>(1)</b>
+public class MyView extends View&lt;MyView&gt; { <i class="conum" data-value="2"></i><b>(2)</b>
+
+    @TestComponent
+    private EntityComboBox entityComboBox;
+
+    @TestComponent(path = "myButton")
+    private Button button;
+
+    @FindBy(xpath = "//vaadin-text-area[@class='my-text-area']")
+    private TextArea textArea;
+
+    public EntityComboBox getEntityComboBox() {
+        return entityComboBox;
+    }
+
+    public Button getButton() {
+        return button;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Annotate with <code>io.jmix.masquerade.TestView</code>. The <code>id</code> value must match the view ID specified through <code>@ViewController</code>:
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "my-test-view", layout = MainView.class)
+@ViewController(id = "MyView")
+@ViewDescriptor(path = "my-test-view.xml")
+public class MyView extends StandardView {
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you don’t specify an ID, then the simple class name for this view will be used as id.</p>
+</div></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Extend the <code>io.jmix.masquerade.sys.View</code> class with typing on itself. This is necessary to provide fluent API for writing tests.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="component_wrapper"><a class="anchor" href="#component_wrapper"></a>Component Wrapper</h3>
+<div class="paragraph">
+<p>Component wrappers encapsulate components within view wrappers. To designate a field as a component wrapper, use the <code>@TestComponent</code> or <code>@FindBy</code> annotations. This is illustrated in the following example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@TestComponent
+private EntityComboBox entityComboBox;
+
+@TestComponent(path = "myButton")
+private Button button;
+
+@FindBy(xpath = "//vaadin-text-area[@class='my-text-area']")
+private TextArea textArea;</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>@TestComponent</code> indicates that the current field is a component wrapper. If the <code>path</code> value is not specified, the default value is assumed to be the value of the <a href="#jmix_test_ids">j-test-id</a> attribute for the corresponding web element.</p>
+</li>
+<li>
+<p><code>@FindBy</code> specifies a selector to be used for this field.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Find the list of all available component wrappers in the <code>io.jmix.masquerade.component</code> package.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Component wrappers offer various methods for interacting with components. For instance, you can open an overlay or even a dialog window for an <code>EntityCombobox</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Test
+public void testEntityComboBox() {
+    EntityComboBox entityComboBox = openMyView().getEntityComboBox();
+
+    entityComboBox.shouldHave(label("EntityComboBox"))
+            .setValue("[admin]")
+            .shouldHave(value("[admin]"))
+            .clickItemsOverlay()
+            .shouldHave(visibleItems("[admin]", "[test]", "[test1]"))
+            .shouldHave(visibleItemsCount(3))
+            .shouldHave(visibleItemsContains("[test]"));
+
+    sleep(3000);
+
+    entityComboBox.getItemsOverlay()
+            .select("[test]");
+    sleep(3000);
+
+    entityComboBox.shouldHave(value("[test]"))
+            .triggerActionWithView(UserListDialog.class, HasActions.LOOKUP)
+            .selectAdmin();
+
+    sleep(3000);
+    entityComboBox.shouldHave(value("[admin]"));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Component wrappers also offer specific conditions for checking a component’s state. You can find the list of all available conditions in the <code>io.jmix.masquerade.condition</code> package.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dialogwindows_wrapper"><a class="anchor" href="#_dialogwindows_wrapper"></a>DialogWindows Wrapper</h3>
+<div class="paragraph">
+<p>DialogWindow wrappers are similar to view wrappers, but extend <code>io.jmix.masquerade.sys.DialogWindow</code>. This class offers specific actions for dialogs, such as closing them and checking the header. Consider the following example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@TestView(id = "User.list")
+public class UserListDialog extends DialogWindow&lt;UserListDialog&gt; {
+
+    public UserListDialog selectAdmin() {
+        $(By.xpath("//*[@id=\"usersDataGrid\"]/vaadin-grid-cell-content[22]"))
+                .click();
+
+        $(byChained(getBy(), byUiTestId("selectButton")))
+                .shouldBe(VISIBLE)
+                .shouldBe(ENABLED)
+                .click();
+        return this;
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_notification_wrapper"><a class="anchor" href="#_notification_wrapper"></a>Notification Wrapper</h3>
+<div class="paragraph">
+<p>Notification wrapper is a special type of component wrapper. Consider the following example working with a notification:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Test
+public void notificationTest() {
+    MainView mainView = loginAsAdmin();
+
+    UserListView userListView = mainView.openItem(UserListView.class,
+            "applicationListItem", "user.listListItem");
+
+    userListView.showUsername();
+
+    Notification notification = $j(Notification.class);
+    notification
+            .shouldBe(VISIBLE)
+            .shouldHave(notificationPosition(Notification.Position.BOTTOM_END))
+            .shouldHave(notificationTheme(Notification.Theme.SUCCESS))
+            .shouldHave(notificationTitle("Username:"))
+            .should(notificationTitleContains("name:"))
+            .shouldHave(notificationMessage("test"))
+            .should(notificationMessageContains("te"));
+
+    sleep(3000);
+
+    notification.shouldNotBe(EXIST);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you have multiple notifications open, you can select the one you want by xpath:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">$j(Notification.class, xpath("{xpath-to-notification}"));</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_composite_wrapper"><a class="anchor" href="#_composite_wrapper"></a>Composite Wrapper</h3>
+<div class="paragraph">
+<p>Composite wrapper encapsulates a part of a view, also referred to as fragment. The way you access a fragment will vary depending on whether it is present in a view wrapper or not.</p>
+</div>
+<div class="paragraph">
+<p>Assume we have a view composed of two fragments, but only one is added to the corresponding view wrapper:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@TestView
+public class FragmentsView extends View&lt;FragmentsView&gt; {
+
+    @TestComponent
+    private TestFragment1 testFragment1Root;
+
+    public TestFragment1 getTestFragment1() {
+        return testFragment1Root;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Composite wrappers are as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class TestFragment1 extends Composite&lt;TestFragment1&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @TestComponent
+    private TextField testFragment1TextField;
+
+    public TextField getTestField() {
+        return testFragment1TextField;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@TestComponent(path = {"FragmentsView", "testFragment2Root"}) <i class="conum" data-value="2"></i><b>(2)</b>
+public class TestFragment2 extends Composite&lt;TestFragment2&gt; {
+
+    @TestComponent
+    private TextField testFragment2TextField;
+
+    public TextField getTestField() {
+        return testFragment2TextField;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Composite wrappers must extend <code>io.jmix.masquerade.sys.Composite</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Composite wrappers can be optionally annotated with <code>@TestComponent</code> to provide a path value for use in <code>Masquerade.$j</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To access the fragment in the view wrapper, chain it as you would with components:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">FragmentsView fragmentsView = openFragmentsView();
+
+fragmentsView.getTestFragment1()
+        .getTestField()
+        .shouldHave(value(""))
+        .setValue("Fragment_1")
+        .shouldHave(value("Fragment_1"));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To test the second fragment, not present in the view wrapper, select it using <code>Masquerade.$j</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">FragmentsView fragmentsView = openFragmentsView();
+
+$j(TestFragment2.class)
+        .getTestField()
+        .shouldHave(value(""))
+        .setValue("Fragment_2")
+        .shouldHave(value("Fragment_2"));</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

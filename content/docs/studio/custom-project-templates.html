@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Project Templates :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Custom Project Templates</h1>
+<div class="paragraph">
+<p>Studio supports custom artifacts containing project templates, so you can provide your own templates for new projects, UI screens, and FlowUI views.</p>
+</div>
+<div class="paragraph">
+<p>To set the artifact coordinates, click <strong>Settings</strong> → <strong>Jmix Plugin Settings</strong> and enter the group and artifact name in the <strong>Additional templates artifact</strong> field. The artifact version must be the same as the Jmix BOM version used in the project templates of this artifact.</p>
+</div>
+<div class="paragraph">
+<p>Studio looks for the standard templates artifact (<code>io.jmix.templates.studio:jmix-studio-templates</code>) and the custom one in the repository selected in the <strong>New Project</strong> wizard. If both are found, it merges the templates giving the priority to the custom templates. It allows you to override a standard template by providing your own template in the same directory, for example, <code>content/project/application</code>.</p>
+</div>
+<div class="paragraph">
+<p>To build an artifact with custom templates, follow the steps below.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Clone the <a class="bare" href="https://github.com/jmix-framework/jmix" rel="noopener" target="_blank">https://github.com/jmix-framework/jmix</a> repository and copy its <code>jmix-templates</code> subdirectory to a different location on your computer.</p>
+</li>
+<li>
+<p>Change <code>group</code> property in <code>build.gradle</code>, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">group = 'com.company.templates'</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Change <code>version</code> in <code>gradle.properties</code> to the value of the desired Jmix BOM, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">version = 1.5.0</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Modify existing templates or add yours. For example, copy the <code>content/project/application</code> folder to <code>my-application</code> and change the <code>name</code> and <code>order</code> properties in its <code>template.json</code> file:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "version": 1,
+  "name": "My Full-Stack Application",
+  "order": 50,
+  "addon": false,</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Build the artifact and publish it to the local Maven repository:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">./gradlew publishToMavenLocal</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Click <strong>Settings</strong> → <strong>Jmix Plugin Settings</strong> and enter <code>com.company.templates:jmix-studio-templates</code> in the <strong>Additional templates artifact</strong> field.</p>
+</li>
+<li>
+<p>Remove the templates cache from the IDE configuration directory:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Find your IDE configuration directory as explained in the <a href="https://www.jetbrains.com/help/idea/directories-used-by-the-ide-to-store-settings-caches-plugins-and-logs.html#config-directory" rel="noopener" target="_blank">IntelliJ IDEA docs</a>.</p>
+</li>
+<li>
+<p>Remove everything from its <code>jmix/templates</code> subdirectory.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Create a new project and select <strong>Use local Maven repository</strong> checkbox. In the <strong>Jmix version</strong> dropdown, select the version of your custom artifact.</p>
+</li>
+<li>
+<p>On the next step of the wizard, you should see the combined list of templates, including your custom template.</p>
+</li>
+</ol>
+</div>
+
+</article>
+</body>
+</html>

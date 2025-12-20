@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Schema Migration :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Database Schema Migration</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Database schema migration</em>, or database migration for short, is a process of updating the database schema in accordance with changes of your application data model.</p>
+</div>
+<div class="paragraph">
+<p>Jmix uses <a href="https://www.liquibase.org" rel="noopener" target="_blank">Liquibase</a> as a database migration tool.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="workflow"><a class="anchor" href="#workflow"></a>Workflow</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix Studio creates migration scripts in the Liquibase changelog format by comparing the current state of your JPA <a class="xref page" href="entities.html">entities</a> with the current database schema of the corresponding <a class="xref page" href="data-stores.html">data store</a>. It happens automatically when you <a class="xref page" href="../studio/project.html#starting-application">start the application</a> using a <strong>Run/Debug Configuration</strong>. The changelog is saved in the source code of the application and is built into the binary artifact.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can disable automatic creation of migration scripts by editing the <a class="xref page" href="../studio/project.html#run-debug-configuration-settings">Run/Debug configuration</a> settings.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>When the application starts, it automatically runs Liquibase with the generated changelogs to update the connected database.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can also create a changelog at any time using the <strong>Generate Liquibase Changelog</strong> <a class="xref page" href="../studio/data-stores.html#data-store-actions">action</a> and execute it using the <strong>Update</strong> action on a data store in the Studio Jmix tool window.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Add-ons that your application depends on can also contain Liquibase changelog files. Changelogs from dependencies are executed on your database before the ones of the application.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="changelogs"><a class="anchor" href="#changelogs"></a>Changelog Files Structure</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Studio generates changelog files in the <code>src/main/resources/&lt;base_package&gt;/liquibase</code> directory of the application project. In this directory, Studio creates the <code>changelog</code> directory for the main data store, and <code>&lt;store&gt;-changelog</code> directories for additional data stores. Changelog files are created in subdirectories corresponding to the year and month of the current date. Name of each file includes a current day, a sequence number within the day, and a random character sequence to avoid conflicts if multiple developers work on the same project.</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/com/company/demo/</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">├── liquibase/ <i class="conum" data-value="1"></i><b>(1)</b>
+│   ├── changelog/ <i class="conum" data-value="2"></i><b>(2)</b>
+│   │   ├── 010-init-user.xml <i class="conum" data-value="3"></i><b>(3)</b>
+│   │   └── 2020/
+│   │       ├── 11/
+│   │       │   ├── 12-010-fe2b82e6.xml <i class="conum" data-value="4"></i><b>(4)</b>
+│   │       │   └── 27-010-fe2b82e6.xml
+│   │       └── 12/
+│   │           └── 17-010-fe2b82e6.xml
+│   ├── changelog.xml <i class="conum" data-value="5"></i><b>(5)</b>
+│   ├── locations-changelog/ <i class="conum" data-value="6"></i><b>(6)</b>
+│   │   └── 2020/
+│   │       └── 11/
+│   │           ├── 25-010-fe2b82e6.xml
+│   │           └── 28-010-fe2b82e6.xml
+│   └── locations-changelog.xml <i class="conum" data-value="7"></i><b>(7)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The root of Liquibase changelog files structure.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Changelogs directory of the main data store.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Changelog file provided in the new project. It creates a table for the <code>User</code> entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Changelog files generated by Studio.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Root changelog file of the main data store.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Changelogs directory of the <code>locations</code> data store.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Root changelog file of the <code>locations</code> data store.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For each data store, there is a root changelog file located in the <code>src/main/resources/&lt;base_package&gt;/liquibase</code> directory. It contains a directive to include all generated changelog files under the <code>changelog</code> subdirectory. The project must have the <code>&lt;data-store-name&gt;.liquibase.change-log</code> property set to the root changelog path, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">main.liquibase.change-log = com/company/demo/liquibase/changelog.xml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The root Liquibase changelog for the main data store contains <code>include</code> directives for changelogs of all add-ons used in the project. It makes the changelog compatible with the <a href="https://github.com/liquibase/liquibase-gradle-plugin" rel="noopener" target="_blank">Liquibase Gradle plugin</a> and Liquibase CLI and allows you to run Liquibase outside the Studio or the application, for example, on a CI server.</p>
+</div>
+<div class="paragraph">
+<p>Studio maintains the includes automatically when you add or remove add-ons. Also, when you start the application, it checks that includes in the root changelog correspond to the add-ons used in the project. If it finds a mismatch, Studio shows a notification dialog and suggests adding or removing includes. You can ignore some paths, and the notification won’t be shown again for the ignored items.</p>
+</div>
+<div class="paragraph">
+<p>You can write Liquibase changelog files manually and put them into the structure described above. Liquibase executes included changelogs in the alphabetical order considering the whole path, so give your files appropriate names.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Never remove the root <code>changelog.xml</code> file, it is required to start the migration process. Also, don’t remove <code>changelog/010-init-user.xml</code> unless you want to implement security in a non-standard way.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can combine multiple recent changelogs into a single file using the <strong>Aggregate Liquibase Changelogs</strong> action in the data store <a class="xref page" href="../studio/data-stores.html#data-store-actions">context menu</a> of Jmix Studio.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuration"><a class="anchor" href="#configuration"></a>Configuring Liquibase</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can specify Liquibase properties for the main data store in <code>application.properties</code> in the same way as described in the <a href="https://docs.spring.io/spring-boot/appendix/application-properties/index.html#appendix.application-properties.data-migration" rel="noopener" target="_blank">Spring Boot documentation</a> (see <code>spring.liquibase.*</code> properties), but replacing the <code>spring.liquibase</code> prefix with <code>main.liquibase</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">main.liquibase.enabled = false</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For an <a class="xref page" href="data-stores.html#additional">additional store</a>, replace <code>main</code> in the property name with the name of the data store.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><code>application.properties</code> must contain the explicit path to the root Liquibase changelog for each data store. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">main.liquibase.change-log=com/company/demo/liquibase/changelog.xml
+
+second.liquibase.change-log=com/company/demo/liquibase/second-changelog.xml</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="ignoring-existing-tables"><a class="anchor" href="#ignoring-existing-tables"></a>Ignoring Existing Tables</h3>
+<div class="paragraph">
+<p>By default, Jmix Studio compares all tables of the database with the data model, and generates migration scripts including <code>DROP TABLE</code> statements for tables that are not mapped to entities. If your database contains tables not associated with the application entities, you can ignore these tables by listing their prefixes or entire names in the <code>main.datasource.studio.liquibase.exclude-prefixes</code> application property. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">main.datasource.studio.liquibase.exclude-prefixes = abc_,foo,bar</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

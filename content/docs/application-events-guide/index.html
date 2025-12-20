@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decoupling Business Logic with Application Events :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Decoupling Business Logic with Application Events</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Application events provide a powerful mechanism for decoupling business logic in complex applications. Instead of direct method invocations between components, Jmix allows communication through events, making the application more modular, maintainable, and scalable. Events can trigger actions in different parts of the system without creating tight dependencies between them, promoting loose coupling.</p>
+</div>
+<div class="paragraph">
+<p>This guide will show you how to implement and use application events in Jmix to decouple your business logic and improve your application’s flexibility.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to implement this guide step by step, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup Jmix Studio</a></p>
+</li>
+<li>
+<p>Get the completed sample project, which includes all the examples used in this guide. This allows you to explore the finished implementation and experiment with the functionality right away.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>You can <a href="https://github.com/jmix-framework/jmix-application-events-sample/archive/refs/heads/release_2_7.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+</li>
+<li>
+<p>Or clone it and switch to the <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-application-events-sample
+cd jmix-application-events-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Alternatively, you can start with the base <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> project and follow the step-by-step instructions in this guide to implement the features yourself.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="what-we-are-going-to-build"><a class="anchor" href="#what-we-are-going-to-build"></a>What We Are Going to Build</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, we will enhance the <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> example with custom business logic driven by application events.</p>
+</div>
+<div class="paragraph">
+<p>The final version of this application demonstrates how to decouple business logic using application events within the Jmix Petclinic. By leveraging events, different components of the system communicate without direct method invocations, making the application more modular, maintainable, and scalable.</p>
+</div>
+<div class="paragraph">
+<p>The application includes the following event-driven features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Generate Room Keycode</strong>: When a pet visit is created, a unique room keycode is automatically generated for the pet’s owner. This logic is triggered by an event when a new visit entity is created in the system.</p>
+</li>
+<li>
+<p><strong>Send Room Keycode via SMS</strong>: After a visit is booked, the generated room keycode is sent to the pet’s owner via SMS. This notification process is decoupled from the booking logic, as it is handled through events.</p>
+</li>
+<li>
+<p><strong>Trigger Invoicing Process</strong>: When a visit is marked as completed, an event is triggered that automatically starts the invoicing process, allowing the system to manage billing independently of the visit completion logic.</p>
+</li>
+<li>
+<p><strong>Refresh Active Treatment Counter</strong>: Once a visit is completed, the active treatment counter in the UI is refreshed automatically. This is done by listening to the event that indicates the visit’s completion, ensuring the UI is always up to date.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These features demonstrate how application events can be used to decouple different parts of the application logic, enabling both UI-driven actions and background processes to work together efficiently.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="benefits-of-event-based-business-logic"><a class="anchor" href="#benefits-of-event-based-business-logic"></a>Benefits of Event-Based Business Logic</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The most common approach for communication in application logic is direct method invocation, where components interact via Java objects, Spring beans, or services. Direct method invocation is primarily used in the first guide on business logic: <a class="xref page" href="../business-logic-guide/index.html">Creating Business Logic in Jmix</a>. While this pattern is often effective, it can lead to tight coupling between components, making the system harder to maintain and extend as it grows.</p>
+</div>
+<div class="paragraph">
+<p>Event-based business logic offers an alternative communication pattern, where components communicate indirectly by emitting and handling events. This approach excels in scenarios where low coupling between participants is desired. While not suitable for every communication need, event-driven logic works particularly well in the following cases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Notifications where a response is not immediately required</p>
+</li>
+<li>
+<p>Communication between technically independent parts of the application</p>
+</li>
+<li>
+<p>Triggering actions where no back-channel or acknowledgment is necessary</p>
+</li>
+<li>
+<p>Asynchronous tasks where the user doesn’t need an immediate response</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By adopting event-based communication, the application gains several key benefits:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Loose Coupling</strong>: The event sender and receiver are independent of each other, promoting better modularity.</p>
+</li>
+<li>
+<p><strong>Isolated Testability</strong>: Both the sender and receiver can be tested in isolation without needing to mock dependencies.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="understanding-loose-coupling"><a class="anchor" href="#understanding-loose-coupling"></a>Understanding Loose Coupling</h3>
+<div class="paragraph">
+<p>Loose coupling refers to the design principle where components in the system are less dependent on one another. In a tightly coupled system, when one component changes, others are often affected, making the system less flexible and harder to maintain.</p>
+</div>
+<div class="paragraph">
+<p>With event-based logic, the event sender does not need to know the exact recipient(s) of the event. The sender triggers an event, and one or more components can act on it. This reduces the responsibility of the caller, allowing the system to grow without making the caller class more complex.</p>
+</div>
+<div class="paragraph">
+<p>The following diagrams illustrate the difference between a tightly coupled service call and a loosely coupled event-driven approach.</p>
+</div>
+<div class="sect3">
+<h4 id="direct-method-invocation"><a class="anchor" href="#direct-method-invocation"></a>Direct Method Invocation</h4>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="coupling service invocation" src="_images/application-events/coupling-service-invocation.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the tightly coupled service invocation model, the Caller directly interacts with each service (Service1, Service2, Service3). This means that the Caller has to be aware of each service, making it more complex as new services are added.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="event-notification"><a class="anchor" href="#event-notification"></a>Event Notification</h4>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="coupling event notification" src="_images/application-events/coupling-event-notification.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the loosely coupled event-driven model, the <code>Caller</code> is only responsible for emitting an event, which is a specific type (<code>Event</code>). This event is transmitted some event bus, which handles the propagation of the event to any listeners that are interested in that particular event type. The key point is that the <code>Caller</code> only depends on the <code>Event</code> type, not on any specific listeners. This allows for greater flexibility, as the <code>Caller</code> doesn’t need to know which components (listeners) will handle the event, and listeners only need to subscribe to the <code>Event</code> they care about.</p>
+</div>
+<div class="paragraph">
+<p>This design keeps the system modular: the <code>Caller</code> doesn’t grow in complexity as more listeners are added, because it remains unaware of how many or which listeners are handling the event. The event bus simply facilitates the delivery of the event without the <code>Caller</code> needing to manage any direct interactions.</p>
+</div>
+<div class="paragraph">
+<p>With this approach, adding new listeners does not affect the Caller class, making the system scalable and easier to extend without introducing additional complexity.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="available-types-of-events-in-a-jmix-application"><a class="anchor" href="#available-types-of-events-in-a-jmix-application"></a>Available Types of Events in a Jmix Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In Jmix, there are several types of application events that can be used to decouple business logic and handle various interactions across the application. The main categories of events are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Entity Lifecycle Events</strong>: Triggered when entities are created, updated, or deleted, allowing you to react to changes in your data.</p>
+</li>
+<li>
+<p><strong>Application Lifecycle Events</strong>: Fired during key moments in the application’s lifecycle, such as startup or shutdown, enabling you to handle global application state changes.</p>
+</li>
+<li>
+<p><strong>UI Events</strong>: Sent when certain interactions occur in the user interface, such as view initialization or user input, providing a way to handle UI logic in a decoupled manner.</p>
+</li>
+<li>
+<p><strong>Custom Application Events</strong>: User-defined events that allow you to create specific communication between different parts of the application, tailored to your business needs.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Each of these event types serves different purposes and allows you to implement event-driven logic across various layers of the application.</p>
+</div>
+<div class="sect2">
+<h3 id="entity-changes-through-entity-changed-event"><a class="anchor" href="#entity-changes-through-entity-changed-event"></a>Entity Changes Through EntityChangedEvent</h3>
+<div class="paragraph">
+<p>In the Jmix Petclinic example, the following logic is implemented: the clinic has rooms for pets during their stay. Instead of traditional keys or keycards, the rooms use a 6-digit keycode to grant access. This keycode needs to be sent to the pet’s owner via SMS once a new visit is booked.</p>
+</div>
+<div class="paragraph">
+<p>This scenario falls under the category of <em>Entity Lifecycle Events</em>, as we want to trigger the logic when a visit entity is created. The <code>EntityChangedEvent</code> is fired by the Jmix framework whenever an entity is created, updated, or deleted in the database.</p>
+</div>
+<div class="paragraph">
+<p>To handle this event, you need to define an event listener as a spring bean. The method that listens to <code>EntityChangedEvent</code> should be annotated with <code>@TransactionalEventListener</code> to ensure that it only executes after the entity has been committed to the database.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+There are two common annotations for registering event listeners in Jmix: <code>@TransactionalEventListener</code> and <code>@EventListener</code>. The main difference lies in transaction handling. In this guide, <code>@TransactionalEventListener</code> is used to ensure that the event is processed after the transaction completes. For more details, <a class="xref page" href="../data-access/entity-events.html">Entity Events</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">RoomKeycodeToOwnerSender.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class RoomKeycodeToOwnerSender {
+
+    private final DataManager dataManager;
+    private final Messages messages;
+    private final MobilePhoneNotificationGateway mobilePhoneNotificationGateway;
+
+    public RoomKeycodeToOwnerSender(DataManager dataManager, Messages messages, MobilePhoneNotificationGateway mobilePhoneNotificationGateway) {
+        this.dataManager = dataManager;
+        this.messages = messages;
+        this.mobilePhoneNotificationGateway = mobilePhoneNotificationGateway;
+    }
+
+    @TransactionalEventListener <i class="conum" data-value="1"></i><b>(1)</b>
+    public void sendRoomKeycode(EntityChangedEvent&lt;Visit&gt; event) { <i class="conum" data-value="2"></i><b>(2)</b>
+        if (event.getType().equals(EntityChangedEvent.Type.CREATED)) {
+            Visit visit = loadVisit(event.getEntityId());  <i class="conum" data-value="3"></i><b>(3)</b>
+            tryToSendRoomKeycodeToPetsOwner(visit);
+        }
+    }
+
+    private Visit loadVisit(Id&lt;Visit&gt; visitId) {
+        return dataManager
+                .load(visitId)
+                .joinTransaction(false)
+                .fetchPlan(visit -&gt; {
+                    visit.addFetchPlan(FetchPlan.BASE);
+                    visit.add("room", FetchPlan.BASE);
+                    visit.add("pet", pet -&gt; {
+                        pet.addFetchPlan(FetchPlan.BASE);
+                        pet.add("owner", FetchPlan.BASE);
+                    });
+                })
+                .one();
+    }
+
+    private void tryToSendRoomKeycodeToPetsOwner(Visit visit) {
+        Optional.ofNullable(visit.getPet())
+                .map(Pet::getOwner)
+                .map(Owner::getTelephone)
+                .ifPresent(phoneNumber -&gt;
+                        mobilePhoneNotificationGateway.sendNotification(phoneNumber, createNotificationText(visit))
+                );
+    }
+
+    private String createNotificationText(Visit visit) {
+        return messages.formatMessage(
+                this.getClass(),
+                "roomKeycodeNotification",
+                visit.getPet().getName(),
+                visit.getRoom() != null ? visit.getRoom().getRoomNumber() : "",
+                visit.getRoom() != null ? visit.getRoom().getName() : "",
+                visit.getRoomKeycode()
+        );
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Registers <code>sendRoomKeycode</code> as an event listener</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Limits <code>EntityChangedEvent</code> to events that affect <code>Visit</code> entities</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Accesses the identifier of the newly created <code>Visit</code> instance</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>With this event listener defined, the application will send out room keycodes to the owners of pets that have just registered in the pet clinic.</p>
+</div>
+<div class="paragraph">
+<p>Multiple event listeners can be defined for a single event. In this example, it’s necessary not only to notify the pet’s owner about the keycode but also to notify the system responsible for controlling the door hardware. This system requires additional details about the visit and the associated pet to automatically adjust settings such as the bed height, display a welcome message on the room’s TV, and more.</p>
+</div>
+<div class="paragraph">
+<p>The following event listener handles the responsibility of notifying the room system.</p>
+</div>
+<div class="listingblock">
+<div class="title">RoomSystemNotifier.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class RoomSystemNotifier {
+
+    private final DataManager dataManager;
+    private final RoomSystemGateway roomSystemGateway;
+
+    public RoomSystemNotifier(DataManager dataManager, RoomSystemGateway roomSystemGateway) {
+        this.dataManager = dataManager;
+        this.roomSystemGateway = roomSystemGateway;
+    }
+
+    @TransactionalEventListener
+    public void notifyRoomSystem(EntityChangedEvent&lt;Visit&gt; event) {
+        if (event.getType().equals(EntityChangedEvent.Type.CREATED)) {
+            roomSystemGateway.informAboutVisit(
+                    loadVisit(event.getEntityId())
+            );
+        }
+    }
+
+    private Visit loadVisit(Id&lt;Visit&gt; visitId) {
+        return dataManager
+                .load(visitId)
+                .joinTransaction(false)
+                .one();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Instead of creating a broad listener, like <code>PetCreatedListener</code> that handles multiple tasks after a pet is created, it is better to focus on a single responsibility as it is possible to have multiple listeners that are executed when an event is sent. For example, <code>RoomKeycodeToOwnerSender</code> specifically describes the listener’s role of sending the room keycode to the pet’s owner.</p>
+</div>
+<div class="paragraph">
+<p>This approach aligns with the <a href="https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle">open-closed principle</a>, promoting loosely coupled components and making the system more maintainable over time.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Events are typically named in the simple past tense, such as "Entity <strong>Changed</strong> Event." This emphasizes that an event represents an immutable fact—something that has already occurred and cannot be altered. Event listeners, on the other hand, are named in the present tense. They should also be named according to the specific action they perform.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="custom-application-logic-event"><a class="anchor" href="#custom-application-logic-event"></a>Custom Application Logic Events</h3>
+<div class="paragraph">
+<p>In this example, we use custom application events to communicate between different parts of the application in a loosely coupled way. When a pet recovers and checks out, the treatment is marked as complete. This event can trigger various downstream processes. In this case, the event initiates the invoicing process.</p>
+</div>
+<div class="paragraph">
+<p>The first step in creating a custom application event is to define an event class, <code>TreatmentCompletedEvent</code> which extends <code>org.springframework.context.ApplicationEvent</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">TreatmentCompletedEvent.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package io.jmix.petclinic.visit;
+
+import io.jmix.petclinic.entity.visit.Visit;
+import org.springframework.context.ApplicationEvent;
+
+public class TreatmentCompletedEvent extends ApplicationEvent {
+
+    private final Visit visit;
+
+    public TreatmentCompletedEvent(Object source, Visit visit) {
+        super(source);
+        this.visit = visit;
+    }
+
+    public Visit getVisit() {
+        return visit;
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="publishing-custom-application-events"><a class="anchor" href="#publishing-custom-application-events"></a>Publishing Custom Application Events</h3>
+<div class="paragraph">
+<p>In Jmix, custom events are published via Spring’s <code>ApplicationEventPublisher</code> mechanism. It enables different parts of the application to communicate without direct dependencies. The <code>ApplicationEventPublisher</code> is an implementation of the above-mentioned event bus.</p>
+</div>
+<div class="paragraph">
+<p>In the <code>VisitStatusService</code>, the <code>finishTreatment()</code> method marks a visit as complete and then publishes a <code>TreatmentCompletedEvent</code> to notify other parts of the system:</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitStatusService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    private final DataManager dataManager;
+    private final ApplicationEventPublisher applicationEventPublisher;
+
+    public VisitStatusService(DataManager dataManager, ApplicationEventPublisher applicationEventPublisher) {
+        this.dataManager = dataManager;
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
+
+    public void finishTreatment(Visit visit) {
+        markVisitAsDone(visit);
+        applicationEventPublisher.publishEvent(new TreatmentCompletedEvent(this, visit));
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The event is published with <code>applicationEventPublisher.publishEvent(new TreatmentCompletedEvent(this, visit));</code>. Other components can listen for this event without the need for the <code>VisitStatusService</code> to be aware of those components.</p>
+</div>
+<div class="paragraph">
+<p>The final part of the event-driven invoicing process is the event listener that reacts to the <code>TreatmentCompletedEvent</code>. This works the same way as with other standard Jmix events (e.g., <code>EntityChangedEvent</code>), using the familiar Spring-based event mechanism.</p>
+</div>
+<div class="paragraph">
+<p>The <code>InvoicingProcessInitializer</code> listens for the <code>TreatmentCompletedEvent</code> and creates an invoice for the completed visit.</p>
+</div>
+<div class="listingblock">
+<div class="title">InvoicingProcessInitializer.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("petclinic_invoicingProcessInitializer")
+public class InvoicingProcessInitializer {
+    private static final Logger log = LoggerFactory.getLogger(InvoicingProcessInitializer.class);
+
+    private final DataManager dataManager;
+    private final Sequences sequences;
+
+    public InvoicingProcessInitializer(DataManager dataManager, Sequences sequences) {
+        this.dataManager = dataManager;
+        this.sequences = sequences;
+    }
+
+    @EventListener
+    public void onTreatmentCompleted(TreatmentCompletedEvent event) {
+        log.info("Invoicing process initialized: {}", event.getVisit());
+
+        SaveContext saveContext = new SaveContext();
+        createInvoiceFor(event.getVisit(), saveContext);
+
+        dataManager.save(saveContext);
+    }
+
+    private void createInvoiceFor(Visit visit, SaveContext saveContext) {
+        Invoice invoice = dataManager.create(Invoice.class);
+
+        invoice.setVisit(visit);
+        invoice.setInvoiceDate(visit.getVisitEnd().toLocalDate());
+        invoice.setInvoiceNumber(createInvoiceNumber());
+        saveContext.saving(invoice);
+
+        createInvoiceItemsFor(invoice)
+                .forEach(saveContext::saving);
+    }
+
+    private List&lt;InvoiceItem&gt; createInvoiceItemsFor(Invoice invoice) {
+        InvoiceItem invoiceItem = dataManager.create(InvoiceItem.class);
+
+        invoiceItem.setInvoice(invoice);
+        invoiceItem.setPosition(1);
+        invoiceItem.setText("Visit flat fee");
+        invoiceItem.setPrice(new BigDecimal("150.0"));
+
+        return List.of(invoiceItem);
+    }
+
+    private String createInvoiceNumber() {
+        return String.format("%04d", sequences.createNextValue(Sequence.withName("vists")));
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix-ui-events"><a class="anchor" href="#jmix-ui-events"></a>Jmix UI Events</h3>
+<div class="paragraph">
+<p>On the UI layer, there are two main types of events: framework-provided UI events and custom application UI events. Both types of events are normally scoped to a single instance of the UI, meaning they only affect the current user.</p>
+</div>
+<div class="sect3">
+<h4 id="framework-ui-events"><a class="anchor" href="#framework-ui-events"></a>Framework UI Events</h4>
+<div class="paragraph">
+<p>Jmix’s UI framework relies on declarative event subscriptions using annotations. You can register event listeners in your controller with the <code>@Subscribe</code> annotation.</p>
+</div>
+<div class="paragraph">
+<p>There are various events you can subscribe to that handle the lifecycle of a controller, such as <code>InitEvent</code>, <code>BeforeCloseEvent</code>, and <code>PreCommitEvent</code>. The data components of the controllers also offer events like <code>ItemChangeEvent</code> and <code>CollectionChangeEvent</code>. Additionally, UI components themselves trigger events for changes in their state, such as <code>EnterPressEvent</code> and <code>TextChangeEvent</code>.</p>
+</div>
+<div class="paragraph">
+<p>For the petclinic, the Visit Detail View controller leverages the <code>InitEntityEvent</code> for generating a Room keycode when a new entity is going to be created:</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "visits/:id", layout = MainView.class)
+@ViewController("petclinic_Visit.detail")
+@ViewDescriptor("visit-detail-view.xml")
+@EditedEntityContainer("visitDc")
+public class VisitDetailView extends StandardDetailView&lt;Visit&gt; {
+
+    @Subscribe
+    protected void onInitEntity(InitEntityEvent&lt;Visit&gt; event) {
+        event.getEntity().setRoomKeycode(generateRoomKeycode());
+    }
+
+    private String generateRoomKeycode() {
+        int rookKeycode = new Random().nextInt(999999);
+        return String.format("%04d", rookKeycode);
+    }</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="custom-ui-events"><a class="anchor" href="#custom-ui-events"></a>Custom UI Events</h4>
+<div class="paragraph">
+<p>In Jmix, custom UI events allow you to send notifications or trigger actions across different parts of the user interface in a decoupled way. While these events are defined as regular Spring <code>ApplicationEvent</code> objects, the mechanism for publishing and handling them within the UI differs slightly. For UI-specific events, Jmix provides a dedicated <code>UiEventPublisher</code>, which ensures that events are scoped correctly within the UI context.</p>
+</div>
+<div class="paragraph">
+<p>This approach differs from standard Spring events, as UI events in Jmix are typically tied to specific user sessions or browser instances. They ensure that events are only delivered to the relevant UI (or browser tab) without affecting other sessions. See also: <a class="xref page" href="../flow-ui/ui-events.html">UI Events</a>.</p>
+</div>
+<div class="paragraph">
+<p>While the mechanism for dispatching UI events is unique to Jmix, they are still defined as standard Spring <code>ApplicationEvent</code> objects. This ensures that your custom events can be handled in the same way as other Spring events, with methods annotated with <code>@EventListener</code>.</p>
+</div>
+<div class="paragraph">
+<p>Here’s an example of a custom <code>TreatmentStartedEvent</code> being published and handled across different parts of the UI:</p>
+</div>
+<div class="listingblock">
+<div class="title">TreatmentStartedEvent.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class TreatmentStartedEvent extends ApplicationEvent {
+
+    private final Visit visit;
+
+    public TreatmentStartedEvent(Object source, Visit visit) {
+        super(source);
+        this.visit = visit;
+    }
+
+    public Visit getVisit() {
+        return visit;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, in the <code>MyVisitsView</code>, we publish the event using the <code>UiEventPublisher</code> when the treatment starts:</p>
+</div>
+<div class="listingblock">
+<div class="title">MyVisitsView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Autowired
+    private UiEventPublisher uiEventPublisher;
+
+    @Subscribe("visitsDataGrid.startTreatment")
+    public void onStartTreatment(final ActionPerformedEvent event) {
+        Visit visit = visitsDataGrid.getSingleSelectedItem();
+        if (visit == null)
+            return;
+
+        if (visit.hasStarted()) {
+            notifications.create(messageBundle.formatMessage("treatmentAlreadyStarted", visit.getPetName()))
+                    .withType(Notifications.Type.WARNING)
+                    .show();
+            return;
+        }
+
+        visitStatusService.startVisit(visit);
+
+        uiEventPublisher.publishEventForCurrentUI(new TreatmentStartedEvent(this, visit));
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Finally, in the <code>MainView</code>, we listen for the <code>TreatmentStartedEvent</code> and refresh the badge showing the active treatments:</p>
+</div>
+<div class="listingblock">
+<div class="title">MainView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route("")
+@ViewController("MainView")
+@ViewDescriptor("main-view.xml")
+public class MainView extends StandardMainView {
+
+    @ViewComponent
+    private Span activeTreatments;
+    @Autowired
+    private ViewNavigators viewNavigators;
+
+    @EventListener
+    public void onTreatmentStarted(TreatmentStartedEvent event) {
+        refreshActiveTreatmentCount();
+    }
+
+    private void refreshActiveTreatmentCount() {
+
+        Long amount = calculateAmountOfActiveTreatments();
+        activeTreatments.setText(messageBundle.formatMessage("activeTreatmentsBadge.text", amount));
+
+        addActiveTreatmentPulseEffect();
+    }
+
+    private Long calculateAmountOfActiveTreatments() {
+        return dataManager.loadValue("select count(e) from petclinic_Visit e " +
+                                "where e.assignedNurse = :currentUser " +
+                                "and e.treatmentStatus = @enum(io.jmix.petclinic.entity.visit.VisitTreatmentStatus.IN_PROGRESS)",
+                        Long.class)
+                .parameter("currentUser", currentAuthentication.getUser())
+                .one();
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When a treatment is started in the <code>MyVisitsView</code>, the badge in the <code>MainView</code> is updated by counting the number of active treatments assigned to the current user. This mechanism allows to notify the main view from the currently opened view.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide demonstrated how Jmix application events can decouple business logic, making applications more maintainable and flexible. We explored entity lifecycle events like <code>EntityChangedEvent</code>, custom events for business logic, and UI events that react to user actions within the interface.</p>
+</div>
+<div class="paragraph">
+<p>Event-driven logic reduces coupling between components, improving testability and resilience. However, event-based communication can make it more difficult to follow the application flow in the source code compared to direct method calls, as the connections between events and their listeners are not always immediately visible.</p>
+</div>
+<div class="paragraph">
+<p>In conclusion, different use cases call for different approaches. You should decide between service invocation or events depending on the specific needs of your application.</p>
+</div>
+<div class="sect2">
+<h3 id="further-information"><a class="anchor" href="#further-information"></a>Further Information</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../data-access/entity-events.html">Entity Events</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../flow-ui/ui-events.html">UI Events</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

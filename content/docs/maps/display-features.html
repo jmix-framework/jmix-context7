@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3. Display Features on Map :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">3. Display Features on Map</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s go back to the <code>Location</code> entity and include the following attributes to it:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>buildingEntrance</code> with <code>GeoPoint</code> type. This attribute stores the coordinates of the building’s entrance.</p>
+</li>
+<li>
+<p><code>pathToBuilding</code> with <code>GeoPolyline</code> type. This attribute stores the path to the building.</p>
+</li>
+<li>
+<p><code>buildingArea</code> with <code>GeoPolygon</code> type. This attribute is utilized to depict the building on the map using a geometric shape.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="new geo location attr" src="_images/new-geo-location-attr.png" width="903"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Include these attributes to the <code>Location.detail</code> view.</p>
+</div>
+<div class="paragraph">
+<p>To simplify our tutorial, we’ll use text fields for the newly added fields. You can add map event handlers to extract coordinates from the map, just like we did in <a class="xref page" href="data-binding-map.html#saving-coordinates">Saving Coordinates to the Building Attribute</a>. To achieve this, utilize the methods provided by <code>GeometryUtils</code>.</p>
+</div>
+<div class="paragraph">
+<p>Below are examples demonstrating how to fill in the fields:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Building</strong>:</p>
+<div class="paragraph">
+<p><code>POINT (13.347796079315284 52.55344847222085)</code></p>
+</div>
+</li>
+<li>
+<p><strong>Building entrance</strong>:</p>
+<div class="paragraph">
+<p><code>POINT (13.347860653822895 52.553536712270784)</code></p>
+</div>
+</li>
+<li>
+<p><strong>Path to building</strong>:</p>
+<div class="listingblock">
+<div class="content">
+<pre>LINESTRING (13.346886063248354 52.553529790121985,
+13.347394863347068 52.5532539371346, 13.347837668453902 52.55355180648286,
+13.347860653822895 52.553536712270784)</pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Building area</strong>:</p>
+<div class="listingblock">
+<div class="content">
+<pre>POLYGON ((13.347878609736783 52.553551482547135,
+13.34795260252847 52.55350646966119,
+13.347713548893793 52.55334632728869,
+13.347640979040412 52.553390474703775,
+13.347878609736783 52.553551482547135))</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="add-vector-layer"><a class="anchor" href="#add-vector-layer"></a>Add Vector Layers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A vector layer is utilized to work with geometries. It’s possible to add multiple vector layers to a map.</p>
+</div>
+<div class="paragraph">
+<p>To showcase polygons, polylines, and points, you need to append vector layers onto a map.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>location-lookup-view.xml</code> and create a separate vector layer and vector data source for each geo-specific attribute of the <a class="xref page" href="geo-objects.html">geo-object</a>. Specify the <code>dataContainer</code> and <code>property</code> attributes for data vector sources:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="map" ...&gt;
+    ...
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:osmSource/&gt;
+        &lt;/maps:tile&gt;
+        &lt;maps:vector id="dataVectorLayer"&gt;
+            &lt;maps:dataVectorSource id="buildingSource"
+                                   dataContainer="locationsDc"
+                                   property="building"/&gt;
+        &lt;/maps:vector&gt;
+        &lt;maps:vector id="vectorLayerArea"&gt;
+            &lt;maps:dataVectorSource id="areaSource"
+                                   dataContainer="locationsDc"
+                                   property="buildingArea"/&gt;
+        &lt;/maps:vector&gt;
+        &lt;maps:vector id="vectorLayerPath"&gt;
+            &lt;maps:dataVectorSource id="pathSource"
+                                   dataContainer="locationsDc"
+                                   property="pathToBuilding"/&gt;
+        &lt;/maps:vector&gt;
+        &lt;maps:vector id="vectorLayerEntrance"&gt;
+            &lt;maps:dataVectorSource id="entranceSource"
+                                   dataContainer="locationsDc"
+                                   property="buildingEntrance"/&gt;
+        &lt;/maps:vector&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="add-point"><a class="anchor" href="#add-point"></a>Add Point on the Map</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Navigate to the <code>LocationLookupView</code> view controller and append a new method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("map.vectorLayerEntrance.entranceSource")
+private DataVectorSource&lt;Location&gt; entranceSource;
+
+private void initBuildingEntranceSource() {
+    entranceSource.setStyleProvider((location -&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            new Style()
+                    .withImage(new CircleStyle()
+                            .withRadius(4)
+                            .withFill(new Fill("#000000"))
+                            .withStroke(new Stroke()
+                                    .withWidth(2d)
+                                    .withColor("#ffffff")))));
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Set up a styleProvider to display <code>Point</code> as a point feature with a custom point style.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="add-polyline"><a class="anchor" href="#add-polyline"></a>Add Polyline on Map</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Add the <code>initPathToBuildingSource()</code> method in the <code>LocationLookupView</code> view controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("map.vectorLayerPath.pathSource")
+private DataVectorSource&lt;Location&gt; pathSource;
+
+private void initPathToBuildingSource() {
+    pathSource.setStyleProvider(location -&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            new Style()
+                    .withStroke(new Stroke()
+                            .withWidth(2d)
+                            .withColor("#000000")
+                            .withLineDash(List.of(0.2, 8d, 0.8d))));
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Set up a styleProvider to display <code>LineString</code> as a polyline feature with a customized linestring style.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="add-polygon"><a class="anchor" href="#add-polygon"></a>Add Polygon on Map</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Add the <code>initBuildingAreaSource()</code> method in the <code>LocationLookupView</code> view controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("map.vectorLayerArea.areaSource")
+private DataVectorSource&lt;Location&gt; areaSource;
+
+private void initBuildingAreaSource() {
+    areaSource.setStyleProvider(location -&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+        String fillColor = location.getType() == LocationType.COWORKING
+                ? "rgba(52, 216, 0, 0.2)"
+                : "rgba(1, 147, 154, 0.2)";
+        String strokeColor = location.getType() == LocationType.COWORKING
+                ? "#228D00"
+                : "#123EAB";
+        return new Style()
+                .withFill(new Fill(fillColor))
+                .withStroke(new Stroke()
+                        .withWidth(2d)
+                        .withColor(strokeColor));
+    });
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Set up a styleProvider to display <code>Polygon</code> as a polygon feature with a customized polygon style. The fill color and the polygon border color are established in variables and are dependent on the location type.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Invoke the created methods from <code>onInit()</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onInit(final InitEvent event) {
+    initBuildingAreaSource();
+    initBuildingEntranceSource();
+    initPathToBuildingSource();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let’s launch the application to see the new feature in action. Now, when you choose the location, the map will zoom in and center itself according to the location’s coordinates.</p>
+</div>
+<div class="paragraph">
+<p>The building’s entrance is exhibited as a black dot on the map. The path to the building is depicted as a dashed line, while the polygon demonstrates the building’s boundary.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="map with features" src="_images/map-with-features.png" width="1090"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

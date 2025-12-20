@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obtaining User Authorities :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Obtaining User Authorities</h1>
+<div class="paragraph">
+<p>When roles are synchronized in accordance with LDAP, they are obtained in a few steps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Obtaining roles from groups a user is a member of</strong></p>
+<div class="paragraph">
+<p>The resulting list of authorities consists of group names a user is a member of. By default, the <code>cn</code> attribute of the group is used to obtain the authority name. You can change this attribute in the <a class="xref page" href="properties.html#jmix.ldap.group-role-attribute">jmix.ldap.group-role-attribute</a>.</p>
+</div>
+</li>
+<li>
+<p><strong>Obtaining roles from user attributes</strong></p>
+<div class="paragraph">
+<p>Optionally user roles can be added based on their own attributes.</p>
+</div>
+<div class="paragraph">
+<p>Register a Spring bean, that implements the <code>LdapUserAdditionalRoleProvider</code> interface and implement the <code>getAdditionalRoles()</code> method within this bean. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("demo_MyLdapUserAdditionalRoleProvider")
+public class MyLdapUserAdditionalRoleProvider implements LdapUserAdditionalRoleProvider {
+
+    @Override
+    public Set&lt;GrantedAuthority&gt; getAdditionalRoles(DirContextOperations user, String username) {
+        return new HashSet&lt;&gt;();
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Applying default roles</strong></p>
+<div class="paragraph">
+<p>The <a class="xref page" href="properties.html#jmix.ldap.default-roles">jmix.ldap.default-roles</a> property contains a comma-separated list of roles that will be assigned to every user authenticated in LDAP.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The resulting list of authorities is passed through <code>JmixLdapGrantedAuthoritiesMapper</code> in order to get the final collection of authorities. This mapper is used to map previously obtained authorities to Jmix <code>GrantedAuthority</code>.</p>
+</div>
+<div class="paragraph">
+<p>For example, consider that the initial list contains a simple authority with the value of <code>Administrators</code>. First, the mapper tries to find a resource role with the same role code. If the role hasn’t been found, it searches for a row-level role with the same code. If the role isn’t found, it won’t be added to the final list.</p>
+</div>
+<div class="paragraph">
+<p>Also, you can implement the <code>LdapAuthorityToJmixRoleCodesMapper</code> interface to map LDAP authorities and Jmix role codes. It is available to map several role codes to one LDAP group. Roles can be either resource or low-level.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, the bean implements mapping the <code>mathematician</code> and <code>scientists</code> LDAP groups to Jmix role codes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("l_CustomAuthorityMapperBean")
+public class CustomAuthorityMapperBean implements LdapAuthorityToJmixRoleCodesMapper {
+
+    @Override
+    public Collection&lt;String&gt; mapAuthorityToJmixRoleCodes(String authority) { <i class="conum" data-value="1"></i><b>(1)</b>
+        Collection&lt;String&gt; roleCollection = new ArrayList&lt;&gt;();
+        if (authority.equals("mathematicians")) { <i class="conum" data-value="2"></i><b>(2)</b>
+            roleCollection.add("system-full-access");
+        } else {
+            roleCollection.add(authority + "-resource-role"); <i class="conum" data-value="3"></i><b>(3)</b>
+            roleCollection.add(authority + "-row-level-role");
+        }
+        return roleCollection;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Overrides the method that takes an LDAP authority as input parameter and returns a collection of role codes that matches the given authority.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>In case of the <code>mathematicians</code> group, an LDAP user obtains the <code>system-full-access</code> role.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>In case of the <code>scientists</code> group, an LDAP user obtains two roles: <code>scientists-resource-role</code> and <code>scientists-row-level-role</code>.</td>
+</tr>
+</table>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>avatar :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">avatar</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/avatar" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>avatar</code> is a content area that displays an image, typically a photo of a person or a company logo.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>XML element: <code>avatar</code></p>
+</li>
+<li>
+<p>Java class: <code>Avatar</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following example demonstrates four possible content options for <code>avatar</code>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="avatar basic" src="../../_images/visual-components/components/avatar-basic.png" width="205"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;avatar image="/icons/mary.png" abbreviation="MJ" name="Mary Elizabeth Jones"/&gt;
+&lt;avatar abbreviation="MJ" name="Mary Elizabeth Jones"/&gt;
+&lt;avatar name="Mary Elizabeth Jones"/&gt;
+&lt;avatar/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note the priority of the attributes. The <a href="#image">image</a> is displayed first. If no image is set or cannot render, it will be substituted with the <a href="#abbreviation">abbreviation</a> value. The first letters in the <a href="#name">name</a> are displayed if neither image nor abbreviation is set. There is also a fallback image that is displayed in case there is no content at all.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="image-resource"><a class="anchor" href="#image-resource"></a>Image Resource</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>avatar</code> component can display an image from different resources. You can set a path to the resource declaratively with the <a href="#image">image</a> attribute, or set it programmatically.</p>
+</div>
+<div class="sect2">
+<h3 id="static-image"><a class="anchor" href="#static-image"></a>Static Image</h3>
+<div class="paragraph">
+<p>An image can be served statically by the application.</p>
+</div>
+<div class="paragraph">
+<p>By default, static content is served from <code>/static</code>, <code>/public</code>, <code>/resources</code>, or <code>/META-INF/resources</code> directories of the classpath (see details in the <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/web.html#web.servlet.spring-mvc.static-content" rel="noopener" target="_blank">Spring Boot documentation</a>).</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In XML:</p>
+<div class="paragraph">
+<p>For example, if your image is located
+under <code>/src/main/resources/META-INF/resources</code>, such as <code>/src/main/resources/META-INF/resources/icons/mary.png</code>, you can specify the image as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;avatar image="/icons/mary.png"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>In Java:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">avatar.setImage("/icons/mary.png");</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="url-image"><a class="anchor" href="#url-image"></a>URL Image</h3>
+<div class="paragraph">
+<p>Similarly, an image can be loaded from an arbitrary URL.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In XML:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;avatar image="https://www.jmix.io/_nuxt/img/banner-img.d30b0fa.svg"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>In Java:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">avatar.setImage("https://www.jmix.io/_nuxt/img/banner-img.d30b0fa.svg");</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="stream-image"><a class="anchor" href="#stream-image"></a>Stream Image</h3>
+<div class="paragraph">
+<p>An image can be provided by an <code>InputStream</code>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In Java: <code>StreamResource</code> interface.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">StreamResource streamResource = new StreamResource("icon",
+        ()-&gt; getClass().getResourceAsStream("/META-INF/resources/icons/mary.png"));
+avatar.setImageResource(streamResource);</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a href="#abbreviation">abbreviation</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a href="#colorIndex">colorIndex</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a href="#image">image</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a href="#name">name</a> -
+<a href="#themeNames">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+<div class="sect2">
+<h3 id="abbreviation"><a class="anchor" href="#abbreviation"></a>abbreviation</h3>
+<div class="paragraph">
+<p>Sets an abbreviation to display in the component. This can be initials, or other short form to identify the avatar owner. It’s better to keep it to 2-3 characters.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="colorIndex"><a class="anchor" href="#colorIndex"></a>colorIndex</h3>
+<div class="paragraph">
+<p>Specifies the background color for the avatar component. There are seven different colors that correspond to index values from 0 to 6.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="avatar colorindex" src="../../_images/visual-components/components/avatar-colorindex.png" width="360"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="image"><a class="anchor" href="#image"></a>image</h3>
+<div class="paragraph">
+<p>Specifies a path to an image resource. An image can be served from the <a href="#static-image">static resource</a> directory or obtained from an <a href="#url-image">arbitrary URL</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="name"><a class="anchor" href="#name"></a>name</h3>
+<div class="paragraph">
+<p>Sets a name of the avatar holder.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="themeNames"><a class="anchor" href="#themeNames"></a>themeNames</h3>
+<div class="paragraph">
+<p>By default, the component is of standard, medium size. There are four different size variants:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>xsmall</code></p>
+</li>
+<li>
+<p><code>small</code></p>
+</li>
+<li>
+<p><code>large</code></p>
+</li>
+<li>
+<p><code>xlarge</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See the <a href="https://vaadin.com/docs/latest/components/avatar" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

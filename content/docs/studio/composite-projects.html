@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Composite Projects :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Composite Projects</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A composite project in Jmix refers to a project structure that organizes multiple related <a class="xref page" href="../modularity/creating-add-ons.html">add-ons</a> and applications into a single IDE project, regardless of whether they are located in the same source code repository or in different ones.</p>
+</div>
+<div class="paragraph">
+<p>To learn about the motivation and background for this feature, see the <a href="https://www.jmix.io/blog/add-ons-and-composite-projects/" rel="noopener" target="_blank">Add-ons and Composite Projects</a> article in the Jmix blog.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-composite-project"><a class="anchor" href="#creating-composite-project"></a>Creating Composite Project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To create an empty composite project, start the <a class="xref page" href="project.html#creating-new-project">project wizard</a> and select one of the <strong>Composite Project</strong> templates.</p>
+</div>
+<div class="paragraph">
+<p>If you choose the <strong>Composite Project for Monorepo</strong> template, Studio will create a project with build files in the root folder:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>root-dir/
+    build.gradle
+    settings.gradle</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you choose the <strong>Composite Project for Separate Repositories</strong> template, Studio will create a project with the following structure (provided that the project name is <code>sales</code>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>root-dir/
+    sales-all/
+        build.gradle
+        settings.gradle</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then you can add subprojects by creating new add-ons or applications, checking out an existing project from VCS or just adding an existing folder with a project. Use <strong>New → Subproject</strong> actions of the Jmix Tool Window:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="new subprojects" src="_images/new-subprojects.png" width="360"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Studio shows the composite project and all subprojects as top-level nodes in the Jmix Tool Window:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="composite projects structure" src="_images/composite-projects-structure.png" width="1063"/>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, the aggregator composite project’s <code>settings.gradle</code> file uses <code>includeBuild</code> instructions. These instructions are provided by the Gradle’s <a href="https://docs.gradle.org/current/userguide/composite_builds.html" rel="noopener" target="_blank">composite build</a> feature.</p>
+</div>
+<div class="paragraph">
+<p>In a composite build, Gradle replaces dependencies on artifacts with direct dependencies between subprojects. This means that changes made to an add-on immediately impact dependent add-ons and the application. IntelliJ IDEA perfectly imports such a project, recognizing the Gradle-defined dependencies. As a result, you get a composite project structure that enables transparent refactoring and eliminates the need for the "publish locally" workflow.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="opening-composite-project"><a class="anchor" href="#opening-composite-project"></a>Opening Composite Project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When <a class="xref page" href="project.html#opening-existing-project">opening</a> a composite project, make sure to navigate to the aggregator project directory and open the <code>build.gradle</code> file within that directory.</p>
+</div>
+<div class="paragraph">
+<p>If the composite project was created using the <strong>Composite Project for Monorepo</strong> template, its <code>build.gradle</code> file is in the root folder.</p>
+</div>
+<div class="paragraph">
+<p>If the composite project was created using the <strong>Composite Project for Separate Repositories</strong> template, its <code>build.gradle</code> file is in the <code>&lt;project-name&gt;-all</code> folder:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="open composite project" src="_images/open-composite-project.png" width="1078"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="managing-properties"><a class="anchor" href="#managing-properties"></a>Managing Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can edit common properties of all subprojects. Click <strong>Settings→Project Properties</strong> on the toolbar of the Jmix Tool Window. Select <strong>All subprojects</strong> when Studio asks you which project you want to edit:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="composite project edit properties" src="_images/composite-project-edit-properties.png" width="436"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The common properties include the artifact repository settings and Jmix framework version. So, you can upgrade all subprojects to a newer Jmix version at once.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuring-dependencies"><a class="anchor" href="#configuring-dependencies"></a>Configuring Dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The most useful feature for large composite projects is the ability to configure dependencies between subprojects in a simple dialog.</p>
+</div>
+<div class="paragraph">
+<p>You can open it from the <strong>Settings → Dependencies Between Subprojects</strong> action of the <strong>Jmix</strong> Tool Window.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="composite project dependencies" src="_images/composite-project-dependencies.png" width="787"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Here <strong>customers</strong> is an add-on which depends on the <strong>users</strong> add-on. According to changes you make in this dialog, Studio adds artifact dependencies to <code>build.gradle</code> files of the subprojects, and also configures the <a class="xref page" href="../modularity/creating-add-ons.html#jmix-module">@JmixModule</a> annotations of the add-ons. It also prevents you from introducing circular dependencies. In the screenshot below you can see that the dialog doesn’t allow you to make the <strong>users</strong> add-on dependent on <strong>customers</strong> because <strong>customers</strong> already depends on <strong>users</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="composite project dependencies 2" src="_images/composite-project-dependencies-2.png" width="787"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="managing-data-stores"><a class="anchor" href="#managing-data-stores"></a>Managing Data Stores</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Studio can generate Liquibase changelogs in add-ons, including when working with them in composite projects.</p>
+</div>
+<div class="paragraph">
+<p>To generate a changelog, you first need to define a <a class="xref page" href="data-stores.html">Data Store</a> in the add-on. It will be displayed in the Jmix tree:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add on data store" src="_images/add-on-data-store.png" width="484"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, you can execute the <strong>Generate Liquibase Changelog</strong> action on the Data Store.</p>
+</div>
+<div class="paragraph">
+<p>The data store settings will be saved in the <code>jmix-studio.xml</code> file instead of the Java configuration. This means that the add-on does not define a data store for an application in which it is included. Instead, it expects the data store with the same name to be defined by the application itself.</p>
+</div>
+<div class="paragraph">
+<p>For example, if you define <code>ads1</code> data store in an add-on, you should also define the <code>ads1</code> data store in the application that includes this add-on. And if the add-on provides Liquibase changelogs for this data store, they will be executed by the application.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+When working with an add-on both in a standalone project and in a composite project, you should specify a data store twice, because the composite project has its own <code>jmix-studio.xml</code> file located in the root or in the <code>&lt;project-name&gt;-all</code> aggregator project. So, the data store settings will be stored separately in the standalone project and in the composite project, but the set of generated changelogs will be the same.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

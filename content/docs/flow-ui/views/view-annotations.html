@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Annotations :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">View Annotations</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Annotations on view classes provide information about the views to the framework. Some annotations are applicable to any type of view, some of them can be used only on entity list or detail views.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="common-annotations"><a class="anchor" href="#common-annotations"></a>Common Annotations</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewController("MyOnboardingView")
+@ViewDescriptor("my-onboarding-view.xml")
+@Route(value = "my-onboarding", layout = MainView.class)
+@DialogMode(width = "AUTO", height = "AUTO")
+public class MyOnboardingView extends StandardView {</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>@ViewController</code> annotation indicates that the class is a view. The value of the annotation is the view id which can be used to refer to the view from the <a class="xref page" href="../menu-config.html">main menu</a> or when opening the view programmatically.</p>
+</li>
+<li>
+<p><code>@ViewDescriptor</code> annotation connects the view class to the XML descriptor. The value of the annotation specifies the path to the descriptor file. If the value contains a file name only, it is assumed that the file is located in the same package as the view class. Otherwise, the path should start with <code>/</code> and contain the full path to the descriptor from the source root, for example <code>/com/company/demo/view/some-entity-list-view.xml</code>.</p>
+</li>
+<li>
+<p><code>@com.vaadin.flow.router.Route</code> defines a URL path for navigation to this view. As long as the view should be opened inside the main view, the <code>layout</code> attribute specifies the main view class.</p>
+</li>
+<li>
+<p><code>@DialogMode</code> annotation defines parameters of the dialog window when the view is opened as a dialog.</p>
+</li>
+<li>
+<p><code>@com.vaadin.flow.server.auth.AnonymousAllowed</code> makes the view available without authentication. By default, only the login view is available to the anonymous (not authenticated) session.</p>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+See the <a href="https://github.com/jmix-framework/jmix-samples-2/tree/main/user-registration" rel="noopener" target="_blank">User Registration</a> sample project for how the <code>@AnonymousAllowed</code> annotation is used in a view for self-registration of users.
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="list-view-annotations"><a class="anchor" href="#list-view-annotations"></a>List View Annotations</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// common annotations
+@ViewController("Department.list")
+@ViewDescriptor("department-list-view.xml")
+@Route(value = "departments", layout = MainView.class)
+@DialogMode(width = "50em", height = "37.5em")
+// list view annotations
+@LookupComponent("departmentsTable")
+@PrimaryLookupView(Department.class)
+public class DepartmentListView extends StandardListView&lt;Department&gt; {</code></pre>
+</div>
+</div>
+<div class="ulist" id="lookup-component">
+<ul>
+<li>
+<p><code>@LookupComponent</code> annotation specifies an id of a UI component to be used for getting a value returned from the lookup.</p>
+</li>
+<li>
+<p><code>@PrimaryLookupView</code> annotation indicates that this view is the default lookup view for the specified entity. The annotation has greater priority than the <code>{entity_name}.lookup</code> / <code>{entity_name}.list</code> <a class="xref page" href="opening-views.html#view-inference-conventions">name convention</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="detail-view-annotations"><a class="anchor" href="#detail-view-annotations"></a>Detail View Annotations</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// common annotations
+@ViewController("Department.detail")
+@ViewDescriptor("department-detail-view.xml")
+@Route(value = "departments/:id", layout = MainView.class)
+// detail view annotations
+@EditedEntityContainer("departmentDc")
+@PrimaryDetailView(Department.class)
+public class DepartmentDetailView extends StandardDetailView&lt;Department&gt; {</code></pre>
+</div>
+</div>
+<div class="ulist" id="edited-entity-container">
+<ul>
+<li>
+<p><code>@EditedEntityContainer</code> annotation specifies a data container that contains the edited entity.</p>
+</li>
+<li>
+<p><code>@PrimaryDetailView</code> annotation indicates that this view is the default detail view for the specified entity. The annotation has greater priority than the <code>{entity_name}.detail</code> <a class="xref page" href="opening-views.html#view-inference-conventions">name convention</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrating into Jmix UI :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Integrating into Jmix UI</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>After creating the client-side and server-side parts of the component, it can be used in <a class="xref page" href="../../views/views.html">views</a> by creating an instance of its Java class and adding it to a parent component.</p>
+</div>
+<div class="paragraph">
+<p>Usually, the content of a view is defined in an XML descriptor. This section describes how to provide the ability to use the new component in XML and in Studio visual designer in the same way as standard Jmix UI components.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="support-in-xml-descriptors"><a class="anchor" href="#support-in-xml-descriptors"></a>Support in XML Descriptors</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Below is an example of implementing XML support for the Slider component created in the <a class="xref page" href="js-component.html">previous</a> section.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create the <code>app-ui-components.xsd</code> file and define the XML markup for the component:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;xs:schema xmlns="http://company.com/schema/app-ui-components"
+           elementFormDefault="qualified"
+           targetNamespace="http://company.com/schema/app-ui-components"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:layout="http://jmix.io/schema/flowui/layout"&gt;
+
+    &lt;xs:element name="slider"&gt;
+        &lt;xs:complexType&gt;
+            &lt;xs:complexContent&gt;
+                &lt;xs:extension base="layout:baseComponent"&gt;
+                    &lt;xs:attribute name="min" type="xs:integer"/&gt;
+                    &lt;xs:attribute name="max" type="xs:integer"/&gt;
+
+                    &lt;xs:attributeGroup ref="layout:hasSize"/&gt;
+                &lt;/xs:extension&gt;
+            &lt;/xs:complexContent&gt;
+        &lt;/xs:complexType&gt;
+    &lt;/xs:element&gt;
+
+&lt;/xs:schema&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a component loader that is needed to initialize the component when it is used in the view XML descriptors.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.flowui.xml.layout.loader.AbstractComponentLoader;
+
+public class SliderLoader extends AbstractComponentLoader&lt;Slider&gt; {
+
+    @Override
+    protected Slider createComponent() {
+        return factory.create(Slider.class);
+    }
+
+    @Override
+    public void loadComponent() {
+        loadInteger(element, "min", resultComponent::setMin); <i class="conum" data-value="1"></i><b>(1)</b>
+        loadInteger(element, "max", resultComponent::setMax);
+
+        componentLoader().loadSizeAttributes(resultComponent, element); <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The base class provides helper methods for loading attribute values.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>componentLoader()</code> method returns an instance of the <code>ComponentLoaderSupport</code> bean that provides methods for loading common attributes.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>To register the component and its loader with the framework, you need to create a Spring configuration class using the <code>@Configuration</code> annotation:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Configuration
+public class ComponentRegistrationConfiguration {
+
+    @Bean
+    public ComponentRegistration slider() {
+        return ComponentRegistrationBuilder.create(Slider.class)
+                .withComponentLoader("slider", SliderLoader.class)
+                .build();
+    }
+
+}</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>After that, the <code>Slider</code> component can be defined in the view’s descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:app="http://company.com/schema/app-ui-components"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;layout&gt;
+        &lt;app:slider id="slider"
+                    width="20em"
+                    min="10" max="100"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Define a namespace with the same value as in <code>xmlns</code> and <code>targetNamespace</code> attributes of the component’s XSD.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>slider</code> element is added with namespace prefix.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="studio-support"><a class="anchor" href="#studio-support"></a>Studio Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To support the new component in Studio you need to create an interface annotated with <code>@StudioUiKit</code> and a method annotated with <code>@StudioComponent</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.flowui.kit.meta.StudioComponent;
+import io.jmix.flowui.kit.meta.StudioProperty;
+import io.jmix.flowui.kit.meta.StudioPropertyType;
+import io.jmix.flowui.kit.meta.StudioUiKit;
+
+@StudioUiKit
+public interface StudioComponents {
+
+    @StudioComponent(
+            name = "Slider",
+            classFqn = "com.company.onboarding.component.Slider",
+            category = "Components",
+            xmlElement = "slider",
+            xmlns = "http://company.com/schema/app-ui-components",
+            xmlnsAlias = "app",
+            properties = {
+                    /* Common attributes */
+                    @StudioProperty(xmlAttribute = "id", type = StudioPropertyType.COMPONENT_ID),
+                    @StudioProperty(xmlAttribute = "alignSelf", type = StudioPropertyType.ENUMERATION,
+                            classFqn = "com.vaadin.flow.component.orderedlayout.FlexComponent$Alignment",
+                            defaultValue = "AUTO",
+                            options = {"START", "END", "CENTER", "STRETCH", "BASELINE", "AUTO"}),
+                    @StudioProperty(xmlAttribute = "css", type = StudioPropertyType.STRING),
+                    @StudioProperty(xmlAttribute = "colspan", type = StudioPropertyType.INTEGER),
+                    @StudioProperty(xmlAttribute = "visible", type = StudioPropertyType.BOOLEAN,
+                            defaultValue = "true"),
+
+                    /* Size attributes */
+                    @StudioProperty(xmlAttribute = "height", type = StudioPropertyType.SIZE),
+                    @StudioProperty(xmlAttribute = "width", type = StudioPropertyType.SIZE),
+                    @StudioProperty(xmlAttribute = "maxHeight", type = StudioPropertyType.SIZE),
+                    @StudioProperty(xmlAttribute = "maxWidth", type = StudioPropertyType.SIZE),
+                    @StudioProperty(xmlAttribute = "minHeight", type = StudioPropertyType.SIZE),
+                    @StudioProperty(xmlAttribute = "minWidth", type = StudioPropertyType.SIZE),
+
+                    /* Slider attributes */
+                    @StudioProperty(xmlAttribute = "min", type = StudioPropertyType.INTEGER,
+                            defaultValue = "0"),
+                    @StudioProperty(xmlAttribute = "max", type = StudioPropertyType.INTEGER,
+                            defaultValue = "100")
+            }
+    )
+    void slider();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, Studio will show the new component in the <strong>Add Component</strong> palette:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add component menu" src="../../_images/visual-components/creating-components/add-component-menu.png" width="395"/>
+</div>
+</div>
+<div class="paragraph">
+<p>And display available component properties in the inspector:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="studio support" src="../../_images/visual-components/creating-components/studio-support.png" width="428"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

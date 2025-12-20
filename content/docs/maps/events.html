@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Events</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The map and features has the following events.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_map_events"><a class="anchor" href="#_map_events"></a>Map Events</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="MapClickEvent"><a class="anchor" href="#MapClickEvent"></a>MapClickEvent</h3>
+<div class="paragraph">
+<p>An event that is fired when the map is clicked. Please note that if the user double-clicks, the event will be triggered twice.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of handling a map click event. When a user clicks on the map, a notification is displayed with the event name and the coordinates of the map click location:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">protected GeometryFactory geometryFactory = GeometryUtils.getGeometryFactory();
+
+@Autowired
+private Notifications notifications;
+
+@Subscribe("geoMap")
+public void onGeoMapMapClick(final MapClickEvent event) {
+    Point point = geometryFactory.createPoint(event.getCoordinate());
+    notifications.create("ClickEvent", point.getCoordinate().toString())
+            .withPosition(Notification.Position.BOTTOM_END)
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="MapSingleClickEvent"><a class="anchor" href="#MapSingleClickEvent"></a>MapSingleClickEvent</h3>
+<div class="paragraph">
+<p>A map single event is fired after 250 ms to ensure that it is not a double click.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="MapDoubleClickEvent"><a class="anchor" href="#MapDoubleClickEvent"></a>MapDoubleClickEvent</h3>
+<div class="paragraph">
+<p>An event is fired when user makes double-click on a map.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of handling a map double-click event.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private GeoMap geoMap;
+
+@Subscribe("geoMap")
+public void onGeoMapMapDoubleClick(final MapDoubleClickEvent event) {
+    GeoMapView view = new GeoMapView();
+    view.setCenter(event.getCoordinate());
+    view.setZoom(6);
+    geoMap.setMapView(view);
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="MapMoveEndEvent"><a class="anchor" href="#MapMoveEndEvent"></a>MapMoveEndEvent</h3>
+<div class="paragraph">
+<p>An event is fired after the map is moved (for instance, after zooming, panning, or dragging the map).</p>
+</div>
+<div class="paragraph">
+<p>Here’s an example of how to handle a map move event.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("geoMap")
+public void onGeoMapMapMoveEnd(final MapMoveEndEvent event) {
+    notifications.create("MapMoveEndEvent",
+                    String.format("""
+                                Values:
+                                Center: %s
+                                Zoom: %s
+                                Rotation: %s
+                                """,
+                            event.getCenter(),
+                            event.getZoom(),
+                            event.getRotation()))
+            .withPosition(Notification.Position.BOTTOM_END)
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="MapZoomChangedEvent"><a class="anchor" href="#MapZoomChangedEvent"></a>MapZoomChangedEvent</h3>
+<div class="paragraph">
+<p>An event is triggered when the resolution of the map view is changed.</p>
+</div>
+<div class="paragraph">
+<p>Here’s an example demonstrating how to handle a map zoom change event.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("geoMap")
+public void onGeoMapMapZoomChanged(final MapZoomChangedEvent event) {
+    notifications.create("MapZoomChangedEvent", "Zoom: " + event.getZoom())
+            .withPosition(Notification.Position.BOTTOM_END)
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="source-events"><a class="anchor" href="#source-events"></a>Source Events</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="SourceFeatureClickEvent"><a class="anchor" href="#SourceFeatureClickEvent"></a>SourceFeatureClickEvent</h3>
+<div class="paragraph">
+<p>An event that is fired when the <a class="xref page" href="features-geometries.html">feature</a> is clicked. Note, if the user makes double click, event will be fired twice.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("geoMap.vector.vectorSource")
+private VectorSource vectorSource;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    vectorSource.addSourceFeatureClickListener(clickEvent -&gt; {
+        Feature feature = clickEvent.getFeature();
+        notifications.create("SourceFeatureClickEvent",
+                        feature.getGeometry().get().getClass().getSimpleName())
+                .withPosition(Notification.Position.BOTTOM_END)
+                .show();
+    });
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="SourceFeatureSingleClickEvent"><a class="anchor" href="#SourceFeatureSingleClickEvent"></a>SourceFeatureSingleClickEvent</h3>
+<div class="paragraph">
+<p>A feature single click event is fired after 250 ms to ensure that it is not a double click.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="SourceFeatureDoubleClickEvent"><a class="anchor" href="#SourceFeatureDoubleClickEvent"></a>SourceFeatureDoubleClickEvent</h3>
+<div class="paragraph">
+<p>An event is fired when user makes double click on a feature.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="SourceFeatureSelectEvent"><a class="anchor" href="#SourceFeatureSelectEvent"></a>SourceFeatureSelectEvent</h3>
+<div class="paragraph">
+<p>An event is triggered when features are selected or deselected. Keep in mind that the event only includes the features that were just selected or deselected. For example, if one feature is already selected out of a total of two, and the second feature is then selected, the event will only contain the newly selected feature.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.featureLayer.featureSource")
+public void onMapFeatureLayerFeatureSourceSourceFeatureSelect(final HasFeatureSelect.SourceFeatureSelectEvent event) {
+    notifications.create("SourceFeatureSelectEvent",
+                    String.format("Selected: %s\nDeselected: %s",
+                            event.getSelected().size(), event.getDeselected()))
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="SourceFeatureDragStartEvent"><a class="anchor" href="#SourceFeatureDragStartEvent"></a>SourceFeatureDragStartEvent</h3>
+<div class="paragraph">
+<p>An event is fired when the user starts dragging a feature.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.featureLayer.featureSource")
+public void onSourceFeatureDragStart(final HasFeatureDrag.SourceFeatureDragStartEvent event) {
+    notifications.create("SourceFeatureDragStartEvent", "Features: "
+                    + event.getFeatures().size())
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="SourceFeatureDragEndEvent"><a class="anchor" href="#SourceFeatureDragEndEvent"></a>SourceFeatureDragEndEvent</h3>
+<div class="paragraph">
+<p>An event is fired when the user finishes dragging a feature.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.featureLayer.featureSource")
+public void onSourceFeatureDragEnd(final HasFeatureDrag.SourceFeatureDragEndEvent event) {
+    notifications.create("SourceFeatureDragEndEvent", "Features: "
+                    + event.getFeatures().size())
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="SourceFeatureModifyStartEvent"><a class="anchor" href="#SourceFeatureModifyStartEvent"></a>SourceFeatureModifyStartEvent</h3>
+<div class="paragraph">
+<p>An event is fired when a feature modification is initiated.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.featureLayer.featureSource")
+public void onSourceFeatureModifyStart(final HasFeatureModify.SourceFeatureModifyStartEvent event) {
+    notifications.create("SourceFeatureModifyStartEvent", "Features: "
+                    + event.getFeatures().size())
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="SourceFeatureModifyEndEvent"><a class="anchor" href="#SourceFeatureModifyEndEvent"></a>SourceFeatureModifyEndEvent</h3>
+<div class="paragraph">
+<p>An event is fired when a feature modification is completed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.featureLayer.featureSource")
+public void onSourceFeatureModifyEnd(final HasFeatureModify.SourceFeatureModifyEndEvent event) {
+    notifications.create("SourceFeatureModifyEndEvent", "Features: "
+                    + event.getFeatures().size())
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="SourceFeatureDeleteEvent"><a class="anchor" href="#SourceFeatureDeleteEvent"></a>SourceFeatureDeleteEvent</h3>
+<div class="paragraph">
+<p>An event is fired when a feature is deleted from a source.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.featureLayer.featureSource")
+public void onSourceFeatureDelete(final HasFeatureModify.SourceFeatureDeleteEvent event) {
+    notifications.create("SourceFeatureDeleteEvent", "Features: "
+                    + event.getFeatures().size())
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="GeoObjectClickEvent"><a class="anchor" href="#GeoObjectClickEvent"></a>GeoObjectClickEvent</h3>
+<div class="paragraph">
+<p>An event that is fired when the geo-object is clicked. Note, if the user makes double click, event will be fired twice.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@ViewComponent("map.vectorLayer.dataVectorSource")
+private DataVectorSource&lt;Location&gt; dataVectorSource;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    dataVectorSource.addGeoObjectClickListener(clickEvent -&gt;
+            notifications.create("GeoObject click", clickEvent.getItem().getCity())
+            .withPosition(Notification.Position.BOTTOM_END)
+            .show());
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="GeoObjectSingleClickEvent"><a class="anchor" href="#GeoObjectSingleClickEvent"></a>GeoObjectSingleClickEvent</h3>
+<div class="paragraph">
+<p>A geo-object single click event is fired after 250 ms to ensure that it is not a double click.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="GeoObjectDoubleClickEvent"><a class="anchor" href="#GeoObjectDoubleClickEvent"></a>GeoObjectDoubleClickEvent</h3>
+<div class="paragraph">
+<p>An event is fired when user makes double click on a geo-object.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="GeoObjectSelectEvent"><a class="anchor" href="#GeoObjectSelectEvent"></a>GeoObjectSelectEvent</h3>
+<div class="paragraph">
+<p>A selection event is triggered when geo-objects are selected or deselected. Keep in mind that the event only includes the newly selected or deselected geo-objects. For example, if one geo-object is already selected out of a total of two, and you then select the second geo-object, the event will only contain information about the second geo-object you just selected.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.layer.source")
+public void onMapLayerSourceGeoObjectSelect(final HasGeoObjectSelect.GeoObjectSelectEvent&lt;Region&gt; event) {
+    notifications.create("GeoObjectSelectEvent",
+                    String.format("Selected: %s\nDeselected: %s",
+                            event.getSelected().size(), event.getDeselected()))
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="GeoObjectDragStartEvent"><a class="anchor" href="#GeoObjectDragStartEvent"></a>GeoObjectDragStartEvent</h3>
+<div class="paragraph">
+<p>An event is fired when the user starts dragging a geo-object.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.layer.source")
+public void onSourceGeoObjectDragStart(final HasGeoObjectDrag.GeoObjectDragStartEvent&lt;Region&gt; event) {
+    notifications.create("GeoObjectDragStartEvent", "Items: "
+                    + event.getItems().size())
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="GeoObjectDragEndEvent"><a class="anchor" href="#GeoObjectDragEndEvent"></a>GeoObjectDragEndEvent</h3>
+<div class="paragraph">
+<p>An event is fired when the user finishes dragging a geo-object.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.layer.source")
+public void onSourceGeoObjectDragEnd(final HasGeoObjectDrag.GeoObjectDragEndEvent&lt;Region&gt; event) {
+    notifications.create("GeoObjectDragEndEvent", "Items: "
+                    + event.getItems().size())
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="GeoObjectModifyStartEvent"><a class="anchor" href="#GeoObjectModifyStartEvent"></a>GeoObjectModifyStartEvent</h3>
+<div class="paragraph">
+<p>An event is fired when a geo-object modification is initiated.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.layer.source")
+public void onSourceGeoObjectModifyStart(final HasGeoObjectModify.GeoObjectModifyStartEvent&lt;Region&gt; event) {
+    notifications.create("GeoObjectModifyStartEvent", "Items: "
+                    + event.getItems().size())
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="GeoObjectModifyEndEvent"><a class="anchor" href="#GeoObjectModifyEndEvent"></a>GeoObjectModifyEndEvent</h3>
+<div class="paragraph">
+<p>An event is fired when a geo-object modification is completed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("map.layer.source")
+public void onSourceGeoObjectModifyEnd(final HasGeoObjectModify.GeoObjectModifyEndEvent&lt;Region&gt; event) {
+    notifications.create("GeoObjectModifyEndEvent", "Items: "
+                    + event.getItems().size())
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_feature_events"><a class="anchor" href="#_feature_events"></a>Feature Events</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="FeatureClickEvent"><a class="anchor" href="#FeatureClickEvent"></a>FeatureClickEvent</h3>
+<div class="paragraph">
+<p>An event that is fired when feature is clicked. Note, if the user makes double click, event will be fired twice.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="FeatureSingleClickEvent"><a class="anchor" href="#FeatureSingleClickEvent"></a>FeatureSingleClickEvent</h3>
+<div class="paragraph">
+<p>An event is fired after 250 ms to ensure that it is not a double click.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="FeatureDoubleClickEvent"><a class="anchor" href="#FeatureDoubleClickEvent"></a>FeatureDoubleClickEvent</h3>
+<div class="paragraph">
+<p>An event is fired when user makes double click on a feature.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

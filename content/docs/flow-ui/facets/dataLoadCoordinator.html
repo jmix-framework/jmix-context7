@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dataLoadCoordinator :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">dataLoadCoordinator</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/data-load-coordinator" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>dataLoadCoordinator</code> facet is designed for triggering data loaders and for declarative linking of data loaders to data containers, visual components, and view lifecycle events.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basic Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To trigger all data loaders on the view’s <code>BeforeShowEvent</code>, just add <code>dataLoadCoordinator</code> with <code>auto="true"</code> to the view XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="working-modes"><a class="anchor" href="#working-modes"></a>Working Modes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can configure <code>dataLoadCoordinator</code> to work in the automatic, manual or semi-automatic mode.</p>
+</div>
+<div class="sect2">
+<h3 id="automatic-mode"><a class="anchor" href="#automatic-mode"></a>Automatic Mode</h3>
+<div class="paragraph">
+<p>In this mode, <code>dataLoadCoordinator</code> relies on parameter names with particular prefixes. The prefix denotes a component that provides the parameter value and sends value change events.</p>
+</div>
+<div class="paragraph">
+<p>By default, the parameter prefix is <code>container_</code> for data containers and <code>component_</code> for visual components. The <a href="#componentPrefix">componentPrefix</a> and <a href="#containerPrefix">containerPrefix</a> attributes allow you to use different prefixes.</p>
+</div>
+<div class="paragraph">
+<p>A loader is triggered on <code>BeforeShowEvent</code> if it has no parameters without recognized prefixes in its query text. It means that if the query contains an arbitrary parameter, for example <code>select e from User e where e.department = :department</code>, the loader will not be triggered automatically on view opening. You have to set the parameter value and invoke <code>userDl.load()</code> manually.</p>
+</div>
+<div class="paragraph">
+<p>Parameters in <a class="xref page" href="../data/data-loaders.html#query-conditions">query conditions</a> do not prevent the loader to be triggered on <code>BeforeShowEvent</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="manual-mode"><a class="anchor" href="#manual-mode"></a>Manual Mode</h3>
+<div class="paragraph">
+<p>In this mode, the nested <a href="#refresh">refresh</a> elements define when the data loaders must be triggered.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="semi-automatic-mode"><a class="anchor" href="#semi-automatic-mode"></a>Semi-automatic Mode</h3>
+<div class="paragraph">
+<p>When the <code>auto</code> attribute is set to <code>true</code>, and there are some manually configured triggers, <code>DataLoadCoordinator</code> will automatically configure all loaders having no manual configuration.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can view and edit facet attributes in Jmix Studio using the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist" id="auto">
+<ul>
+<li>
+<p><code>auto</code> - defines <code>DataLoadCoordinator</code> working mode.
+The default value is <code>false</code>.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="componentPrefix">
+<ul>
+<li>
+<p><code>componentPrefix</code> - defines a prefix for parameters which refer to <a class="xref page" href="../vc/components.html">visual components</a> from which <code>DataLoadCoordinator</code> will take parameter values in automatic mode. The default value is <code>component_</code>.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="containerPrefix">
+<ul>
+<li>
+<p><code>containerPrefix</code> - defines a prefix for parameters which refer to <a class="xref page" href="../data/data-containers.html">data containers</a> from which <code>DataLoadCoordinator</code> will take parameter values in automatic mode. The default value is <code>container_</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="refresh"><a class="anchor" href="#refresh"></a>Refresh Element</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>refresh</code> element allows you to define conditions for when a data loader must be refreshed.</p>
+</div>
+<div class="paragraph" id="loader">
+<p>The only attribute of this element is <code>loader</code> that defines the loader’s <code>id</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>refresh</code> element can have the following nested elements defining the triggering conditions:</p>
+</div>
+<div class="olist arabic" id="onComponentValueChanged">
+<ol class="arabic">
+<li>
+<p><code>onComponentValueChanged</code> - to trigger the loader when the value of a visual component is changed. It has the following attributes:</p>
+<div class="ulist" id="component">
+<ul>
+<li>
+<p><code>component</code> - specifies the <code>id</code> of the visual component.</p>
+</li>
+<li>
+<p><code>likeClause</code> - if you use the <code>like</code> expression in <a class="xref page" href="../data/data-loaders.html#query-conditions">query condition</a>, you can define one of three possible search modes:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>NONE</code> - the default value.</p>
+</li>
+<li>
+<p><code>CASE_SENSITIVE</code> - case-sensitive search.</p>
+</li>
+<li>
+<p><code>CASE_INSENSITIVE</code> - case-insensitive search.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>param</code> - specifies the query parameter name.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>onContainerItemChanged</code> - to trigger the loader when the current item in a data container is changed. It has the following attributes:</p>
+<div class="ulist" id="container">
+<ul>
+<li>
+<p><code>container</code> - specifies the <code>id</code> of the data container.</p>
+</li>
+<li>
+<p><code>param</code> - specifies the query parameter name.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>onViewEvent</code> - to trigger the loader on a view lifecycle event. It has the following attribute:</p>
+<div class="ulist" id="onViewEvent-type">
+<ul>
+<li>
+<p><code>type</code> - defines the type of the view event. Possible values:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Init</code> - to trigger on <code>InitEvent</code>.</p>
+</li>
+<li>
+<p><code>BeforeShow</code> - to trigger on <code>BeforeShowEvent</code>.</p>
+</li>
+<li>
+<p><code>Ready</code> - to trigger on <code>ReadyEvent</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="see-also"><a class="anchor" href="#see-also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Explore the following online examples to see <code>dataLoadCoordinator</code> in action:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://demo.jmix.io/ui-samples/sample/data-load-coordinator" rel="noopener" target="_blank">DataLoadCoordinator</a></p>
+</li>
+<li>
+<p><a href="https://demo.jmix.io/ui-samples/sample/cascading-dropdowns" rel="noopener" target="_blank">Cascading dropdowns</a></p>
+</li>
+<li>
+<p><a href="https://demo.jmix.io/ui-samples/sample/custom-filter" rel="noopener" target="_blank">Custom filter using declarative conditions</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

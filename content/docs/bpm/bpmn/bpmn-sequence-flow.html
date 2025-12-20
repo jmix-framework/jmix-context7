@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequence Flows :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Sequence Flows</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Sequence flow is a BPMN element that represents the order in which activities are performed within a business process.
+It defines the logical flow of work or information from one activity to another,
+indicating the sequence in which tasks or subprocesses should be executed.</p>
+</div>
+<div class="paragraph">
+<p>Sequence flows connect two activities in a BPMN diagram,
+showing the direction in which the process flows and the dependencies between activities.
+They play a crucial role in visualizing and modeling the flow of work within a business process,
+helping to ensure clarity and consistency in process design.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="graphical-flows"><a class="anchor" href="#graphical-flows"></a>Graphical and XML Representation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A sequence flow is visualized as an arrow going from the source element towards the target element.
+The arrow always points towards the target.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="graphical flow" src="../_images/bpmn-sequence-flows/graphical-flow.png" width="100"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the XML file sequence flows are represented as separate objects among other BPMN elements:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">    &lt;sequenceFlow id="Flow_1sjggq6" sourceRef="Event_15w11z6" targetRef="Gateway_0r2ejfv" /&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can see two XML attributes in the sequence flow description: <em>sourceRef</em> and <em>targetRef</em>
+that are referencing elements where the arrow begins and ends.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="incoming-and-outgoing"><a class="anchor" href="#incoming-and-outgoing"></a>Incoming and Outgoing Flows</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As a sequence flow connects two activities, for the first one it is <em>outgoing</em> and for the second one — <em>incoming</em> flow.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="incoming outgoing flows" src="../_images/bpmn-sequence-flows/incoming-outgoing-flows.png" width="300"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Best practice is to have the only one incoming and the only one outgoing flow for each activity.</p>
+</div>
+<div class="paragraph">
+<p>In the XML file you can see references to sequence flows in the corresponding BPMN element description:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">    &lt;task id="Activity_1pncn0v" name="Activity"&gt;
+      &lt;incoming&gt;Flow_1tncfsd&lt;/incoming&gt;
+      &lt;outgoing&gt;Flow_1nxsuoi&lt;/outgoing&gt;
+    &lt;/task&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="sequence-flow-properties"><a class="anchor" href="#sequence-flow-properties"></a>Sequence Flow Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Sequence flows have general properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Id</p>
+</li>
+<li>
+<p>Name</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Additionally, sequence flows include also have a <strong>Condition</strong> property. For more information, see <a class="xref page" href="bpmn-gateways.html#gateways-conditions">Conditions</a> in the Exclusive Gateway section.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="flow properties" src="../_images/bpmn-sequence-flows/flow-properties.png" width="463"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="conditional-flow"><a class="anchor" href="#conditional-flow"></a>Conditional Sequence Flow</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>BPMN 2.0 defines a <em>conditional flow</em> as a special element of notation.
+Graphically, it is represented as a regular sequence flow with a mini-diamond at the beginning of the connector line,
+see below:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="conditional flow" src="../_images/bpmn-sequence-flows/conditional-flow.png" width="200"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Conditional flow  can be used only as <em>outgoing</em> flow for activity.
+The condition must be evaluated at runtime to determine whether the sequence flow will be used or not.</p>
+</div>
+<div class="paragraph">
+<p>In <strong>Jmix BPM</strong> all sequence flows may have a condition, but it will be evaluated and used only when required.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="conditional flow example" src="../_images/bpmn-sequence-flows/conditional-flow-example.png" width="250"/>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>It is highly <strong>not recommended</strong> to use conditional flows because of the risk of errors.
+For example, in the picture above, the process will stop if the condition is <em>false</em> and no other paths are available.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="default-flow"><a class="anchor" href="#default-flow"></a>Default Sequence Flow</h3>
+<div class="paragraph">
+<p>All BPMN 2.0 tasks and gateways can have a default sequence flow.
+This sequence flow is only selected as the <em>outgoing</em> sequence flow for activity or gateway.</p>
+</div>
+<div class="paragraph">
+<p>A default sequence flow is visualized as a regular sequence flow, with a 'slash' marker at the beginning.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="default flow" src="../_images/bpmn-sequence-flows/default-flow.png" width="150"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Default flow’s behavior depends on the element it is used with.
+Conditions on a default sequence flow are always ignored.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-conditional-default-flows"><a class="anchor" href="#using-conditional-default-flows"></a>Using Conditional and Default Sequence Flows</h3>
+<div class="paragraph">
+<p>Though BPMN specification allows using conditional and default flows as in the picture below, avoid using them such way.
+It makes the diagram worse readable and ambiguous.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="sequence flow bad example" src="../_images/bpmn-sequence-flows/sequence-flow-bad-example.png" width="350"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Instead of conditional and default flows, outgoing from the activity, better use gateway:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="using flows good example" src="../_images/bpmn-sequence-flows/using-flows-good-example.png" width="450"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, you can see an exclusive gateway, parallel and inclusive gateways are also possible.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

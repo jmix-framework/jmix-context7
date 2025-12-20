@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Task :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Service Task</h1>
+<div class="sect1">
+<h2 id="overview"><a class="anchor" href="#overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <strong>Service Task</strong> is used to invoke Java code, external services, APIs, or automated applications, to complete its function.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A service task is visualized as a rounded rectangle with a small gear icon in the top-left corner.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="service task" src="../_images/bpmn-service-task/service-task.png" width="150"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>Depending on implementation, the service task may have different XML representation. See examples in the corresponding task type descriptions.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="properties"><a class="anchor" href="#properties"></a>Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A service task has the following properties:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="service task properties" src="../_images/bpmn-service-task/service-task-properties.png" width="460"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Setting the task properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>First, you have to set <a class="xref page" href="bpmn-tasks.html#common-task-properties">general task properties</a>.</p>
+</li>
+<li>
+<p>Then, define a <em>Task type</em> and set the required parameters depending on the selected <a href="#task-types">type</a>.</p>
+</li>
+<li>
+<p>Set up <a href="#fail-retry">fail retry</a> or leave it default (blank).</p>
+</li>
+<li>
+<p>Create <em>Execution listeners</em> if they are necessary. See the <a class="xref page" href="../listeners.html">Listeners</a> section.</p>
+</li>
+<li>
+<p>Decide whether you need <a class="xref page" href="bpmn-tasks.html#extension-properties">extension properties</a>.</p>
+</li>
+<li>
+<p>If you need to create multi-instances, see the <a class="xref page" href="multi-instance-activities.html">Multi-Instance</a> section.</p>
+</li>
+<li>
+<p>About the <em>Async</em> flag, see details in the <a class="xref page" href="transactions.html">Transactions</a> section.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Actually, it is recommended always to set <em>Async</em> on (true).
+In some cases, it can affect performance.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="task-types"><a class="anchor" href="#task-types"></a>Types of Service Tasks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Parameter <strong>Task type</strong> defines the way service task is implemented.
+There are the following types of service tasks in Jmix BPM:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Spring bean</dt>
+<dd>
+<p>In this case, specified method of the selected bean will be executed when the process reaches the task.
+Process variables or fixed values can be passed as method parameters, the result can be stored in a result variable.</p>
+</dd>
+<dt class="hdlist1">Java Delegate Class</dt>
+<dd>
+<p>In this case, the service task is implemented as <em>JavaDelegate</em> class, and its <em>execute()</em> method will be invoked.
+Also, it supports a <em>Fields injection</em> mechanism.</p>
+</dd>
+<dt class="hdlist1">Expression</dt>
+<dd>
+<p>It is a general way to call any method or evaluate inline expression.</p>
+</dd>
+<dt class="hdlist1">Delegate expression</dt>
+<dd>
+<p>Actually, it isn’t expression, it is a Spring bean that implements JavaDelegate interface.
+So it has features of both.</p>
+</dd>
+</dl>
+</div>
+<div class="sect2">
+<h3 id="spring-bean-service-task"><a class="anchor" href="#spring-bean-service-task"></a>Spring Bean Service Task</h3>
+<div class="paragraph">
+<p><strong>Jmix BPM</strong> allows to invoke from the service task a Spring bean method and provide parameter values for it.
+This approach is the most recommended for using in service tasks.</p>
+</div>
+<div class="paragraph">
+<p>You can select an existing bean and its associated method using the <strong>Bean Name</strong> and <strong>Method</strong> fields, respectively.</p>
+</div>
+<div class="paragraph">
+<p>Once the method is selected, more fields will appear to enter the values for the method arguments.</p>
+</div>
+<div class="paragraph">
+<p>Pay attention to the <strong>is variable</strong> check box. It makes sense mostly for string parameters.
+If the checkbox is not selected, then the argument value will be written to the resulting expression in apostrophes.
+If the checkbox is selected, no apostrophes will be added and a variable with a provided name will be passed to the method.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>${smpl_MyBean.someMethod('description')}</code> — this expression will use the string value <code>description</code>.</p>
+</li>
+<li>
+<p><code>${smpl_MyBean.someMethod(description)}</code> — this expression will use the value of the variable named <code>description</code>.</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="result-variable"><a class="anchor" href="#result-variable"></a>Result Variable</h4>
+<div class="paragraph">
+<p>If the selected method returns any value, the <strong>Result variable</strong> field appears.
+You can put here one of the existing process variables or create a new one just entering its name.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Care about types when using existing variables.
+If the result type differs from existing, a new process variable with the same name will be created.
+If there was a <code>String</code> variable <code>a1</code>, and you save in it numeric result <code>100L</code>, there wil be a new variable 'a1' of type <code>Long' and value `100</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Next to the <strong>Result variable</strong> it the <strong>Use local scope</strong> checkbox. When set to <code>true</code>, this parameter ensures that the result variable created by the service task is scoped locally to the execution context of the task.
+This means that the variable will only be accessible within the current execution and will not be propagated to the parent execution or process instance.</p>
+</div>
+<div class="paragraph">
+<p>This setting helps in isolating the variable to the specific execution of the service task.
+If <a class="xref page" href="multi-instance-activities.html">multiple instances</a> of the same service task are running concurrently,
+each instance will have its own local variable, preventing interference between them.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>Here you can see how all the Spring bean service task parameters are represented in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="set-status-service-task" name="Set order status"
+    flowable:async="true" <i class="conum" data-value="1"></i><b>(1)</b>
+    flowable:expression="${smpl_OrderStatusBean.setStatus(orderId,&amp;#39;Sent&amp;#39;)}" <i class="conum" data-value="2"></i><b>(2)</b>
+    flowable:resultVariable="quantity" <i class="conum" data-value="3"></i><b>(3)</b>
+    flowable:useLocalScopeForResultVariable="true" <i class="conum" data-value="4"></i><b>(4)</b>
+    jmix:taskType="springBean" jmix:beanName="smpl_OrderStatusBean"&gt; <i class="conum" data-value="5"></i><b>(5)</b>
+  &lt;extensionElements&gt;
+    &lt;jmix:springBean beanName="smpl_OrderStatusBean"
+     methodName="setStatus"&gt; <i class="conum" data-value="6"></i><b>(6)</b>
+      &lt;jmix:methodParam name="orderId" type="java.lang.String"
+        isVariable="true"&gt;orderId&lt;/jmix:methodParam&gt; <i class="conum" data-value="7"></i><b>(7)</b>
+      &lt;jmix:methodParam name="status" type="java.lang.String"
+        isVariable="false"&gt;Sent&lt;/jmix:methodParam&gt; <i class="conum" data-value="8"></i><b>(8)</b>
+    &lt;/jmix:springBean&gt;
+  &lt;/extensionElements&gt;
+&lt;/serviceTask&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — <em>Async</em> flag, by default it is 'false' and omitted.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — Generated expression, apostrophe symbols are substituted with <code>'</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td> — Result variable.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td> — Local scope flag, by default it is 'false' and omitted.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td> — Task type</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td> — Spring bean name and method defined.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td> — Parameter passes as process variable.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td> — Parameter passed as direct value.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="process-variable-execution"><a class="anchor" href="#process-variable-execution"></a>Process variable “execution”</h4>
+<div class="paragraph">
+<p>Spring bean doesn’t see a process context.
+But in many cases it is required.
+For example, to get access to process variables and the current task properties.</p>
+</div>
+<div class="paragraph">
+<p>There is an embedded process variable named “execution” of the type <code>DelegateExecution</code> that can be used as a Spring bean method parameter.
+Create such a method, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("MyProcessBean")
+public class MyProcessBean {
+
+    public void mySampleMethod(DelegateExecution execution) { <i class="conum" data-value="1"></i><b>(1)</b>
+        String currentActivityId = execution.getCurrentActivityId();
+        Set&lt;String&gt; variableNames = execution.getVariableNames();
+        // etc.
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — <code>execution</code> parameter</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Then set this method in your service task:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="execution as parameter" src="../_images/bpmn-service-task/execution-as-parameter.png" width="460"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="java-delegate-service-task"><a class="anchor" href="#java-delegate-service-task"></a>Java Delegate Class</h3>
+<div class="paragraph">
+<p>In this case, business logic will be executed by a class implementing <code>org.flowable.engine.delegate.JavaDelegate</code> interface with <em>execute()</em> method.
+The method receives <code>execution</code> object as a parameter, so you’ll have access to process context, including all process variables.</p>
+</div>
+<div class="paragraph">
+<p>If you select <em>JavaDelegate class</em> option in the <em>Task type</em> combo box, you can select an appropriate class implementing <code>JavaDelegate</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="create java delegate" src="../_images/bpmn-service-task/create-java-delegate.png" width="460"/>
+</div>
+</div>
+<div class="paragraph">
+<p>For example, let’s implement the class creating a process variable with random value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class RandomIndexJavaDelegate implements JavaDelegate {
+    @Override
+    public void execute(DelegateExecution execution) {
+        long randomIndex = new Random().nextLong(100L);
+        execution.setVariable("randomIndex", randomIndex);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>To specify a class called during process execution,
+the fully qualified class name needs to be provided by the <code>flowable:class</code> attribute.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="Activity_java_delegate" name="Java delegate"
+    flowable:class="com.company.jmixbpmtraining.delegate.RandomIndexJavaDelegate" <i class="conum" data-value="1"></i><b>(1)</b>
+    jmix:taskType="javaDelegateClass"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+  &lt;extensionElements /&gt;
+&lt;/serviceTask&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — Specifying Java Delegate class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — Defining task type.</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="instantiating-java-delegate"><a class="anchor" href="#instantiating-java-delegate"></a>Instantiating a Java Delegate Class</h4>
+<div class="paragraph">
+<p>The classes that are used in service tasks of the <em>Java Delegate</em> type are <strong>NOT instantiated during deployment</strong>.
+When process engine achieves the task during execution for the first time, it creates an instance of the JavaDelegate class.</p>
+</div>
+<div class="paragraph">
+<p>There will be only one instance of the Java class created for the serviceTask on which it is defined.
+If more than one service tasks within a process refer to the same Java Delegate class,
+for each will be created a separate instance.
+All process instances share the corresponding class instance for the task.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="java delegate instantiating" src="../_images/bpmn-service-task/java-delegate-instantiating.png" width="600"/>
+</div>
+</div>
+<div class="paragraph">
+<p>This means that the class must not use any member variables and must be thread-safe, as it can be executed simultaneously from different threads.
+This also may affect <a href="#field-injections">Fields injection</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="delegate-expression-service-task"><a class="anchor" href="#delegate-expression-service-task"></a>Delegate Expression Service Task</h3>
+<div class="paragraph">
+<p>A <strong>delegate expression</strong> is a powerful feature used in service tasks that allows for the dynamic resolution of a Java object at runtime.
+For example, an expression like <code>${myServiceBean}</code> would resolve to a Spring bean named <code>myServiceBean</code>.</p>
+</div>
+<div class="paragraph">
+<p>In a Spring context, delegate expressions can reference Spring beans directly, enabling seamless integration with the Spring framework.
+This allows for dependency injection and the use of Spring’s features within the delegate implementation.</p>
+</div>
+<div class="paragraph">
+<p>To use <code>JavaDelegate</code> classes in delegate expressions, annotate them with @Component, similar to a Spring bean.
+In this case, it combines the features of both types — <em>Spring bean</em> and <em>Java Delegate</em> class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class MyDelegateExpression implements JavaDelegate {
+    // Class fields and injections
+    @Override
+    public void execute(DelegateExecution execution) {
+    // Required logic
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In result, you have access to Spring context and process context from within this class.
+To invoke it, use the <em>Delegate expression</em> task type. For example:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="delegate expression" src="../_images/bpmn-service-task/delegate-expression.png" width="473"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>To specify a class called during process execution, it is possible to use an expression that resolves to an object.
+In XML, an attribute <code>flowable:delegateExpression</code> is used for this purpose:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="delegate-expression"
+    name="Delegate expression task"
+    flowable:delegateExpression="${MyDelegateExpression}"
+    jmix:taskType="delegateExpression"&gt;
+&lt;/serviceTask&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="expression-service-task"><a class="anchor" href="#expression-service-task"></a>Expression Service Task</h3>
+<div class="paragraph">
+<p>Expression is the most general way to invoke Java logic.
+You can call a Spring bean method from expression:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="expression service task" src="../_images/bpmn-service-task/expression-service-task.png" width="460"/>
+</div>
+</div>
+<div class="sect3">
+<h4 id="evaluating-value"><a class="anchor" href="#evaluating-value"></a>Evaluating a Value of Expression</h4>
+<div class="paragraph">
+<p>Also, you can use a value expression within a service task.
+Then specify a result variable, and the result of the expression will be assigned to it.
+For example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>${'Hello, World!'}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Result variable <code>greeting</code> will be equal <code>"Hello, World!".</code></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fail-retry"><a class="anchor" href="#fail-retry"></a>Fail Retry</h3>
+<div class="paragraph">
+<p>About the <strong>fail retry</strong> concept, see <a class="xref page" href="transactions.html#fail-retry">Fail Retry</a>.</p>
+</div>
+<div class="sect3">
+<h4 id="configuring-fail-retry"><a class="anchor" href="#configuring-fail-retry"></a>Configuring</h4>
+<div class="paragraph">
+<p>To set a <strong>Fail retry</strong> parameters, find the corresponding property in the <strong>BPMN Inspector</strong> panel:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="fail retry property" src="../_images/bpmn-service-task/fail-retry-property.png" width="460"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The value must be time cycle expression follows <strong>ISO 8601</strong> standard.
+The example <code>R5/PT7M</code> as above makes the job executor retry the job 5 times and wait 7 minutes between each retry.</p>
+</div>
+<div class="paragraph">
+<p><strong>XML Representation</strong></p>
+</div>
+<div class="paragraph">
+<p>Fail retry parameter is presented by the <code>flowable:failedJobRetryTimeCycle element</code>.
+Here is a sample usage:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="failingServiceTask"
+    flowable:async="true"
+    flowable:class="org.flowable.engine.test.jobexecutor.RetryFailingDelegate"&gt;
+    &lt;extensionElements&gt;
+        &lt;flowable:failedJobRetryTimeCycle&gt;R5/PT7M&lt;/flowable:failedJobRetryTimeCycle&gt;
+    &lt;/extensionElements&gt;
+&lt;/serviceTask&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Process engine, in its default configuration, reruns a job three times if there’s any exception in the execution of a job.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="field-injections"><a class="anchor" href="#field-injections"></a>Field Injections</h3>
+<div class="paragraph">
+<p>The <strong>field injections</strong> is a Flowable mechanism of passing parameter in Java Delegate class as fixed string values or expressions resolved in strings.
+It can be used with the following task types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Java Delegate class</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>And, if a called object is Java Delegate class, in</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Delegate expression</p>
+</li>
+<li>
+<p>Expression</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Injected field must always be of <code>org.flowable.common.engine.api.delegate.Expression</code> type.
+When the injected expression is resolved, it can be cast to the appropriate target type.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can’t pass entities or other objects via <em>Field injection</em>. Actually, expression is resolved in <code>String</code> type.
+If the string value can be cast to your type, it’s OK.
+Otherwise, it’ll be an error.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>How to inject fields:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create fields definition in your <code>JavaDelegate</code> class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private Expression messageField;
+private Expression quantityField;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Select the service task and create fields with the same name as you defined in code. The field values can be either expressions or strings.</p>
+<div class="imageblock">
+<div class="content">
+<img alt="field injection properties" src="../_images/bpmn-service-task/field-injection-properties.png" width="473"/>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you need to pass a numeric values, use expression like shown above, for example <code>${3}</code>.
+If you write just <em>3</em>, this will be interpreted as <code>String</code> object "3" and cannot be cast to <code>Integer</code> type.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>At runtime, the process engine resolves expression and passes result strings in Java Delegate class.</p>
+</li>
+<li>
+<p>In Java Delegate class, there must be a code getting values from the fields and casing them to desired types:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String message = (String) messageField.getValue(execution);
+Integer quantity = (Integer) quantityField.getValue(execution);</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="sect3">
+<h4 id="field-injection-thread-safety"><a class="anchor" href="#field-injection-thread-safety"></a>Field Injection and Thread Safety</h4>
+<div class="paragraph">
+<p>In general, using service tasks with Java delegates and field injections are thread-safe. However, there are a few situations where thread-safety is not guaranteed, depending on the setup or environment Flowable is running in.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Java delegate class task type</dt>
+<dd>
+<p>In this case, using field injection is always thread safe. For each service task that references a certain class, a new instance will be instantiated and fields will be injected once when the instance is created. Reusing the same class multiple times in different tasks or process definitions is no problem.</p>
+<div class="paragraph">
+<p>Keep in mind that different process instances use the same instance of Java Delegate class referred to a task.
+It’s possible to imagine that one process instance affects another, but this is very unlikely.</p>
+</div>
+</dd>
+<dt class="hdlist1">Spring bean service and expression task type</dt>
+<dd>
+<p>Technically for Flowable, a Spring bean service task is represented by <code>flowable:expression</code> attribute.</p>
+<div class="paragraph">
+<p>When using the <code>flowable:expression</code> attribute, use of field injection is unnecessary. Parameters are passed via method calls and these are always thread-safe.</p>
+</div>
+<div class="paragraph">
+<p>Strictly speaking, you can do field injection, but you shouldn’t.</p>
+</div>
+</dd>
+<dt class="hdlist1">Delegate expression service task</dt>
+<dd>
+<p>When using the <code>flowable:delegateExpression</code> attribute, the thread-safety of the delegate instance will depend on how the expression is resolved. If the delegate expression is reused in various tasks or process definitions, and the expression always returns the same instance, using field injection is not thread-safe.</p>
+<div class="paragraph">
+<p>Two service tasks can use the same delegate expression, but inject different values for the <code>Expression</code> field. If the expression resolves to the same instance, there can be race conditions in concurrent scenarios when it comes to injecting the field someField when the processes are executed.</p>
+</div>
+<div class="paragraph">
+<p>The easiest solution to solve this is to either:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Rewrite the Java Delegate to use an expression or Spring bean and pass the required data via a method arguments.</p>
+</li>
+<li>
+<p>Return a new instance of the delegate class each time the delegate expression is resolved. For example, when using Spring, this means that the scope of the bean must be set to prototype (such as by adding the <code>@Scope(SCOPE_PROTOTYPE)</code> annotation to the delegate class).</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="paragraph">
+<p>The <code>@Scope(SCOPE_PROTOTYPE)</code> annotation in Spring is used to define the scope of a bean, indicating that a new instance of the bean should be created each time it is requested from the Spring container.
+This is in contrast to the singleton scope, where only one instance of the bean is created and shared across the entire application. Prototype scope is ideal for beans that maintain state or are not thread-safe.</p>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class UpperCaseJavaDelegate implements JavaDelegate {
+
+    private Expression messageField;
+    private Expression quantityField;
+    @Override
+    public void execute(DelegateExecution execution) {
+
+        String message = (String) messageField.getValue(execution);
+        Integer quantity = (Integer) quantityField.getValue(execution);
+
+        String upperCaseMessage = message.toUpperCase();
+        for (int i = 0; i &lt; quantity; i++) {
+            System.out.println(upperCaseMessage);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

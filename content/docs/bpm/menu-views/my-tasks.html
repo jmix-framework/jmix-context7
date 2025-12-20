@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tasks :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">My Tasks</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This view provides access to the active tasks of the currently authenticated user.
+It organizes tasks in a tree structure, grouping them by their respective processes.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="my tasks view" src="../_images/my-tasks/my-tasks-view.png" width="800"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>Assigned Tasks</strong> node contains tasks where the user is the assignee, while the <strong>Group Tasks</strong> node includes tasks where the user is a candidate.</p>
+</li>
+<li>
+<p>The <strong>Process instance business key</strong> column displays the <a class="xref page" href="../bpm-concepts.html#business-key">business key</a> value. This helps users understand which object the process is associated with.</p>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+When designing processes, aim to specify a business key. The <a class="xref page" href="../../data-model/entities.html#instance-name">data-model:entities.adoc#instance-name</a> can serve as an effective business key.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>The <strong>Due Date</strong> shows when the task is expected to be completed. This field is for reference only. If you want to track overdue tasks and take action based on this information, it should be done programmatically.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="advanced-task-list-view"><a class="anchor" href="#advanced-task-list-view"></a>Advanced Task List View</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The framework allows for the creation and customization of an alternative screen for viewing tasks. This screen is standalone and does not replace the standard <strong>My Tasks</strong> screen. It can also be easily tailored to meet the needs of your project.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="advanced my tasks view" src="../_images/my-tasks/advanced-my-tasks-view.png" width="982"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The left side features a filter component that allows filtering by task name, process name, or assignee.</p>
+</li>
+<li>
+<p>The right side displays a table containing the list of user tasks.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_creating_advanced_task_view"><a class="anchor" href="#_creating_advanced_task_view"></a>Creating Advanced Task View</h3>
+<div class="paragraph">
+<p>The process of creating an alternative task screen is similar to creating other screens in the Jmix application. The xref:studio:view-wizard.adoc in Jmix Studio provides the <strong>BPM: Advanced Task List View</strong> template.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="advanced my tasks view template" src="../_images/my-tasks/advanced-my-tasks-view-template.png" width="776"/>
+</div>
+</div>
+<div class="paragraph">
+<p>After completing the steps in the wizard, Studio generates descriptor and controller files. These files include detailed comments to facilitate understanding and modification of the view.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="advanced-task-list-security"><a class="anchor" href="#advanced-task-list-security"></a>Access to the View</h3>
+<div class="paragraph">
+<p>Similar to other views in you project, users will need access to this new view and the associated entities. Therefore, they have to be granted an appropriate <a class="xref page" href="../../security/resource-roles.html">resource role</a></p>
+</div>
+<div class="paragraph">
+<p>The code below defines the <code>BpmProcessTaskPerformerRole</code>, which includes the complete set of necessary permissions.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.bpm.entity.*;
+import io.jmix.security.model.*;
+import io.jmix.security.role.annotation.EntityAttributePolicy;
+import io.jmix.security.role.annotation.EntityPolicy;
+import io.jmix.security.role.annotation.ResourceRole;
+import io.jmix.securityflowui.role.annotation.MenuPolicy;
+import io.jmix.securityflowui.role.annotation.ViewPolicy;
+
+@ResourceRole(name = "BPM: process task performer", code = BpmProcessTaskPerformerRole.CODE, scope = SecurityScope.UI)
+public interface BpmProcessTaskPerformerRole {
+    String CODE = "bpm-process-task-performer";
+
+    @ViewPolicy(viewIds = {
+            "AdvancedTaskListView", <i class="conum" data-value="1"></i><b>(1)</b>
+            "bpm_DefaultStartProcessForm",
+            "bpm_DefaultTaskProcessForm",
+            "bpm_InputDialogStartProcessForm",
+            "bpm_InputDialogTaskProcessForm"
+    })
+    @MenuPolicy(menuIds = {
+            "AdvancedTaskListView" <i class="conum" data-value="2"></i><b>(2)</b>
+    })
+    @EntityPolicy(entityClass = ContentStorage.class, actions = {EntityPolicyAction.READ})
+    @EntityPolicy(entityClass = ProcessDefinitionData.class, actions = {EntityPolicyAction.READ})
+    @EntityPolicy(entityClass = TaskData.class, actions = {EntityPolicyAction.READ})
+    @EntityAttributePolicy(entityClass = ContentStorage.class, attributes = "*", action = EntityAttributePolicyAction.VIEW)
+    @EntityAttributePolicy(entityClass = ProcessDefinitionData.class, attributes = "*", action = EntityAttributePolicyAction.VIEW)
+    @EntityAttributePolicy(entityClass = TaskData.class, attributes = "*", action = EntityAttributePolicyAction.VIEW)
+    void bpmProcessTaskPerformer();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Specify the generated view id here.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Provide the id of the menu item that navigates to the generated view.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

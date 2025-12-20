@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Rules :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Layout Rules</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section provides an explanation of the correct methods for positioning visual components and layouts in your views.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="component-sizes"><a class="anchor" href="#component-sizes"></a>Component Sizes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Components that implement <code>com.vaadin.flow.component.HasSize</code> (e.g. <a class="xref page" href="components/button.html">button</a>, <a class="xref page" href="components/button.html">textField</a>, <a class="xref page" href="components/button.html">dataGrid</a>, <a class="xref page" href="components/button.html">vbox</a>, etc.) have the following common attributes: <a class="xref page" href="common-attributes.html#width">width</a>, <a class="xref page" href="common-attributes.html#minWidth">minWidth</a>, <a class="xref page" href="common-attributes.html#maxWidth">maxWidth</a>, <a class="xref page" href="common-attributes.html#height">height</a>, <a class="xref page" href="common-attributes.html#minHeight">minHeight</a>, <a class="xref page" href="common-attributes.html#maxHeight">maxHeight</a>. These attributes map directly to the corresponding CSS properties.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The <code>min</code>/<code>max</code> size attributes can help in creating responsive designs, where elements need to adapt to different screen sizes. These attributes can also be used to prevent components from overflowing or becoming too large. See <a href="#tips-and-tricks">Tips and Tricks</a> for a practical example.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Component dimensions can be of the following types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Content-based - <code>AUTO</code></p>
+</li>
+<li>
+<p>Fixed, e.g. <code>25em</code></p>
+</li>
+<li>
+<p>Relative (in percentage) to parent layout, e.g. <code>100%</code></p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="size types" src="../_images/layout-rules/size-types.png"/>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The size value must be a correct CSS size string.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="content-based-size"><a class="anchor" href="#content-based-size"></a>Content-Based Size</h3>
+<div class="paragraph">
+<p>The component will take enough space to fit its content.</p>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For <code>button</code>, the size is defined by the <code>text</code> length.</p>
+</li>
+<li>
+<p>For layouts, the size is defined by the sum of all component sizes inside the layout.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Button" width="AUTO"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">button.setWidth("AUTO");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Components with content-based size will adjust their dimensions during screen layout initialization or when the content size is changed.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="content based size" src="../_images/layout-rules/content-based-size.png"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fixed-size"><a class="anchor" href="#fixed-size"></a>Fixed Size</h3>
+<div class="paragraph">
+<p>Fixed size implies that the component dimensions will not change at runtime.</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox width="20em" height="15em"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">vBox.setWidth("20em");
+vBox.setHeight("15em");</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="fixed size" src="../_images/layout-rules/fixed-size.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The size can be set using absolute length units (e.g. <code>px</code>) or relative length units (e.g. <code>em</code>). All platform views and components use relative length units such as <code>em</code> and <code>rem</code> so it is possible to change the entire application size.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<code>em</code> is the size unit that is relative to parent font size. By default, the font size is <code>16px</code>. For more information on length units, see <a href="https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_units" rel="noopener" target="_blank">CSS values and units</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You may face a situation where you define a fixed size for a component, such as width, but it becomes smaller if there is not enough space in the parent layout. To bypass this effect, you can either set the <code>minWidth</code>/<code>minHeight</code> values to the same as the <code>width</code>/<code>height</code> values using the corresponding attributes, or set <code>flex-shrink: 0</code> using the <a class="xref page" href="common-attributes.html#css">css</a> attribute.<br/>
+This happens because when components are placed inside <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox" rel="noopener" target="_blank">flexbox</a> containers, for example <a class="xref page" href="layouts/hbox.html">hbox</a>, <a class="xref page" href="layouts/vbox.html">vbox</a> or <code>flexLayout</code>, even if they have fixed size along the container’s <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox#the_main_axis" rel="noopener" target="_blank">main axis</a>, their size cannot enlarge the parent’s size. According to the <a href="https://www.w3.org/TR/css-flexbox-1/#propdef-flex-shrink" rel="noopener" target="_blank">specification</a>, the initial value of the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/flex-shrink" rel="noopener" target="_blank">flex-shrink</a> property is <strong>1</strong>, which means that, by default, a <a href="https://developer.mozilla.org/en-US/docs/Glossary/Flex_Item" rel="noopener" target="_blank">flex-item</a> reduces its size if there is not enough space available.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="relative-size"><a class="anchor" href="#relative-size"></a>Relative Size</h3>
+<div class="paragraph">
+<p>Relative size indicates the percentage of available space that will be occupied by the component.</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Button" width="50%"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">button.setWidth("50%");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Components with relative size will react to changes in the amount of the available space and adjust their actual size on the screen.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="relative size" src="../_images/layout-rules/relative-size.png"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="layout-specifics"><a class="anchor" href="#layout-specifics"></a>Layout Specifics</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The root <code>layout</code> element is a vertical layout (<code>vbox</code>), which by default has 100% width and height.</p>
+</li>
+<li>
+<p><code>scroller</code> must have fixed or relative (but not <code>AUTO</code>) width and height. Components inside <code>scroller</code>, positioned in the scrolling direction, should not have relative size.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="component-specifics"><a class="anchor" href="#component-specifics"></a>Component Specifics</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>dataGrid</code> does not need to be explicitly assigned <code>height="100%"</code> or <a href="#expand">expanded</a>  within <code>vbox</code> or root <code>layout</code> elements, because its <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/flex-grow" rel="noopener" target="_blank">flex-grow</a> CSS property is set to <code>1</code>, which means that by default it is already expanded in the parent layout. However, it is recommended to set the <code>minHeight</code> attribute of the <code>dataGrid</code> to prevent collapsing when there is insufficient vertical space.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="expand"><a class="anchor" href="#expand"></a>Expanding Components</h3>
+<div class="paragraph">
+<p>Components can be instructed to expand and take up any extra space that a layout may have.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox expand="btn" padding="true" width="100%"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button id="btn" text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox expand" src="../_images/layout-rules/hbox-expand.png"/>
+</div>
+<div class="title">Figure 1. Horizontal Layout with expand</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox expand="btn" width="100%" minHeight="20em"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button id="btn" text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox expand" src="../_images/layout-rules/vbox-expand.png"/>
+</div>
+<div class="title">Figure 2. Vertical Layout with expand</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Expanding a component effectively means that its <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/flex-grow" rel="noopener" target="_blank">flex-grow</a> CSS property is set to <code>1</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="spacing-margin-padding"><a class="anchor" href="#spacing-margin-padding"></a>Spacing, Margin and Padding</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>With spacing, margin and padding you can define an empty space around components and inside them.</p>
+</div>
+<div class="sect2">
+<h3 id="spacing"><a class="anchor" href="#spacing"></a>Spacing</h3>
+<div class="paragraph">
+<p>The <code>spacing</code> attribute toggles <code>spacing</code> theme setting for the component. If a theme supports this attribute, it will apply or remove spacing for the component.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox no spacing" src="../_images/layout-rules/hbox-no-spacing.png"/>
+</div>
+<div class="title">Figure 3. Horizontal Layout without spacing</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox spacing" src="../_images/layout-rules/hbox-spacing.png"/>
+</div>
+<div class="title">Figure 4. Horizontal Layout with default spacing</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox spacing" src="../_images/layout-rules/vbox-spacing.png"/>
+</div>
+<div class="title">Figure 5. Vertical Layout with default spacing</div>
+</div>
+<div class="paragraph">
+<p>Spacing is on by default for <code>vbox</code> and <code>hbox</code> components.</p>
+</div>
+<div class="sect3">
+<h4 id="spacing-variants"><a class="anchor" href="#spacing-variants"></a>Spacing Variants</h4>
+<div class="paragraph">
+<p>The <code>spacing</code> attribute implicitly adds medium spacing to the component theme, which is equivalent to defining <code>themeNames="spacing"</code>. To set other options, use the <code>themeNames</code> attribute explicitly. Five different spacing theme variants are available:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Theme Variant</th>
+<th class="tableblock halign-left valign-top">Usage Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spacing-xs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Extra-small space between items</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spacing-s</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Small space between items</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spacing</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Medium space between items</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spacing-l</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Large space between items</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spacing-xl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Extra-large space between items</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Example of adding <code>spacing-xl</code> spacing variant:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox themeNames="spacing-xl" alignItems="STRETCH"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox spacing xl" src="../_images/layout-rules/vbox-spacing-xl.png"/>
+</div>
+<div class="title">Figure 6. Vertical Layout with spacing-xl theme variant</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="padding"><a class="anchor" href="#padding"></a>Padding</h3>
+<div class="paragraph">
+<p>The <code>padding</code> attribute enables setting space between layout borders and nested components.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox padding" src="../_images/layout-rules/vbox-padding.png"/>
+</div>
+<div class="title">Figure 7. Vertical Layout with padding</div>
+</div>
+<div class="paragraph">
+<p>Padding is on by default for <code>vbox</code>. You can turn it off by setting the <code>padding</code> attribute to <code>false</code>. For <code>hbox</code>, padding is off by default and can be turned on by setting the <code>padding</code> attribute to <code>true</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="margin"><a class="anchor" href="#margin"></a>Margin</h3>
+<div class="paragraph">
+<p>Margin is a space around layout borders.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox margin" src="../_images/layout-rules/vbox-margin.png"/>
+</div>
+<div class="title">Figure 8. Vertical Layout with margin</div>
+</div>
+<div class="paragraph">
+<p>Margin is off by default. You can turn it on using the <code>margin</code> attribute.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="alignment"><a class="anchor" href="#alignment"></a>Alignment</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="justify-content-mode"><a class="anchor" href="#justify-content-mode"></a>JustifyContent Mode</h3>
+<div class="paragraph">
+<p>The <code>justifyContent</code> attribute corresponds to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/justify-content" rel="noopener" target="_blank">justify-content</a> CSS property which defines how the browser distributes space between and around content items along the <strong>main axis</strong> of a flex container.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Descsription</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>START</code> (default)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items are positioned at the beginning of the container.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CENTER</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items are positioned at the center of the container.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>END</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items are positioned at the end of the container.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BETWEEN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items are positioned with space between the lines; first item is on the start line, last item on the end line.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AROUND</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items are evenly positioned in the line with equal space around them. Note that start and end gaps are half the size of the space between each item.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EVENLY</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items are positioned so that the spacing between any two items (and the space to the edges) is equal.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>For <code>vbox</code> and <code>flexLayout</code> with <code>flexDirection="COLUMN"</code> (that is when <code>flex-direction: column</code>) the <code>justifyContent</code> attribute works as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox justifyContent="START" minHeight="20em"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox justifyContent start" src="../_images/layout-rules/vbox-justifyContent-start.png"/>
+</div>
+<div class="title">Figure 9. Vertical Layout with justifyContent="START"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox justifyContent="CENTER" minHeight="20em"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox justifyContent center" src="../_images/layout-rules/vbox-justifyContent-center.png"/>
+</div>
+<div class="title">Figure 10. Vertical Layout with justifyContent="CENTER"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox justifyContent="END" minHeight="20em"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox justifyContent end" src="../_images/layout-rules/vbox-justifyContent-end.png"/>
+</div>
+<div class="title">Figure 11. Vertical Layout with justifyContent="END"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox justifyContent="BETWEEN" minHeight="20em"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox justifyContent between" src="../_images/layout-rules/vbox-justifyContent-between.png"/>
+</div>
+<div class="title">Figure 12. Vertical Layout with justifyContent="BETWEEN"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox justifyContent="AROUND" minHeight="20em"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox justifyContent around" src="../_images/layout-rules/vbox-justifyContent-around.png"/>
+</div>
+<div class="title">Figure 13. Vertical Layout with justifyContent="AROUND"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox justifyContent="EVENLY" minHeight="20em"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox justifyContent evenly" src="../_images/layout-rules/vbox-justifyContent-evenly.png"/>
+</div>
+<div class="title">Figure 14. Vertical Layout with justifyContent="EVENLY"</div>
+</div>
+<div class="paragraph">
+<p>For <code>hbox</code> and <code>flexLayout</code> with <code>flexDirection="ROW"</code> (that is when <code>flex-direction: row</code>), the <code>justifyContent</code> attribute works as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox justifyContent="START" padding="true" width="100%"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox justifyContent start" src="../_images/layout-rules/hbox-justifyContent-start.png"/>
+</div>
+<div class="title">Figure 15. Horizontal Layout with justifyContent="START"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox justifyContent="CENTER" padding="true" width="100%"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox justifyContent center" src="../_images/layout-rules/hbox-justifyContent-center.png"/>
+</div>
+<div class="title">Figure 16. Horizontal Layout with justifyContent="CENTER"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox justifyContent="END" padding="true" width="100%"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox justifyContent end" src="../_images/layout-rules/hbox-justifyContent-end.png"/>
+</div>
+<div class="title">Figure 17. Horizontal Layout with justifyContent="END"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox justifyContent="BETWEEN" padding="true" width="100%"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox justifyContent between" src="../_images/layout-rules/hbox-justifyContent-between.png"/>
+</div>
+<div class="title">Figure 18. Horizontal Layout with justifyContent="BETWEEN"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox justifyContent="AROUND" padding="true" width="100%"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox justifyContent around" src="../_images/layout-rules/hbox-justifyContent-around.png"/>
+</div>
+<div class="title">Figure 19. Horizontal Layout with justifyContent="AROUND"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox justifyContent="EVENLY" padding="true" width="100%"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox justifyContent evenly" src="../_images/layout-rules/hbox-justifyContent-evenly.png"/>
+</div>
+<div class="title">Figure 20. Horizontal Layout with justifyContent="EVENLY"</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="align-items"><a class="anchor" href="#align-items"></a>AlignItems</h3>
+<div class="paragraph">
+<p>The <code>alignItems</code> attribute corresponds to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/align-items" rel="noopener" target="_blank">align-items</a> CSS property which defines the default behavior for how flex items are placed out along the cross axis on the current line. Think of it as the <code>justify-content</code> version for the <strong>cross axis</strong> (perpendicular to the <strong>main axis</strong>).</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>START</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items are placed at the start of the cross axis.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CENTER</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items are centered in the cross axis.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>END</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items are placed at the end of the cross axis.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>STRETCH</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items with <strong>undefined size along the cross axis</strong> are stretched to fit the container.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BASELINE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items are positioned at the baseline of the container. Works for <code>flex-direction: row</code> only.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AUTO</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The element inherits its parent container’s align-items property, or "stretch" if it has no parent container.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>For <code>vbox</code> and <code>flexLayout</code> with <code>flexDirection="COLUMN"</code> (when <code>flex-direction: column</code>), the <code>alignItems</code> attribute works as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox alignItems="START"&gt;
+    &lt;button text="Button" width="6em"/&gt;
+    &lt;button text="Button" width="7em"/&gt;
+    &lt;button text="Button" width="5em"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox alignItems start" src="../_images/layout-rules/vbox-alignItems-start.png"/>
+</div>
+<div class="title">Figure 21. Vertical Layout with alignItems="START"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox alignItems="CENTER"&gt;
+    &lt;button text="Button" width="6em"/&gt;
+    &lt;button text="Button" width="7em"/&gt;
+    &lt;button text="Button" width="5em"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox alignItems center" src="../_images/layout-rules/vbox-alignItems-center.png"/>
+</div>
+<div class="title">Figure 22. Vertical Layout with alignItems="CENTER"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox alignItems="END"&gt;
+    &lt;button text="Button" width="6em"/&gt;
+    &lt;button text="Button" width="7em"/&gt;
+    &lt;button text="Button" width="5em"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox alignItems end" src="../_images/layout-rules/vbox-alignItems-end.png"/>
+</div>
+<div class="title">Figure 23. Vertical Layout with alignItems="END"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox alignItems="STRETCH"&gt;
+    &lt;button text="Button" width="AUTO"/&gt;
+    &lt;button text="Button" width="AUTO"/&gt;
+    &lt;button text="Button" width="AUTO"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox alignItems stretch" src="../_images/layout-rules/vbox-alignItems-stretch.png"/>
+</div>
+<div class="title">Figure 24. Vertical Layout with alignItems="STRETCH"</div>
+</div>
+<div class="paragraph">
+<p>For <code>hbox</code> and <code>flexLayout</code> with <code>flexDirection="ROW"</code> (when <code>flex-direction: row</code>), the <code>alignItems</code> attribute works as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox alignItems="START" padding="true" width="100%" minHeight="10em"&gt;
+    &lt;button text="Button" height="2em"/&gt;
+    &lt;button text="Button" height="3em"/&gt;
+    &lt;button text="Button" height="1.5em"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox alignItems start" src="../_images/layout-rules/hbox-alignItems-start.png"/>
+</div>
+<div class="title">Figure 25. Horizontal Layout with alignItems="START"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox alignItems="CENTER" padding="true" width="100%" minHeight="10em"&gt;
+    &lt;button text="Button" height="2em"/&gt;
+    &lt;button text="Button" height="3em"/&gt;
+    &lt;button text="Button" height="1.5em"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox alignItems center" src="../_images/layout-rules/hbox-alignItems-center.png"/>
+</div>
+<div class="title">Figure 26. Horizontal Layout with alignItems="CENTER"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox alignItems="END" padding="true" width="100%" minHeight="10em"&gt;
+    &lt;button text="Button" height="2em"/&gt;
+    &lt;button text="Button" height="3em"/&gt;
+    &lt;button text="Button" height="1.5em"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox alignItems end" src="../_images/layout-rules/hbox-alignItems-end.png"/>
+</div>
+<div class="title">Figure 27. Horizontal Layout with alignItems="END"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox alignItems="STRETCH" padding="true" width="100%" minHeight="10em"&gt;
+    &lt;button text="Button" height="AUTO"/&gt;
+    &lt;button text="Button" height="AUTO"/&gt;
+    &lt;button text="Button" height="AUTO"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox alignItems stretch" src="../_images/layout-rules/hbox-alignItems-stretch.png"/>
+</div>
+<div class="title">Figure 28. Horizontal Layout with alignItems="STRETCH"</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox alignItems="BASELINE" padding="true" width="100%" minHeight="10em"&gt;
+    &lt;button text="Button" height="2em"/&gt;
+    &lt;button text="Button" height="3em"/&gt;
+    &lt;button text="Button" height="1.5em"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox alignItems baseline" src="../_images/layout-rules/hbox-alignItems-baseline.png"/>
+</div>
+<div class="title">Figure 29. Horizontal Layout with alignItems="BASELINE"</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="align-self"><a class="anchor" href="#align-self"></a>AlignSelf</h3>
+<div class="paragraph">
+<p>The <code>alignSelf</code> attribute corresponds to the <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/align-self">align-self</a> CSS property which defines an alignment for individual components inside the container. This individual alignment for the component overrides any alignment set by <a href="#align-items">alignItems</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox alignItems="START"&gt;
+    &lt;button text="alignSelf=END" alignSelf="END"/&gt;
+    &lt;button text="alignSelf=CENTER" alignSelf="CENTER"/&gt;
+    &lt;button text="alignSelf=AUTO" alignSelf="AUTO"/&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox alignSelf" src="../_images/layout-rules/vbox-alignSelf.png"/>
+</div>
+<div class="title">Figure 30. Vertical Layout with alignItems="START" and different alignSelf for nested components</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox alignItems="START" justifyContent="BETWEEN" padding="true" width="100%" minHeight="10em"&gt;
+    &lt;button text="alignSelf=END" alignSelf="END"/&gt;
+    &lt;button text="alignSelf=CENTER" alignSelf="CENTER"/&gt;
+    &lt;button text="alignSelf=AUTO" alignSelf="AUTO"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="hbox alignSelf" src="../_images/layout-rules/hbox-alignSelf.png"/>
+</div>
+<div class="title">Figure 31. Horizontal Layout with alignItems="START" and different alignSelf for nested components</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="common-layout-mistakes"><a class="anchor" href="#common-layout-mistakes"></a>Common Layout Mistakes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Common mistake 1. Setting relative size for a component within a container with content-based size</strong></p>
+</div>
+<div class="listingblock">
+<div class="title">Example of incorrect layout:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox&gt;
+    &lt;dataGrid id="usersDataGrid" dataContainer="usersDc"
+              width="100%" height="100%"&gt;
+        &lt;actions/&gt;
+        &lt;columns&gt;
+            &lt;column property="firstName"/&gt;
+            &lt;column property="lastName"/&gt;
+            &lt;column property="username"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, <code>dataGrid</code> has 100% height, while the default height for <code>vbox</code> is <code>AUTO</code>, i.e. content-based. As a result, <code>dataGrid</code> is collapsed.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="dataGrid relative size" src="../_images/layout-rules/dataGrid-relative-size.png"/>
+</div>
+<div class="title">Figure 32. Example of relative size for a component within a container with content-based size</div>
+</div>
+<div class="paragraph">
+<p><strong>Common mistake 2. Not disabling padding for nested <code>vbox</code> containers</strong></p>
+</div>
+<div class="listingblock">
+<div class="title">Example of incorrect layout:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout&gt;
+    &lt;genericFilter ...&gt;
+        ...
+    &lt;/genericFilter&gt;
+
+    &lt;vbox width="100%"&gt;
+        &lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+            ...
+        &lt;/hbox&gt;
+        &lt;dataGrid id="usersDataGrid" ...&gt;
+            ...
+        &lt;/dataGrid&gt;
+    &lt;/vbox&gt;
+    &lt;hbox&gt;
+        ...
+    &lt;/hbox&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, <code>dataGrid</code> and <code>hbox</code> are placed inside a <code>vbox</code> which by default has padding enabled. As a result, components inside <code>vbox</code> are not aligned with the ones outside.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="vbox incorrect padding" src="../_images/layout-rules/vbox-incorrect-padding.png"/>
+</div>
+<div class="title">Figure 33. Example of nested Vertical Layout with enabled padding</div>
+</div>
+<div class="paragraph">
+<p><strong>Common mistake 3. Aligning components with relative size</strong></p>
+</div>
+<div class="listingblock">
+<div class="title">Example of incorrect layout:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox alignItems="CENTER" padding="true" width="100%" minHeight="10em"&gt;
+    &lt;span text="Span" height="100%"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, <code>span</code> has 100% height within <code>hbox</code> container which defines <code>alignItems="CENTER"</code>. As a result, text is placed in the top left corner.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="relative size alignment" src="../_images/layout-rules/relative-size-alignment.png"/>
+</div>
+<div class="title">Figure 34. Example of aligning components with relative size</div>
+</div>
+<div class="paragraph">
+<p><strong>Common mistake 4. Stretching components with fixed size</strong></p>
+</div>
+<div class="listingblock">
+<div class="title">Example of incorrect layout:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox alignItems="STRETCH" padding="true" width="100%" minHeight="10em"&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, buttons have default height defined in styles. As a result, buttons are not stretched vertically.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="fixed size stretching" src="../_images/layout-rules/fixed-size-stretching.png"/>
+</div>
+<div class="title">Figure 35. Example of stretching components with fixed size</div>
+</div>
+<div class="paragraph">
+<p><strong>Common mistake 5. Setting size without size unit</strong></p>
+</div>
+<div class="listingblock">
+<div class="title">Example of incorrect size:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField width="400"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, <code>textField</code> has no size unit specified. As a result, the size value is ignored, because there is no default size unit.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="tips-and-tricks"><a class="anchor" href="#tips-and-tricks"></a>Tips and Tricks</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="adapting-to-different-screen-size"><a class="anchor" href="#adapting-to-different-screen-size"></a>Adapting to Different Screen Size</h3>
+<div class="paragraph">
+<p>An example of defining a responsive text field that has fixed size on big screens and 100% width on small ones:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox width="100%"&gt;
+    &lt;textField width="100%" maxWidth="40em"/&gt;
+    &lt;button text="Button"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="responsive text field" src="../_images/layout-rules/responsive-text-field.gif"/>
+</div>
+</div>
+<div class="paragraph">
+<p>An example of defining a form layout with a single column that has fixed size on big screens and 100% width on small ones:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;formLayout id="form"
+            dataContainer="taskTypeDc"
+            classNames="mx-m"
+            maxWidth="40em"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;responsiveSteps&gt;
+        &lt;responsiveStep minWidth="0" columns="1"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;/responsiveSteps&gt;
+
+    &lt;textField id="nameField" property="name"/&gt;
+    &lt;textArea id="descriptionField" property="description"
+              height="9.5em"/&gt;
+&lt;/formLayout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Defining that the form layout must have a single column for all layout sizes</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Setting the maximum width</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="single column formLayout" src="../_images/layout-rules/single-column-formLayout.gif"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-lumo-utility-classes"><a class="anchor" href="#using-lumo-utility-classes"></a>Using Lumo Utility Classes</h3>
+<div class="paragraph">
+<p>For simple styling, you can use <a href="https://vaadin.com/docs/latest/styling/lumo/utility-classes" rel="noopener" target="_blank">Lumo Utility Classes</a> provided by Vaadin. <strong>Lumo Utility Classes</strong> are predefined CSS class names and stylesheets. They can be used to style HTML elements and layouts without having to write CSS.</p>
+</div>
+<div class="paragraph">
+<p>Each utility class applies a particular style to the element, such as background color, borders, fonts, sizing, or spacing. Classes for applying CSS flexbox and grid layout features are also available.</p>
+</div>
+<div class="paragraph">
+<p>The <a href="https://vaadin.com/api/platform/24.8/com/vaadin/flow/theme/lumo/LumoUtility.html" rel="noopener" target="_blank">LumoUtility</a> Java class contains <code>String</code> constants for all utility classes. They’re divided into nested category classes, such as <code>LumoUtility.Margin</code>.</p>
+</div>
+<div class="paragraph">
+<p>An example of using Lumo utility classes to add a border with roundness to a container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox id="imageWrapper"
+      classNames="border                <i class="conum" data-value="1"></i><b>(1)</b>
+                  rounded-m             <i class="conum" data-value="2"></i><b>(2)</b>
+                  border-contrast-20"   <i class="conum" data-value="3"></i><b>(3)</b>
+      alignItems="CENTER"
+      width="100%" maxWidth="30em"&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Adds border with default border color</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Sets border radius equal to <code>var(--lumo-border-radius-m)</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Sets border color equal to <code>var(--lumo-contrast-20pct)</code></td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="LumoUtility example" src="../_images/layout-rules/LumoUtility-example.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>An example of aligning a component to the end of horizontal container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;header id="header" classNames="jmix-main-view-header"&gt;
+    &lt;drawerToggle id="drawerToggle"
+                  classNames="jmix-main-view-drawer-toggle"
+                  themeNames="contrast"
+                  ariaLabel="msg://drawerToggle.ariaLabel"/&gt;
+    &lt;h1 id="viewTitle" classNames="jmix-main-view-title"/&gt;
+
+    &lt;button id="logoutButton" icon="SIGN_OUT" classNames="ms-auto me-s"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;/header&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>ms-auto</code> effectively means <code>margin-inline-start: auto</code>, i.e. defines the logical inline start margin of an element, which maps to a physical margin depending on <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/flex-direction" rel="noopener" target="_blank">flex-direction</a>; <code>me-s</code> effectively means <code>margin-inline-end: var(--lumo-space-s)</code>, i.e. defines the logical inline end margin of an element.</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="align to end" src="../_images/layout-rules/align-to-end.png"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

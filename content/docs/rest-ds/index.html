@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST DataStore :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">REST DataStore</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The purpose of the REST data store is to provide an easy way of integrating Jmix applications. The result of the integration is the ability to access external entities from a remote Jmix application through the <a class="xref page" href="../data-access/data-manager.html">DataManager</a> interface in the same way as local JPA entities. The external entities can be displayed in UI, updated and saved back to the remote application using the standard CRUD functionality provided by Jmix, without writing any specific code.</p>
+</div>
+<div class="paragraph">
+<p>This document provides reference information about the REST DataStore add-on. If you want to learn more about how to use it in various scenarios, refer to the following guides:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../integrated-apps-guide/index.html">Integrating Jmix Applications</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../separate-tiers-guide/index.html">Separating Application Tiers</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../restds-oidc-guide/index.html">REST DataStore with External Authentication</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In this document, we will use the following terms:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>Service Application</em> - a Jmix application providing data through the <a class="xref page" href="../rest/index.html">generic REST API</a>.</p>
+</li>
+<li>
+<p><em>Client Application</em> - a Jmix application consuming data from the Service Application using the REST data store.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The service and client applications can use different versions of Jmix.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For automatic installation through Jmix Marketplace, follow instructions in the <a class="xref page" href="../add-ons.html#installation">Add-ons</a> section.</p>
+</div>
+<div class="paragraph">
+<p>For manual installation, add the following dependencies to your <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.restds:jmix-restds-starter'</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuration"><a class="anchor" href="#configuration"></a>Configuration</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="basic-configuration"><a class="anchor" href="#basic-configuration"></a>Basic Configuration</h3>
+<div class="paragraph">
+<p>The basic configuration includes the steps listed below.</p>
+</div>
+<div class="paragraph">
+<p>In the service application project:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add <a class="xref page" href="../rest/index.html">REST API</a> and <a class="xref page" href="../authorization-server/index.html">Authorization Server</a> add-ons.</p>
+</li>
+<li>
+<p>Set up <a class="xref page" href="../authorization-server/obtaining-tokens.html#client-credentials-grant">Client Credentials</a> grant for a client.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the client application project:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the REST DataStore add-on as described <a href="#installation">above</a>.</p>
+</li>
+<li>
+<p>Add an additional data store with <code>restds_RestDataStoreDescriptor</code> descriptor, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.additional-stores=serviceapp
+jmix.core.store-descriptor-serviceapp=restds_RestDataStoreDescriptor</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Specify service connection properties for the data store by its name, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">serviceapp.baseUrl=http://localhost:8081
+serviceapp.clientId=clientapp
+serviceapp.clientSecret=clientapp123</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="authentication-with-password-grant"><a class="anchor" href="#authentication-with-password-grant"></a>Authentication With Password Grant</h3>
+<div class="paragraph">
+<p>If you want to authenticate real users in the service application as demonstrated in <a class="xref page" href="../separate-tiers-guide/index.html">Separating Application Tiers</a> guide, set up the <a class="xref page" href="../authorization-server/obtaining-tokens.html#resource-owner-password-credentials-grant">Password Grant</a> in the service application and add the following properties to the client application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">serviceapp.authenticator=restds_RestPasswordAuthenticator
+jmix.restds.authentication-provider-store=serviceapp</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>[datastore-name].authenticator</code> property defines the name of a bean that implements the <code>RestAuthenticator</code> interface and is used to authenticate requests to the REST API.</p>
+<div class="paragraph">
+<p>The <code>restds_RestPasswordAuthenticator</code> bean retrieves access and refresh tokens from the service application when the user logs in, saves the tokens in the user session and uses them for authenticating further requests to the service’s REST API.</p>
+</div>
+</li>
+<li>
+<p>The <code>jmix.restds.authentication-provider-store</code> property is required for configuring the Spring Security’s <code>AuthenticationProvider</code> which uses <code>restds_RestPasswordAuthenticator</code> during the user authentication process. The value of this property must contain the name of the corresponding REST DataStore.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="external-authentication"><a class="anchor" href="#external-authentication"></a>External Authentication</h3>
+<div class="paragraph">
+<p>If you want to use an external authentication provider (for example Keycloak) instead of the Jmix Authorization Server, remove the Authorization Server add-on from the project and add the <a class="xref page" href="../oidc/index.html">OpenID Connect</a> add-on.</p>
+</div>
+<div class="paragraph">
+<p>Define the following application properties:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">serviceapp.authenticator=restds_RestOAuth2ClientAuthenticator
+serviceapp.oauth2-client-registration=keycloak</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>[datastore-name].authenticator</code> property defines the name of a bean that implements the <code>RestAuthenticator</code> interface and is used to authenticate requests to the REST API.</p>
+<div class="paragraph">
+<p>The <code>restds_RestOAuth2ClientAuthenticator</code> bean uses the OAuth2 token of the current user.</p>
+</div>
+</li>
+<li>
+<p><code>[datastore-name].oauth2-client-registration</code> defines the Spring Security OAuth2 client registration ID which is used in the <code>spring.security.oauth2.client.registration.[ID]</code> properties for connecting to an OIDC provider.</p>
+<div class="paragraph">
+<p>For example, if you connect to Keycloak using this property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.oauth2.client.registration.keycloak.client-id=integrated-apps-client</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then the <code>[datastore-name].oauth2-client-registration</code> property value should be <code>keycloak</code>.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See the complete example in the <a class="xref page" href="../restds-oidc-guide/index.html">REST DataStore with External Authentication</a> guide.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ui-user-settings"><a class="anchor" href="#ui-user-settings"></a>UI User Settings</h3>
+<div class="paragraph">
+<p>To save UI user settings and filter configurations through the REST data store, do the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In <code>build.gradle</code>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>add <code>io.jmix.flowui:jmix-flowui-restds-starter</code> dependency</p>
+</li>
+<li>
+<p>remove <code>io.jmix.flowui:jmix-flowui-data-starter</code> dependency</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>In <code>application.properties</code>, specify the name of the REST data store in the <code>jmix.restds.ui-config-store</code> property, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.restds.ui-config-store=serviceapp</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../separate-tiers-guide/index.html#frontend-application">Frontend Application Configuration</a> in the Separating Application Tiers guide for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="rest-paths"><a class="anchor" href="#rest-paths"></a>REST API Paths</h3>
+<div class="paragraph">
+<p>If the REST API endpoints have non-standard <a class="xref page" href="../rest/app-properties.html#paths">paths</a>, you can configure access to them using the application properties shown below. The properties start from the data store name (<code>serviceapp</code> in this example):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">serviceapp.basePath=/rest
+serviceapp.entitiesPath=/entities
+serviceapp.userInfoPath=/userInfo
+serviceapp.permissionsPath=/permissions
+serviceapp.capabilitiesPath=/capabilities</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-model"><a class="anchor" href="#data-model"></a>Data Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The client application should contain DTO entities that are equivalent to service entities. In order to be automatically mapped, the attributes of the entities must match by name and type.</p>
+</div>
+<div class="paragraph">
+<p>The set of attributes may be different. For example, a service entity may have more attributes than a client entity. Attributes that are not present in an entity on the other side will have null values after data transfer.</p>
+</div>
+<div class="paragraph">
+<p>The client DTO entity must have the <code>@Store</code> annotation specifying the additional data store.</p>
+</div>
+<div class="paragraph">
+<p>The following example demonstrates the <code>Region</code> entity definition in the service and client applications.</p>
+</div>
+<div class="listingblock">
+<div class="title">Region entity in service application</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "REGION")
+@Entity
+public class Region {
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @Column(name = "VERSION", nullable = false)
+    @Version
+    private Integer version;
+
+    @InstanceName
+    @Column(name = "NAME", nullable = false)
+    @NotNull
+    private String name;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Region entity in client application</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Store(name = "serviceapp")
+@JmixEntity
+public class Region {
+    @JmixGeneratedValue
+    @JmixId
+    private UUID id;
+
+    private Integer version;
+
+    @InstanceName
+    @NotNull
+    private String name;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the client entity name differs from the service one, use the <code>@RestDataStoreEntity</code> annotation to specify the service entity name explicitly. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Store(name = "serviceapp")
+@JmixEntity
+@RestDataStoreEntity(remoteName = "Region")
+public class RegionDto {
+    // ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For embedded attributes on the client side use the <code>@JmixEmbedded</code> annotation instead of JPA’s <code>@Embedded</code>.</p>
+</div>
+<div class="paragraph">
+<p>For one-to-many composition attributes on the client side define the <code>inverse</code> attribute in the <code>@Composition</code> annotation.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Store(name = "serviceapp")
+@JmixEntity
+public class Customer {
+    // ...
+
+    @JmixEmbedded
+    @EmbeddedParameters(nullAllowed = false)
+    private Address address;
+
+    @Composition(inverse = "customer")
+    private Set&lt;Contact&gt; contacts;
+
+    // ...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fetch-plans"><a class="anchor" href="#fetch-plans"></a>Fetch Plans</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you load an external entity in the client application, you can specify a <a class="xref page" href="../data-access/fetching.html">fetch plan</a> to load references.</p>
+</div>
+<div class="paragraph">
+<p>If the service application is built with Jmix before version 2.5, its generic REST API supports only <a class="xref page" href="../rest/entities-api/load-entities.html#named-fetch-plans">named fetch plans</a> defined in fetch plans repository. So the REST data store will request data from the service providing a fetch plan name. Therefore, both service and client applications must define all fetch plans in their fetch plan repositories, with corresponding names.</p>
+</div>
+<div class="paragraph">
+<p>Since Jmix 2.5, generic REST supports <a class="xref page" href="../rest/entities-api/load-entities.html#inline-fetch-plans">inline fetch plans</a>, if this feature is not disabled by the <a class="xref page" href="../rest/app-properties.html#jmix.rest.inline-fetch-plan-enabled">jmix.rest.inline-fetch-plan-enabled</a> property. So you can define fetch plans in your client’s view XML and Java code the same as when working with databases.</p>
+</div>
+<div class="paragraph">
+<p>The REST data store relies on the <a class="xref page" href="../rest/capabilities-api.html">Capabilities API</a> of the service application REST to determine if inline fetch plans are enabled. If the check confirms their availability, the REST data store passes inline fetch plans, otherwise it passes only names of the fetch plans.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="loaded-state"><a class="anchor" href="#loaded-state"></a>Loaded State</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If a fetch plan does not include an attribute, that attribute is not loaded. Unlike JPA entity attributes, the attributes of REST entities that are not loaded have a null value and do not throw any exceptions when accessed.</p>
+</div>
+<div class="paragraph">
+<p>When updating an entity, the REST data store only saves loaded attributes. If an attribute was not loaded from the service but changed from null to some value afterwards, it is considered loaded and the new value is therefore saved.</p>
+</div>
+<div class="paragraph">
+<p>The <code>EntityStates.isLoaded(entity, property)</code> method correctly returns information about whether a particular attribute of a REST entity is loaded.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="filtering-loaded-data"><a class="anchor" href="#filtering-loaded-data"></a>Filtering Loaded Data</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes the filtering options supported when loading external entities using <code>DataManager</code>. All of these options lead to invoking the REST API <a class="xref page" href="../rest/entities-api/load-entities.html#load-list-search-filter">search endpoint</a> of the service application, so only the resulting entities are transferred over the wire.</p>
+</div>
+<div class="sect2">
+<h3 id="filter-by-conditions"><a class="anchor" href="#filter-by-conditions"></a>By Conditions</h3>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadByCondition(String lastName) {
+    return dataManager.load(Customer.class)
+            .condition(PropertyCondition.equal("lastName", lastName))
+            .list();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="filter-by-query"><a class="anchor" href="#filter-by-query"></a>By Query</h3>
+<div class="paragraph">
+<p>The query is a JSON expression supported by generic REST in the <a class="xref page" href="../rest/entities-api/load-entities.html#load-list-search-filter">search endpoint</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">List&lt;Customer&gt; loadByQuery(String lastName) {
+    String query = """
+    {
+      "property": "lastName",
+      "operator": "=",
+      "value": "%s"
+    }
+    """.formatted(lastName);
+
+    return dataManager.load(Customer.class)
+            .query(query)
+            .list();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="filter-by-identifiers"><a class="anchor" href="#filter-by-identifiers"></a>By Identifiers</h3>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Customer&gt; loadByIdentifiers(UUID id1, UUID id2, UUID id3) {
+    return dataManager.load(Customer.class)
+            .ids(id1, id2, id3)
+            .list();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-query-in-view-xml"><a class="anchor" href="#using-query-in-view-xml"></a>Using Query in View XML</h3>
+<div class="paragraph">
+<p>The JSON query can be specified in view XML descriptors for data containers and <code>itemsQuery</code> elements:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityComboBox id="regionField" property="region"&gt;
+    &lt;itemsQuery class="com.company.clientapp.entity.Region"
+                searchStringFormat="${inputString}"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;query&gt;
+            &lt;![CDATA[
+            {
+              "property": "name",
+              "operator": "contains",
+              "parameterName": "searchString"
+            }
+            ]]&gt;
+        &lt;/query&gt;
+    &lt;/itemsQuery&gt;
+&lt;/entityComboBox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To specify a parameter instead of a literal value in JSON query conditions, use <code>parameterName</code> key instead of <code>value</code> as shown above. The REST data store will substitute this property with <code>"value": &lt;parameter-value&gt;</code> in the resulting request.</p>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../flow-ui/facets/dataLoadCoordinator.html">dataLoadCoordinator</a> facet can also be used, but only with manual configuration. In the following example, the <code>regionsDc</code> and <code>customersDc</code> data containers are linked using a JSON query and <code>dataLoadCoordinator</code> to provide a master-detail list of regions and customers for the selected region:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="regionsDc"
+                class="com.company.clientapp.entity.Region"&gt;
+        &lt;loader id="regionsDl" readOnly="true"/&gt;
+    &lt;/collection&gt;
+    &lt;collection id="customersDc" class="com.company.clientapp.entity.Customer"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader id="customersDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[
+                {
+                    "property": "region",
+                    "operator": "=",
+                    "parameterName": "region"
+                }
+                ]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator&gt;
+        &lt;refresh loader="regionsDl"&gt;
+            &lt;onViewEvent type="BeforeShow"/&gt;
+        &lt;/refresh&gt;
+        &lt;refresh loader="customersDl"&gt;
+            &lt;onContainerItemChanged container="regionsDc" param="region"/&gt;
+        &lt;/refresh&gt;
+    &lt;/dataLoadCoordinator&gt;
+    &lt;!-- ... --&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-events"><a class="anchor" href="#entity-events"></a>Entity Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>REST data store sends <a class="xref page" href="../data-access/entity-events.html#saving-loading-events">EntitySavingEvent and EntityLoadingEvent</a> the same as <code>JpaDataStore</code>. But it doesn’t send <a class="xref page" href="../data-access/entity-events.html#entity-changed-event">EntityChangedEvent</a> because it cannot provide information about attributes changed since load. Instead of <code>EntityChangedEvent</code>, REST data store sends two specific events:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>RestEntitySavedEvent</code> - sent after the entity is successfully saved to the service. It contains the saved entity instance with the state right before sending to the service.</p>
+</li>
+<li>
+<p><code>RestEntityRemovedEvent</code> - sent after the entity is removed from the service. It contains removed entity with the state right before sending to the service.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="security"><a class="anchor" href="#security"></a>Security</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>REST data store applies <a class="xref page" href="../security/resource-roles.html#entity-policy">entity operations policy</a> defined by resource roles and <a class="xref page" href="../security/row-level-roles.html#predicate-policy">predicate policy</a> defined by row-level roles.</p>
+</div>
+<div class="paragraph">
+<p>Authentication in REST data store can be done using Client Credentials Grant or Password Grant provided by the Authorization Server add-on. The latter requires setting the additional properties <code>&lt;ds-name&gt;.authenticator</code> and <code>jmix.restds.authentication-provider-store</code> as described in the <a href="#configuration">Configuration</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="file-storage"><a class="anchor" href="#file-storage"></a>File Storage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The service application entities can contain <code>FileRef</code> links to files in its file storages. The REST DataStore add-on provides the <code>RestFileStorage</code> implementation of the <code>FileStorage</code> interface, which is a proxy that allows you to work with files located in file storages of the service application.</p>
+</div>
+<div class="paragraph">
+<p><code>RestFileStorage</code> uses the generic REST <a class="xref page" href="../rest/files-api.html">Files API</a> to transmit files between client and service application.</p>
+</div>
+<div class="paragraph">
+<p>To use <code>RestFileStorage</code> in your client application, define the following bean in the main application class or in any other Spring configuration class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+FileStorage serviceappFileStorage() {
+    return new RestFileStorage("serviceapp", "fs");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here <code>serviceapp</code> is the name of the REST DataStore as defined in <code>application.properties</code>, <code>fs</code> is the name of the corresponding file storage of the service application.</p>
+</div>
+<div class="paragraph">
+<p>The name of the REST file storage in the client application is formed by concatenating these parameters with a dash in between. So in the above example it will be <code>serviceapp-fs</code>. If you have multiple file storages in the client application (say local <code>fs</code> and remote <code>serviceapp-fs</code>), see <a class="xref page" href="../files/file-storage.html#multiple-fs">Using Multiple File Storages</a> for more information.</p>
+</div>
+<div class="paragraph">
+<p>See an example of working with <code>RestFileStorage</code> in the <a class="xref page" href="../separate-tiers-guide/index.html">Separating Application Tiers</a> guide.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="invoking-services"><a class="anchor" href="#invoking-services"></a>Invoking Services</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If the service application <a class="xref page" href="../rest/business-logic.html#exposing-a-service">exposes a Java service</a> through the REST API, client applications can consume it.</p>
+</div>
+<div class="sect2">
+<h3 id="remote-service-interfaces"><a class="anchor" href="#remote-service-interfaces"></a>@RemoteService Interfaces</h3>
+<div class="paragraph">
+<p>The simplest way to invoke a service is by creating an interface that mirrors the service methods and annotating it with <code>@RemoteService</code>. For interfaces marked with this annotation, the REST DataStore add-on generates client proxy objects. These objects automatically serialize parameters, invoke the remote REST services, and deserialize the results.</p>
+</div>
+<div class="paragraph">
+<p>The following example shows the service bean implementation:</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerService.java in the service application</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.serviceapp.service;
+
+import com.company.serviceapp.entity.Customer;
+import io.jmix.core.DataManager;
+import io.jmix.rest.annotation.RestMethod;
+import io.jmix.rest.annotation.RestService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+
+@RestService("customers")
+public class CustomerService {
+
+    @Autowired
+    private DataManager dataManager;
+
+    @RestMethod
+    public List&lt;Customer&gt; getCustomersByName(String name) {
+        return dataManager.load(Customer.class)
+                .query("e.name = ?1", name).list();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The service method is accessible via the <code>/rest/services/customers/getCustomersByName</code> endpoint.</p>
+</div>
+<div class="paragraph">
+<p>To call this service from the client application, create the following interface:</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerService.java in the client application</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.clientapp.service;
+
+import com.company.clientapp.entity.Customer;
+import io.jmix.restds.annotation.RemoteService;
+
+import java.util.List;
+
+@RemoteService(store = "serviceapp", remoteName = "customers")
+public interface CustomerService {
+
+    List&lt;Customer&gt; getCustomersByName(String name);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The REST DataStore add-on will automatically create a bean for this interface, so you can inject it into a view or a bean and use as a regular Spring bean. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private CustomerService customerService;
+
+private void processCustomers(String name) {
+    List&lt;Customer&gt; customers = customerService.getCustomersByName(name);
+    // ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See another example of invoking a business service method in the <a class="xref page" href="../integrated-apps-guide/index.html">Integrating Jmix Applications</a> guide.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Methods of <code>@RemoteService</code> interfaces can have parameters and results of the following types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Simple type: primitive (<code>int</code>, <code>double</code>, etc.), wrapper (<code>Integer</code>, <code>Double</code>, etc.), <code>String</code>.</p>
+</li>
+<li>
+<p><a class="xref page" href="../data-model/entities.html">Entity</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../data-model/enumerations.html">Enumeration</a></p>
+</li>
+<li>
+<p>A type that have a corresponding <a class="xref page" href="../data-model/datatype.html">Datatype</a>. These include types supported in <a class="xref page" href="../data-model/entities.html#attributes">entity attributes</a>, as well as custom data types.</p>
+</li>
+<li>
+<p>Arbitrary POJO or Java record with fields of all above types.</p>
+</li>
+<li>
+<p><code>java.util.List</code> parameterized with all above types.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-rest-client"><a class="anchor" href="#using-rest-client"></a>Using RestClient</h3>
+<div class="paragraph">
+<p>You can also invoke any endpoints of the service application using the Spring’s <code>RestClient</code> preconfigured with the connection and authentication parameters of the corresponding REST data store:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Obtain the <code>RestClient</code> instance from the <code>RestDataStoreUtils</code> bean using the <code>getRestClient(String dataStoreName)</code> method.</p>
+</li>
+<li>
+<p>Use the <code>RestClient</code> API to invoke the endpoint with appropriate parameters.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="sharing-code"><a class="anchor" href="#sharing-code"></a>Sharing Code Between Applications</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can share entity classes and service interfaces between applications integrated using the REST DataStore. This leads to tighter coupling between the applications, but reduces code duplication and development efforts.</p>
+</div>
+<div class="paragraph">
+<p>With this approach, the shared code is placed to a separate add-on that is used both by the client and service applications. The shared code may include JPA entities, business service interfaces, security roles, as well as any common utility classes.</p>
+</div>
+<div class="paragraph">
+<p>Below we will describe the necessary steps for sharing entities, service interfaces, and roles, using the Products and Orders applications as an example. The Products application exposes its <code>Product</code> and <code>ProductCategory</code> entities and <code>InventoryService</code> through the REST API. The Orders application uses these entities and invokes the service through the REST DataStore.</p>
+</div>
+<div class="sect2">
+<h3 id="shared-add-on"><a class="anchor" href="#shared-add-on"></a>Shared Add-On</h3>
+<div class="paragraph">
+<p>The shared add-on has been created using the standard <code>Add-On (Java)</code> template in the Studio’s <strong>New Project</strong> wizard. It includes the <code>shared</code> and <code>shared-starter</code> modules:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">shared-addon
+├── shared
+│   ├── src
+│   │   ├── main
+│   │   │   ├── java
+│   │   │   │   └── com
+│   │   │   │       └── company
+│   │   │   │           └── shared
+│   │   │   │               ├── entity
+│   │   │   │               │   ├── Product.java
+│   │   │   │               │   └── ProductCategory.java
+│   │   │   │               ├── security
+│   │   │   │               │   └── ProductsRole.java
+│   │   │   │               ├── service
+│   │   │   │               │   └── InventoryService.java
+│   │   │   │               └── SharedConfiguration.java
+│   │   │   └── resources
+│   │   │       └── com
+│   │   │           └── company
+│   │   │               └── shared
+│   │   │                   ├── liquibase
+│   │   │                   │   ├── changelog
+│   │   │                   │   │   └── 010-init-products.xml
+│   │   │                   │   └── changelog.xml
+│   │   │                   ├── messages.properties
+│   │   │                   └── module.properties
+│   │   └── test
+│   │       └── ...
+│   └── shared.gradle
+├── shared-starter
+│   ├── src
+│   │   └── ...
+│   └── shared-starter.gradle
+├── build.gradle
+└── settings.gradle</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The build script of the main <code>shared</code> module defines only minimal set of Jmix dependencies:</p>
+</div>
+<div class="listingblock">
+<div class="title">shared-addon/shared/shared.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">dependencies {
+    implementation 'io.jmix.core:jmix-core-starter'
+    implementation 'io.jmix.data:jmix-eclipselink-starter'
+    implementation 'io.jmix.security:jmix-security-starter'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The add-on includes the following shared code:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Product</code> and <code>ProductCategory</code> JPA entities.</p>
+</li>
+<li>
+<p><code>ProductsRole</code> resource role defines policies enabling access to the entities and their attributes.</p>
+</li>
+<li>
+<p><code>InventoryService</code> is an interface defining some business method.</p>
+</li>
+<li>
+<p><code>010-init-products.xml</code> is a Liquibase changelog creating database schema for the <code>Product</code> and <code>ProductCategory</code> entities.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="sharing-code-service-application"><a class="anchor" href="#sharing-code-service-application"></a>Service Application</h3>
+<div class="paragraph">
+<p>The Products service application includes the shared add-on in a standard manner without any specific configuration.</p>
+</div>
+<div class="paragraph">
+<p>The build script of the Products application defines a dependency on the shared add-on’s starter:</p>
+</div>
+<div class="listingblock">
+<div class="title">products/build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">dependencies {
+    implementation 'com.company:shared-starter:0.0.1-SNAPSHOT'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The application provides an implementation of the <code>InventoryService</code> interface:</p>
+</div>
+<div class="listingblock">
+<div class="title">products/src/main/java/com/company/products/service/InventoryServiceImpl.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestService("InventoryService")
+public class InventoryServiceImpl implements InventoryService {
+
+    @RestMethod
+    @Override
+    public Double getAvailableInStock(Product product) {
+        return (double) Math.round(Math.random() * 100);
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="sharing-code-client-application"><a class="anchor" href="#sharing-code-client-application"></a>Client Application</h3>
+<div class="paragraph">
+<p>The Orders client application also includes the shared add-on:</p>
+</div>
+<div class="listingblock">
+<div class="title">orders/build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">dependencies {
+    implementation 'com.company:shared-starter:0.0.1-SNAPSHOT'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Additionally, the client application tweaks the configuration of entities and remote services to handle the shared code properly.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The build script excludes the shared entities package from JPA mapping in <code>jmix.entitiesEnhancing.nonJpaPackages</code> property:</p>
+<div class="listingblock">
+<div class="title">orders/build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">jmix {
+    // ...
+    entitiesEnhancing {
+        nonJpaPackages = ['com.company.shared.entity']
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Another option is to exclude individual classes in <code>jmix.entitiesEnhancing.nonJpaClasses</code> property.</p>
+</div>
+</li>
+<li>
+<p>The <code>SharedEntitiesConfigurer</code> bean sets the <code>products</code> REST DataStore as a data store for the shared add-on’s entities:</p>
+<div class="listingblock">
+<div class="title">orders/src/main/java/com/company/orders/SharedEntitiesConfigurer.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.orders;
+
+import com.company.shared.entity.Product;
+import io.jmix.core.JmixOrder;
+import io.jmix.core.MetadataMutationTools;
+import io.jmix.core.MetadataPostProcessor;
+import io.jmix.core.metamodel.model.MetaClass;
+import io.jmix.core.metamodel.model.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
+@Component
+@Order(JmixOrder.HIGHEST_PRECEDENCE - 10)
+public class SharedEntitiesConfigurer implements MetadataPostProcessor {
+
+    @Autowired
+    private MetadataMutationTools metadataMutationTools;
+
+    @Override
+    public void process(Session session) {
+        for (MetaClass metaClass : session.getClasses()) {
+            if (metaClass.getJavaClass().getPackage().equals(Product.class.getPackage())) {
+                metadataMutationTools.setStore(metaClass, "products");
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The <code>SharedServicesConfigurer</code> bean adds a scanner filter to find the shared add-on’s service interfaces for making client proxies. It also defines the store name for the service interfaces:</p>
+<div class="listingblock">
+<div class="title">orders/src/main/java/com/company/orders/SharedServicesConfigurer.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.orders;
+
+import com.company.shared.service.InventoryService;
+import io.jmix.core.JmixOrder;
+import io.jmix.restds.util.RemoteServiceConfigurationCustomizer;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.type.filter.TypeFilter;
+import org.springframework.stereotype.Component;
+
+@Component
+@Order(JmixOrder.HIGHEST_PRECEDENCE - 10)
+public class SharedServicesConfigurer implements RemoteServiceConfigurationCustomizer {
+
+    @Override
+    public TypeFilter getScannerIncludeFilter() {
+        return (metadataReader, metadataReaderFactory) -&gt;
+                metadataReader.getClassMetadata().getClassName().equals(InventoryService.class.getName());
+    }
+
+    @Override
+    public ServiceParameters getServiceParameters(Class&lt;?&gt; serviceInterface) {
+        return serviceInterface.equals(InventoryService.class) ?
+                new ServiceParameters().withStoreName("products") : null;
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="limitations"><a class="anchor" href="#limitations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The REST data store has the following limitations compared to the JPA data store:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Lazy loading of references is not supported. References that are not loaded by the fetch plan remain null when accessed.</p>
+</li>
+<li>
+<p>There is no <code>EntityChangeEvent</code> with <code>AttributeChanges</code>.</p>
+</li>
+<li>
+<p><code>DataManager.loadValues()</code> and <code>loadValue()</code> methods throw <code>UnsupportedOperationException</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

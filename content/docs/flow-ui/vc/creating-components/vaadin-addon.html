@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrating Vaadin Add-on :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Integrating Vaadin Add-on</h1>
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/charts-addon" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>You can use any third-party Vaadin add-ons located in the <a href="https://vaadin.com/directory" rel="noopener" target="_blank">Vaadin Directory</a> or elsewhere. The example below demonstrates the integration of the <a href="https://vaadin.com/directory/component/pdf-viewer" rel="noopener" target="_blank">Pdf Viewer</a> add-on.</p>
+</div>
+<div class="paragraph">
+<p>To include the Vaadin add-on in your application, add the Vaadin Add-ons maven repository and the add-on dependency to the project’s <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">repositories {
+    maven {
+        url 'https://maven.vaadin.com/vaadin-addons'
+    }
+}
+
+dependencies {
+    implementation 'org.vaadin.addons.componentfactory:vcf-pdf-viewer:3.0.0'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, you can use the add-on components programmatically, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Resources resources;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    PdfViewer pdfViewer = new PdfViewer();
+    pdfViewer.setSizeFull();
+
+    StreamResource resource = new StreamResource("example.pdf", () -&gt;
+            resources.getResourceAsStream("META-INF/resources/pdf/example.pdf"));
+    pdfViewer.setSrc(resource);
+
+    getContent().add(pdfViewer);
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="pdf viewer" src="../../_images/visual-components/creating-components/pdf-viewer.png" width="1454"/>
+</div>
+<div class="title">Figure 1. PdfViewer displays a PDF file from resources</div>
+</div>
+
+</article>
+</body>
+</html>

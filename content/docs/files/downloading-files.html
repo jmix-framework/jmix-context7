@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloading and Displaying Files :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Downloading and Displaying Files</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section explains how to download files to the user’s computer or display files in UI. For information on how to get files from the server through REST API, see the <a class="xref page" href="../rest/files-api.html">Files API</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="downloader"><a class="anchor" href="#downloader"></a>Using Downloader</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>Downloader</code> bean is designed to download files to the user’s computer. It has a number of <code>download()</code> methods that accept different parameters defining downloaded content.</p>
+</div>
+<div class="paragraph">
+<p>The file can be either downloaded or shown by the browser in a new tab. It depends on the file type and the value of the <a class="xref page" href="../flow-ui/ui-properties.html#jmix.ui.view-file-extensions">jmix.ui.view-file-extensions</a> property. The file type is determined by the <code>DownloadFormat</code> parameter, or, if it is not provided, by the file name extension. You can also force showing the content instead of downloading it regardless of the type by invoking the <code>setShowNewWindow(true)</code> method of <code>Downloader</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="download-from-storage"><a class="anchor" href="#download-from-storage"></a>Downloading from File Storage</h3>
+<div class="paragraph">
+<p>The <code>download()</code> method with the <code>FileRef</code> value allows you to download file from the file storage. The <code>FileRef</code> object contains all necessary information about the file, so you can just pass it alone to <code>Downloader</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Downloader downloader;
+
+private void downloadFromFileStorage(Attachment attachment) {
+    FileRef fileRef = attachment.getFile();
+    downloader.download(fileRef);
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="download-arbitrary"><a class="anchor" href="#download-arbitrary"></a>Downloading Arbitrary Resources</h3>
+<div class="paragraph">
+<p>The <code>download()</code> method can accept byte arrays, which allows you to download files or any other content. You should pass the byte array itself, the target file name and an optional format, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Downloader downloader;
+
+private void downloadByteArray(byte[] content) {
+    downloader.download(content, "notes.txt", DownloadFormat.TEXT);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To use a format not present in the <code>DownloadFormat</code> constants, create a new instance of <code>DownloadFormat</code> and pass it to the <code>download()</code> method, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Downloader downloader;
+
+private void downloadByteArrayInCustomFormat(byte[] content) {
+    DownloadFormat format = new DownloadFormat("application/data", "dat");
+    downloader.download(content, "some-file.dat", format);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>download()</code> method can also accept a lambda which returns an <code>InputStream</code> to download the content of this stream. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Downloader downloader;
+
+private void downloadInputStreamContent(InputStream inputStream) {
+    downloader.download(() -&gt; inputStream, "archive.zip");
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="display-files"><a class="anchor" href="#display-files"></a>Displaying Files in UI Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix provides two UI components for embedding content into UI views:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../flow-ui/vc/html-components/image.html">image</a> allows you to display images from various resources using the HTML <code>&lt;img&gt;</code> element. The component can be declaratively bound to an entity attribute to display images stored as byte arrays in the database or as files in the file storage.</p>
+</li>
+<li>
+<p><code>iframe</code> allows you to embed content inside the HTML <code>&lt;iframe&gt;</code> element.
+See the examples in the <a href="https://demo.jmix.io/ui-samples/sample/iframe-pdf" rel="noopener" target="_blank">UI Samples</a> online demo application.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

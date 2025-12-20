@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asynchronous Tasks :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Asynchronous Tasks</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>UiAsyncTasks</code> bean allows you to execute an operation in a separate thread using the security context of the current user, and then update the UI with the result of that operation.</p>
+</div>
+<div class="paragraph">
+<p>The <code>UiAsyncTasks</code> bean uses <code>CompletableFuture</code> under the hood.</p>
+</div>
+<div class="paragraph">
+<p>If you need to show the progress of an operation and give users the ability to abort it, use the more powerful <a class="xref page" href="background-tasks.html">Background Tasks</a> mechanism.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ascync-tasks-with-result"><a class="anchor" href="#ascync-tasks-with-result"></a>Async Tasks With Result</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To execute a task that returns a result, use the <code>supplierConfigurer()</code> builder and the <code>supplyAsync()</code> terminal method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiAsyncTasks uiAsyncTasks;
+
+private void loadCustomersAsync() {
+    uiAsyncTasks.supplierConfigurer(this::loadCustomers) <i class="conum" data-value="1"></i><b>(1)</b>
+            .withResultHandler(customers -&gt; {
+                customersDc.setItems(customers); <i class="conum" data-value="2"></i><b>(2)</b>
+                notifications.create("Customers loaded").show();
+            })
+            .supplyAsync();
+}
+
+private List&lt;Customer&gt; loadCustomers() {
+    return customerService.loadCustomers();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Supplier passed into the <code>supplierConfigurer()</code> method will be executed with the security context of the current user.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Code executed inside the <code>withResultHandler()</code> consumer can safely update view components.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ascync-tasks-without-result"><a class="anchor" href="#ascync-tasks-without-result"></a>Async Tasks Without Result</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To execute a task that doesn’t return a result, use the <code>runnableConfigurer()</code> builder and the <code>runAsync()</code> terminal method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void synchronizeCustomersAsync() {
+    uiAsyncTasks.runnableConfigurer(this::synchronizeCustomers)
+            .withResultHandler(() -&gt; {
+                resultField.setValue("Synchronization completed");
+            })
+            .runAsync();
+}
+
+private void synchronizeCustomers() {
+    customerService.synchronizeCustomers();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="exception-handling"><a class="anchor" href="#exception-handling"></a>Exception Handling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, if the task execution fails with an exception, the exception is written to the application log. You can customize this behavior by providing an exception handler:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void loadCustomersAndHandleException() {
+    uiAsyncTasks.supplierConfigurer(this::loadCustomers)
+            .withResultHandler(customers -&gt; {
+                //...
+            })
+            .withExceptionHandler(ex -&gt; {
+                errorField.setValue(ex.getMessage());
+            })
+            .supplyAsync();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="timeout-handling"><a class="anchor" href="#timeout-handling"></a>Timeout Handling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the <code>withTimeout()</code> method to set the execution timeout value. If the timeout is exceeded, the <code>TimeoutException</code> will be thrown. The <code>TimeoutException</code> can be processed in the <code>withExceptionHandler()</code> method.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void loadCustomersWithTimeout() {
+    uiAsyncTasks.supplierConfigurer(this::loadCustomers)
+            .withResultHandler(customers -&gt; {
+                //...
+            })
+            .withTimeout(20, TimeUnit.SECONDS)
+            .withExceptionHandler(ex -&gt; {
+                String errorText;
+                if (ex instanceof TimeoutException) {
+                    errorText = "Timeout exceeded";
+                } else {
+                    errorText = ex.getMessage();
+                }
+                errorField.setValue(errorText);
+            })
+            .supplyAsync();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If no explicit timeout values is specified, the default value of 5 minutes will be used. To change this default, use the <a class="xref page" href="ui-properties.html#jmix.ui.async-task.default-timeout-sec">jmix.ui.async-task.default-timeout-sec</a> application property.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="executor-service-configuration"><a class="anchor" href="#executor-service-configuration"></a>ExecutorService Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>UiAsyncTasks</code> bean uses its own <code>ExecutorService</code> to run tasks in separate threads. To modify the default pool size of the <code>ExecutorService</code>, use the <a class="xref page" href="ui-properties.html#jmix.ui.async-task.executor-service.maximum-pool-size">jmix.ui.async-task.executor-service.maximum-pool-size</a> application property.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

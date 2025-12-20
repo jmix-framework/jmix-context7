@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started with Email :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Getting Started with Email</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section introduces a minimal example of using the <a class="xref page" href="index.html">Email Sending</a> add-on. The goal is to create a newsfeed for application users. Such feed can be used to send announcements, updates, notifications, usage statistics, and other related information via email.</p>
+</div>
+<div class="paragraph">
+<p>To follow along, create a new Jmix project and <a class="xref page" href="index.html#installation">install the add-on</a> .</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_entity_and_views"><a class="anchor" href="#_creating_entity_and_views"></a>Creating Entity and Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First, create an entity to store news items along with simple CRUD views for managing them. Follow the steps below:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create <code>NewsItem</code> entity with the following attributes:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>date</code> of type <code>LocalDate</code>.</p>
+</li>
+<li>
+<p><code>subject</code> of type <code>String</code>.</p>
+</li>
+<li>
+<p><code>content</code> of type <code>String</code> with unlimited length.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Create entity list and detail views for this entity.</p>
+</li>
+<li>
+<p>Open to the list view and add a new button and bind it to the email sending action:</p>
+<div class="listingblock">
+<div class="title">news-item-list-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+    &lt;button id="createButton" action="newsItemsDataGrid.createAction"/&gt;
+    &lt;button id="editButton" action="newsItemsDataGrid.editAction"/&gt;
+    &lt;button id="removeButton" action="newsItemsDataGrid.removeAction"/&gt;
+    &lt;button id="sendEmailButton" action="newsItemsDataGrid.sendEmailAction"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;simplePagination id="pagination" dataLoader="newsItemsDl"/&gt;
+&lt;/hbox&gt;
+&lt;dataGrid id="newsItemsDataGrid"
+          width="100%"
+          minHeight="20em"
+          dataContainer="newsItemsDc"
+          columnReorderingAllowed="true"&gt;
+    &lt;actions&gt;
+        &lt;action id="createAction" type="list_create"/&gt;
+        &lt;action id="editAction" type="list_edit"/&gt;
+        &lt;action id="removeAction" type="list_remove"/&gt;
+        &lt;action id="sendEmailAction" type="list_itemTracking" icon="vaadin:envelope" text="Send Email"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/actions&gt;
+    &lt;columns resizable="true"&gt;
+        &lt;column property="date"/&gt;
+        &lt;column property="subject"/&gt;
+        &lt;column property="content"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Add a new button.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Add a new action.</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sending_email_logic"><a class="anchor" href="#_sending_email_logic"></a>Sending Email Logic</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>With the UI ready, add logic to make it functional. This logic will use the <a class="xref page" href="api.html">add-on’s API</a>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Set up a handler for the <code>sendEmailAction</code> action. In the handler, show a dialog asking if the news can be queued for sending:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("newsItemsDataGrid.sendEmailAction")
+public void onNewsItemsDataGridSendEmailAction(final ActionPerformedEvent event) {
+    NewsItem newsItem = newsItemsDataGrid.getSingleSelectedItem();
+
+    dialogs.createOptionDialog()
+            .withHeader("Sending email")
+            .withText("Emails will be queued for sending. Continue?")
+            .withActions(
+                    new DialogAction(DialogAction.Type.YES) {
+                        @Override
+                        public void actionPerform(Component component) {
+                            try {
+                                sendNewsByEmail(newsItem);
+                            } catch (IOException e) {
+                                log.error("Error sending email");
+                                notifications.create("Error sending email").show();
+                            }
+                        }
+                    },
+                    new DialogAction(DialogAction.Type.NO)
+            )
+            .open();
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Implement the <code>sendNewsByEmail()</code> method.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void sendNewsByEmail(NewsItem newsItem) throws IOException {
+    InputStream resourceAsStream = resources.getResourceAsStream("/META-INF/resources/icons/icon.png"); <i class="conum" data-value="1"></i><b>(1)</b>
+    byte[] bytes = IOUtils.toByteArray(resourceAsStream);
+    EmailAttachment emailAttachment = new EmailAttachment(bytes, "logo.png", "logoId");
+
+    final EmailInfo emailInfo = EmailInfoBuilder.create()
+            .setAddresses("john.doe@company.com,jane.doe@company.com")
+            .setSubject(newsItem.getSubject())
+            .setFrom(null) <i class="conum" data-value="2"></i><b>(2)</b>
+            .setBodyContentType("text/plain; charset=UTF-8")
+            .setBody(newsItem.getContent())
+            .setAttachments(emailAttachment)
+            .setImportant(false)
+            .build();
+    emailer.sendEmailAsync(emailInfo);
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>To demonstrate adding an attachment, an application icon file will be used.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <strong>from</strong> address will be taken from the <a class="xref page" href="configuration.html#jmix.email.from-address">jmix.email.from-address</a>.</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuring_smtp_server_parameters"><a class="anchor" href="#_configuring_smtp_server_parameters"></a>Configuring SMTP Server parameters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use Spring Boot <a class="xref page" href="configuration.html#spring-boot-mail-properties">mail properties</a> to define basic email sending parameters, such as protocol, host, port, and others in the <code>application.properties</code> file.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You may need to obtain SMTP server configuration parameters from your system administrator or service provider. See the <a class="xref page" href="oauth-providers.html">Setting up OAuth for Google and Microsoft</a> for steps to configure email sending with these providers.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_working_with_user_interface"><a class="anchor" href="#_working_with_user_interface"></a>Working with User Interface</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Run the application, open the <strong>News items</strong> view. Click <strong>Create</strong> to compose a news item. After saving and returning to the previous view, select your item and click <strong>Send Email</strong>. The confirmation dialog will appear – click <strong>Yes</strong> to proceed.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="confirmation" src="_images/confirmation.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Go to the <strong>Email → <a class="xref page" href="menu-views/email-history.html">Email History</a></strong> view. A record with the <code>Queue</code> status indicates that the email is waiting to be sent. The email details will be displayed on the right as you click it.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="email history" src="_images/email-history.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To send an email from the UI, select it from the list and click <strong>Resend email</strong>. You can change or add recipients before sending. Once the email is sent, the status will change to <code>Sent</code>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+To send queued emails regularly or on a specific schedule, set up the <a class="xref page" href="configuration.html#email-sending-scheduler">Quartz Scheduler</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="resend" src="_images/resend.png"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initial Entity Values :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Initial Entity Values</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, you will learn how to set up initial values for entities in Jmix. Initial values are a key feature that can streamline data entry processes and ensure consistency across your application. We will explore different approaches to define these values, from simple attribute defaults to more dynamic options using lifecycle events and UI-level initialization.</p>
+</div>
+<div class="paragraph">
+<p>The guide covers three main methods for setting initial values in entities—direct attribute assignment, lifecycle event handling, and UI-based initialization—using practical examples. By the end of this guide, you will understand how to effectively apply each method in your Jmix applications to improve usability and maintain reliable default data.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to implement this guide step by step, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup Jmix Studio</a></p>
+</li>
+<li>
+<p>Get the completed sample project, which includes all the examples used in this guide. This allows you to explore the finished implementation and experiment with the functionality right away.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>You can <a href="https://github.com/jmix-framework/jmix-initial-entity-values-sample/archive/refs/heads/release_2_7.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+</li>
+<li>
+<p>Or clone it and switch to the <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-initial-entity-values-sample
+cd jmix-initial-entity-values-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Alternatively, you can start with the base <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> project and follow the step-by-step instructions in this guide to implement the features yourself.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="what-we-are-going-to-build"><a class="anchor" href="#what-we-are-going-to-build"></a>What We Are Going to Build</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide enhances the <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> example with practical use cases for setting initial values in entities. The Petclinic application demonstrates various methods for initializing entity attributes throughout their lifecycle—from creation to persistence—using real-world examples such as visit records for pets.</p>
+</div>
+<div class="paragraph">
+<p>The application includes the following examples:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Default Values for Visit Fields:</strong>
+Automatically assign default values, such as setting <code>paid = false</code> directly in the entity or initializing the <code>treatmentStatus</code> to <code>UPCOMING</code> using <code>@PostConstruct</code>.</p>
+</li>
+<li>
+<p><strong>Automatic Pet Health Status in the Pet List View:</strong>
+Use a <code>Create Action Initializer</code> to set the <code>healthStatus</code> of new pets to <code>UNKNOWN</code> when created from the Pet list view.</p>
+</li>
+<li>
+<p><strong>Default Descriptions for Visits Based on Type:</strong>
+In the Visit detail view, generate a structured description (e.g., checklist for a regular check-up) if the user leaves the field blank. This logic is executed during the <code>BeforeSaveEvent</code> in the UI.</p>
+</li>
+<li>
+<p><strong>Unique Visit Numbers via Entity Listener:</strong>
+Automatically generate a formatted visit number based on the visit date using an <code>EntitySavingEvent</code> listener before the record is saved.</p>
+</li>
+<li>
+<p><strong>Automatic Nurse Assignment After Visit Creation:</strong>
+Assign an available nurse to a new visit using an <code>EntityChangedEvent</code> listener triggered after the database commit. This ensures that only nurses without overlapping appointments are assigned.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These examples illustrate the different approaches for setting initial entity values, ranging from simple defaults to complex logic involving user input and database transactions. The guide demonstrates how to structure initialization logic effectively across the entity lifecycle in Jmix applications.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-lifecycle-overview"><a class="anchor" href="#entity-lifecycle-overview"></a>Entity Lifecycle Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before diving into the techniques for setting initial values, let’s first look at the typical lifecycle of an entity in Jmix. The lifecycle spans multiple stages, from creation to persistence, offering various opportunities for initialization logic.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/entity-lifecycle.svg"><img alt="Entity Lifecycle Overview" src="_images/entity-lifecycle.svg" width="800"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>The process begins with <strong>1. System: Entity Instantiation</strong>, where basic defaults are applied when Jmix creates a new entity programmatically or through the UI. Next, during <strong>2. UI: View Initialization</strong>, UI-level events such as <code>InitEntityEvent</code> or <code>Create Action Initializers</code> allow for setting values based on user context.</p>
+</div>
+<div class="paragraph">
+<p>As users interact with the form, <strong>3. UI: Dependent Field Updates</strong> dynamically adjust fields based on changes in user input, ensuring consistency. The <strong>4. UI: Initialization while Saving</strong> phase allows for final modifications before persistence, ensuring necessary adjustments based on the current state.</p>
+</div>
+<div class="paragraph">
+<p>Finally, <strong>5. System: Persistence Events</strong> occur when the entity is saved to the database. System-level events like <code>EntitySavingEvent</code> and <code>EntityChangedEvent</code> provide the opportunity for automatic value assignments and post-save actions.</p>
+</div>
+<div class="paragraph">
+<p>Now, let’s explore the first example, starting with system-level entity initialization.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="system-entity-instantiation"><a class="anchor" href="#system-entity-instantiation"></a>System: Entity Instantiation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Entity fields can be initialized in two main ways: by setting default values directly in the field definition or by using a lifecycle callback method with <code>@PostConstruct</code>. These approaches serve different purposes depending on the complexity and requirements of the initialization logic.</p>
+</div>
+<div class="sect2">
+<h3 id="default-values"><a class="anchor" href="#default-values"></a>Default Values</h3>
+<div class="paragraph">
+<p>Simple attributes like <code>Boolean</code>, <code>Integer</code> can be initialized directly in the field declaration of an entity class. In the Petclinic example, the <code>Visit</code> entity has an attribute <code>paid</code>, which is a boolean flag indicating whether a visit has already been paid. This value should, by default, be <code>FALSE</code>. The default value can be set directly in the field definition:</p>
+</div>
+<div class="listingblock">
+<div class="title">Visit.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_VISIT", indexes = {
+        @Index(name = "IDX_PETCLINIC_VISIT_ASSIGNED_NURSE", columnList = "ASSIGNED_NURSE_ID"),
+        @Index(name = "IDX_PETCLINIC_VISIT_PET", columnList = "PET_ID"),
+        @Index(name = "IDX_PETCLINIC_VISIT_VISIT_NUMBER", columnList = "VISIT_NUMBER, DELETED_DATE", unique = true)
+})
+@Entity(name = "petclinic_Visit")
+public class Visit {
+
+    @Column(name = "PAID")
+    private Boolean paid = Boolean.FALSE;
+
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Even though the <code>paid</code> field is initialized with a default value, this does not mean it is immutable. The value can still be modified programmatically or through the UI as needed. This default simply provides an initial state for the entity, ensuring consistency while allowing flexibility for changes before saving.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This approach is simple and efficient for static default values that do not depend on external factors or dynamic calculations.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Do not initialize fields of collection attributes with the new <code>ArrayList</code> or <code>HashSet</code> instances. It will break the <a class="xref page" href="../data-access/fetching.html">data fetching</a> functionality. If you want to have default values in the fields, use the special collections provided by Jmix: <code>NotInstantiatedList</code> or <code>NotInstantiatedSet</code>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@OneToMany(mappedBy = "user")
+private List&lt;UserStep&gt; steps = new NotInstantiatedList&lt;&gt;();</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="post-construct-initialization"><a class="anchor" href="#post-construct-initialization"></a>PostConstruct Initialization</h3>
+<div class="paragraph">
+<p>The <code>@PostConstruct</code> annotation allows you to execute custom initialization logic after an entity instance has been created. This method is called once the object is fully initialized, but before it is used. This is particularly useful for initializing fields that depend on more complex logic or external methods.</p>
+</div>
+<div class="paragraph">
+<p>The <code>@PostConstruct</code> method is invoked in the following scenarios:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When an instance is programmatically created using the <code>create()</code> method of the <code>Metadata</code>, <code>DataManager</code> or <code>DataContext</code> beans. For example <code>dataManager.create(Visit.class)</code>.</p>
+</li>
+<li>
+<p>When an instance is created by the UI framework during user interaction.</p>
+</li>
+<li>
+<p>When an instance is created by the generic REST API.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Because initialization logic like <code>@PostConstruct</code> methods depends on Jmix lifecycle management, you should avoid directly creating entity instances using Java’s <code>new</code> keyword (e.g., <code>new Visit()</code>). Instead, always use the <code>metadata.create(Visit.class)</code> or <code>dataManager.create(Visit.class)</code> methods provided by Jmix. These factory methods ensure all lifecycle callbacks are correctly executed during entity creation.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Here’s an example of a <code>@PostConstruct</code> method in the <code>Visit</code> entity. This method sets a static default value for the visitStatus field when the entity is created:</p>
+</div>
+<div class="listingblock">
+<div class="title">Visit.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_VISIT", indexes = {
+        @Index(name = "IDX_PETCLINIC_VISIT_ASSIGNED_NURSE", columnList = "ASSIGNED_NURSE_ID"),
+        @Index(name = "IDX_PETCLINIC_VISIT_PET", columnList = "PET_ID"),
+        @Index(name = "IDX_PETCLINIC_VISIT_VISIT_NUMBER", columnList = "VISIT_NUMBER, DELETED_DATE", unique = true)
+})
+@Entity(name = "petclinic_Visit")
+public class Visit {
+
+    @PostConstruct <i class="conum" data-value="1"></i><b>(1)</b>
+    public void initTreatmentStatus() {
+        if (treatmentStatus == null) {
+            setTreatmentStatus(VisitTreatmentStatus.UPCOMING); <i class="conum" data-value="2"></i><b>(2)</b>
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@PostConstruct</code> annotation ensures the method is executed after the entity is fully initialized.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>treatmentStatus</code> field is set to the predefined value <code>UPCOMING</code> if it has not already been initialized.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The name of the method, <code>initTreatmentStatus</code>, is arbitrary. You can use any name, as long as the method is annotated with <code>@PostConstruct</code>.</p>
+</div>
+<div class="paragraph">
+<p>It is also possible to define multiple methods with the <code>@PostConstruct</code> annotation in the same class. This allows you to separate initialization logic into smaller, focused methods. However, the execution order of these methods is not guaranteed and should not be relied upon.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>At the time the <code>@PostConstruct</code> method is invoked, no values from the user interface or external sources (e.g., REST API inputs) have been set on the entity. This method is executed immediately after the entity instance is created. Therefore, it is not suitable for initialization logic that depends on pre-existing field values.</p>
+</div>
+<div class="sect3">
+<h4 id="dependency-injection"><a class="anchor" href="#dependency-injection"></a>Dependency Injection</h4>
+<div class="paragraph">
+<p>In many cases, it is not sufficient to initialize fields with static values or predefined logic. Initialization often requires dynamic values based on the application’s runtime context, such as the current timestamp, user-specific settings, or other managed components. To support this, Spring-managed beans can be injected directly into the parameters of a <code>@PostConstruct</code> method.</p>
+</div>
+<div class="paragraph">
+<p>For example, consider initializing a timestamp field in the <code>Visit</code> entity. Using the <code>TimeSource</code> bean provided by the Jmix framework, you can dynamically retrieve the current system time and set it as a default value:</p>
+</div>
+<div class="listingblock">
+<div class="title">Visit.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_VISIT", indexes = {
+        @Index(name = "IDX_PETCLINIC_VISIT_ASSIGNED_NURSE", columnList = "ASSIGNED_NURSE_ID"),
+        @Index(name = "IDX_PETCLINIC_VISIT_PET", columnList = "PET_ID"),
+        @Index(name = "IDX_PETCLINIC_VISIT_VISIT_NUMBER", columnList = "VISIT_NUMBER, DELETED_DATE", unique = true)
+})
+@Entity(name = "petclinic_Visit")
+public class Visit {
+
+    @PostConstruct <i class="conum" data-value="1"></i><b>(1)</b>
+    public void initVisitStart(
+            TimeSource timeSource <i class="conum" data-value="2"></i><b>(2)</b>
+    ) {
+        if (visitStart == null) {
+            setVisitStart(timeSource.now().toLocalDateTime()); <i class="conum" data-value="3"></i><b>(3)</b>
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@PostConstruct</code> annotation marks the method to be executed after the entity is fully initialized.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>TimeSource</code> bean is injected directly into the method, providing access to the current system time.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>If the <code>visitStart</code> field has not been set, it is initialized with the current time.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Using Spring Bean Injection, you can directly access framework APIs and custom beans in your initialization logic, enabling flexible and dynamic entity initialization with context-specific data handling.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ui-view-initialization"><a class="anchor" href="#ui-view-initialization"></a>UI: View Initialization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>On the UI layer, there are two main ways to initialize an entity during view creation. The first one is external, where the entity is initialized by the code that opens the destination view. The second one is internal, where initialization happens directly within the view controller that manages the entity.</p>
+</div>
+<div class="paragraph">
+<p>External initialization can be achieved in two different ways, both of which we will explore in this guide. One approach is using the <code>Create Action Initializer</code>, which allows the calling view to set default values before opening the detail view. The other approach leverages the <code>Dialog Windows API</code>, which enables more complex initialization logic, such as selecting related entities in an intermediate step before opening the detail view.</p>
+</div>
+<div class="paragraph">
+<p>We will now examine these external initialization methods in detail.</p>
+</div>
+<div class="sect2">
+<h3 id="external-initialization-create-action"><a class="anchor" href="#external-initialization-create-action"></a>External Initialization via Create Action Initializer</h3>
+<div class="paragraph">
+<p>One way to initialize entity attributes externally is by using the <code>initializer</code> method of a <code>Create</code> action. This approach allows you to define custom initialization logic for new entities created via standard actions, providing a non-invasive way to set default values.</p>
+</div>
+<div class="paragraph">
+<p>In contrast to the internal initialization approach, this method offers more flexibility by allowing access to the context of the <code>ListView</code>. For example, you can incorporate user inputs or other dynamic information available in the current view when initializing the entity. At the same time, it avoids the need for extensive modifications to the standard behavior of the <code>Create</code> action, keeping the implementation simple and easy to maintain.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, the <code>initializer</code> method is used on the <strong>Pet List View</strong> to set the <code>healthStatus</code> of a <code>Pet</code> entity to <code>UNKNOWN</code> whenever a new <code>Pet</code> is created through the <code>petsDataGrid.create</code> action.</p>
+</div>
+<div class="listingblock">
+<div class="title">PetListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "pets", layout = MainView.class)
+@ViewController("petclinic_Pet.list")
+@ViewDescriptor("pet-list-view.xml")
+@LookupComponent("petsDataGrid")
+@DialogMode(width = "50em")
+public class PetListView extends StandardListView&lt;Pet&gt; {
+
+    @Install(to = "petsDataGrid.create", subject = "initializer") <i class="conum" data-value="1"></i><b>(1)</b>
+    private void petsDataGridCreateInitializer(final Pet pet) { <i class="conum" data-value="2"></i><b>(2)</b>
+        pet.setHealthStatus(HealthStatus.UNKNOWN); <i class="conum" data-value="3"></i><b>(3)</b>
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@Install</code> annotation connects this method to the <code>initializer</code> property of the <code>Create</code> action for the <code>petsDataGrid</code> component. The <code>initializer</code> is responsible for customizing the default state of the entity instance when a new entity is created through this action. By using this mechanism, you can ensure specific fields are pre-filled or set with default values at the moment of entity creation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>Pet</code> entity instance is passed as a parameter to the method. This instance represents the new entity being created, allowing you to modify its initial state.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>setHealthStatus</code> method is used to set the default value for the <code>healthStatus</code> field of the <code>Pet</code> entity to <code>UNKNOWN</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This method is ideal when the initialization logic is relatively simple and does not require additional user interaction or complex workflows.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="external-initialization-dialogs-api"><a class="anchor" href="#external-initialization-dialogs-api"></a>External Initialization via Dialog Windows API</h3>
+<div class="paragraph">
+<p>In some scenarios, the standard actions like <code>create</code> and <code>edit</code> may not fully accommodate the level of customization required. For example, you might need to present an intermediate dialog for user input or perform additional operations before initializing and displaying the new entity. In such cases, the Dialog Windows API provides a flexible alternative.</p>
+</div>
+<div class="paragraph">
+<p>To illustrate this, we will now look at a concrete example where we implement a <strong>Create Regular Checkup</strong> button in the <strong>Visit List View</strong>. The goal is to first allow the user to select a pet from a lookup dialog. Once the pet is selected, a new visit creation view is opened automatically, with predefined values such as visit type and a structured description based on the selected pet.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/ui-initilization-external-1.png"><img alt="Visit List View with Create Regular Checkup Button" src="_images/ui-initilization-external-1.png" width="800"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>Using the Dialog Windows API, you can programmatically open views and configure their behavior before they are displayed. This includes defining an initializer that sets default values for the entity being created.</p>
+</div>
+<div class="paragraph">
+<p>In the <code>VisitListView</code>, the Dialog Windows API is used to create a new <code>Visit</code> entity for a "regular checkup". The process involves selecting a <code>Pet</code> first, then passing that selection along with additional initialization logic to the detail view for creating the new <code>Visit</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Subscribe("visitsDataGrid.createRegularCheckup")
+    public void onVisitsDataGridCreateRegularCheckup(final ActionPerformedEvent event) {
+        dialogWindows.lookup(this, Pet.class) <i class="conum" data-value="1"></i><b>(1)</b>
+                .withSelectHandler(pets -&gt; createVisitForPet(pets.iterator().next()))
+                .open();
+    }
+
+
+    private void createVisitForPet(Pet pet) {
+        dialogWindows.detail(visitsDataGrid) <i class="conum" data-value="2"></i><b>(2)</b>
+                .newEntity() <i class="conum" data-value="3"></i><b>(3)</b>
+                .withInitializer(visit -&gt; {  <i class="conum" data-value="4"></i><b>(4)</b>
+                    visit.setType(VisitType.REGULAR_CHECKUP);
+                    visit.setDescription(regularCheckupDescriptionContent(pet));
+                    visit.setPet(pet);
+                })
+                .withViewClass(RegularCheckupDetailView.class)
+                .open();
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A lookup dialog is opened to allow the user to select a pet for the visit.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>dialogWindows.detail</code> API is used to open a detail view for creating the new <code>Visit</code> instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>newEntity</code> method ensures that a new <code>Visit</code> instance is created.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <code>withInitializer</code> method is used to set the default values for the <code>Visit</code> instance, such as <code>type</code>, <code>description</code>, and <code>pet</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This approach provides greater flexibility and customization for workflows that require more complex interactions or dependencies. It’s an excellent fit for use cases where the initialization logic depends on user input or additional context from other entities.</p>
+</div>
+<div class="paragraph">
+<p>Now, let’s take a look at the corresponding UI screens for this workflow:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/ui-initilization-external-2.png"><img alt="Pet Lookup Dialog" src="_images/ui-initilization-external-2.png" width="800"/></a>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/ui-initilization-external-3.png"><img alt="Regular Checkup Creation Dialog" src="_images/ui-initilization-external-3.png" width="800"/></a>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="internal-initialization"><a class="anchor" href="#internal-initialization"></a>Internal Initialization via InitEntityEvent</h3>
+<div class="paragraph">
+<p>The second approach is to perform the entity initialization within the destination view controller itself. In Jmix, this can be achieved using UI events, such as the <code>InitEntityEvent</code>. This event is specifically designed to allow initialization logic for newly created entities. For more details, see: <a class="xref page" href="../flow-ui/views/view-events.html#init-entity-event">Flow UI: Init Entity Event</a>.</p>
+</div>
+<div class="paragraph">
+<p>Let’s look at the example where we use this internal initialization to set the <code>type</code> of a <code>Visit</code> to <code>REGULAR_CHECKUP</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "visits/:id", layout = MainView.class)
+@ViewController("petclinic_Visit.detail")
+@ViewDescriptor("visit-detail-view.xml")
+@EditedEntityContainer("visitDc")
+public class VisitDetailView extends StandardDetailView&lt;Visit&gt; {
+
+
+    @Subscribe
+    public void onInitEntity(final InitEntityEvent&lt;Visit&gt; event) { <i class="conum" data-value="1"></i><b>(1)</b>
+        Visit visit = event.getEntity();
+        visit.setType(VisitType.REGULAR_CHECKUP); <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>onInitEntity</code> method subscribes to the <code>InitEntityEvent</code> triggered for the newly created <code>Visit</code> instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>type</code> field is set to <code>REGULAR_CHECKUP</code>, providing a sensible default value.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The advantage of this approach is its simplicity and minimal required code changes. It is a good fit for scenarios where specific attributes, which are not dynamic, need to be initialized. However, since it is scoped to the destination view, it is less flexible for reacting to external parameters passed into the view.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ui-dependent-field-updates"><a class="anchor" href="#ui-dependent-field-updates"></a>UI: Dependent Field Updates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dependent field updates are not strictly part of entity initialization but play a crucial role in dynamically adjusting default values based on user input. Unlike static initialization, these updates allow values to be recalculated whenever a user modifies a related field, ensuring logical consistency while still enabling manual adjustments.</p>
+</div>
+<div class="paragraph">
+<p>A common use case is pre-filling related fields based on the user’s selection while keeping the option to override the value afterward. This is useful in scenarios where calculated or context-sensitive defaults should be applied dynamically as users interact with the form.</p>
+</div>
+<div class="paragraph">
+<p>In the following example, we implement a dependent field update that adjusts the <code>VisitEnd</code> time based on the selected <code>VisitStart</code> value. When a user sets <code>VisitStart</code>, the system automatically calculates <code>VisitEnd</code> based on the <code>VisitType</code>. The default durations are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Regular Checkup:</strong> +30 minutes</p>
+</li>
+<li>
+<p><strong>Recharge:</strong> +3 hours</p>
+</li>
+<li>
+<p><strong>Status Condition Healing:</strong> +1 hour</p>
+</li>
+<li>
+<p><strong>Disease Treatment:</strong> +1 hour</p>
+</li>
+<li>
+<p><strong>Other:</strong> +1 hour</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Each time <code>VisitStart</code> is updated, the <code>VisitEnd</code> field is recalculated accordingly. However, users retain the ability to manually modify the <code>VisitEnd</code> time if needed.</p>
+</div>
+<div class="paragraph">
+<p>Now, let’s take a look at the implementation.</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "visits/:id", layout = MainView.class)
+@ViewController("petclinic_Visit.detail")
+@ViewDescriptor("visit-detail-view.xml")
+@EditedEntityContainer("visitDc")
+public class VisitDetailView extends StandardDetailView&lt;Visit&gt; {
+
+
+    @Subscribe("visitStartField") <i class="conum" data-value="1"></i><b>(1)</b>
+    public void onVisitStartFieldTypedValueChange(
+            final SupportsTypedValue.TypedValueChangeEvent&lt;TypedDateTimePicker&lt;LocalDateTime&gt;, LocalDateTime&gt; event <i class="conum" data-value="2"></i><b>(2)</b>
+    ) {
+        LocalDateTime value = event.getValue();
+
+        if (value != null) {
+            getEditedEntity().setVisitEnd(calculateVisitEnd(value)); <i class="conum" data-value="3"></i><b>(3)</b>
+        }
+        else {
+            getEditedEntity().setVisitEnd(null);
+        }
+    }
+
+    private LocalDateTime calculateVisitEnd(LocalDateTime visitStart) {
+
+        int durationInMinutes = switch (getEditedEntity().getType()) {
+            case REGULAR_CHECKUP -&gt; 30;
+            case RECHARGE -&gt; 180;
+            case STATUS_CONDITION_HEALING, DISEASE_TREATMENT, OTHER -&gt; 60;
+        };
+
+        return visitStart.plusMinutes(durationInMinutes);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The method is subscribed to changes in the <code>visitStartField</code>, ensuring that any modification to the field triggers an update.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>TypedValueChangeEvent</code> event provides access to both the old and new values of the <code>visitStartField</code> field in a type-safe manner.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>If <code>visitStart</code> is not null, the <code>calculateVisitEnd()</code> method is called to determine the appropriate <code>visitEnd</code> time based on the visit type.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This approach ensures that default values for <code>visitEnd</code> are dynamically applied while allowing users to manually override them when necessary.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>There are two main types of value change events in Jmix: <a class="xref page" href="../flow-ui/vc/common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> and <a class="xref page" href="../flow-ui/vc/common-handlers.html#TypedValueChangeEvent">TypedValueChangeEvent</a>. The <code>ComponentValueChangeEvent</code> is the more general event and applies to a wide range of UI components.</p>
+</div>
+<div class="paragraph">
+<p>However, when working with components like <code>TypedDateTimePicker</code>, which support multiple data types, the <code>TypedValueChangeEvent</code> provides a more precise alternative. In this case, since <code>visitStart</code> is of type <code>LocalDateTime</code>, using <code>TypedValueChangeEvent</code> ensures that the event handler receives the correctly typed value directly, without requiring additional type conversions.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ui-initialization-while-saving"><a class="anchor" href="#ui-initialization-while-saving"></a>UI: Initialization while Saving</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>UI-based events such as <code>BeforeSaveEvent</code> allow you to configure default values during the saving process. These events are triggered exclusively within the user interface and apply only to saves performed through a view.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>BeforeSaveEvent</code> is a lifecycle event for view classes that extend <code>StandardDetailView</code>, which is the default base class for all entity detail views generated by Jmix Studio. If your view class does not extend <code>StandardDetailView</code>, you can still apply similar initialization logic by using the <code>PreSaveEvent</code> of the <code>DataContext</code>: <a class="xref page" href="../flow-ui/data/data-context.html#pre-save-event">DataContext PreSaveEvent</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>UI-based initialization during saving is useful for setting default values that depend on user inputs or dynamic computations at runtime. It differs from Dependent Field Updates, as it applies values automatically during the save process rather than updating fields dynamically based on user input. It is useful when the user does not need to review or modify the value before saving, ensuring consistency without additional interaction. This approach is particularly effective for completing missing fields, generating values from the current view context, or applying UI-specific logic during the save process.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, the <code>VisitDetailView</code> automatically generates a structured description for a <code>Visit</code> if the user leaves the description field empty:</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "visits/:id", layout = MainView.class)
+@ViewController("petclinic_Visit.detail")
+@ViewDescriptor("visit-detail-view.xml")
+@EditedEntityContainer("visitDc")
+public class VisitDetailView extends StandardDetailView&lt;Visit&gt; {
+
+
+    @Subscribe
+    public void onBeforeSave(final BeforeSaveEvent event) { <i class="conum" data-value="1"></i><b>(1)</b>
+        if (!StringUtils.hasText(getEditedEntity().getDescription())) { <i class="conum" data-value="2"></i><b>(2)</b>
+            getEditedEntity().setDescription(calculateDefaultDescription(getEditedEntity())); <i class="conum" data-value="3"></i><b>(3)</b>
+        }
+    }
+
+    private String calculateDefaultDescription(Visit visit) {
+        String petName = Optional.ofNullable(visit.getPet())
+                .map(NamedEntity::getName)
+                .orElse("the pet");
+        String ownerName = Optional.ofNullable(visit.getPet())
+                .map(Pet::getOwner)
+                .map(Person::getFullName)
+                .orElse("the pet owner");
+
+        return switch (visit.getType()) {
+            case REGULAR_CHECKUP -&gt; """
+                Regular Check-up Notes:
+                - Temperature and heart rate measured from %s: Y/N
+                - Vaccination status reviewed with %s: Y/N
+                - Teeth and gums inspected from %s: Y/N
+                - Overall condition recorded: Y/N
+                - Follow-up discussion held with %s: Y/N
+                """.formatted(petName, ownerName, petName, ownerName);
+            case RECHARGE -&gt; """
+                Recharge Visit Notes:
+                - Fluids and electrolytes replenished for %s: Y/N
+                - Supplements provided as needed: Y/N
+                - Post-recharge behavior observed in %s: Y/N
+                - Recovery instructions shared with %s: Y/N
+                """.formatted(petName, petName, ownerName);
+            case STATUS_CONDITION_HEALING -&gt; """
+                Healing Progress Notes:
+                - Healing progress assessed for %s: Y/N
+                - Signs of infection or inflammation checked: Y/N
+                - Treatment plan adjusted if necessary: Y/N
+                - Condition progress discussed with %s: Y/N
+                """.formatted(petName, ownerName);
+            case DISEASE_TREATMENT -&gt; """
+                Disease Treatment Notes:
+                - Prescribed medications administered to %s: Y/N
+                - Vital signs monitored for %s: Y/N
+                - Side effects and patient response recorded: Y/N
+                - Treatment outcomes reviewed with %s: Y/N
+                """.formatted(petName, petName, ownerName);
+            case OTHER -&gt; """
+                General Visit Notes:
+                - Concerns discussed with %s: Y/N
+                - Unusual observations about %s recorded: Y/N
+                - Follow-up recommendations provided: Y/N
+                """.formatted(ownerName, petName);
+        };
+
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Subscribe to <code>BeforeSaveEvent</code>: The <code>onBeforeSave()</code> method listens for the <code>BeforeSaveEvent</code> fired just before saving.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Check if description is empty: If no description is provided, the system calculates a default description.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Dynamic Description Generation: The <code>calculateDefaultDescription()</code> method constructs a default visit description based on the visit type and patient information.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>BeforeSaveEvent</code> only triggers within the view and applies only to UI-based saves. It is not triggered by programmatic saves or generic REST API calls.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="system-persistence-events"><a class="anchor" href="#system-persistence-events"></a>System: Persistence Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Persistence events are system-level entity lifecycle events that occur when data is saved to the database. These events apply to all save operations, including those from the UI, REST API, or programmatic operations. They are commonly used for initialization logic that must be consistent across different entry points. This section covers events that occur before and after an entity is persisted, showing how they can be used to handle initialization and follow-up actions.</p>
+</div>
+<div class="sect2">
+<h3 id="entity-saving-event"><a class="anchor" href="#entity-saving-event"></a>Entity Saving Event</h3>
+<div class="paragraph">
+<p>The <code>EntitySavingEvent</code> is a lifecycle event triggered before an entity is saved to the database. This includes newly created entities as well as updates to existing entities. It is a universal event that applies to all save operations, whether from the UI, generic REST API, or programmatic calls (<code>dataManager.save()</code>).</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Persistence events only work when using the regular Jmix persistence APIs, such as <a class="xref page" href="../data-access/data-manager.html">Data Manager</a> or <a class="xref page" href="../data-access/data-repositories.html">Data Repositories</a>. If you bypass these mechanisms and interact directly with the database using JPA’s <a class="xref page" href="../data-access/entity-manager.html">Entity Manager</a> or custom JDBC calls (by leveraging Spring’s <code>JdbcTemplate</code>), these events will <em>not</em> be triggered. To ensure that persistence events function correctly, always perform save operations through Jmix’s APIs.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In this example, an <code>EntitySavingEvent</code> listener is used to automatically generate a unique visit number for every new <code>Visit</code> entity in the form of: <code>V-&lt;visit-year&gt;-&lt;auto-increment-number&gt;</code>. This number is assigned during the save process and cannot be modified by the user.</p>
+</div>
+<div class="paragraph">
+<p>The generated visit number depends on the user’s input—specifically, the year from the <code>visitStart</code> date. Since the number is constructed based on a field that the user sets, it cannot be assigned earlier, such as during entity creation or UI initialization. Instead, it is calculated only when the record is saved to ensure that it reflects the correct year.</p>
+</div>
+<div class="paragraph">
+<p>Additionally, this approach prevents issues with concurrent users. If the visit number were assigned while the view is open using dependent field updates, it could cause numbering conflicts or gaps in the sequence when multiple users create visits simultaneously.</p>
+</div>
+<div class="paragraph">
+<p>By generating the number just before saving, this approach ensures that the numbering is unique and continuous, even under concurrent usage.</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitNumberGeneratorEntityListener.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.data.Sequence;
+import io.jmix.data.Sequences;
+import io.jmix.core.event.EntitySavingEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
+@Component("petclinic_VisitNumberGeneratorEntityListener")
+public class VisitNumberGeneratorEntityListener {
+
+    private final Sequences sequences;
+
+    public VisitNumberGeneratorEntityListener(Sequences sequences) {
+        this.sequences = sequences;
+    }
+
+    @EventListener
+    public void calculateVisitNumber(final EntitySavingEvent&lt;Visit&gt; event) { <i class="conum" data-value="1"></i><b>(1)</b>
+
+        if (!event.isNewEntity()) { <i class="conum" data-value="2"></i><b>(2)</b>
+            return;
+        }
+
+        long sequenceNumber = sequences.createNextValue(Sequence.withName("visit_number")); <i class="conum" data-value="3"></i><b>(3)</b>
+        int visitYear = event.getEntity().getVisitStart().getYear();
+
+        String visitNumber = "V-%s-%06d".formatted(visitYear, sequenceNumber); <i class="conum" data-value="4"></i><b>(4)</b>
+
+        event.getEntity().setVisitNumber(visitNumber);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Event Listener: The method listens to <code>EntitySavingEvent</code> to assign a unique number before saving.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>To ensure that the visit number is only generated for new visits, the method first checks <code>event.isNewEntity()</code> and returns early in case it is not.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Sequence Generator: A unique number is generated using Jmix’s built-in <a class="xref page" href="../features/sequences.html">Sequences API</a>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Formatted Number: The visit number is formatted with the year and a zero-padded sequence number.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For more information on Entity Saving Events see: <a class="xref page" href="../data-access/entity-events.html#saving-loading-events">Data Access: Entity Events - EntitySavingEvent</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="entity-changed-event"><a class="anchor" href="#entity-changed-event"></a>Entity Changed Event</h3>
+<div class="paragraph">
+<p>The <code>EntityChangedEvent</code> is triggered whenever an entity is modified and persisted in the database. It occurs in two distinct phases of the transaction lifecycle: before the commit and after the commit. Understanding this distinction is essential when implementing business logic that depends on entity changes.</p>
+</div>
+<div class="paragraph">
+<p>By default, <code>EntityChangedEvent</code> can be handled:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Before the transaction commit:</strong> In this case, the event is fired while the transaction is still open, meaning any changes made within the event handler are included in the same transaction. This allows modifying additional entities, enforcing validations, or canceling the transaction if necessary.</p>
+</li>
+<li>
+<p><strong>After the transaction commit:</strong> Here, the event is triggered only after the database commit has been successfully completed. This ensures that the entity changes are fully persisted and visible to other transactions, making it a suitable place for actions like sending notifications, triggering asynchronous processes, or executing external API calls.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See also <a class="xref page" href="../data-access/entity-events.html#entity-changed-event">Data Access: Entity Events - Entity Changed Event</a>. To understand database transactions and their significance in ensuring data consistency, refer to this general explanation:
+<a href="https://en.wikipedia.org/wiki/Database_transaction" rel="noopener" target="_blank">Wikipedia: Database Transactions</a>.</p>
+</div>
+<div class="paragraph">
+<p>This example handles the <code>EntityChangedEvent</code> <strong>after</strong> commit to ensure that the entity changes are fully persisted before executing follow-up actions. By handling the event in a separate transaction, we avoid interfering with the main persistence process.</p>
+</div>
+<div class="paragraph">
+<p>Running this logic post-commit ensures that if no available nurse is found, the <code>assignedNurse</code> field simply remains empty without affecting the transaction. Additionally, since the nurse assignment is not critical to storing the visit, it should not block or delay the main database operation.</p>
+</div>
+<div class="listingblock">
+<div class="title">AssignNurseToVisitAutomaticallyEventListener.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("petclinic_AssignNurseToVisitAutomatically")
+public class AssignNurseToVisitAutomaticallyEventListener {
+
+    private static final Logger log = LoggerFactory.getLogger(AssignNurseToVisitAutomaticallyEventListener.class);
+
+    private final DataManager dataManager;
+    private final EmployeeRepository employeeRepository;
+
+    public AssignNurseToVisitAutomaticallyEventListener(DataManager dataManager, EmployeeRepository employeeRepository) {
+        this.dataManager = dataManager;
+        this.employeeRepository = employeeRepository;
+    }
+
+    @TransactionalEventListener <i class="conum" data-value="1"></i><b>(1)</b>
+    @Transactional(propagation = Propagation.REQUIRES_NEW) <i class="conum" data-value="2"></i><b>(2)</b>
+    public void assignNurseToVisitAutomatically(final EntityChangedEvent&lt;Visit&gt; event) {
+        try {
+            if (event.getType().equals(EntityChangedEvent.Type.CREATED)) { <i class="conum" data-value="3"></i><b>(3)</b>
+
+                Visit visit = dataManager.load(event.getEntityId()) <i class="conum" data-value="4"></i><b>(4)</b>
+                        .fetchPlan(visitWithAssignedNurse())
+                        .one();
+
+                if (visit.getAssignedNurse() != null) {
+                    log.info("Nurse already assigned to visit: {}. No automatic assignment needed.", visit.getAssignedNurse());
+                    return;
+                }
+
+                Optional&lt;User&gt; availableNurse = findAvailableNurse(visit);
+
+                availableNurse.ifPresent(nurse -&gt; {
+                    log.info("Available nurse found: {}. Assigning Nurse to Visit: {}", nurse, visit.getVisitNumber());
+                    visit.setAssignedNurse(nurse);
+                    dataManager.save(visit); <i class="conum" data-value="5"></i><b>(5)</b>
+                });
+            }
+        } catch (Exception e) {
+            log.error("Error automatically assigning nurse to Visit: %s".formatted(event.getEntityId()), e);
+        }
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>@TransactionalEventListener</code>: Listens for <code>EntityChangedEvent</code> after the transaction is committed, ensuring that the visit record is already stored in the database.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>@Transactional(propagation = Propagation.REQUIRES_NEW)</code>: Opens a new transaction for loading and saving data. This is necessary because the current transaction has already been closed after the commit. Without this, <code>dataManager.load()</code> or <code>dataManager.save()</code> would fail due to the lack of an active transaction.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Event Type Check (<code>event.getType()</code>): Ensures that the logic only runs when a new visit is created (<code>Type.CREATED</code>).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>dataManager.load()</code> with <code>@Transactional</code>: Loads the <code>Visit</code> entity from the database in the new transaction. This is possible because of <code>@Transactional(propagation = Propagation.REQUIRES_NEW)</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The assignment is saved in case an available nurse is found.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For more information, see:
+<a class="xref page" href="../data-access/entity-events.html#after-commit">Data Access: Entity Events - Handling Changes After Commit</a></p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="comparison-matrix"><a class="anchor" href="#comparison-matrix"></a>Comparison Matrix</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The table below summarizes the main differences between the initialization approaches based on their stage in the entity lifecycle:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0001%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Stage</th>
+<th class="tableblock halign-left valign-top">Scope</th>
+<th class="tableblock halign-left valign-top">Characteristics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#system-entity-instantiation">System: Entity Instantiation</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">System-wide</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applied at entity creation for static defaults, independent of creation method.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#ui-view-initialization">UI: View Initialization</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">View-specific</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets initial values when opening a view.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#ui-dependent-field-updates">UI: Dependent Field Updates</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">View-specific</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Updates fields dynamically based on user input, ensuring calculated default values while still allowing manual adjustments.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#ui-initialization-while-saving">UI: Initialization while Saving</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">View-specific</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Allows last-moment adjustments before persisting an entity, ensuring consistency based on user inputs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#system-persistence-events">System: Persistence Events</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">System-wide</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ensures critical entity values are finalized while / after saving to the database.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide explored various techniques for setting initial values in Jmix entities, ensuring consistency and efficiency across applications. We covered direct attribute assignment for static defaults, <code>@PostConstruct</code> for dynamic logic, and UI-based approaches such as <code>InitEntityEvent</code>, Create Action Initializer, and Dialog Windows API, demonstrating their strengths with practical examples from the Petclinic application.</p>
+</div>
+<div class="paragraph">
+<p>Beyond initialization, we examined <strong>Dependent Field Updates</strong>, which dynamically adjust values based on user input while still allowing modifications. Additionally, we explored <strong>Persistence Events</strong> like <code>EntitySavingEvent</code> and <code>EntityChangedEvent</code>, which enforce business rules and ensure final data integrity before and after database commits.</p>
+</div>
+<div class="paragraph">
+<p>By understanding these approaches and their trade-offs, you can design robust and maintainable entity initialization processes tailored to your application’s needs. Whether applying static defaults, handling user input dynamically, or enforcing rules at the persistence level, these techniques provide a scalable foundation for data consistency and usability.</p>
+</div>
+<div class="sect2">
+<h3 id="further-information"><a class="anchor" href="#further-information"></a>Further Information</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../flow-ui/views/view-events.html">View Events</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../data-access/entity-events.html">Entity Events</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

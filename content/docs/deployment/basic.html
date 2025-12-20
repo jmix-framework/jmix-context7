@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Deployment :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Basic Deployment</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Make sure your <code>build.gradle</code> contains the following code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">vaadin {
+    optimizeBundle = false
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is required for production builds.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="bootJar"><a class="anchor" href="#bootJar"></a>Creating Executable JAR</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Open the terminal in the project root folder and execute the following command:</p>
+</div>
+<div class="listingblock">
+<div class="title">Linux and macOS</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">./gradlew -Pvaadin.productionMode=true bootJar</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Windows</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gradlew "-Pvaadin.productionMode=true" bootJar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The executable JAR name will consist of the name and the version of your project. For example, if you specified the following in your <code>settings.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">rootProject.name = 'myapp'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and in your <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">group = 'com.company'
+version = '0.0.1-SNAPSHOT'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>then the JAR name will be <code>myapp-0.0.1-SNAPSHOT.jar</code>.</p>
+</div>
+<div class="paragraph">
+<p>The executable JAR file is created in the <code>/build/libs</code> folder. You can copy it anywhere and run as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">java -jar myapp-0.0.1-SNAPSHOT.jar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to customize the packaging process or create a deployable WAR file, refer to the <a href="https://docs.spring.io/spring-boot/gradle-plugin/packaging.html" rel="noopener" target="_blank">Spring Boot Documentation</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="docker-image"><a class="anchor" href="#docker-image"></a>Creating Docker Image</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="using-dockerfile"><a class="anchor" href="#using-dockerfile"></a>Using Dockerfile</h3>
+<div class="paragraph">
+<p>The most standard and reliable way of creating a Docker image is to use a Dockerfile. It  works in any environment and can be adjusted for any requirements. The simplest Dockerfile is shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">Dockerfile</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-dockerfile hljs" data-lang="dockerfile">FROM eclipse-temurin:21-jre-alpine
+COPY build/libs/*.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "/app.jar"]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To build an image using a Dockerfile, do the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a Dockerfile in the project root folder.</p>
+</li>
+<li>
+<p>Build an executable JAR file as described in the <a href="#bootJar">previous section</a>.</p>
+</li>
+<li>
+<p>Build an image, executing the following command in the project root:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">docker build -t IMAGE_NAME .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Replace <code>IMAGE_NAME</code> with your preferred image name.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="bootBuildImage"><a class="anchor" href="#bootBuildImage"></a>Using bootBuildImage</h3>
+<div class="paragraph">
+<p>The Gradle’s <code>bootBuildImage</code> task allows you to build an optimized image.</p>
+</div>
+<div class="paragraph">
+<p>Open the terminal in the project root folder and execute the following command:</p>
+</div>
+<div class="listingblock">
+<div class="title">Linux and macOS</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">./gradlew -Pvaadin.productionMode=true bootBuildImage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Windows</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gradlew "-Pvaadin.productionMode=true" bootBuildImage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, the image will be created with the name of your project and tag which is equal to you project’s version.</p>
+</div>
+<div class="paragraph">
+<p>For example, if you specified the following in your <code>settings.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">rootProject.name = 'myapp'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and in your <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">group = 'com.company'
+version = '0.0.1-SNAPSHOT'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>then the created image will be <code>myapp:0.0.1-SNAPSHOT</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you are using the <a class="xref page" href="../grid-export/index.html">Grid Export Actions</a> add-on for exporting to Excel, you may need to add the following configuration to your <code>build.gradle</code> to make sure the image includes all required fonts:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">tasks.named("bootBuildImage") {
+    builder = "paketobuildpacks/builder-jammy-full"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can find more information on image generation and customization in the <a href="https://docs.spring.io/spring-boot/gradle-plugin/packaging-oci-image.html" rel="noopener" target="_blank">Spring Boot Documentation</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="bootWar"><a class="anchor" href="#bootWar"></a>Deploying WAR</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to build a WAR file for deployment to an application server, follow these steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Make sure your main application class extends <code>SpringBootServletInitializer</code>, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SpringBootApplication
+public class MyApplication
+        extends SpringBootServletInitializer
+        implements AppShellConfigurator {
+    // ...
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add the <code>war</code> plugin to the <code>plugins</code> section of your <code>build.gradle</code> file:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">plugins {
+    // ...
+    id 'war'
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Open the terminal in the project root folder and execute the following command:</p>
+<div class="listingblock">
+<div class="title">Linux and macOS</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">./gradlew -Pvaadin.productionMode=true bootWar</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Windows</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">gradlew "-Pvaadin.productionMode=true" bootWar</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The WAR file is created in the <code>/build/libs</code> folder. The file name is generated as described in the <a href="#bootJar">previous section</a>.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You need at least Tomcat 10 to run applications because since Jmix 2.0 they require support for Jakarta EE 9 (<code>jakarta.*</code> namespace), see <a href="https://tomcat.apache.org/migration-10.html#Specification_APIs" rel="noopener" target="_blank">Tomcat documentation</a> for details.</p>
+</div>
+<div class="paragraph">
+<p>Use the latest Tomcat 10 to deploy Jmix WAR.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="jndi-data-source"><a class="anchor" href="#jndi-data-source"></a>Using JNDI Data Source</h3>
+<div class="paragraph">
+<p>When deploying your application as a WAR, you can use a JNDI data source provided by the application server to externalize connection settings.</p>
+</div>
+<div class="paragraph">
+<p>See below how to configure the main <code>DataSource</code> of your application for development and production environments using the Spring’s <a href="https://docs.spring.io/spring-boot/reference/features/profiles.html" rel="noopener" target="_blank">profiles</a> feature.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In your main application class, add <code>@Profile("!prod")</code> annotation to <code>dataSourceProperties</code> and <code>dataSource</code> methods to make sure these beans are created only in development environment:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Profile("!prod")
+@Bean
+@Primary
+@ConfigurationProperties("main.datasource")
+DataSourceProperties dataSourceProperties() {
+    return new DataSourceProperties();
+}
+
+@Profile("!prod")
+@Bean
+@Primary
+@ConfigurationProperties("main.datasource.hikari")
+DataSource dataSource(DataSourceProperties dataSourceProperties) {
+    return dataSourceProperties.initializeDataSourceBuilder().build();
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add a method creating a <code>DataSource</code> bean for the production environment:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Profile("prod")
+@Bean(name = "dataSource")
+@Primary
+DataSource prodDataSource(ApplicationContext context) {
+    JndiDataSourceLookup lookup = new JndiDataSourceLookup();
+    DataSource dataSource = lookup.getDataSource("java:comp/env/jdbc/demo"); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    // to avoid org.springframework.jmx.export.UnableToRegisterMBeanException:
+    for (MBeanExporter mbeanExporter : context.getBeansOfType(MBeanExporter.class).values()) {
+        if (JmxUtils.isMBean(((Object) dataSource).getClass())) {
+            mbeanExporter.addExcludedBean("dataSource");
+        }
+    }
+
+    return dataSource;
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>JNDI name of the data source provided by the application server.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>When running the application server, set active profile to <code>prod</code> in <code>spring.profiles.active</code> application property.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Below is an example of configuring Tomcat for deploying a <code>demo.war</code> application.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Copy <code>demo.war</code> to <code>tomcat/webapps</code> folder.</p>
+</li>
+<li>
+<p>Create <code>tomcat/bin/setenv.sh</code> file with the following content:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">CATALINA_OPTS="-Dspring.profiles.active=prod"</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create <code>tomcat/conf/Catalina/localhost/demo.xml</code> file defining the data source and set appropriate database connection parameters (XML file name must be the same as your WAR name):</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;Context&gt;
+    &lt;Resource type="javax.sql.DataSource"
+              name="jdbc/demo"
+              driverClassName="org.postgresql.Driver"
+              url="jdbc:postgresql://localhost/demo"
+              username="root"
+              password="root"
+              maxIdle="2"
+              maxTotal="20"
+              maxWaitMillis="5000"
+    /&gt;
+&lt;/Context&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that the <code>name</code> attribute of the <code>Resource</code> element defines the JNDI name used in the <code>JndiDataSourceLookup.getDataSource()</code> method when creating the <code>DataSource</code> bean.</p>
+</div>
+</li>
+<li>
+<p>Copy an appropriate JDBC driver file (for example, <code>postgresql-42.2.9.jar</code>) to <code>tomcat/lib</code>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>When you start Tomcat, the application will use the data source defined in the <code>tomcat/conf/Catalina/localhost/demo.xml</code> file.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

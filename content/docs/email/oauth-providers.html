@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setting up OAuth for Google and Microsoft :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Setting up OAuth for Google and Microsoft</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix application can use OAuth 2.0 token-based authorization to work with email service providers. This method offers enhanced security compared to basic authentication with login and password. Many providers are gradually deprecating support of basic authentication, leaving OAuth as the only viable authentication type.</p>
+</div>
+<div class="paragraph">
+<p>This section describes the process to obtain OAuth credentials for Google and Microsoft, along with the setup steps for Jmix application.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_google"><a class="anchor" href="#_google"></a>Google</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To enable OAuth with Google, register your OAuth application and generate credentials. Then, set up your Jmix application using obtained credentials.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The instructions below are based on the Google Developer documentation for <a href="https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow" rel="noopener" target="_blank">setting up OAuth for web Applications</a>. Please check this link for the most up-to-date procedures and any use case specifics.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_create_a_project"><a class="anchor" href="#_create_a_project"></a>Create a Project</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Sign in to the <a href="https://console.cloud.google.com/">Google Cloud console</a>.</p>
+</li>
+<li>
+<p>In the top bar, click <strong>Select a project</strong>.</p>
+</li>
+<li>
+<p>Click <strong>New project</strong> and enter you project information.</p>
+<div class="paragraph">
+<p><span class="image"><img alt="google oauth project" src="_images/google-oauth-project.png" width="550"/></span></p>
+</div>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_an_oauth_2_0_application"><a class="anchor" href="#_create_an_oauth_2_0_application"></a>Create an OAuth 2.0 application</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select the project created previously.</p>
+</li>
+<li>
+<p>Click the menu button in the top left corner, and select <strong>APIs &amp; Services → OAuth consent screen</strong>.</p>
+</li>
+<li>
+<p>Click <strong>Get Started</strong>.</p>
+</li>
+<li>
+<p>Complete the form:</p>
+<div class="paragraph">
+<p><span class="image"><img alt="google oauth app" src="_images/google-oauth-app.png" width="685"/></span></p>
+</div>
+</li>
+<li>
+<p>Click <strong>Create</strong></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_enable_api_for_your_project"><a class="anchor" href="#_enable_api_for_your_project"></a>Enable API for your project</h3>
+<div class="paragraph">
+<p>To send emails, your application needs Gmail API:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open <a href="https://console.developers.google.com/apis/library" rel="noopener" target="_blank">the API Library</a>. If prompted, select your project.</p>
+</li>
+<li>
+<p>Search for the Gmail API and enable it.</p>
+<div class="paragraph">
+<p><span class="image"><img alt="google oauth 1" src="_images/google-oauth-1.png" width="1280"/></span></p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_authorization_credentials"><a class="anchor" href="#_create_authorization_credentials"></a>Create authorization credentials</h3>
+<div class="paragraph">
+<p>To access the API, your application must have authorization credentials:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to the <a href="https://console.developers.google.com/auth/clients">Clients page</a>.</p>
+</li>
+<li>
+<p>If prompted, select your project.</p>
+</li>
+<li>
+<p>Click <strong>Create client</strong>.</p>
+</li>
+<li>
+<p>Select the <strong>Web application</strong> application type.</p>
+</li>
+<li>
+<p>Complete the form:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong>: (Provide any descriptive name.)</p>
+</li>
+<li>
+<p><strong>Authorized JavaScript origins</strong>: <a class="bare" href="http://localhost:8080">http://localhost:8080</a> (Use the address of your Jmix application. The origins identify the domains from which your application can send requests to the OAuth 2.0 server.)</p>
+</li>
+<li>
+<p><strong>Authorized redirect URIs</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="bare" href="http://localhost:8080">http://localhost:8080</a> (Use the address of your Jmix application.)</p>
+</li>
+<li>
+<p><a class="bare" href="https://developers.google.com/oauthplayground">https://developers.google.com/oauthplayground</a> (Add this URI to access the Google Developers OAuth2 playground in order to obtain a token in the next step)</p>
+<div class="paragraph">
+<p><span class="image"><img alt="google oauth 2" src="_images/google-oauth-2.png" width="550"/></span></p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+<li>
+<p>Copy or download the <strong>Client ID</strong> and <strong>Client secret</strong> and store it securely. You will need this information later.</p>
+<div class="paragraph">
+<p><span class="image"><img alt="google oauth 3" src="_images/google-oauth-3.png" width="427"/></span></p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_obtain_refresh_token"><a class="anchor" href="#_obtain_refresh_token"></a>Obtain Refresh Token</h3>
+<div class="paragraph">
+<p>Token will be obtained via Authorization Code flow using Google Developers OAuth2 playground.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can use other approaches to go through Authorization Code flow, such as using Postman, <a href="https://oauthdebugger.com">oauthdebugger</a>, or manual requests.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <a href="https://developers.google.com/oauthplayground">Google Developers OAuth2 Playground</a>.</p>
+</li>
+<li>
+<p>Open OAuth 2.0 configuration (gear icon).</p>
+<div class="paragraph">
+<p><span class="image"><img alt="google oauth 4" src="_images/google-oauth-4.png" width="421"/></span></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Select the <strong>Use your own OAuth credentials</strong> checkbox.</p>
+</li>
+<li>
+<p>Input your <strong>Client ID</strong> and <strong>Client Secret</strong>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>In the list of scopes on the left select <strong>Gmail API</strong> → <strong><a class="bare" href="https://mail.google.com/">https://mail.google.com/</a></strong></p>
+</li>
+<li>
+<p>Click <strong>Authorize APIs</strong> and go through consent screens.</p>
+</li>
+<li>
+<p>Now you have <strong>Authorization code</strong>. Click <strong>Exchange authorization code for tokens</strong>.</p>
+<div class="paragraph">
+<p><span class="image"><img alt="google oauth 5" src="_images/google-oauth-5.png" width="492"/></span></p>
+</div>
+</li>
+<li>
+<p>Copy <strong>Refresh token</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configure_application_properties"><a class="anchor" href="#_configure_application_properties"></a>Configure application properties</h3>
+<div class="paragraph">
+<p>Use the credentials to configure the <code>application.properties</code> file of your Jmix application:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.protocol=smtp
+spring.mail.username=&lt;account_name&gt;
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com
+spring.mail.properties.mail.smtp.auth.mechanisms=XOAUTH2
+spring.mail.properties.mail.smtp.sasl.enable=true
+spring.mail.properties.mail.smtp.sasl.mechanisms=XOAUTH2
+spring.mail.properties.mail.smtp.auth.login.disable=true
+spring.mail.properties.mail.smtp.auth.xoauth2.disable=false
+
+jmix.email.oauth2.enabled=true
+jmix.email.oauth2.provider=google
+jmix.email.oauth2.client-id=&lt;client_id&gt;
+jmix.email.oauth2.secret=&lt;client_secret&gt;
+jmix.email.oauth2.refresh-token=&lt;refresh_token&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Where <code>&lt;account_name&gt;</code> is the email address used for configuration. And <code>&lt;client_id&gt;</code>, <code>&lt;client_secret&gt;</code>, <code>&lt;refresh_token&gt;</code> are values obtained during the configuration process.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Alternatively, you can provide or change the refresh token value at runtime via <strong>Email</strong> → <strong><a class="xref page" href="menu-views/oauth-token.html">OAuth2 token</a></strong> view.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_add_gradle_dependency"><a class="anchor" href="#_add_gradle_dependency"></a>Add gradle dependency</h3>
+<div class="paragraph">
+<p>Add the following dependency to your <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'com.google.auth:google-auth-library-oauth2-http'</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_microsoft"><a class="anchor" href="#_microsoft"></a>Microsoft</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To enable OAuth with Microsoft, register your OAuth application and generate credentials. Then, set up your Jmix application using obtained credentials.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The instructions below are based on the <a href="https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app">Microsoft Entra documentation</a>. Please check this link for the most up-to-date procedures and any use case specifics.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_register_the_application"><a class="anchor" href="#_register_the_application"></a>Register the application</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Sign in to the <a href="https://portal.azure.com" rel="noopener" target="_blank">Microsoft Azure portal</a>.</p>
+</li>
+<li>
+<p>If you have multiple Azure Active Directory tenants, switch to the desired tenant.</p>
+</li>
+<li>
+<p>Navigate to <strong>App registrations</strong>.</p>
+</li>
+<li>
+<p>Click <strong>New Registration</strong> and provide the following information:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Enter a name for your app.</p>
+</li>
+<li>
+<p>Under <strong>Supported account types</strong>, select the option applicable to your business scenario.</p>
+</li>
+<li>
+<p>Under <strong>Redirect URI</strong>, choose <strong>Web</strong> in the <strong>Select a platform</strong> dropdown and set <a class="bare" href="http://localhost:8080">http://localhost:8080</a> (address of your Jmix application) as redirect URI.</p>
+<div class="paragraph">
+<p><span class="image"><img alt="microsoft oauth app" src="_images/microsoft-oauth-app.png" width="971"/></span></p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <strong>Register</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Your application is now available under <strong>Home</strong> → <strong>App Registrations</strong>. Within the application you can view values for <strong>Application (client) ID</strong> and <strong>Directory (tenant) ID</strong>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_generate_a_client_secret"><a class="anchor" href="#_generate_a_client_secret"></a>Generate a Client Secret</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open your application and navigate to <strong>Certificates &amp; Secrets</strong>.</p>
+</li>
+<li>
+<p>Click <strong>New Client Secret</strong>.</p>
+</li>
+<li>
+<p>Enter a description and an expiry period.</p>
+</li>
+<li>
+<p>Click <strong>Add</strong> then copy the key <strong>Value</strong>. This is the OAuth 2.0 client secret.</p>
+<div class="paragraph">
+<p><span class="image"><img alt="microsoft oauth 1" src="_images/microsoft-oauth-1.png" width="1191"/></span></p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuring_api_permissions"><a class="anchor" href="#_configuring_api_permissions"></a>Configuring API Permissions</h3>
+<div class="paragraph">
+<p>To send emails, your application needs certain permissions:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open your application and navigate to <strong>API permissions</strong>.</p>
+</li>
+<li>
+<p>Add SMTP.Send permission.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_obtain_refresh_token_2"><a class="anchor" href="#_obtain_refresh_token_2"></a>Obtain Refresh Token</h3>
+<div class="paragraph">
+<p>Token will be obtained via authorization Code flow using the browser and CLI.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can use other approaches to go through Authorization Code flow, such as using Postman, <a href="https://oauthdebugger.com">oauthdebugger</a>, or manual requests. The process described below uses browser and CLI.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Navigate to the following URL:</p>
+<div class="listingblock">
+<div class="content">
+<pre>// Line breaks for legibility only
+
+https://login.microsoftonline.com/&lt;tenant_id&gt;/oauth2/v2.0/authorize?
+client_id=&lt;client_id&gt;
+&amp;response_type=code
+&amp;redirect_uri=http://localhost:8080
+&amp;response_mode=query
+&amp;scope=offline_access%20https://outlook.office.com/SMTP.Send</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This may require admin consent to get access to requested API permissions. Once the user authenticates and grants consent, the Microsoft identity platform returns a response. This example shows a successful response:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>http://localhost:8080/?
+code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGBCmLdgfSTLEMPGYuNHSUYBrq...
+&amp;session_state=12345</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Save the value of the <code>code</code> parameter from the response.</p>
+</li>
+<li>
+<p>Exchange code for token:</p>
+<div class="listingblock">
+<div class="content">
+<pre> curl -X POST https://login.microsoftonline.com/&lt;tenant_id&gt;/oauth2/v2.0/token \
+-H "Content-Type: application/x-www-form-urlencoded" \
+-d "grant_type=authorization_code" \
+-d "client_id=&lt;client_id&gt;" \
+-d "client_secret=&lt;client_secret&gt;" \
+-d "code=&lt;code_value&gt;" \
+-d "redirect_uri=http://localhost:8080" \
+-d "scope=offline_access https://outlook.office.com/SMTP.Send email openid"</pre>
+</div>
+</div>
+</li>
+<li>
+<p>A successful response contains a <code>refresh_token</code> value. Copy its value for future use.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configure_application_properties_2"><a class="anchor" href="#_configure_application_properties_2"></a>Configure application properties</h3>
+<div class="paragraph">
+<p>Use the credentials to configure the <code>application.properties</code> file of your Jmix application:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.mail.host=smtp.office365.com
+spring.mail.port=587
+spring.mail.protocol=smtp
+spring.mail.username=&lt;account_name&gt;
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.ssl.trust=smtp.office365.com
+spring.mail.properties.mail.smtp.auth.mechanisms=XOAUTH2
+spring.mail.properties.mail.smtp.sasl.enable=true
+spring.mail.properties.mail.smtp.sasl.mechanisms=XOAUTH2
+spring.mail.properties.mail.smtp.auth.login.disable=true
+spring.mail.properties.mail.smtp.auth.xoauth2.disable=false
+
+jmix.email.oauth2.enabled=true
+jmix.email.oauth2.provider=microsoft
+jmix.email.oauth2.client-id=&lt;client_id&gt;
+jmix.email.oauth2.secret=&lt;client_secret&gt;
+jmix.email.oauth2.tenant-id=&lt;tenant_id&gt;
+jmix.email.oauth2.refresh-token=&lt;refresh_token&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Where <code>&lt;account_name&gt;</code> is the email address used for configuration. And <code>&lt;client_id&gt;</code>, <code>&lt;client_secret&gt;</code>, <code>&lt;refresh_token&gt;</code>, <code>&lt;tenant_id&gt;</code> are values obtained during the configuration process.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Alternatively, you can provide or change the refresh token value at runtime via <strong>Email</strong> → <strong><a class="xref page" href="menu-views/oauth-token.html">OAuth2 token</a></strong> view.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_add_gradle_dependency_2"><a class="anchor" href="#_add_gradle_dependency_2"></a>Add gradle dependency</h3>
+<div class="paragraph">
+<p>Add the following dependency to your <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'com.google.auth:google-auth-library-oauth2-http'</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

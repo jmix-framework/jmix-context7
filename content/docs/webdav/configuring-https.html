@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3. Working with Desktop Applications :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">3. Working with Desktop Applications</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>To authenticate desktop applications, the server must have HTTPS enabled. Here are simple instructions for configuring HTTPS in your development environment.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-libreoffice"><a class="anchor" href="#using-libreoffice"></a>Using LibreOffice</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Install LibreOffice and configure the <a class="xref page" href="webdav-properties.html#jmix.webdav.applications">jmix.webdav.applications</a> property to open all files in it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.webdav.applications = {"vnd.libreoffice.command":\
+  {"name":"LibreOffice","protocols":\
+  {"writable":"vnd.libreoffice.command:ofe|u|",\
+  "read_only":"vnd.libreoffice.command:ofv|u|"},\
+  "extensions":["odt", "ods", "odp", "doc", "docx", "xls", "xlsx", "ppt", "pptx"]}}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="keystore-file"><a class="anchor" href="#keystore-file"></a>Creating a Keystore File</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Install <code>mkcert</code> utility by following the instructions provided in its repository: <a href="https://github.com/FiloSottile/mkcert" rel="noopener" target="_blank">https://github.com/FiloSottile/mkcert</a>.</p>
+</li>
+<li>
+<p>Generate and install the root certificate:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">mkcert -install</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a certificate for localhost:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">mkcert -pkcs12 localhost 127.0.0.1 ::1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You will see the <code>localhost+2.p12</code> file in the current folder.</p>
+</div>
+</li>
+<li>
+<p>Create a keystore file with the certificate for your project:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">keytool -importkeystore -srckeystore localhost+2.p12 -srcstoretype pkcs12 -destkeystore localhost.jks</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Enter <code>changeit</code> as the source keystore password.</p>
+</div>
+<div class="paragraph">
+<p>You will see the <code>localhost.jks</code> file in the current folder.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuring-server"><a class="anchor" href="#configuring-server"></a>Configuring Server</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section explains how to use the certificate generated in the previous section in your application when it runs from the IDE or as an executable JAR.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create <code>src/main/resources/&lt;base-package&gt;/keystore</code> directory and copy <code>localhost.jks</code> into it.</p>
+</li>
+<li>
+<p>Set the following properties in the <code>application.properties</code> file replacing <code>&lt;base-package&gt;</code> and <code>&lt;password&gt;</code> with actual values:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># Enables HTTPS
+server.ssl.enabled=true
+# The format used for the keystore
+server.ssl.key-store-type = JKS
+# The path to the keystore containing the certificate
+server.ssl.key-store = classpath:&lt;base-package&gt;/keystore/localhost.jks
+# The password used to generate the keystore
+server.ssl.key-store-password = &lt;password&gt;
+# The alias mapped to the certificate
+server.ssl.key-alias = localhost
+
+# Changes the server's port
+server.port = 8443</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The <code>&lt;base-package&gt;</code> in the path to the keystore (<code>server.ssl.key-store</code> property) should be presented as a slash-separated path:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>server.ssl.key-store = classpath:com/example/demo/keystore/localhost.jks</pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Open the main application class and change the <code>printApplicationUrl()</code> method. The URL should be changed to <code>https://</code> after configuring HTTPS:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@EventListener
+public void printApplicationUrl(final ApplicationStartedEvent event) {
+    LoggerFactory.getLogger(DemoApplication.class).info("Application started at "
+            + "https://localhost:"
+            + environment.getProperty("local.server.port")
+            + Strings.nullToEmpty(environment.getProperty("server.servlet.context-path")));
+}</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="running-application"><a class="anchor" href="#running-application"></a>Running the Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After following the instructions outlined above, launch the application at <code>https://localhost:8443</code>.</p>
+</div>
+<div class="paragraph">
+<p>Choose the <strong>Knowledge base</strong> item from the <strong>Application</strong> menu. Click on the WebDAV document link.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="open webdav doc1" src="_images/open-webdav-doc1.png" width="1432"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The browser will display a dialog prompting the user to open the WebDAV file in LibreOffice. Agree to open the file.</p>
+</div>
+<div class="paragraph">
+<p>Once the WebDAV document is edited and saved, a new version of the document will be created, which will be the latest version.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="open webdav doc3" src="_images/open-webdav-doc3.png" width="1169"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You have learned that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>To enable opening and editing of WebDAV documents using desktop office applications, it is necessary to set up HTTPS for your web application. This is essential for ensuring secure communication between desktop office applications and the WebDAV server, particularly when handling sensitive document editing and saving operations.</p>
+</li>
+<li>
+<p>HTTPS encryption provides a secure channel for transmitting data, preventing unauthorized access and guaranteeing the integrity of the document editing process.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

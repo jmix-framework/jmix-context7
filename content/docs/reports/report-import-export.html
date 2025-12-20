@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importing and Exporting Reports :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Importing and Exporting Reports</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Jmix Reports add-on provides features to handle the export and import of report definitions directly from the UI and programmatically.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="manually"><a class="anchor" href="#manually"></a>Manually</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Reports add-on allows you to manually import and export reports directly from the <strong>Reports</strong> view by clicking the <strong>Import</strong> and <strong>Export</strong> buttons. See <a class="xref page" href="reports-ui.html#export-import">Report List View</a> for more information.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="report-import-export"><a class="anchor" href="#report-import-export"></a>Using ReportImportExport</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Jmix Reports add-on provides the <code>ReportImportExport</code> API which allows you to import ZIP files with exported reports.</p>
+</div>
+<div class="paragraph">
+<p>Consider the example of automated report deployment within a Jmix project. The reports have been manually exported and saved as ZIP archives to the project’s resources directory.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class DemoDataInitializer { <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @Autowired
+    private DataManager dataManager;
+
+    @Autowired
+    private Resources resources;
+
+    @Autowired
+    protected ReportImportExport reportImportExport;
+
+    private final static String REPORT_LOCATION = "com/company/library/reports/";
+
+    @EventListener
+    @Authenticated
+    public void onApplicationStarted(ApplicationStartedEvent event) { <i class="conum" data-value="2"></i><b>(2)</b>
+        importReport();
+    }
+
+    private void importReport(){
+        InitFlags initFlags = dataManager.load(InitFlags.class) <i class="conum" data-value="3"></i><b>(3)</b>
+                .id(1)
+                .lockMode(LockModeType.PESSIMISTIC_WRITE)
+                .optional()
+                .orElseGet(() -&gt; {
+                    InitFlags entity = dataManager.create(InitFlags.class);
+                    entity.setId(1);
+                    return entity;
+                });
+
+        if (!Boolean.TRUE.equals(initFlags.getReportsInitialized())) {
+            importReport("Book Items location.zip");
+            importReport("Book Record.zip");
+            importReport("Publication details.zip");
+            importReport("Publications grouped by types and books.zip");
+            importReport("Recently added book items.zip");
+
+            initFlags.setReportsInitialized(true);
+            dataManager.save(initFlags);
+        }
+    }
+
+    private void importReport(String reportFileName) {
+        String location = REPORT_LOCATION + reportFileName;
+        log.info("Initializing report from " + location);
+        try (InputStream stream = resources.getResourceAsStream(location)) {
+            if (stream != null) {
+                reportImportExport.importReports(IOUtils.toByteArray(stream)); <i class="conum" data-value="4"></i><b>(4)</b>
+            } else {
+                log.info("Not found: " + location);
+            }
+        } catch (IOException e) {
+            log.error("Unable to initialize reports", e);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>DemoDataInitializer</code> bean is responsible for triggering the report import on application startup.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>This method is automatically invoked when the <code>ApplicationStartedEvent</code> is published. We’ll put our initialization logic in here. <code>ApplicationStartedEvent</code> is a Spring event that is published after the entire application has been initialized and is ready to process requests. It signals the successful startup of your Jmix application.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>DemoDataInitializer</code> utilizes an <code>InitFlags</code> entity to persist a flag that’s set to <code>true</code> after the initial import. This flag uses a pessimistic database lock to avoid concurrent execution when multiple servers in a cluster are starting up. Moreover, you have the flexibility to define alternative conditions for report creation/updates or even trigger <code>ReportImportExport</code> via a manual command in the application’s user interface.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <code>ReportImportExport</code> bean handles the actual report import.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

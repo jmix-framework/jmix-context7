@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>genericFilter :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">genericFilter</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/generic-filter-multiple-conditions" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>genericFilter</code> component is a versatile tool to dynamically filter data.</p>
+</div>
+<div class="paragraph">
+<p>The component enables <a href="#quick-filter-example">quick data filtering</a> with a set of temporary conditions, as well as creating <a href="#configuration">configurations</a> for repeated use.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>XML element: <code>genericFilter</code></p>
+</li>
+<li>
+<p>Java class: <code>GenericFilter</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>genericFilter</code> component is added by default on some standard views, such as a <a class="xref page" href="../../views/views.html#standard-list-view">list view</a> of an entity. A typical filter is shown below:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter anatomy" src="../../_images/visual-components/components/generic-filter-anatomy.png" width="768"/>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a id="refresh-button"></a> The <strong>Refresh</strong> button with the drop-down menu.</p>
+</li>
+<li>
+<p><a id="operator-selector"></a> The comparison operator selector.</p>
+</li>
+<li>
+<p><a id="filter-settings-button"></a> The <strong>Filter Settings</strong> button.</p>
+</li>
+<li>
+<p><a id="refresh-drop-down-menu"></a> The list of saved filters and configurations.</p>
+</li>
+<li>
+<p><a id="condition-field"></a> The condition value field.</p>
+</li>
+<li>
+<p><a id="add-condition-link"></a> The <strong>Add search condition</strong> link.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>To operate, <code>genericFilter</code> should be connected to a data loader of a standalone <code>CollectionContainer</code> or <code>keyValueCollectionContainer</code>. It generates a <code>Condition</code> object that is set to the loader and later processed by the <a class="xref page" href="../../../data-model/data-stores.html">data store</a>. For a <a class="xref page" href="../../../data-model/entities.html#jpa">JPA entity</a>, the data store translates the resulting JPQL query, so that filtering is done on the database level, and then only the result is loaded from the database to the application memory.</p>
+</div>
+<div class="paragraph">
+<p>The following example demonstrates basic <code>genericFilter</code> and some related components:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="customerDc" class="com.company.onboarding.entity.Customer"&gt;  <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;fetchPlan extends="_base"&gt;
+        &lt;/fetchPlan&gt;
+        &lt;loader id="customerDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select c from Customer c]]&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;genericFilter id="genericFilter" dataLoader="customerDl"&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+        &lt;properties include=".*"/&gt;
+    &lt;/genericFilter&gt;
+    &lt;dataGrid id="customersTable"
+              width="100%"
+              dataContainer="customerDc"&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+        &lt;columns&gt;
+            &lt;column property="level"/&gt;
+            &lt;column property="age"/&gt;
+            &lt;column property="hobby"/&gt;
+            &lt;column property="firstName"/&gt;
+            &lt;column property="lastName"/&gt;
+            &lt;column property="rewardPoints"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The data container holds the collections of <code>Customer</code> entity instances.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The loader component declares a JPQL query to load all instances of <code>Customer</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>genericFilter</code> component is bound to the loader through its <code>dataLoader</code> attribute.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><a class="xref page" href="dataGrid.html"><code>dataGrid</code></a> displaying the data from the data container. The list of records will change as they are filtered.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="quick-filter-example"><a class="anchor" href="#quick-filter-example"></a>Quick Filter Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, the component is in quick filter mode. It means that a user can add a temporary set of conditions that only remains in effect for the duration of the current page session. After the page is closed, the conditions will disappear.</p>
+</div>
+<div class="paragraph">
+<p>Let’s assume that we have the <code>Customer</code> entity and want to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a quick filter with multiple conditions on the <strong>Customer list</strong> view.</p>
+</li>
+<li>
+<p>Save this filter for future use.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_creating_a_quick_filter"><a class="anchor" href="#_creating_a_quick_filter"></a>Creating a Quick Filter</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Click <a href="#add-condition-link"><strong>Add search condition</strong></a>.</p>
+</li>
+<li>
+<p>Select the <a href="#condition-types">properties</a> to filter by. For example: <strong>Age</strong> and <strong>Hobby</strong>.</p>
+</li>
+<li>
+<p>Select an <a class="xref page" href="propertyFilter.html#operation">operator</a> and enter a value for each property.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter quick" src="../../_images/visual-components/components/generic-filter-quick.png" width="860"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_saving_configuration"><a class="anchor" href="#_saving_configuration"></a>Saving Configuration</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Click <span class="image"><img alt="generic filter settings button" src="../../_images/visual-components/components/generic-filter-settings-button.png" width="42"/></span>→ <strong>Save with values</strong>.</p>
+</li>
+<li>
+<p>Enter a configuration name and click <strong>OK</strong> to save:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter save" src="../../_images/visual-components/components/generic-filter-save.png" width="562"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This configuration can now be selected in the drop-down menu.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter refresh" src="../../_images/visual-components/components/generic-filter-refresh.png" width="390"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To reset all currently applied conditions select the <strong>&lt;Reset filter&gt;</strong> menu option on top.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-conditions"><a class="anchor" href="#adding-conditions"></a>Adding Conditions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Click the <strong>Add search condition</strong> link [<a href="#add-condition-link">6</a>] to open the <strong>Add condition</strong> dialog:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter add condition dialog" src="../../_images/visual-components/components/generic-filter-add-condition-dialog.png" width="402"/>
+</div>
+</div>
+<div class="paragraph" id="condition-types">
+<p>Possible condition types are as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Properties</strong> — attributes of this and related entities that can be used as filter properties. They are displayed according to the rules specified in the <a href="#properties-element">properties</a> element and may include both persistent and <a class="xref page" href="../../../dyn-attr/index.html">dynamic attributes</a>.</p>
+</li>
+<li>
+<p><strong>Predefined conditions</strong> — conditions specified at design-time by the developer in the <a href="#conditions-element">conditions</a> element.</p>
+</li>
+<li>
+<p><strong>Configurations</strong> — existing filter configurations. They can be created either at <a href="#design-time-configuration">design-time</a> by the developer, or by the user at <a href="#run-time-configuration">run-time</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Once a condition is added, it appears in the conditions panel. When a condition is no longer needed, it can be removed by clicking <span class="image"><img alt="generic filter remove" src="../../_images/visual-components/components/generic-filter-remove.png" width="13"/></span> next to it.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-conditions"><a class="anchor" href="#creating-conditions"></a>Creating Conditions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If there is no suitable condition yet, you can proceed to create it from the same dialog.
+The drop-down actions of the <strong>Create</strong> button correspond to the <a class="xref page" href="genericFilter-components.html#filter-compponent-registration">registered</a> filter components.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter create button" src="../../_images/visual-components/components/generic-filter-create-button.png" width="402"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Three such components are available by default: <a class="xref page" href="genericFilter-components.html#property-filter">propertyFilter</a>, <a class="xref page" href="genericFilter-components.html#jpql-filter">jpqlFilter</a>, and <a class="xref page" href="genericFilter-components.html#group-filter">groupFilter</a>.</p>
+</div>
+<div class="paragraph">
+<p>Clicking an action opens a corresponding condition editor:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#property-conditions">Property conditions</a> editor</p>
+</li>
+<li>
+<p><a href="#jpql-conditions">JPQL conditions</a> editor</p>
+</li>
+<li>
+<p><a href="#group-conditions">Group conditions</a> editor</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Advanced <a class="xref page" href="../../../search/search-in-ui.html#fts-condition-in-filter-component">Full-text search condition</a> is available as a part the <a class="xref page" href="../../../search/index.html">Search</a> add-on.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="property-conditions"><a class="anchor" href="#property-conditions"></a>Property Conditions</h3>
+<div class="paragraph">
+<p>The <strong>Property condition editor</strong> allows users to set an entity attribute as a filter parameter and perform filtering against it. Use <strong>Add search condition</strong> → <strong>+ Create</strong> → <strong>Create Property condition</strong> to open the editor.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter property condition editor" src="../../_images/visual-components/components/generic-filter-property-condition-editor.png" width="514"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The editor has the following controls and fields:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Property</strong> — accepts an entity attribute.</p>
+</li>
+<li>
+<p><strong>Operation</strong> — sets a comparison operator. The list displays only those operators that are compatible with the current property.</p>
+</li>
+<li>
+<p><strong>Parameter name</strong> — sets the name of the associated query parameter. Use this name to introduce dependencies between conditions of the same configuration. If not set, then parameter name is randomly generated.</p>
+</li>
+<li>
+<p><strong>Label</strong> — sets a custom label for this condition as it appears in the panel and editors.</p>
+</li>
+<li>
+<p><strong>Default value</strong> — sets a default value.</p>
+</li>
+<li>
+<p><strong>Operation editable</strong> — allows selecting a comparison operation type.</p>
+</li>
+<li>
+<p><strong>Operation text visible</strong> — sets whether the operation label is shown.</p>
+</li>
+<li>
+<p><strong>Visible</strong> — determines whether this condition is shown in the condition panel.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jpql-conditions"><a class="anchor" href="#jpql-conditions"></a>JPQL Conditions</h3>
+<div class="paragraph">
+<p>The <strong>JPQL condition editor</strong> allows users to create condition based on JPQL expressions. Use <strong>Add search condition</strong> → <strong>+ Create</strong> → <strong>Create JPQL condition</strong> to open the editor.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter jpql condition editor" src="../../_images/visual-components/components/generic-filter-jpql-condition-editor.png" width="674"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Field descriptions are provided below:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Parameter type</strong> — accepts a Java class representing the desired parameter type. You can also choose the <code>No parameter</code> option to create a condition without parameter.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter jpql condition editor no parameter" src="../../_images/visual-components/components/generic-filter-jpql-condition-editor-no-parameter.png" width="674"/>
+</div>
+</div>
+<div class="paragraph">
+<p>A condition with <code>No parameter</code> acts somewhat similar to a tag — it filters out data based on a predefined, constant criterion.</p>
+</div>
+</li>
+<li>
+<p><strong>Label</strong> — sets the label for this condition as it appears in the panel and editors.</p>
+</li>
+<li>
+<p><strong>Parameter name</strong> — sets the name of the associated query parameter. Use this name to introduce dependencies between conditions of the same configuration. If not set, then parameter name is randomly generated.</p>
+</li>
+<li>
+<p><strong>Default value</strong> — sets the default value for this condition. This field will be represented by the component compatible with the current value in <strong>Parameter type</strong>.</p>
+</li>
+<li>
+<p><strong>Has IN expression</strong> — determines whether the condition can parse a collection and put it inside the <code>IN</code> clause.</p>
+</li>
+<li>
+<p><strong>Visible</strong> — determines whether this condition is shown in the filter panel.</p>
+</li>
+<li>
+<p><strong>Join</strong> — specifies an optional <code>join</code> clause to be included to the <code>from</code> clause of the data loader. This can be used to create a conditions based on an attribute of a related collection.</p>
+<div class="paragraph">
+<p>When writing this clause:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Start with <code>join</code> or <code>left join</code> keywords.</p>
+</li>
+<li>
+<p>Use the <code>{E}</code> placeholder instead of the entity alias.</p>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>join {E}.city c</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Where</strong> — specifies the <code>where</code> clause to be added to the <code>select</code> query of the data loader.</p>
+<div class="paragraph">
+<p>When writing this clause:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Use the placeholder <code>{E}</code> instead of the entity alias.</p>
+</li>
+<li>
+<p>Set <code>?</code> as the parameter’s value to indicate it is to be passed by the user. There can be only one such parameter in a condition. Besides, there can be any number of <a class="xref page" href="../../../data-access/jpql-extensions.html#session-and-user-attributes">session and user attributes</a> parameters.</p>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{E}.code = ? and {E}.area = :session_area</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="group-conditions"><a class="anchor" href="#group-conditions"></a>Group Conditions</h3>
+<div class="paragraph">
+<p>The <strong>Group condition editor</strong> allows users to combine conditions into a logical group. Use <strong>Add search condition</strong> → <strong>+ Create</strong> → <strong>Create Property condition</strong> to open the editor.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter group condition editor" src="../../_images/visual-components/components/generic-filter-group-condition-editor.png" width="1025"/>
+</div>
+</div>
+<div class="paragraph">
+<p>This editor has two areas — one to configure group basic properties, and the other to add and show conditions currently in the group. The description of the fields in each area is given below.</p>
+</div>
+<div class="sect3">
+<h4 id="_group_condition"><a class="anchor" href="#_group_condition"></a>Group condition</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Operation</strong> — logical operator used to join conditions in a group. Group has two logical operators: <strong>AND</strong> or <strong>OR</strong>.</p>
+</li>
+<li>
+<p><strong>Label</strong> — sets the label for this condition as it appears in the conditions panel and editors. If not set, the name of the operation (<strong>AND</strong> or <strong>OR</strong>) is displayed instead.</p>
+</li>
+<li>
+<p><strong>Operation text visible</strong> — determines whether the name of the operation is displayed.</p>
+</li>
+<li>
+<p><strong>Visible</strong> — determines whether this group is shown in the filter panel.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_conditions"><a class="anchor" href="#_conditions"></a>Conditions</h4>
+<div class="paragraph">
+<p>Conditions of the group are shown in the tree view. Use the following actions to manage them.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Add</strong> — opens the <strong>Add condition</strong> dialog letting you pick necessary ones.</p>
+</li>
+<li>
+<p><strong>Edit</strong> — opens an appropriate editor for a condition selected in the tree view.</p>
+</li>
+<li>
+<p><strong>Remove</strong> — removes all conditions that are currently selected in the tree view.</p>
+</li>
+<li>
+<p><span class="image"><img alt="generic filter move up" src="../../_images/visual-components/components/generic-filter-move-up.png" width="42"/></span>/<span class="image"><img alt="generic filter move down" src="../../_images/visual-components/components/generic-filter-move-down.png" width="42"/></span>  — buttons to change the order in which the conditions of the group appear.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuration"><a class="anchor" href="#configuration"></a>Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Configuration is a set of conditions saved for later use. It can include conditions of any type as well as another configuration.</p>
+</div>
+<div class="paragraph">
+<p>Configurations can be created either at <a href="#design-time-configuration">design-time</a> by the developer, or by the user at <a href="#run-time-configuration">run-time</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="design-time-configuration"><a class="anchor" href="#design-time-configuration"></a>Design-time Configuration</h3>
+<div class="paragraph">
+<p>A design-time configuration is a set of <a href="#elements">nested elements</a> of <code>genericFilter</code> in the XML view descriptor.</p>
+</div>
+<div class="paragraph">
+<p>The following example declares <code>genericFilter</code> with two design-time configurations:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;genericFilter id="filterWithConfigs" dataLoader="customerDl"&gt;
+    &lt;properties include=".*"/&gt;
+    &lt;configurations&gt;
+        &lt;configuration id="configuration_age_hobby" operation="AND"
+                       name="Age AND Hobby Configuration"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;propertyFilter property="age" operation="GREATER"/&gt;
+            &lt;propertyFilter property="hobby" operation="CONTAINS"/&gt;
+        &lt;/configuration&gt;
+        &lt;configuration id="configuration_level_rewards_points" operation="OR"
+                       name="Level OR Reward Points Configuration" default="true"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+            &lt;propertyFilter property="level" operation="EQUAL"/&gt;
+            &lt;propertyFilter property="rewardPoints" operation="LESS_OR_EQUAL"/&gt;
+        &lt;/configuration&gt;
+    &lt;/configurations&gt;
+&lt;/genericFilter&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Ensure that each configuration specifies an <code>id</code> attribute and its value is unique within this <code>genericFilter</code>. If the <code>name</code> attribute is not specified, <code>id</code> is treated as a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The default configuration can be set the <code>default</code> attribute.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+To add a design-time configuration in Jmix Studio, select the <code>genericFilter</code> component in the view descriptor or in the <strong>Jmix UI</strong> structure panel, then use <a class="xref page" href="../../../studio/view-designer.html#component-inspector-add-button">Add</a> → <strong>Configurations</strong> → <strong>Design-time configuration</strong> menu item of the <strong>Component Inspector</strong> panel.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A design-time configuration does not allow any user customizations at runtime and cannot be removed by the user. However, users can create an identical run-time configuration based on the design-time configuration and modify its parameters. This can be done with the <span class="image"><img alt="generic filter settings button" src="../../_images/visual-components/components/generic-filter-settings-button.png" width="42"/></span> → <strong>Copy</strong> menu action.</p>
+</div>
+<div class="paragraph">
+<p>When the application is running, design-time configurations are displayed in the drop-down menu [<a href="#refresh-drop-down-menu">4</a>] among other configurations.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter design time items" src="../../_images/visual-components/components/generic-filter-design-time-items.png" width="440"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="run-time-configuration"><a class="anchor" href="#run-time-configuration"></a>Run-time Configuration</h3>
+<div class="paragraph">
+<p>Configurations can be created at runtime in the <strong>Configuration editor</strong>. To open the editor, use <span class="image"><img alt="generic filter settings button" src="../../_images/visual-components/components/generic-filter-settings-button.png" width="42"/></span> → <strong>Edit</strong> menu item.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+To create, edit, or remove a run-time configuration, the user needs to be granted with <code>ui.genericfilter.modifyConfiguration</code> security permission.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter run time configuration" src="../../_images/visual-components/components/generic-filter-run-time-configuration.png" width="1026"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To create a run-time configuration:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Specify a configuration name. This name is displayed in the drop-down menu [<a href="#refresh-drop-down-menu">4</a>] and configuration editors.</p>
+</li>
+<li>
+<p>Select the <strong>Available for all users</strong> checkbox to let anyone use the configuration. This checkbox is only available to users granted with [ui.filter.modifyGlobalConfiguration] permission.</p>
+</li>
+<li>
+<p>Select the <strong>Default for all users</strong> checkbox to automatically apply this configuration when users open the view. This checkbox is enabled if the <strong>Available for all users</strong> is selected.</p>
+</li>
+<li>
+<p>Configure the group operation and add conditions to the group. See the <a href="#group-conditions">Group Conditions</a> section for fields descriptions.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_permissions"><a class="anchor" href="#_permissions"></a>Permissions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Advanced filter management requires the following permissions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>To create/edit/delete genericFilter’s configurations, the user must be granted <code>ui.genericfilter.modifyConfiguration</code> security permission.</p>
+</li>
+<li>
+<p>To create/edit/delete global (<a href="#avaialable-for-all-users">available for all users</a>) configurations, users must be granted <code>ui.genericfilter.modifyGlobalConfiguration</code> security permission.</p>
+</li>
+<li>
+<p>To create/change <a href="#jpql-conditions">JPQL conditions</a> in runtime, users must be granted <code>ui.genericfilter.modifyJpqlCondition</code> security permission.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application_properties"><a class="anchor" href="#_application_properties"></a>Application Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following application properties affect the filter behavior:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../../ui-properties.html#jmix.ui.component.filter-auto-apply">jmix.ui.component.filter-auto-apply</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../../ui-properties.html#jmix.ui.component.filter-configuration-unique-names-enabled">jmix.ui.component.filter-configuration-unique-names-enabled</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../../ui-properties.html#jmix.ui.component.filter-properties-hierarchy-depth">jmix.ui.component.filter-properties-hierarchy-depth</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../../ui-properties.html#jmix.ui.component.filter-apply-shortcut">jmix.ui.component.filter-apply-shortcut</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../../ui-properties.html#jmix.ui.component.filter-show-configuration-id-field">jmix.ui.component.filter-show-configuration-id-field</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_filter_programmatically"><a class="anchor" href="#_creating_filter_programmatically"></a>Creating Filter Programmatically</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section provides an example of <code>genericFilter</code> configuration created programmatically.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+
+@ViewComponent
+private VerticalLayout programmaticFilterBox;
+
+@ViewComponent
+private CollectionLoader&lt;Customer&gt; customerDl;
+
+@Autowired
+private SingleFilterSupport singleFilterSupport;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    GenericFilter genericFilter = uiComponents.create(GenericFilter.class); <i class="conum" data-value="1"></i><b>(1)</b>
+    genericFilter.setId("programmaticFilter");
+    genericFilter.setDataLoader(customerDl);
+    genericFilter.loadConfigurationsAndApplyDefault();
+
+    DesignTimeConfiguration javaDefaultConfiguration =
+            genericFilter.addConfiguration("javaDefaultConfiguration",
+                    "Default configuration"); <i class="conum" data-value="2"></i><b>(2)</b>
+
+    PropertyFilter&lt;Integer&gt; agePropertyFilter =
+            uiComponents.create(PropertyFilter.class); <i class="conum" data-value="3"></i><b>(3)</b>
+
+    agePropertyFilter.setConditionModificationDelegated(true);
+    agePropertyFilter.setDataLoader(customerDl);
+    agePropertyFilter.setProperty("age");
+    agePropertyFilter.setOperation(PropertyFilter.Operation.LESS_OR_EQUAL);
+    agePropertyFilter.setOperationEditable(true);
+    agePropertyFilter.setParameterName(PropertyConditionUtils
+            .generateParameterName(agePropertyFilter.getProperty()));
+    agePropertyFilter.setValueComponent(singleFilterSupport.generateValueComponent(
+            customerDl.getContainer().getEntityMetaClass(),
+            agePropertyFilter.getProperty(),
+            agePropertyFilter.getOperation())); <i class="conum" data-value="4"></i><b>(4)</b>
+
+    javaDefaultConfiguration.getRootLogicalFilterComponent().add(agePropertyFilter); <i class="conum" data-value="5"></i><b>(5)</b>
+
+    programmaticFilterBox.add(genericFilter); <i class="conum" data-value="6"></i><b>(6)</b>
+
+    genericFilter.setCurrentConfiguration(javaDefaultConfiguration); <i class="conum" data-value="7"></i><b>(7)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Creates <code>genericFilter</code> using the <code>uiComponents</code> factory.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Adds a design-time configuration. The method takes two parameters: configuration id and configuration name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Creates a <code>PropertyFilter</code> instance and set its properties.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Generates a component for this filter based on metaClass, property, and operation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Adds the filter to configuration. <code>LogicalFilterComponent</code> is the root element of the configuration.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Puts <code>genericFilter</code> on the view inside the <code>vbox</code> layout. That layout is declared in the view descriptor and injected to the controller.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Sets a current configuration.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a href="#applyShortcut">applyShortcut</a> -
+<a href="#autoApply">autoApply</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a href="#dataLoader">dataLoader</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a href="#opened">opened</a> -
+<a href="#propertyHierarchyDepth">propertyHierarchyDepth</a> -
+<a href="#summaryText">summaryText</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+<div class="sect2">
+<h3 id="applyShortcut"><a class="anchor" href="#applyShortcut"></a>applyShortcut</h3>
+<div class="paragraph">
+<p>Defines the <a class="xref page" href="../../keyboard-shortcuts.html">keyboard shortcut</a> that can be used to apply a filtering condition. This shortcut is only relevant when the filtering conditions are not set to be <a href="#autoApply">automatically applied</a>.</p>
+</div>
+<div class="paragraph">
+<p>The default value is specified by the <a class="xref page" href="../../ui-properties.html#jmix.ui.component.filter-apply-shortcut">jmix.ui.component.filter-apply-shortcut</a> property.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="autoApply"><a class="anchor" href="#autoApply"></a>autoApply</h3>
+<div class="paragraph">
+<p>Specifies whether the filter is applied automatically.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If set to <code>true</code>, filter is applied immediately after updating a filtering condition or any time it loses focus.</p>
+</li>
+<li>
+<p>If set to <code>false</code>, filter will be applied only after the button [<a href="#refresh-button">1</a>] is clicked or <a href="#applyShortcut">applyShortcut</a> is used. Note that setting the value to <code>false</code> updates the button text to <strong>Apply</strong>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The default value is specified by the <a class="xref page" href="../../ui-properties.html#jmix.ui.component.filter-auto-apply">jmix.ui.component.filter-auto-apply</a> property.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="dataLoader"><a class="anchor" href="#dataLoader"></a>dataLoader</h3>
+<div class="paragraph">
+<p>Sets a <a class="xref page" href="../../data-components.html">data loader</a> that will load data based on the filtering condition.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="opened"><a class="anchor" href="#opened"></a>opened</h3>
+<div class="paragraph">
+<p>Specifies whether the condition panel is open.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="propertyHierarchyDepth"><a class="anchor" href="#propertyHierarchyDepth"></a>propertyHierarchyDepth</h3>
+<div class="paragraph">
+<p>Sets the number of nested levels at which the filter is applied. Any reasonable, non-zero number of levels can be specified. The default is <code>2</code>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter hierarchy depth" src="../../_images/visual-components/components/generic-filter-hierarchy-depth.png" width="405"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>propertyHierarchyDepth = "1"</code> – filters through immediate properties of the entity.</p>
+</li>
+<li>
+<p><code>propertyHierarchyDepth = "2"</code> – filters through properties of the entity as well as the properties of any child entities.</p>
+</li>
+<li>
+<p><code>propertyHierarchyDepth = "3"</code> – filters through immediate properties of the entity and up to the third nested level of properties.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This value can be specified globally for all filter components by setting the <a class="xref page" href="../../ui-properties.html#jmix.ui.component.filter-auto-apply">jmix.ui.component.filter-properties-hierarchy-depth</a> property.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="summaryText"><a class="anchor" href="#summaryText"></a>summaryText</h3>
+<div class="paragraph">
+<p>Specifies a short summary to be displayed above the filter control panel. The default value is <code>Filter</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a href="#ConfigurationChangeEvent">ConfigurationChangeEvent</a> -
+<a href="#ConfigurationRefreshEvent">ConfigurationRefreshEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a href="#OpenedChangeEvent">OpenedChangeEvent</a> -
+<a href="#propertyFiltersPredicate">propertyFiltersPredicate</a></p>
+</div>
+<div class="sect2">
+<h3 id="ConfigurationChangeEvent"><a class="anchor" href="#ConfigurationChangeEvent"></a>ConfigurationChangeEvent</h3>
+<div class="paragraph">
+<p><code>ConfigurationChangeEvent</code> is sent whenever one filter configuration is switched for another. This includes switching to a configuration when no configuration is set, or resetting the configuration.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ConfigurationRefreshEvent"><a class="anchor" href="#ConfigurationRefreshEvent"></a>ConfigurationRefreshEvent</h3>
+<div class="paragraph">
+<p><code>ConfigurationRefreshEvent</code> is sent every time the filter configuration is edited.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="OpenedChangeEvent"><a class="anchor" href="#OpenedChangeEvent"></a>OpenedChangeEvent</h3>
+<div class="paragraph">
+<p><code>OpenedChangeEvent</code> is sent every time the <a href="#opened">opened</a> attribute of the component changes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="propertyFiltersPredicate"><a class="anchor" href="#propertyFiltersPredicate"></a>propertyFiltersPredicate</h3>
+<div class="paragraph">
+<p>This predicate allows to programmatically include or exclude attributes available for user selection.</p>
+</div>
+<div class="paragraph">
+<p>For example, to exclude <code>hobby</code> from user selection use the following code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "genericFilter", subject = "propertyFiltersPredicate")
+private boolean genericFilterPropertyFiltersPredicate(final MetaPropertyPath metaPropertyPath) {
+    return !metaPropertyPath.getMetaProperty().getName().equals("hobby");
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="elements"><a class="anchor" href="#elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="#actions-element">actions</a> -
+<a href="#conditions-element">conditions</a> -
+<a href="#configurations-element">configurations</a> -
+<a href="#properties-element">properties</a> -
+<a href="#responsive-steps">responsiveSteps</a> -
+<a class="xref page" href="tooltip.html">tooltip</a></p>
+</div>
+<div class="sect2">
+<h3 id="actions-element"><a class="anchor" href="#actions-element"></a>actions</h3>
+<div class="paragraph">
+<p>Defines the list of actions for filter management. The framework provides the following default actions available in the <strong>Filter Settings</strong> <span class="image"><img alt="generic filter settings button" src="../../_images/visual-components/components/generic-filter-settings-button.png" width="42"/></span> menu:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Save</strong> — saves changes to current configuration. Implemented by <code>FilterSaveAction</code> (<code>type="genericFilter_save"</code> in XML).</p>
+</li>
+<li>
+<p><strong>Save with values</strong> — saves changes to current configuration along with the values in the condition fields [<a href="#condition-field">5</a>] as their default values.</p>
+</li>
+<li>
+<p><strong>Save as</strong> — saves current configuration under a different name. Implemented by <code>FilterSaveAsAction</code> (<code>type="genericFilter_saveAs"</code> in XML).</p>
+</li>
+<li>
+<p><strong>Edit</strong> — opens editor for current <a href="#run-time-configuration">run-time</a> configuration. Disable for <a href="#design-time-configuration">design-time</a> configurations. Implemented by <code>FilterEditAction</code> (`type="genericFilter_edit" in XML).</p>
+</li>
+<li>
+<p><strong>Remove</strong> — removes current <a href="#run-time-configuration">run-time</a> configuration. Disabled for <a href="#design-time-configuration">design-time</a> configurations. Implemented by <code>FilterRemoveAction</code> (`type="genericFilter_remove" in XML).</p>
+</li>
+<li>
+<p><strong>Copy</strong> — creates a <a href="#run-time-configuration">run-time</a> copy for the current configuration. Implemented by <code>FilterCopyAction</code> (`type="genericFilter_copy" in XML).</p>
+</li>
+<li>
+<p><strong>Clear values</strong> — clears the values in the condition fields [<a href="#condition-field">5</a>]. Implemented by <code>FilterClearValuesAction</code> (`type="genericFilter_clearValues" in XML).</p>
+</li>
+<li>
+<p><strong>Add</strong> — adds a condition to the current configuration. Implemented by <code>FilterAddConditionAction</code> (`type="genericFilter_addCondition" in XML).</p>
+</li>
+<li>
+<p><strong>Reset</strong> — resets  Implemented by <code>FilterResetAction</code> (`type="genericFilter_reset" in XML).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Developers can override the list of actions in the <span class="image"><img alt="generic filter settings button" src="../../_images/visual-components/components/generic-filter-settings-button.png" width="42"/></span> menu:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;genericFilter id="filterWithActions" dataLoader="customerDl"&gt;
+    &lt;properties include=".*"/&gt;
+    &lt;actions&gt;
+        &lt;action id="addCondition" type="genericFilter_addCondition"/&gt;
+        &lt;action id="clearValues" type="genericFilter_reset"/&gt;
+    &lt;/actions&gt;
+&lt;/genericFilter&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The example above creates a filter with two menu actions:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter settings menu actions" src="../../_images/visual-components/components/generic-filter-settings-menu-actions.png" width="242"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="conditions-element"><a class="anchor" href="#conditions-element"></a>conditions</h3>
+<div class="paragraph">
+<p>Holds a declaration of <a href="#condition-types">predefined conditions</a>.</p>
+</div>
+<div class="paragraph">
+<p>See the following example for illustration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;genericFilter id="filterWithCondition" dataLoader="customerDl"&gt;
+    &lt;properties include=".*"/&gt;
+    &lt;conditions&gt;
+        &lt;propertyFilter property="hobby" enabled="true" operation="STARTS_WITH"/&gt;
+    &lt;/conditions&gt;
+&lt;/genericFilter&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="configurations-element"><a class="anchor" href="#configurations-element"></a>configurations</h3>
+<div class="paragraph">
+<p>Holds a declaration of <a href="#design-time-configuration">design-time configurations</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="properties-element"><a class="anchor" href="#properties-element"></a>properties</h3>
+<div class="paragraph">
+<p>Determines which entity attributes can be added to condition. This element has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>include</code> — specifies a regular expression. Entity attributes that match this expression are included.</p>
+</li>
+<li>
+<p><code>exclude</code> — specifies a regular expression. Entity attributes that match this expression are excluded.</p>
+</li>
+<li>
+<p><code>excludeProperties</code> — specifies a comma-separated list of property names or property paths that should be excluded. For example: <code>customer.name</code>.</p>
+</li>
+<li>
+<p><code>excludeRecursively</code> — determines whether the attribute in <code>excludeProperties</code> must be recursively excluded for the whole object graph. That is, if 'true', any children attributes of the excluded attribute are excluded as well.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See the following example for illustration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;genericFilter id="filterWithProperties" dataLoader="customerDl"&gt;
+    &lt;properties include=".*"
+                exclude="(hobby)|(age)"
+                excludeProperties="id"
+                excludeRecursively="true"/&gt;
+&lt;/genericFilter&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can include and exclude collection (<code>@OneToMany</code>, <code>@ManyToMany</code>) properties.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can include and exclude <a class="xref page" href="../../../dyn-attr/index.html">dynamic attributes</a> as a filtering condition. This doesn’t require the <a class="xref page" href="../../../dyn-attr/dynattr-view.html#using-dynamicattributes-facet">dynamicAttributes</a> facet on that view.</p>
+</div>
+<div class="paragraph">
+<p>Specify the attribute’s code with a + prefix:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;genericFilter id="genericFilter"
+               dataLoader="carsDl"&gt;
+    &lt;properties include=".*"
+                excludeProperties="+passengerNumberOfSeats"/&gt;/&gt;
+&lt;/genericFilter&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that if such attribute is an entity, rather than a simple value, you cannot use the attributes of that entity as part of a filtering condition.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following entity attributes are ignored:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Not accessible due to security permissions</p>
+</li>
+<li>
+<p>Non-persistent attributes</p>
+</li>
+<li>
+<p>Attributes annotated with <code>@SystemLevel</code></p>
+</li>
+<li>
+<p>Attributes of <code>byte[]</code> type</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="responsive-steps"><a class="anchor" href="#responsive-steps"></a>responsiveSteps</h3>
+<div class="paragraph">
+<p>Determines the number of columns to display search conditions based on the available space. By default, search conditions are arranged in two columns and adjust to a single column when the layout width is smaller.</p>
+</div>
+<div class="paragraph">
+<p>The following filter overrides the default behaviour to adjust the layout to one, two, or three columns with labels positioned on top:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter responsive steps" src="../../_images/visual-components/components/generic-filter-responsive-steps.png" width="850"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout&gt;
+    &lt;genericFilter dataLoader="customerDl"&gt;
+        &lt;responsiveSteps&gt;
+            &lt;responsiveStep minWidth="0" columns="1"/&gt;
+            &lt;responsiveStep minWidth="30em" columns="2"/&gt;
+            &lt;responsiveStep minWidth="50em" columns="3" labelsPosition="TOP"/&gt;
+        &lt;/responsiveSteps&gt;
+    &lt;/genericFilter&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

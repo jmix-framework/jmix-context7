@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>settings :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">settings</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/settings-facet" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>The <code>settings</code> facet saves and restores settings of visual components for the current user. The following components are supported:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../vc/components/dataGrid.html">dataGrid</a>, <a class="xref page" href="../vc/components/treeDataGrid.html">treeDataGrid</a> - the facet saves the order and width of columns, as well as sorting parameters.</p>
+</li>
+<li>
+<p><a class="xref page" href="../vc/layouts/details.html">details</a>, <a class="xref page" href="../vc/components/genericFilter.html">genericFilter</a> - the facet saves the opened state.</p>
+</li>
+<li>
+<p><a class="xref page" href="../vc/components/simplePagination.html">simplePagination</a> - the facet saves the selected page size if <code>itemsPerPageVisible</code> is <code>true</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basic-usage"><a class="anchor" href="#basic-usage"></a>Basic Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When added to a view with the <code>auto="true"</code> attribute, the facet manages settings of all supported components of the view that have identifiers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;facets&gt;
+    &lt;settings auto="true"/&gt;
+&lt;/facets&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To manage settings of a particular component, use the nested <code>component</code> elements, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;facets&gt;
+    &lt;settings&gt;
+        &lt;component componentId="citiesDataGrid"/&gt;
+    &lt;/settings&gt;
+&lt;/facets&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To exclude some component, use <code>auto="true"</code> for the facet and <code>enabled="false"</code> for the component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;facets&gt;
+    &lt;settings auto="true"&gt;
+        &lt;component componentId="hobbiesDataGrid" enabled="false"/&gt;
+    &lt;/settings&gt;
+&lt;/facets&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The settings are stored in the main data store in the <code>FLOWUI_USER_SETTINGS</code> table in JSON format. You can manage the saved settings by opening the <code>flowui_UserSettingsItem</code> entity in the <a class="xref page" href="../../data-tools/entity-inspector.html">Entity Inspector</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="applySettingsDelegate"><a class="anchor" href="#applySettingsDelegate"></a>applySettingsDelegate</h3>
+<div class="paragraph">
+<p><code>applySettingsDelegate</code> is invoked before the view <code>ReadyEvent</code> handler.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixCheckbox checkbox;
+
+@ViewComponent
+private SettingsFacet settings;
+
+@Install(to = "settings", subject = "applySettingsDelegate")
+private void settingsApplySettingsDelegate(final SettingsFacet.SettingsContext settingsContext) {
+    settings.applySettings();
+    Optional&lt;Boolean&gt; value = settingsContext.getViewSettings().getBoolean("checkbox", "value");
+    checkbox.setValue(value.orElse(Boolean.FALSE));
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="applyDataLoadingSettingsDelegate"><a class="anchor" href="#applyDataLoadingSettingsDelegate"></a>applyDataLoadingSettingsDelegate</h3>
+<div class="paragraph">
+<p><code>applyDataLoadingSettingsDelegate</code> is invoked before the view <code>BeforeShowEvent</code> handler and allows you to restore settings related to data loading.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="saveSettingsDelegate"><a class="anchor" href="#saveSettingsDelegate"></a>saveSettingsDelegate</h3>
+<div class="paragraph">
+<p>The <code>saveSettingsDelegate</code> handler is invoked before the view <code>DetachEvent</code> handler.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixCheckbox checkbox;
+
+@ViewComponent
+private SettingsFacet settings;
+
+@Install(to = "settings", subject = "saveSettingsDelegate")
+private void settingsSaveSettingsDelegate(final SettingsFacet.SettingsContext settingsContext) {
+    settingsContext.getViewSettings().put("testCheckbox", "value", checkbox.getValue());
+    settings.saveSettings();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

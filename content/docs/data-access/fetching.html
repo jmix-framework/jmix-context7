@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetching Data :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Fetching Data</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, we describe how and when data is fetched into memory in the process of loading entities from the database.</p>
+</div>
+<div class="paragraph">
+<p>The data model entities often have references to other entities, for example <code>Order</code> has a related <code>Customer</code> in the <code>Order.customer</code> attribute. Jmix allows you to access related entities by navigating the reference attributes in Java code using getters, for example <code>order.getCustomer().getName()</code>, and in data-aware UI components using dot notation, for example <code>order.customer.name</code>.</p>
+</div>
+<div class="paragraph">
+<p>In general, there are two strategies of loading related entities:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>Eager loading</em> means that the related entity is loaded from the database together with the root entity.</p>
+</li>
+<li>
+<p><em>Lazy loading</em> means that the related entity is transparently loaded from the database when the reference property is accessed.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="lazy-loading"><a class="anchor" href="#lazy-loading"></a>Lazy Loading</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix supports lazy loading of references for JPA entities loaded using <a class="xref page" href="data-manager.html">DataManager</a>. It means that if you have used <code>DataManager</code> or UI <a class="xref page" href="../flow-ui/data/data-loaders.html">data loaders</a> for loading an entity, you can access its reference attributes to get the related entities, and Jmix will load them from the database on demand. This process is recursive, so you can traverse the whole object graph just by accessing the reference attributes.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String getCustomerName(Id&lt;Order&gt; orderId) {
+    Order order = dataManager.load(orderId).one();
+    return order.getCustomer().getName(); <i class="conum" data-value="1"></i><b>(1)</b>
+}
+
+List&lt;String&gt; getProductNames(Id&lt;Order&gt; orderId) {
+    Order order = dataManager.load(orderId).one();
+    return order.getLines().stream() <i class="conum" data-value="2"></i><b>(2)</b>
+            .map(orderLine -&gt; orderLine.getProduct().getName()) <i class="conum" data-value="3"></i><b>(3)</b>
+            .collect(Collectors.toList());
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Loads the <code>Customer</code> entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Loads a collection of the <code>OrderLine</code> entities.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Loads the <code>Product</code> entity.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Lazy loading is very convenient, but it often doesn’t provide the best possible performance. This is especially true for working with collections of entities. Look at the <code>getProductNames()</code> method above: it loads the collection of order lines and then for each order line it goes to the database for a related product. This leads to N+1 queries, where N is the number of order lines in the collection.</p>
+</div>
+<div class="paragraph">
+<p>Another example of the N+1 problem is lazy loading in an entity browser screen. For example, if you load a list of orders, and for each order you show a related customer, you need to define a UI table column bound to the <code>Order.customer</code> attribute. Then with lazy loading you will get 1 database query for orders, then N queries for customers, where N is the orders table page size.</p>
+</div>
+<div class="paragraph">
+<p>When you face a performance issue with lazy loading, introduce eager loading with <a href="#fetch-plan">fetch plans</a> as described in the next section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fetch-plan"><a class="anchor" href="#fetch-plan"></a>Fetch Plans</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <em>fetch plan</em> defines what object graph should be eagerly loaded from the database in a particular operation. It can be used in <a class="xref page" href="data-manager.html">DataManager</a> and UI <a class="xref page" href="../flow-ui/data-components.html">data components</a> for performance optimization, and in <a class="xref page" href="../rest/index.html">REST API</a> for defining the shape of returned data without creating a separate set of DTOs.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Fetch plans are fully compatible with lazy loading of related entities. It means that you can load some part of a graph with a fetch plan, and then load other related entities lazily by navigating references.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="fetch-plan-example"><a class="anchor" href="#fetch-plan-example"></a>Fetch Plan Usage Example</h3>
+<div class="paragraph">
+<p>Let’s consider a few use cases around the <code>Order</code> entity and its related entities comprising the following data model:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="fetching diagram 1" src="_images/fetching-diagram-1.svg"/>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Suppose we need to display the list of orders in a browse screen, and the UI table must contain the <code>number</code>, <code>date</code>, <code>amount</code> and <code>customer.name</code> columns. Then loading the following object graph would be optimal:</p>
+<div class="openblock">
+<div class="content">
+<div class="imageblock text-center">
+<div class="content">
+<img alt="fetching diagram 2" src="_images/fetching-diagram-2.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To eagerly load this graph, the following fetch plan can be defined in the screen:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;collection id="ordersDc"
+            class="com.company.demo.entity.Order"&gt;
+    &lt;fetchPlan&gt;
+        &lt;property name="number"/&gt;
+        &lt;property name="date"/&gt;
+        &lt;property name="amount"/&gt;
+        &lt;property name="customer"&gt;
+            &lt;property name="name"/&gt;
+        &lt;/property&gt;
+    &lt;/fetchPlan&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As a result, the framework executes a single SQL query with the join between the order and customer tables, and related customers are eagerly loaded together with orders. It eliminates the N+1 problem that would arise if the customers were loading lazily.</p>
+</div>
+<div class="paragraph">
+<p>Also, as the fetch plan defines individual local attributes, the SQL result set includes only these attributes and omits the <code>customer.email</code> field. This field is not fetched from the database and does not consume server memory in the entity instance. This is good for performance, but such <a href="#partial-entities">partially loaded</a> entity instances must be handled with care.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When you create a screen for an entity using Studio, by default the screen creation wizard offers the <code>_base</code> fetch plan for the root entity and selected related entities, so the fetch plan definition will look a bit different:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fetchPlan extends="_base"&gt;
+    &lt;property name="customer" fetchPlan="_base"/&gt;
+&lt;/fetchPlan&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>_base</code> is a built-in fetch plan (see more on this <a href="#built-in-fetch-plans">below</a>), and in this case all local attributes of the entities are always loaded.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Now consider the case of editing an order in an edit screen. The screen should allow a user to edit the order attributes, select a customer, as well as create and edit order lines, select products for them, and recalculate the total order amount. In this case, we need almost all entities, but some attributes of the related entities can be omitted:</p>
+<div class="openblock">
+<div class="content">
+<div class="imageblock text-center">
+<div class="content">
+<img alt="fetching diagram 3" src="_images/fetching-diagram-3.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If you use the Studio screen wizard and select related entities with the default <code>_base</code> fetch plan, the following fetch plan is created in the screen:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;instance id="orderDc"
+          class="com.company.demo.entity.Order"&gt;
+    &lt;fetchPlan extends="_base"&gt;
+        &lt;property name="customer" fetchPlan="_base"/&gt;
+        &lt;property name="lines" fetchPlan="_base"/&gt;
+    &lt;/fetchPlan&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You could select individual local attributes instead of the <code>_base</code> fetch plan for the entities, but we don’t recommend it for an editor screen. See more on partially loaded entities below.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="partial-entities"><a class="anchor" href="#partial-entities"></a>Partial Entities</h3>
+<div class="paragraph">
+<p>If you use a fetch plan that doesn’t include some local attributes of the entity, the entity will be loaded partially. The attributes absent in the fetch plan  will be empty in the entity instance. If you access such an attribute by invoking its getter/setter or by using it in a UI component, the framework throws an exception like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">java.lang.IllegalStateException: Cannot get unfetched attribute [foo] from
+    detached object com.company.entity.Bar-7f9e689a-fe04-8b5f-35db-5fa51a9a9d71 [detached].</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We recommend using partial fetch plans sparingly, only if you see real performance benefits from not loading all attributes. It is usually the case when your entities are "wide" (tens or hundreds of attributes), and you load large lists of entities with many references, which multiplies the amount of unneeded data to fetch.</p>
+</div>
+<div class="paragraph">
+<p>If you load a single root entity or a small collection, rely on <a href="#lazy-loading">lazy loading</a> or use a fetch plan extended from <code>_base</code> to avoid N+1 problem. On the one hand, the performance benefit from partial entities would be negligible in this case; on the other hand, you may encounter problems if you accidentally access unfetched attributes.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The entity identifier and <a class="xref page" href="../data-model/entities.html#versioned-trait">version</a> attributes are always loaded regardless of the fetch plan.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="built-in-fetch-plans"><a class="anchor" href="#built-in-fetch-plans"></a>Built-in Fetch Plans</h3>
+<div class="paragraph">
+<p>Jmix provides three built-in fetch plans for each entity:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>_local</code> fetch plan includes all local attributes (immediate attributes that are not references).</p>
+</li>
+<li>
+<p><code>_instance_name</code> fetch plan includes all attributes forming the <a class="xref page" href="../data-model/entities.html#instance-name">instance name</a>. These can be local attributes and references. If instance name is not specified for an entity, this fetch plan is empty.</p>
+</li>
+<li>
+<p><code>_base</code> fetch plan includes all attributes of the <code>_local</code> and <code>_instance_name</code> fetch plans, plus embedded references.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use the <code>_base</code> fetch plan until you face a performance problem with loading large lists of "wide" entities. It will save you from issues with unfetched attributes, explained in the <a href="#partial-entities">partial entities</a> section.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creating-fetch-plans"><a class="anchor" href="#creating-fetch-plans"></a>Creating Fetch Plans</h3>
+<div class="paragraph">
+<p>You can define custom fetch plans in the following ways:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>As inline fetch plans in UI screen descriptors. This is demonstrated in the example <a href="#fetch-plan-example">above</a>.</p>
+</li>
+<li>
+<p>Programmatically in Java.</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>You can build a fetch plan using <code>FetchPlans</code> factory and use it in a <code>DataManager</code> operation as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private FetchPlans fetchPlans;
+
+private List&lt;Order&gt; loadOrders() {
+    FetchPlan fetchPlan = fetchPlans.builder(Order.class)
+            .addFetchPlan(FetchPlan.BASE)
+            .add("customer")
+            .build();
+
+    return dataManager.load(Order.class).all().fetchPlan(fetchPlan).list();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also use the fetch plan builder right in the <code>DataManager</code> fluent loading interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Order&gt; orders = dataManager.load(Order.class)
+        .all()
+        .fetchPlan(fpb -&gt; fpb.addFetchPlan(FetchPlan.BASE).add("customer"))
+        .list();</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>In the shared fetch plans repository.</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>You can create fetch plans in the shared repository and use them by name anywhere in your project like the <a href="#built-in-fetch-plans">built-in</a> ones.</p>
+</div>
+<div class="paragraph">
+<p>First, create the <code>fetch-plans.xml</code> file in the resources root under the base package of the application and define the <a class="xref page" href="../app-properties.html#jmix.core.fetch-plans-config">jmix.core.fetch-plans-config</a> application property. You can do it in Studio by clicking <strong>New → Advanced → Fetch Plan Configuration File</strong> in Jmix tool window.</p>
+</div>
+<div class="paragraph">
+<p>After creating the file in your project, the <strong>New → Advanced</strong> menu of the Jmix tool window will contain the <strong>Fetch Plan</strong> item. It allows you to define a fetch plan using a <a class="xref page" href="../studio/fetch-plan-designer.html">designer</a>.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of a fetch plan defined in <code>fetch-plans.xml</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fetchPlan class="com.company.demo.entity.Order"
+           name="full"
+           extends="_base"&gt;
+    &lt;property name="customer" fetchPlan="_base"/&gt;
+    &lt;property name="lines"&gt;
+        &lt;property name="product" fetchPlan="_instance_name"/&gt;
+        &lt;property name="quantity"/&gt;
+    &lt;/property&gt;
+&lt;/fetchPlan&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This fetch plan can be used by name in a <code>DataManager</code> operation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Order order = dataManager.load(Order.class).id(orderId).fetchPlan("full").one();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Another option is to get the fetch plan instance from the repository:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private FetchPlanRepository fetchPlanRepository;
+
+private Order loadOrder(UUID orderId) {
+    FetchPlan fetchPlan = fetchPlanRepository.getFetchPlan(Order.class, "full");
+    return dataManager.load(Order.class).id(orderId).fetchPlan(fetchPlan).one();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

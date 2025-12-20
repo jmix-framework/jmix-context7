@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. Bind Map to Data :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">1. Bind Map to Data</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this chapter, you will create:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>LocationType</code> enumeration.</p>
+</li>
+<li>
+<p>The <code>Location</code> entity with the <code>GeoPoint</code> attribute type.</p>
+</li>
+<li>
+<p>CRUD views with a map on the <code>Location.detail</code> view.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-and-views-creation"><a class="anchor" href="#entity-and-views-creation"></a>Create Location Entity and Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To start, we’ll generate a <code>LocationType</code> enumeration consisting of two values: <code>Office</code> and <code>Coworking</code>. The detailed instructions for creating enumerations can be found in the <a class="xref page" href="../tutorial/enumerations.html">Using Enumerations</a> section of Tutorial.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="enumeration location type" src="_images/enumeration-location-type.png" width="591"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, create the <code>Location</code> entity. You can find detailed instructions for creating entities in the <a class="xref page" href="../tutorial/simple-crud.html">Simple CRUD</a> section of the Tutorial.</p>
+</div>
+<div class="paragraph">
+<p>Select the <strong>Traits → Versioned</strong> checkbox in the <strong>New JPA Entity</strong> dialog.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="new location entity dialog" src="_images/new-location-entity-dialog.png" width="493"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Location</code> entity has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>city</code> with <code>String</code> type. Select the <strong>Mandatory</strong> checkbox.</p>
+</li>
+<li>
+<p><code>address</code> with <code>String</code> type. Select the <strong>Mandatory</strong> checkbox.</p>
+</li>
+<li>
+<p><code>type</code> with <code>LocationType</code> enumeration type.</p>
+</li>
+<li>
+<p><code>building</code> with <code>GeoPoint</code> type. Select the <strong>Mandatory</strong> checkbox:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="geo point attribute" src="_images/geo-point-attribute.png" width="862"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Define the <code>address</code> attribute for generating an <a class="xref page" href="../studio/entity-designer.html#creating-instance-name">instance name</a>.</p>
+</div>
+<div class="paragraph">
+<p>Create CRUD views for the <code>Location</code> entity. You’ll find the detailed steps for generating entity list and detail views in the <a class="xref page" href="../tutorial/simple-crud.html#create-views">Creating CRUD Views</a> section of the Tutorial.</p>
+</div>
+<div class="paragraph">
+<p>Follow the suggested values at each step of the view creation wizard.</p>
+</div>
+<div class="paragraph">
+<p>Studio will automatically generate two views: <code>Location.list</code> and <code>Location.detail</code>, and open their corresponding source code.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-map"><a class="anchor" href="#adding-map"></a>Add Map on View</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Locate <code>location-detail-view.xml</code> in the <strong>Jmix</strong> tool window and double-click it. The view designer will appear:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="location detail view" src="_images/location-detail-view.png" width="1318"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You’ll notice that the <code>textField</code> component is being used to show the <code>building</code> attribute.</p>
+</div>
+<div class="paragraph">
+<p>If you want to display a map on the view, you should include the <code>geoMap</code> UI component in the XML descriptor.</p>
+</div>
+<div class="paragraph">
+<p>Place the cursor after the <code>formLayout</code> element.</p>
+</div>
+<div class="paragraph">
+<p>Next, click <strong>Add Component</strong> in the actions panel, then find the <code>GeoMap</code> item and double-click it.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="adding map" src="_images/adding-map.png" width="1136"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The new <code>geoMap</code> element will be added beneath the <code>formLayout</code> element in both the <strong>Jmix UI</strong> structure panel and in the XML. Configure the <code>id</code>, <code>height</code> and <code>width</code> attributes as shown below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="map" height="100%" width="100%"/&gt;</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="adding-tile-layer"><a class="anchor" href="#adding-tile-layer"></a>Add Tile Layer with OsmSource</h3>
+<div class="paragraph">
+<p>We’re going to utilize a raster layer as the base background layer of the map. For this, we’ll use <code>OsmSource</code>, a pre-defined source for displaying <a href="https://wiki.openstreetmap.org" rel="noopener" target="_blank">OpenStreetMap</a> tiles.</p>
+</div>
+<div class="paragraph">
+<p>Select <code>map</code> in the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, then click the <strong>Add</strong> button in the inspector panel. From the drop-down list, choose <strong>Layers → TileLayer</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add tile layer" src="_images/add-tile-layer.png" width="331"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Select <code>maps:tile</code> in the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, and then click the <strong>Add</strong> button in the inspector panel. From the drop-down list, choose <strong>OsmSource</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add osmsource" src="_images/add-osmsource.png" width="898"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, let’s run the application to see the new feature in action.</p>
+</div>
+<div class="paragraph">
+<p>Click the <strong>Debug</strong> button (<span class="image"><img alt="start debugger" src="_images/start-debugger.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Prior to launching the application, Studio compares the project data model with the database schema. When you’ve created a new entity, Studio automatically generates a Liquibase changelog to reflect the relevant database modifications (such as creating the <code>LOCATION</code> table):</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="changelog location" src="_images/changelog-location.png" width="1036"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Once the application is up and running, navigate to <a class="bare" href="http://localhost:8080">http://localhost:8080</a> using your web browser and sign in to the application with the credentials admin/admin.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Save and run</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will carry out the changelog on your database, followed by building and running the application:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app" src="_images/run-app.png" width="1101"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Once the application is up and running, navigate to <code>http://localhost:8080</code> using your web browser and sign in to the application with the credentials <code>admin/admin</code>.</p>
+</div>
+<div class="paragraph">
+<p>Choose the <code>Locations</code> item from the <code>Application</code> menu. You will see the <code>Location.list</code> view. Click <strong>Create</strong>. The <code>Location.detail</code> view will open:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="location detail1" src="_images/location-detail1.png" width="1134"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="setting-map-view"><a class="anchor" href="#setting-map-view"></a>Set Map View</h3>
+<div class="paragraph">
+<p>By default, the <code>geoMap</code> component displays a world map with an initial geographical center at <code>(0,0)</code>.</p>
+</div>
+<div class="paragraph">
+<p>We will employ the map view to configure the location displayed on the map.</p>
+</div>
+<div class="paragraph">
+<p>Choose <code>map</code> within the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, and then click the <strong>Add</strong> button in the inspector panel. From the drop-down list, opt for <strong>MapView</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add map view" src="_images/add-map-view.png" width="372"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Specify the <code>centerY</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:mapView centerY="51.0"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Choose <code>maps:mapView</code> in the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, and then click the <strong>Add</strong> button in the inspector panel. From the drop-down list, select <strong>Extent</strong>, and configure the <code>minX</code>, <code>minY</code>, <code>maxX</code> and <code>maxY</code> attributes as indicated below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:extent minX="-15.0"
+             minY="30.0"
+             maxX="40.0"
+             maxY="60.0"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The extent limits the view, meaning that nothing beyond this extent will be visible on the map.</p>
+</div>
+<div class="paragraph">
+<p>Launch the application to see the new feature in action.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="adding-data-layer"><a class="anchor" href="#adding-data-layer"></a>Add Vector Layer with DataVectorSource</h3>
+<div class="paragraph">
+<p>To handle geo-objects, we’ll incorporate a vector layer.</p>
+</div>
+<div class="paragraph">
+<p>Navigate to <code>maps:layers</code> in the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, and click the <strong>Add</strong> button in the inspector panel. From the drop-down list, opt for <strong>VectorLayer</strong>. Specify the <code>id</code> attribute as follows: <code>id="vectorLayer"</code>.</p>
+</div>
+<div class="paragraph">
+<p>We’ll utilize <code>DataVectorSource</code>, which supports data binding with Jmix data containers.</p>
+</div>
+<div class="paragraph">
+<p>Choose <code>vectorLayer</code> in the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, and then click the <strong>Add</strong> button in the inspector panel. From the drop-down list, opt for <strong>DataVectorSource</strong>. Configure the <code>dataContainer</code> attribute for it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:vector id="vectorLayer"&gt;
+    &lt;maps:dataVectorSource id="dataVectorSource"
+                           dataContainer="locationDc"
+                           property="building"/&gt;
+&lt;/maps:vector&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let’s take a look: the complete description of our map is as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="map" height="100%" width="100%"&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:osmSource/&gt;
+        &lt;/maps:tile&gt;
+        &lt;maps:vector id="vectorLayer"&gt;
+            &lt;maps:dataVectorSource id="dataVectorSource"
+                                   dataContainer="locationDc"
+                                   property="building"/&gt;
+        &lt;/maps:vector&gt;
+    &lt;/maps:layers&gt;
+    &lt;maps:mapView centerY="51.0"&gt;
+        &lt;maps:extent minX="-15.0"
+                     minY="30.0"
+                     maxX="40.0"
+                     maxY="60.0"/&gt;
+    &lt;/maps:mapView&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="saving-coordinates"><a class="anchor" href="#saving-coordinates"></a>Save Coordinates to Building Attribute</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When HR manager creates a location, they click on a spot on the map, which is then stored in the <code>Location</code> entity as a <code>Point</code> with coordinates.</p>
+</div>
+<div class="paragraph">
+<p>Let’s proceed to add a <code>ClickEvent</code> for our map.</p>
+</div>
+<div class="paragraph">
+<p>Choose <code>map</code> in the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, switch to the <strong>Handlers</strong> tab, and create a <code>MapClickEvent</code> handler method:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add click event" src="_images/add-click-event.png" width="1044"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Add the logic of obtaining and storing the user’s selected coordinates to the <code>map</code> click handler method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class LocationDetailView extends StandardDetailView&lt;Location&gt; {
+    protected GeometryFactory geometryFactory = GeometryUtils.getGeometryFactory(); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @Subscribe("map")
+    public void onMapMapClick(final MapClickEvent event) {
+        Point point = geometryFactory.createPoint(event.getCoordinate()); <i class="conum" data-value="2"></i><b>(2)</b>
+        Location location = getEditedEntity(); <i class="conum" data-value="3"></i><b>(3)</b>
+        location.setBuilding(point);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>To obtain <code>GeometryFactory</code> use <code>GeometryUtils</code> - a specialized utility class with functions related to the JTS library.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Convert the coordinates obtained from an <code>event</code> into a <code>Point</code> object by employing the <code>GeometryFactory</code> method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Use the <code>getEditedEntity()</code> method of the base <code>StandardDetailView</code> class to get the <code>Location</code> being edited.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Launch the application. Select the <code>Locations</code> item in the <code>Application</code> menu to access the <code>Location.list</code> view. Click <strong>Create</strong> to open the <code>Location.detail</code> view. Fill in the <strong>City</strong>, <strong>Address</strong> and <strong>Type</strong> fields with the relevant information. Click on the map at the specified address location. The value for the <strong>Building</strong> field will be automatically populated based on the coordinates of the selected point on the map. Save the location by clicking <strong>OK</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="location detail2" src="_images/location-detail2.png" width="1134"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>genericFilter Components :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">genericFilter Components</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can set a <code>genericFilter</code> configuration at both <a class="xref page" href="genericFilter.html#run-time-configuration">runtime</a> and <a class="xref page" href="genericFilter.html#design-time-configuration">design time</a>. This article provides examples of design-time <code>genericFilter</code> configurations employing each of three predefined filter components:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#property-filter">propertyFilter</a></p>
+</li>
+<li>
+<p><a href="#jpql-filter">jpqlFilter</a></p>
+</li>
+<li>
+<p><a href="#group-filter">groupFilter</a></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can also create a custom filter component and use it as a part of <code>genericFilter</code>. See the <a href="#filter-compponent-registration">Filter Component Registration</a> section for details.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="property-filter"><a class="anchor" href="#property-filter"></a>propertyFilter</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/generic-filter-property-condition" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>propertyFilter</code> adds a filtering condition based on a particular property of an entity.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This component can be also used independently. See the <a class="xref page" href="propertyFilter.html">propertyFilter</a> article for details.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Both declarative and programmatic configurations provided in this section create the following filter on the view:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter components property filter" src="../../_images/visual-components/components/generic-filter-components-property-filter.png" width="780"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_declarative_configuration"><a class="anchor" href="#_declarative_configuration"></a>Declarative Configuration</h3>
+<div class="paragraph">
+<p>A <code>genericFilter</code> configuration can be specified declaratively, inside the XML view descriptor. See the following example for configuration with <code>propertyFilter</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout&gt;
+    &lt;genericFilter dataLoader="customerDl"
+                   id="genericFilterProperty"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;properties include=".*"/&gt;
+        &lt;configurations&gt;
+            &lt;configuration id="propertyConfiguration"
+                           default="true"
+                           name="PropertyFilter"&gt;
+                &lt;propertyFilter property="age"
+                                operation="GREATER_OR_EQUAL"
+                                operationEditable="true"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+            &lt;/configuration&gt;
+        &lt;/configurations&gt;
+    &lt;/genericFilter&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declaration of <code>genericFilter</code> component bound to the data loader.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>propertyFilter</code> specifying a condition based on <code>age</code> property.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_programmatic_configuration"><a class="anchor" href="#_programmatic_configuration"></a>Programmatic Configuration</h3>
+<div class="paragraph">
+<p>The other way to define the above configuration is programmatically, in the view controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+
+@ViewComponent
+private GenericFilter pfdtcGenericFilter;
+
+@Autowired
+private SingleFilterSupport singleFilterSupport;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    DesignTimeConfiguration javaDefaultConfigurationPF =
+            pfdtcGenericFilter.addConfiguration("javaDefaultConfiguration",
+                    "PropertyFilter configuration"); <i class="conum" data-value="1"></i><b>(1)</b>
+    DataLoader dataLoaderPF = pfdtcGenericFilter.getDataLoader();
+
+    PropertyFilter&lt;Integer&gt; agePropertyFilter =
+            uiComponents.create(PropertyFilter.class); <i class="conum" data-value="2"></i><b>(2)</b>
+    agePropertyFilter.setConditionModificationDelegated(true);
+    agePropertyFilter.setDataLoader(dataLoaderPF);
+    agePropertyFilter.setProperty("age");
+    agePropertyFilter.setOperation(PropertyFilter.Operation.GREATER_OR_EQUAL);
+    agePropertyFilter.setOperationEditable(true);
+    agePropertyFilter.setParameterName(PropertyConditionUtils.generateParameterName(
+            agePropertyFilter.getProperty()));
+    agePropertyFilter.setValueComponent(singleFilterSupport.generateValueComponent(
+            dataLoaderPF.getContainer().getEntityMetaClass(),
+            agePropertyFilter.getProperty(),
+            agePropertyFilter.getOperation())); <i class="conum" data-value="3"></i><b>(3)</b>
+    javaDefaultConfigurationPF.getRootLogicalFilterComponent()
+            .add(agePropertyFilter); <i class="conum" data-value="4"></i><b>(4)</b>
+
+    pfdtcGenericFilter.setCurrentConfiguration(javaDefaultConfigurationPF); <i class="conum" data-value="5"></i><b>(5)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Adds a design-time configuration. The method takes two parameters: configuration id and configuration name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Creates a <code>PropertyFilter</code> instance and set its properties.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Generates a component for this filter based on metaClass, property, and operation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Adds the filter to configuration. <code>LogicalFilterComponent</code> is the root element of the configuration.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Sets a current configuration.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jpql-filter"><a class="anchor" href="#jpql-filter"></a>jpqlFilter</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/generic-filter-jpql-condition" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>jpqlFilter</code> enables filtering based on a JPQL query. It modifies the JPQL query of the data loader by adding an optional <code>join</code> and mandatory <code>where</code> clause and therefore refining search results.</p>
+</div>
+<div class="paragraph">
+<p>Both declarative and programmatic configurations provided in this section create the following filter on the view:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter jpql filter" src="../../_images/visual-components/components/generic-filter-jpql-filter.png" width="780"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_declarative_configuration_2"><a class="anchor" href="#_declarative_configuration_2"></a>Declarative Configuration</h3>
+<div class="paragraph">
+<p>A <code>genericFilter</code> configuration can be specified declaratively, inside the XML view descriptor. See the following example for configuration with <code>jpqlFilter</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout&gt;
+    &lt;genericFilter dataLoader="customerDl"
+                   id="genericFilterJpql"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;properties include=".*"/&gt;
+        &lt;configurations&gt;
+            &lt;configuration id="jpqlConfiguration"
+                           default="true"
+                           name="JpqlFilter"&gt;
+                &lt;jpqlFilter parameterClass="java.lang.String"
+                            label="City name is"&gt;
+                    &lt;condition&gt;
+                        &lt;jpql&gt;
+                            &lt;join&gt;join {E}.city c&lt;/join&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+                            &lt;where&gt;c.name = ?&lt;/where&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+                        &lt;/jpql&gt;
+                    &lt;/condition&gt;
+                &lt;/jpqlFilter&gt;
+            &lt;/configuration&gt;
+        &lt;/configurations&gt;
+    &lt;/genericFilter&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declaration of <code>genericFilter</code> component bound to the data loader.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Optional <code>join</code> clause.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Mandatory <code>where</code> clause. <code>?</code> indicates the parameter that is entered by the user.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_programmatic_configuration_2"><a class="anchor" href="#_programmatic_configuration_2"></a>Programmatic Configuration</h3>
+<div class="paragraph">
+<p>The other way to define the above configuration is programmatically, in the view controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+
+@Autowired
+private SingleFilterSupport singleFilterSupport;
+
+@ViewComponent
+private GenericFilter jfdtcGenericFilter;
+
+@Autowired
+private JpqlFilterSupport jpqlFilterSupport;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    DesignTimeConfiguration javaDefaultConfigurationJF =
+            jfdtcGenericFilter.addConfiguration("javaDefaultConfiguration", "JpqlFilter configuration"); <i class="conum" data-value="1"></i><b>(1)</b>
+    DataLoader dataLoaderJF = jfdtcGenericFilter.getDataLoader();
+
+    JpqlFilter&lt;String&gt; jpqlFilter =
+            uiComponents.create(JpqlFilter.class); <i class="conum" data-value="2"></i><b>(2)</b>
+    jpqlFilter.setConditionModificationDelegated(true);
+    jpqlFilter.setDataLoader(dataLoaderJF);
+    jpqlFilter.setCondition("c.name = ?", "join {E}.city c");
+    jpqlFilter.setParameterClass(String.class);
+    jpqlFilter.setLabel("City name is");
+    jpqlFilter.setParameterName(jpqlFilterSupport.generateParameterName(
+            String.valueOf(jpqlFilter.getId()),
+            jpqlFilter.getParameterClass().getSimpleName()));
+    jpqlFilter.setValueComponent(singleFilterSupport.generateValueComponent(
+            dataLoaderJF.getContainer().getEntityMetaClass(),
+            jpqlFilter.hasInExpression(),
+            jpqlFilter.getParameterClass())); <i class="conum" data-value="3"></i><b>(3)</b>
+    javaDefaultConfigurationJF.getRootLogicalFilterComponent()
+            .add(jpqlFilter); <i class="conum" data-value="4"></i><b>(4)</b>
+
+    jfdtcGenericFilter.setCurrentConfiguration(javaDefaultConfigurationJF); <i class="conum" data-value="5"></i><b>(5)</b>
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_no_parameter_filter"><a class="anchor" href="#_no_parameter_filter"></a>No Parameter Filter</h3>
+<div class="paragraph">
+<p><code>jpqlFilter</code> allows creating a condition that only lets the user choose whether it is applied or not. From a user standpoint it takes no parameter as it is set directly in the query.</p>
+</div>
+<div class="paragraph">
+<p>For example, set a city name directly in the <code>where</code> clause. Users can then choose to show customers from this city only:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter jpql filter no parameter" src="../../_images/visual-components/components/generic-filter-jpql-filter-no-parameter.png" width="780"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout&gt;
+    &lt;genericFilter id="noParameterFilter"
+            dataLoader="customerDl"&gt;
+        &lt;properties include=".*"/&gt;
+        &lt;configurations&gt;
+            &lt;configuration id="jpqlConfigurationNoParams"
+                           name="JpqlFilter No parameters"&gt;
+                &lt;jpqlFilter label="Show customers from London"
+                            parameterClass="java.lang.Void"
+                            defaultValue="true"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+                    &lt;condition&gt;
+                        &lt;jpql&gt;
+                            &lt;join&gt;join {E}.city c&lt;/join&gt;
+                            &lt;where&gt;c.name = 'London'&lt;/where&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+                        &lt;/jpql&gt;
+                    &lt;/condition&gt;
+                &lt;/jpqlFilter&gt;
+            &lt;/configuration&gt;
+        &lt;/configurations&gt;
+    &lt;/genericFilter&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>parameterClass="java.lang.Void"</code> specifies that a condition does not expect a parameter value to be entered; <code>defaultValue=true</code> means that the condition is applied.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>City name value is fixed as 'London' and cannot be changed at runtime.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This can be also be done in the view controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+
+@Autowired
+private SingleFilterSupport singleFilterSupport;
+
+@ViewComponent
+private GenericFilter jfdtcGenericFilterNoParameter;
+
+@Autowired
+private JpqlFilterSupport jpqlFilterSupport;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    DesignTimeConfiguration javaConfiguration = jfdtcGenericFilterNoParameter
+            .addConfiguration("javaConfiguration", "No-parameter JpqlFilter configuration");
+    DataLoader dataLoaderNoParam = jfdtcGenericFilterNoParameter.getDataLoader();
+
+    JpqlFilter&lt;Boolean&gt; jpqlFilterNoParameter = uiComponents.create(JpqlFilter.class);
+    jpqlFilterNoParameter.setConditionModificationDelegated(true);
+    jpqlFilterNoParameter.setDataLoader(dataLoaderNoParam);
+    jpqlFilterNoParameter.setCondition("c.name = 'London'", "join {E}.city c");
+    jpqlFilterNoParameter.setParameterClass(Void.class);
+    jpqlFilterNoParameter.setLabel("Show customers from London");
+    jpqlFilterNoParameter.setParameterName(jpqlFilterSupport
+            .generateParameterName(
+                    String.valueOf(jpqlFilterNoParameter.getId()),
+                    jpqlFilterNoParameter.getParameterClass().getSimpleName()));
+    jpqlFilterNoParameter.setValueComponent(singleFilterSupport
+            .generateValueComponent(dataLoaderNoParam.getContainer().getEntityMetaClass(),
+                    jpqlFilterNoParameter.hasInExpression(),
+                    jpqlFilterNoParameter.getParameterClass()));
+
+    jpqlFilterNoParameter.setValue(true);
+    javaConfiguration.setFilterComponentDefaultValue(
+            jpqlFilterNoParameter.getParameterName(),
+            jpqlFilterNoParameter.getValue());
+
+    jfdtcGenericFilterNoParameter.setCurrentConfiguration(javaConfiguration);
+
+    javaConfiguration.getRootLogicalFilterComponent()
+            .add(jpqlFilterNoParameter);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="group-filter"><a class="anchor" href="#group-filter"></a>groupFilter</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/generic-filter-group-condition" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>The <code>groupFilter</code> component combines several conditions into a group. Conditions in the group are applied based on the logical operator (<code>AND</code> or <code>OR</code>). Both declarative and programmatic configurations provided in this section create the following filter on the view:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generic filter group filter" src="../../_images/visual-components/components/generic-filter-group-filter.png" width="770"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_declarative_configuration_3"><a class="anchor" href="#_declarative_configuration_3"></a>Declarative Configuration</h3>
+<div class="paragraph">
+<p>A <code>genericFilter</code> configuration can be specified declaratively, inside the XML view descriptor. See the following example for configuration with <code>groupFilter</code> combining two <code>propertyFilter</code> components:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;genericFilter id="genericFilterGroup"
+        dataLoader="customerDl"&gt;
+    &lt;properties include=".*"/&gt;
+    &lt;configurations&gt;
+        &lt;configuration id="groupFilter"
+                       name="groupFilter"
+                       default="true"&gt;
+            &lt;groupFilter operation="OR"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+                &lt;propertyFilter property="rewardPoints"
+                                operation="GREATER_OR_EQUAL"
+                                operationEditable="true"/&gt;
+                &lt;propertyFilter property="hobby"
+                                operation="EQUAL"
+                                operationEditable="true"/&gt;
+            &lt;/groupFilter&gt;
+        &lt;/configuration&gt;
+    &lt;/configurations&gt;
+&lt;/genericFilter&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_programmatic_configuration_3"><a class="anchor" href="#_programmatic_configuration_3"></a>Programmatic Configuration</h3>
+<div class="paragraph">
+<p>The other way to define the above configuration is programmatically, in the view controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+
+@Autowired
+private SingleFilterSupport singleFilterSupport;
+
+@ViewComponent
+private GenericFilter gfdtcGenericFilter;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    DesignTimeConfiguration javaDefaultConfigurationGF =
+            gfdtcGenericFilter.addConfiguration("javaDefaultConfiguration",
+                    "GroupFilter configuration"); <i class="conum" data-value="1"></i><b>(1)</b>
+    DataLoader dataLoaderGF = gfdtcGenericFilter.getDataLoader();
+
+    GroupFilter groupFilter =
+            uiComponents.create(GroupFilter.class); <i class="conum" data-value="2"></i><b>(2)</b>
+    groupFilter.setConditionModificationDelegated(true);
+    groupFilter.setDataLoader(dataLoaderGF);
+    groupFilter.setOperation(LogicalFilterComponent.Operation.OR); <i class="conum" data-value="3"></i><b>(3)</b>
+
+    PropertyFilter&lt;Integer&gt; rewardsPropertyFilter =
+            uiComponents.create(PropertyFilter.class);
+    rewardsPropertyFilter.setConditionModificationDelegated(true);
+    rewardsPropertyFilter.setDataLoader(dataLoaderGF);
+    rewardsPropertyFilter.setProperty("rewardPoints");
+    rewardsPropertyFilter.setOperation(PropertyFilter.Operation.GREATER_OR_EQUAL);
+    rewardsPropertyFilter.setOperationEditable(true);
+    rewardsPropertyFilter.setParameterName(PropertyConditionUtils
+            .generateParameterName(rewardsPropertyFilter.getProperty()));
+    rewardsPropertyFilter.setValueComponent(singleFilterSupport.generateValueComponent(
+            dataLoaderGF.getContainer().getEntityMetaClass(),
+            rewardsPropertyFilter.getProperty(),
+            rewardsPropertyFilter.getOperation()));
+
+    groupFilter.add(rewardsPropertyFilter); <i class="conum" data-value="4"></i><b>(4)</b>
+
+    PropertyFilter&lt;String&gt; hobbyPropertyFilter =
+            uiComponents.create(PropertyFilter.class);
+    hobbyPropertyFilter.setConditionModificationDelegated(true);
+    hobbyPropertyFilter.setDataLoader(dataLoaderGF);
+    hobbyPropertyFilter.setProperty("hobby");
+    hobbyPropertyFilter.setOperation(PropertyFilter.Operation.EQUAL);
+    hobbyPropertyFilter.setOperationEditable(true);
+    hobbyPropertyFilter.setParameterName(PropertyConditionUtils
+            .generateParameterName(hobbyPropertyFilter.getProperty()));
+    hobbyPropertyFilter.setValueComponent(singleFilterSupport.generateValueComponent(
+            dataLoaderGF.getContainer().getEntityMetaClass(),
+            hobbyPropertyFilter.getProperty(),
+            hobbyPropertyFilter.getOperation()));
+
+    groupFilter.add(hobbyPropertyFilter); <i class="conum" data-value="5"></i><b>(5)</b>
+    javaDefaultConfigurationGF.getRootLogicalFilterComponent()
+            .add(groupFilter); <i class="conum" data-value="6"></i><b>(6)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Adds a design-time configuration. The method takes two parameters: configuration id and configuration name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Creates the <code>GroupFilter</code> component and sets its properties.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Sets the <code>OR</code> logical operation defining how conditions of the group are applied.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Adds <code>PropertyFilter</code> that filters customers by reward points as the first condition of this group.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Adds <code>PropertyFilter</code> that filters customers by their hobby as the second condition of this group.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Adds the created group of conditions to the configuration.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="filter-compponent-registration"><a class="anchor" href="#filter-compponent-registration"></a>Filter Component Registration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To create and register a UI filter component in the framework, you need the following objects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A component class representing a UI component that will be displayed inside the <code>genericFilter</code> component.</p>
+</li>
+<li>
+<p>A model class to store non-persistent state of that component. This class will be used to save the component’s state in the database and reflect this state at runtime. Such class should extend the <code>FilterCondition</code> class. As an example of such class, consider the <code>PropertyFilterCondition</code> class in the framework.</p>
+</li>
+<li>
+<p>A converter class for converting between a component and a model. Such class should implement the <code>FilterConverter</code> interface.</p>
+</li>
+<li>
+<p>A model detail view. Its identifier can be optionally specified using the <code>withDetailViewId</code> method. If no identifier is specified then the identifier will be equal to the model name obtained from the <code>JmixEntity</code>, with <code>ViewRegistry.DETAIL_VIEW_SUFFIX</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Consider <code>PropertyFilter</code> registration example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">@Bean("flowui_PropertyFilterRegistration")
+public FilterComponentRegistration registerPropertyFilter() {
+    return FilterComponentRegistrationBuilder.create(PropertyFilter.class,
+                    PropertyFilterCondition.class,
+                    PropertyFilterConverter.class)
+            .build();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All registered filter components become available for use as items in the <strong><a class="xref page" href="genericFilter.html#creating-conditions">Create</a></strong> menu of the <strong>Add condition</strong> dialog.</p>
+</div>
+<div class="paragraph">
+<p>You can replace a filter component registered in the Jmix framework with your own implementation. To prioritize implementations use the <code>@Order</code> annotation on the <code>FilterComponentRegistration</code> bean.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+View and edit attributes of the component using <a class="xref page" href="../../../studio/view-designer.html#component-inspector">Jmix UI inspector</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_propertyfilter_attributes"><a class="anchor" href="#_propertyfilter_attributes"></a>propertyFilter attributes</h3>
+<div class="paragraph">
+<p>See <a class="xref page" href="propertyFilter.html#attributes">propertyFilter attributes</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_jpqlfilter_attributes"><a class="anchor" href="#_jpqlfilter_attributes"></a>jpqlFilter attributes</h3>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a href="#defaultValue">defaultValue</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#errorMessage">errorMessage</a> -
+<a href="#hasInExpression">hasInExpression</a> -
+<a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
+<a class="xref page" href="../common-attributes.html#invalid">invalid</a> -
+<a class="xref page" href="../common-attributes.html#label">label</a> -
+<a href="#labelVisible">labelVisible</a> -
+<a href="#paramterClass">parameterClass</a> -
+<a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
+<a class="xref page" href="../common-attributes.html#required">required</a> -
+<a class="xref page" href="../common-attributes.html#requiredIndicatorVisible">requiredIndicatorVisible</a> -
+<a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
+<a class="xref page" href="../common-attributes.html#tabIndex">tabIndex</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+<div class="sect3">
+<h4 id="defaultValue"><a class="anchor" href="#defaultValue"></a>defaultValue</h4>
+<div class="paragraph">
+<p>Sets a default value.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="hasInExpression"><a class="anchor" href="#hasInExpression"></a>hasInExpression</h4>
+<div class="paragraph">
+<p>Determines whether a collection can be accepted and put inside the <code>IN</code> clause.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="labelVisible"><a class="anchor" href="#labelVisible"></a>labelVisible</h4>
+<div class="paragraph">
+<p>Sets the label visibility.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="paramterClass"><a class="anchor" href="#paramterClass"></a>parameterClass</h4>
+<div class="paragraph">
+<p>Specifies a class representing the desired parameter type. For example: <code>java.lang.String</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_groupfilter_attributes"><a class="anchor" href="#_groupfilter_attributes"></a>groupFilter attributes</h3>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a href="#operation">operation</a> -
+<a href="#operationTextVisible">operationTextVisible</a> -
+<a href="#summaryText">summaryText</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a></p>
+</div>
+<div class="sect3">
+<h4 id="operation"><a class="anchor" href="#operation"></a>operation</h4>
+<div class="paragraph">
+<p>Specifies a logical operator used to join conditions in a group. Possible values: <code>AND</code>, <code>OR</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="operationTextVisible"><a class="anchor" href="#operationTextVisible"></a>operationTextVisible</h4>
+<div class="paragraph">
+<p>Determines whether the name of the operation is displayed.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="summaryText"><a class="anchor" href="#summaryText"></a>summaryText</h4>
+<div class="paragraph">
+<p>Specifies a summary for this filter condition.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_propertyfilter_handlers"><a class="anchor" href="#_propertyfilter_handlers"></a>propertyFilter handlers</h3>
+<div class="paragraph">
+<p>See <a class="xref page" href="propertyFilter.html#handlers">propertyFilter handlers</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_jpqlfilter_handlers"><a class="anchor" href="#_jpqlfilter_handlers"></a>jpqlFilter handlers</h3>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
+<a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a> -
+<a href="#validator">validator</a></p>
+</div>
+<div class="sect3">
+<h4 id="validator"><a class="anchor" href="#validator"></a>validator</h4>
+<div class="paragraph">
+<p>Adds a <a class="xref page" href="../miscellaneous/validator.html">validator</a> instance to the component.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_groupfilter_handlers"><a class="anchor" href="#_groupfilter_handlers"></a>groupFilter handlers</h3>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

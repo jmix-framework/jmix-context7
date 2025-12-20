@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration to Tabbed Mode :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Migration to Tabbed Mode</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>When the Tabbed Application Mode add-on is added, Vaadin’s navigation functionality is disabled. As a result, navigation events like <code>BeforeEnterEvent</code> and <code>AfterNavigationEvent</code> are no longer sent to views. Consequently, you may need to refactor views that rely on these events.</p>
+</div>
+<div class="paragraph">
+<p>To simplify refactoring, the base <code>View</code> class provides the <code>processBeforeEnterInternal()</code> method, which accepts a <code>BeforeEnterEvent</code> as an argument.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="regular-views"><a class="anchor" href="#regular-views"></a>Regular Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For example, consider a view that has a mandatory route parameter used to find the data required for further operations:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "role-assignment/:username", layout = DefaultMainViewParent.class)   <i class="conum" data-value="1"></i><b>(1)</b>
+@ViewController(id = "RoleAssignmentView")
+@ViewDescriptor(path = "role-assignment-view.xml")
+public class RoleAssignmentView extends StandardView {
+
+    private UserDetails user;
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        findUser(event.getRouteParameters());   <i class="conum" data-value="2"></i><b>(2)</b>
+        super.beforeEnter(event);
+    }
+
+    private void findUser(RouteParameters routeParameters) {
+        String username = routeParameters.get("username")
+                .orElseThrow(() -&gt; new IllegalStateException("Username not found"));    <i class="conum" data-value="3"></i><b>(3)</b>
+
+        String decodedUsername = urlParamSerializer.deserialize(String.class, username);
+
+        user = userRepository.loadUserByUsername(decodedUsername);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>View route includes a mandatory parameter.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Obtains route parameters and uses them to find a user instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Gets a particular route parameter and loads a user instance.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To make this view work within a tab, override the <code>processBeforeEnterInternal()</code> method and call the <code>findUser</code> method inside it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
+protected void processBeforeEnterInternal(BeforeEnterEvent event) {
+    super.processBeforeEnterInternal(event);
+
+    findUser(event.getRouteParameters());
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="detail-views"><a class="anchor" href="#detail-views"></a>Detail Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A detail view provides two methods for initializing the edited entity:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>setupEntityToEdit(String)</code> - invoked when a detail view is opened via navigation, and the edited entity is loaded using its <code>ID</code>, passed as a route parameter.</p>
+</li>
+<li>
+<p><code>setupEntityToEdit(Entity)</code> - invoked when a detail view is opened in a dialog window, and the edited entity is passed directly.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Consider an example where your detail view has custom code that initializes the edited entity based on the route parameter:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
+protected void initExistingEntity(String serializedEntityCode) {
+    String code = urlParamSerializer.deserialize(String.class, serializedEntityCode);
+    ResourceRole roleByCode = roleRepository.findRoleByCode(code);
+
+    ResourceRoleModel resourceRoleModel = roleModelConverter.createResourceRoleModel(roleByCode);
+
+    childRolesDc.mute();
+    childRolesDc.setItems(loadChildRoleModels(resourceRoleModel));
+    childRolesDc.unmute();
+
+    ResourceRoleModel merged = dataContext.merge(resourceRoleModel);
+    roleModelDc.setItem(merged);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the example above, the actual edited entity instance is obtained by converting the data stored in the database, which is loaded using the <code>id</code> passed as a route parameter. Because this view is not intended to be opened in a dialog, it lacks corresponding code for handling a directly passed entity instance. To enable this view to function within a tab, override the <code>setupEntityToEdit()</code> method and provide an empty implementation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
+protected void setupEntityToEdit(ResourceRoleModel entityToEdit) {
+    // do nothing
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

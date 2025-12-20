@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebDAV Application Properties :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">WebDAV Application Properties</h1>
+<div class="sect1">
+<h2 id="jmix.webdav.applications"><a class="anchor" href="#jmix.webdav.applications"></a>jmix.webdav.applications</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Maps document formats to external applications that should open these documents. You can configure a set of file extensions for each application in the "extensions" property.</p>
+</div>
+<div class="paragraph">
+<p>For example, the following mapping makes the system open PPT and PPTX files with Microsoft PowerPoint:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">"ms-powerpoint":{\
+  "name":"Microsoft PowerPoint",\
+  "protocols":{"writable":"ms-powerpoint:ofe%7Cu%7C","read_only":"ms-powerpoint:ofv%7Cu%7C"},\
+  "extensions":["ppt","pptx"]\
+  }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Default value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">{"ms-word":{"name":"Microsoft Word","protocols":{"writable":"ms-word:ofe%7Cu%7C",\
+  "read_only":"ms-word:ofv%7Cu%7C"},"extensions":["docx","doc","rtf"]},\
+  "ms-excel":{"name":"Microsoft Excel","protocols":{"writable":"ms-excel:ofe%7Cu%7C",\
+  "read_only":"ms-excel:ofv%7Cu%7C"},"extensions":["xls","xlsx"]},\
+  "ms-powerpoint":{"name":"Microsoft PowerPoint",\
+  "protocols":{"writable":"ms-powerpoint:ofe%7Cu%7C","read_only":"ms-powerpoint:ofv%7Cu%7C"},\
+  "extensions":["ppt","pptx"]}}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Example value for LibreOffice:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.webdav.applications = {"vnd.libreoffice.command":\
+  {"name":"LibreOffice","protocols":\
+  {"writable":"vnd.libreoffice.command:ofe|u|",\
+  "read_only":"vnd.libreoffice.command:ofv|u|"},\
+  "extensions":["odt", "ods", "odp", "doc", "docx", "xls", "xlsx", "ppt", "pptx"]}}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.webdav.authentication-method"><a class="anchor" href="#jmix.webdav.authentication-method"></a>jmix.webdav.authentication-method</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Defines the authentication type.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>basic</code>.</p>
+</div>
+<div class="paragraph">
+<p>Although not recommended, you can set a <code>digest</code> in this property and avoid setting up HTTPS on the server. In this case, remember to change the <a href="#jmix.webdav.url-prefix">jmix.webdav.url-prefix</a> property to generate links with the correct server protocol and port. Also, note that all users must have hashed passwords stored separately in the database. The add-on updates these passwords when you change a user’s password, so you must do this for each user after setting up digest authentication.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.webdav.auto-generate-unique-resource-uri"><a class="anchor" href="#jmix.webdav.auto-generate-unique-resource-uri"></a>jmix.webdav.auto-generate-unique-resource-uri</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If this property is set to <code>false</code> and a newly uploaded document has the URI already assigned to another document, a unique constraint violation will occur.</p>
+</div>
+<div class="paragraph">
+<p>If this property is set to <code>true</code> and the URI is already assigned to some document, a new path will be automatically generated with the <code>{id}.extension</code> format.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.webdav.document-versions-cleaning-cron"><a class="anchor" href="#jmix.webdav.document-versions-cleaning-cron"></a>jmix.webdav.document-versions-cleaning-cron</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This property allows you to change the schedule of <a class="xref page" href="configuration.html#webdav-document-versions-cleaning-job">WebdavDocumentVersionsCleaningJob</a> as <a href="http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html" rel="noopener" target="_blank">cron</a> expression if necessary.</p>
+</div>
+<div class="paragraph">
+<p>The default value is <code>0 0 0 1 * ? *</code> (once a month).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.webdav.expired-lock-cleaning-cron"><a class="anchor" href="#jmix.webdav.expired-lock-cleaning-cron"></a>jmix.webdav.expired-lock-cleaning-cron</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This property allows you to change the schedule of <a class="xref page" href="configuration.html#expired-lock-cleaning-job">ExpiredLockCleaningJob</a> as <a href="http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html" rel="noopener" target="_blank">cron</a> expression if necessary.</p>
+</div>
+<div class="paragraph">
+<p>The default value is <code>0 0 0/2 ? * *</code> (every two hours).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.webdav.file-storage"><a class="anchor" href="#jmix.webdav.file-storage"></a>jmix.webdav.file-storage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Defines a <a class="xref page" href="../files/file-storage.html">file storage</a> used to store WebDAV files.</p>
+</div>
+<div class="paragraph">
+<p>By default, the file storage returned by <code>FileStorageLocator.getDefault()</code> is used.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.webdav.lock-timeout"><a class="anchor" href="#jmix.webdav.lock-timeout"></a>jmix.webdav.lock-timeout</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Defines the default interval in milliseconds for a document <a class="xref page" href="webdav-documents.html#lock-unlock">locking</a>.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>600000</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.webdav.use-default-document-versions-cleaner-quartz-configuration"><a class="anchor" href="#jmix.webdav.use-default-document-versions-cleaner-quartz-configuration"></a>jmix.webdav.use-default-document-versions-cleaner-quartz-configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This property allows you to disable the default configuration that creates and schedules the <a class="xref page" href="configuration.html#webdav-document-versions-cleaning-job">WebdavDocumentVersionsCleaningJob</a> job.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.webdav.use-default-expired-lock-cleaner-quartz-configuration"><a class="anchor" href="#jmix.webdav.use-default-expired-lock-cleaner-quartz-configuration"></a>jmix.webdav.use-default-expired-lock-cleaner-quartz-configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This property allows you to disable the default configuration that creates and schedules the <a class="xref page" href="configuration.html#expired-lock-cleaning-job">ExpiredLockCleaningJob</a> job.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.webdav.url-prefix"><a class="anchor" href="#jmix.webdav.url-prefix"></a>jmix.webdav.url-prefix</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Defines the prefix for WebDAV document link.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>https://localhost:8443/webdav</code>.</p>
+</div>
+<div class="paragraph">
+<p>It must match the root URL of the application with the additional <code>/webdav</code> path.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.webdav.versioning-enabled"><a class="anchor" href="#jmix.webdav.versioning-enabled"></a>jmix.webdav.versioning-enabled</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Enables versioning for all attributes of the <code>WebdavDocument</code> type without <code>@WebdavSupport</code> annotation.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

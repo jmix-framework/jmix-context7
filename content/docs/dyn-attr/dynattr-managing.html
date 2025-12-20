@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Managing Dynamic Attributes :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Managing Dynamic Attributes</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can manage dynamic attributes on the <strong>Administration &gt; Dynamic attributes</strong> view. This view features a category list on the left and displays attributes associated with the chosen category on the right.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="dyn attr" src="_images/dyn-attr.png" width="1035"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Upon modifying the dynamic attributes setup, remember to click the <strong>Apply changes</strong> button.</p>
+</div>
+<div class="paragraph">
+<p>Additionally, the <strong>Dynamic attributes</strong> view provides functionalities for exporting selected categories as ZIP or JSON files and importing them into the system.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-category"><a class="anchor" href="#create-category"></a>Creating Category</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Prior to including a dynamic attribute for an entity, establish a category for it. Specify a name and choose the entity that the category is linked to.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create category" src="_images/create-category.png" width="722"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Is default</strong> checkbox signifies that this category will be automatically chosen for a new instance if the entity implements the <code>Categorized</code> interface.</p>
+</div>
+<div class="paragraph">
+<p>If the entity does not implement <code>Categorized</code>, the checkbox value is irrelevant, and you have the flexibility to create either a single category for the entity or multiple categories. In both cases, the attributes will be showcased based on the <a href="#visibility">visibility</a> settings.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>Localization</strong> tab is displayed within the category editor screen when the application is designed to accommodate multiple languages. This tab allows users to define the category name in different languages for each available locale.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="localization category" src="_images/localization-category.png" width="729"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-attribute"><a class="anchor" href="#create-attribute"></a>Creating Attribute</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="general-setting"><a class="anchor" href="#general-setting"></a>General Settings</h3>
+<div class="paragraph">
+<p>On the <strong>General</strong> tab of the <strong>Category attribute details</strong> dialog, you can specify a name, system code, description, value type, default attribute value, and validation script.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create attribute" src="_images/create-attribute.png" width="962"/>
+</div>
+</div>
+<div class="paragraph">
+<p>For all value types excluding <code>Boolean</code>, you can configure the width of the <code>formLayout</code> element in pixels or as a percentage. If the <strong>Width</strong> field is left blank, it is considered to be <code>100%</code> by default.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>Is collection</strong> checkbox, available for all value types except <code>Boolean</code>, permits the creation of multi-valued dynamic attributes of the selected value type.</p>
+</div>
+<div class="paragraph">
+<p>For the value types <code>Double</code>, <code>Fixed-point number</code>, and <code>Integer</code>, the following fields are provided:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Minimum value</strong> - ensures that the entered attribute value is equal to or greater than the specified minimum value.</p>
+</li>
+<li>
+<p><strong>Maximum value</strong> - ensures that the entered attribute value is equal to or less than the specified maximum value.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When dealing with the <code>Fixed-point number</code> value type, you can define a format pattern in the <strong>Number format pattern</strong> field. Configure the pattern following the guidelines outlined in <a href="https://docs.oracle.com/javase/8/docs/api/java/text/DecimalFormat.html" rel="noopener" target="_blank">DecimalFormat</a>.</p>
+</div>
+<div class="paragraph">
+<p>For every value type, you have the option to input a Groovy script in the <strong>Validation script</strong> field for validating the entered value. In case the Groovy validation encounters an issue, the script should return an error message. Conversely, if the validation is successful, the script should return nothing or <code>null</code>. The value being evaluated is accessible in the script through the <code>value</code> variable. Error messages are constructed using a Groovy string format, and you can utilize the <code>$value</code> key within the message to produce the outcome.</p>
+</div>
+<div class="paragraph">
+<p>Here is an example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">if (!value.startsWith("correctValue")) return "the value '\${value}' is incorrect"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For the <code>Enumeration</code> value type, you have the capability to define a collection of named values in the <strong>Enumeration</strong> field using the list editor. Each of these enumeration values can be localized for the languages supported within the application.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="enumeration" src="_images/enumeration.png" width="1128"/>
+</div>
+</div>
+<div class="paragraph">
+<p>For the <code>String</code>, <code>Double</code>, <code>Entity</code>, <code>Fixed-point number</code>, and <code>Integer</code> data types, there is a <strong>Dropdown list</strong> checkbox provided. Enabling this checkbox allows users to select the attribute value from a dropdown list. The set of permissible values can be customized on the <strong>Calculated values and options</strong> tab.</p>
+</div>
+<div class="paragraph">
+<p>In the case of the <code>Entity</code> data type, the configuration involves setting up <strong>Where</strong> and <strong>Join</strong> clauses.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="calculated-values-and-options"><a class="anchor" href="#calculated-values-and-options"></a>Calculated Values and Options</h3>
+<div class="paragraph">
+<p>Within the <strong>Calculated values and options</strong> tab, you can specify which attributes the current attribute depends on. Whenever one of these attributes is modified, either the script for computing the attribute value or the script for determining the <a href="#options-type-list">list of valid values</a> will be re-evaluated.</p>
+</div>
+<div class="paragraph">
+<p>The Groovy script should provide a new parameter value. The script receives the following variables:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>entity</code> - the entity being currently edited.</p>
+</li>
+<li>
+<p><code>dynamicAttributes</code> - a map where an attribute code acts as the <code>key</code> and the <code>value</code> represents the dynamic attribute’s value.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Here is an illustration of a recalculation script utilizing the <code>EntityValues</code> class:</p>
+</div>
+<div center""="" class="imageblock text-align=">
+<div class="content">
+<img alt="calculated" src="_images/calculated.png" width="962"/>
+</div>
+</div>
+<div class="paragraph">
+<p>An example of a recalculation script using the <code>dynamicAttributes</code> map:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">if (dynamicAttributes['passengerNumberOfSeats'] &gt; 9)
+return 'Bus' else return 'Passenger'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Whenever a value within the list of dependent attributes is altered, the script will be triggered for execution.</p>
+</div>
+<div class="paragraph">
+<p>If the script is specified, the attribute input field will become non-editable.</p>
+</div>
+<div class="paragraph">
+<p>Recalculation functionality is compatible exclusively with the <a class="xref page" href="../flow-ui/vc/layouts/formLayout.html">formLayout</a> and <a class="xref page" href="dynattr-view.html#dynamic-attributes-panel">DynamicAttributesPanel</a> UI components.</p>
+</div>
+<div class="paragraph" id="options-type-list">
+<p>When the <strong>Dropdown list</strong> checkbox is checked within the <strong>General</strong> tab, you can choose the options loader type from the <strong>Options type</strong> dropdown list.</p>
+</div>
+<div class="paragraph">
+<p>The available option loader types include Groovy, SQL, and JPQL (exclusive to the <code>Entity</code> data type).</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The Groovy options loader retrieves a list of values through a Groovy script. The script receives the entity variable, allowing access to the entity’s attributes, including dynamic attributes.</p>
+<div class="paragraph">
+<p>Here is an example script for a String-type attribute:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="options" src="_images/options.png" width="962"/>
+</div>
+</div>
+</li>
+<li>
+<p>The SQL options loader fetches a set of values utilizing the SQL script. You can access the entity id using the <code>${entity}</code> variable. To retrieve entity parameters, employ the <code>${entity.&lt;field&gt;}</code> syntax, where <code>field</code> represents the entity parameter’s name. Dynamic attributes of the entity can be accessed using the <code>\+</code> prefix, for instance, <code>${entity.+&lt;field&gt;}</code>. Below is an example accessing the entity and the dynamic attribute <code>passengerTypeOfCar</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">select LAST_NAME from DRIVER
+where CAR_TYPE = ${entity.+passengerTypeOfCar}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The JPQL option loader is designed exclusively for a dynamic attribute of the <code>Entity</code> type. JPQL conditions are defined in the <strong>Join clause</strong> and <strong>Where clause</strong> fields. When working with JPQL parameters, you have access to <code>{entity}</code> and <code>{entity.&lt;field&gt;}</code> variables.</p>
+<div class="paragraph">
+<p>The <strong>Join clause</strong> field’s value is incorporated into the <code>from</code> query clause, typically commencing with a comma, <code>join</code>, or <code>left join</code>.</p>
+</div>
+<div class="paragraph">
+<p>When interacting with dynamic attribute values in the script, you can utilize the entity variable as follows: <code>${entity.+&lt;dynamicAttrCode&gt;}</code>, where <code>&lt;dynamicAttrCode&gt;</code> refers to the code of the relevant dynamic attribute.</p>
+</div>
+<div class="paragraph">
+<p>The <code>{E}</code> placeholder should be used as an alias for the extracted entity. During query execution, it will be substituted with the actual alias designated in the query.</p>
+</div>
+<div class="paragraph">
+<p>For instance:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">join {E}.seller s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The value of the <strong>Where clause</strong> field is integrated into the <code>where</code> query clause using an <code>and</code> condition. The <code>where</code> keyword is unnecessary as it is automatically included.</p>
+</div>
+<div class="paragraph">
+<p>Dynamic attributes values in the script can also be accessed using the <code>entity</code> variable. For example:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql and where fields" src="_images/jpql-and-where-fields.png" width="962"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="localization"><a class="anchor" href="#localization"></a>Localization</h3>
+<div class="paragraph">
+<p>The <strong>Localization</strong> tab is displayed when the application provides support for multiple languages. Localization is available for all types of dynamic attributes.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="localization attr" src="_images/localization-attr.png" width="962"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="visibility"><a class="anchor" href="#visibility"></a>Visibility</h3>
+<div class="paragraph">
+<p>You can determine the views where a dynamic attribute will be visible by configuring its visibility settings. By default, the attribute is hidden.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="visibility" src="_images/visibility.png" width="962"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To select the view where the attribute should be displayed, the <a class="xref page" href="dynattr-view.html#using-dynamicattributes-facet">dynamicAttributes</a> facet must be added to that view, allowing it to be chosen in the <strong>Visibility</strong> tab.</p>
+</div>
+<div class="paragraph">
+<p>Beyond specifying the view, you can also designate the component within which the attribute should be visible. For example, views where multiple <code>FormLayout</code> components show the fields of the same entity.</p>
+</div>
+<div class="paragraph">
+<p>When an attribute is set as visible on a view, it will automatically be visible in all forms and data grids that present entities of the corresponding type on that view.</p>
+</div>
+<div class="paragraph">
+<p>If an entity incorporates the <code>Categorized</code> interface, the <a class="xref page" href="dynattr-view.html#dynamic-attributes-panel">DynamicAttributesPanel</a> can be utilized.</p>
+</div>
+<div class="paragraph">
+<p>Access to dynamic attributes can be restricted by <a class="xref page" href="../security/resource-roles.html">resource roles</a>. Security settings for dynamic attributes are similar to those for regular attributes.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="resource role" src="_images/resource-role.png" width="642"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

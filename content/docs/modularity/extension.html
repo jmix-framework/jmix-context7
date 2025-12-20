@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extending Functionality :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Extending Functionality</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Functionality of framework subsystems and add-ons can be extended and modified by the application or by other add-ons located lower in the <a class="xref page" href="creating-add-ons.html#hierarchy">hierarchy</a>.</p>
+</div>
+<div class="paragraph">
+<p>For declaratively created elements, such as data model entities and XML layout of UI views, Jmix offers its own extension mechanism. Business logic defined by Spring beans can be extended using standard Java and Spring features.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-model"><a class="anchor" href="#data-model"></a>Extending Data Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s consider an example of extending the data model of an add-on.</p>
+</div>
+<div class="paragraph">
+<p>Suppose we have the following entities defined in the <code>base</code> add-on:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="extension diagram" src="_images/extension-diagram.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Their source code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "BASE_DEPARTMENT")
+@Entity(name = "base_Department")
+public class Department {
+
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @InstanceName
+    @Column(name = "NAME")
+    private String name;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "BASE_EMPLOYEE", indexes = {
+        @Index(name = "IDX_BASE_EMPLOYEE_DEPARTMENT", columnList = "DEPARTMENT_ID")
+})
+@Entity(name = "base_Employee")
+public class Employee {
+
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @Column(name = "FIRST_NAME")
+    private String firstName;
+
+    @InstanceName
+    @Column(name = "LAST_NAME")
+    private String lastName;
+
+    @JoinColumn(name = "DEPARTMENT_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Department department;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <code>ext</code> application which uses the <code>base</code> add-on, we need to add the <code>description</code> and <code>manager</code> attributes to the <code>Department</code> entity. Obviously, we cannot modify the source code of the add-on, so we need to define another entity in the application and make other entities reference it instead of <code>Department</code>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="extension diagram 2" src="_images/extension-diagram-2.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The extended entity source code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Entity
+@ReplaceEntity(Department.class) <i class="conum" data-value="1"></i><b>(1)</b>
+public class ExtDepartment extends Department { <i class="conum" data-value="2"></i><b>(2)</b>
+
+    @InstanceName
+    @Column(name = "DESCRIPTION")
+    private String description; <i class="conum" data-value="3"></i><b>(3)</b>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MANAGER_ID")
+    private User manager; <i class="conum" data-value="3"></i><b>(3)</b>
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@ReplaceEntity</code> annotation indicates that this entity must completely replace the parent entity, specified in the annotation value. This annotation is added by Studio if you select the <strong>Replace parent</strong> checkbox in the entity designer.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>A standard inheritance of JPA entities. In this case, the base class doesn’t specify the JPA inheritance strategy, so the extension attributes will be stored in the same <code>BASE_DEPARTMENT</code> table.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The attributes added in the extension.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After introducing the <code>ExtDepartment</code> entity annotated with <code>@ReplaceEntity</code> in the application project, it will be returned everywhere in data access code instead of the <code>Department</code> entity. For example, you can safely cast references to the <code>ExtDepartment</code> class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Employee employee = dataManager.load(Employee.class).id(employeeId).one();
+
+ExtDepartment department = (ExtDepartment) employee.getDepartment();
+String description = department.getDescription();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, the <code>ExtDepartment</code> entity meta-class will be returned by the <a class="xref page" href="../data-model/metadata.html">metadata API</a> for both <code>ExtDepartment</code> and <code>Department</code> Java classes. The original entity meta-class can be obtained using the <code>ExtendedEntities</code> bean.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ui"><a class="anchor" href="#ui"></a>Extending UI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you replace an entity of an add-on by an extended version, most probably you will also need to override UI views of this entity to display the extended attributes. Below we consider an example of overriding the list view of the <code>Department</code> entity replaced by <code>ExtDepartment</code> as described in the <a href="#data-model">previous section</a>.</p>
+</div>
+<div class="paragraph">
+<p>To extend and override a view provided by an add-on, select <strong>Override an existing view</strong> template in the Studio view creation wizard. Studio will create new XML descriptor and controller files. The XML descriptor will contain the <code>extends</code> attribute referring to the base view descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://com.company.sample.base.view.department/departmentListView.title"
+      messagesGroup="com.company.sample.base.view.department"
+      extends="com/company/sample/base/view/department/department-list-view.xml"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, you can add components to display the extended attributes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://com.company.sample.base.view.department/departmentListView.title"
+      messagesGroup="com.company.sample.base.view.department"
+      extends="com/company/sample/base/view/department/department-list-view.xml"&gt;
+    &lt;layout&gt;
+        &lt;dataGrid id="departmentsDataGrid"&gt;
+            &lt;columns&gt;
+                &lt;column property="description"/&gt;
+                &lt;column property="manager"/&gt;
+            &lt;/columns&gt;
+        &lt;/dataGrid&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You don’t have to repeat all elements and attributes of the base view, only the changed part is required. The resulting XML will be merged from the base and extended descriptors - see more about it <a href="#descriptor-extension">below</a>.</p>
+</div>
+<div class="paragraph">
+<p>In our case, one of extended attributes (<code>manager</code>) is a reference to another entity. This reference will be loaded on demand due to the automatic <a class="xref page" href="../data-access/fetching.html#lazy-loading">lazy loading</a>, but you may want to include the reference to the <a class="xref page" href="../data-access/fetching.html#fetch-plan">fetch plan</a> of the view to avoid the possible "N+1 queries" problem:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://com.company.sample.base.view.department/departmentListView.title"
+      messagesGroup="com.company.sample.base.view.department"
+      extends="com/company/sample/base/view/department/department-list-view.xml"&gt;
+    &lt;data&gt;
+        &lt;collection id="departmentsDc"
+                    class="com.company.sample.ext.entity.ExtDepartment"&gt;
+            &lt;fetchPlan extends="_base"&gt;
+                &lt;property name="manager" fetchPlan="_base"/&gt;
+            &lt;/fetchPlan&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;layout&gt;
+        &lt;dataGrid id="departmentsDataGrid"&gt;
+            &lt;columns&gt;
+                &lt;column property="description"/&gt;
+                &lt;column property="manager"/&gt;
+            &lt;/columns&gt;
+        &lt;/dataGrid&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The controller of the extended view will be inherited from the base view class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "departments", layout = MainView.class)
+@ViewController("base_Department.list")
+@ViewDescriptor("ext-department-list-view.xml")
+public class ExtDepartmentListView extends DepartmentListView {</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Note that the <code>@ViewController</code> annotation has the same value as in the base view. This is important because we actually need to <em>override</em> the base view, meaning that everywhere in the system the extended view will be used instead of the base one, as is done for replaced entities.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can override public and protected methods of the base controller to extend the view logic if needed.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When extending or overriding a view that uses <code>MessageBundle</code> in its parent controller, you must ensure the child view’s <code>messageGroup</code> matches the parent’s value.</p>
+</div>
+<div class="paragraph">
+<p>If the <code>messageGroup</code> differs, the framework attempts to load messages using the child view’s group, which will fail because the messages are defined in the parent’s bundle.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "pslock/extpessimistic-locks", layout = DefaultMainViewParent.class)
+@ViewController(id = "ext_pslock_LockInfo.list")
+@ViewDescriptor(path = "ext-pessimistic-lock-list-view.xml")
+public class ExtPessimisticLockListView extends PessimisticLockListView {
+    @Override
+    public void onInit(InitEvent event) {
+        messageBundle.setMessageGroup("io.jmix.pessimisticlockflowui.view.pessimisticlock");
+        super.onInit(event);
+    }
+}</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="descriptor-extension"><a class="anchor" href="#descriptor-extension"></a>Rules of XML Descriptor Extension</h3>
+<div class="paragraph">
+<p>Extension of XML descriptors doesn’t take into account the semantics of the view and works purely on the XML level. It merges two XML files according to the following rules:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>If the extending descriptor has a certain element, the corresponding element will be searched for in the parent descriptor using the following algorithm:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>If the overriding element has the <code>id</code> attribute, the corresponding element with the same <code>id</code> will be searched for. Some elements are analyzed also for other attributes that serve as unique identifiers instead of <code>id</code>:</p>
+<div class="olist lowerroman">
+<ol class="lowerroman" type="i">
+<li>
+<p>For <code>button</code> element: <code>action</code> attribute.</p>
+</li>
+<li>
+<p>For <code>column</code> element: <code>property</code> and <code>key</code> attributes.</p>
+</li>
+<li>
+<p>For <code>property</code> element: <code>name</code> attribute.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>If the search is successful, the found element is overridden.</p>
+</li>
+<li>
+<p>Otherwise, the framework determines how many elements with the provided path and name are contained in the parent descriptor. If there is only one element, it is overridden.</p>
+</li>
+<li>
+<p>If the search yields no result and there is either zero or more than one element with the given path and name in the parent descriptor, a new element is added.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>The text for the overridden or added element is copied from the extending element.</p>
+</li>
+<li>
+<p>All attributes from the extending element are copied to the overridden or added element. If attribute names match, the value is taken from the extending element.</p>
+</li>
+<li>
+<p>By default, the new element is added to the end of the list of adjacent elements. In order to add a new element to the beginning or with an arbitrary index, do the following:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Define an additional namespace in the extending descriptor: <code>xmlns:ext="http://jmix.io/schema/flowui/view-ext"</code>.</p>
+</li>
+<li>
+<p>Add the <code>ext:index</code> attribute with a desired index, for example: <code>ext:index="0"</code> to the extending element.</p>
+</li>
+</ol>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="beans"><a class="anchor" href="#beans"></a>Overriding Spring Beans</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All Jmix subsystems use Spring beans by their type and never by bean name. Therefore, beans can be overridden just by providing alternative implementations with the same or extended type. We recommend following this convention in your own add-ons and applications.</p>
+</div>
+<div class="paragraph">
+<p>To override a Spring bean defined in an add-on, create its subclass (or implement the same interface) and declare a bean of this new type in a Java configuration, adding the <code>@Primary</code> annotation to the new bean.</p>
+</div>
+<div class="paragraph">
+<p>For example, suppose you have the following bean in the <code>base</code> add-on:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("base_DepartmentService")
+public class DepartmentService {
+
+    public void sayHello() {
+        System.out.println("Hello from base");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can override it in an application as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create its subclass in the application project:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class ExtDepartmentService extends DepartmentService {
+
+    @Override
+    public void sayHello() {
+        super.sayHello();
+        System.out.println("Hello from ext");
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Define a bean with the <code>@Primary</code> annotation in the main application class or in any <code>@Configuration</code> class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SpringBootApplication
+public class ExtApplication implements AppShellConfigurator {
+
+    @Primary
+    @Bean
+    ExtDepartmentService extDepartmentService() {
+        return new ExtDepartmentService();
+    }</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>After that, Spring container will always return <code>ExtDepartmentService</code> instead of <code>DepartmentService</code>, so any call to <code>sayHello()</code> method even from the <code>base</code> add-on will print both "Hello from base" and "Hello from ext" messages. Of course, you are free not to call <code>super()</code> in your overriding methods and hence completely replace the inherited behavior.</p>
+</div>
+<div class="paragraph">
+<p>In a rare situation when you need to override a bean which already has a subclass marked as <code>@Primary</code>, you can use the <a class="xref page" href="../app-properties.html#jmix.core.exclude-beans">jmix.core.exclude-beans</a> application property to remove other primary beans from the container.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="modules-api"><a class="anchor" href="#modules-api"></a>Modules API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The  <code>JmixModules</code> bean allows you to get information about modules used in your application: the list of all modules, the last module in the list (which is normally the application), a module descriptor by module id. The <code>getPropertyValues()</code> method returns the list of values defined for a property by each module.</p>
+</div>
+<div class="paragraph">
+<p>The <code>JmixModulesAwareBeanSelector</code> bean is designed for selecting an effective implementation of some interface from a given list. It returns a bean belonging to the lowest module in the hierarchy. For example, if you know that multiple add-ons define their own implementations of the <code>AmountCalculator</code> interface, and you want to use the one defined in the lowest module of the hierarchy, you can do it as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+ApplicationContext applicationContext;
+@Autowired
+JmixModulesAwareBeanSelector beanSelector;
+
+BigDecimal calculate() {
+    Map&lt;String, AmountCalculator&gt; calculators = applicationContext.getBeansOfType(AmountCalculator.class);
+    AmountCalculator calculator = beanSelector.selectFrom(calculators.values());
+    return calculator.calculate();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

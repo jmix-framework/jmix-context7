@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bands and Datasets :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Bands and Datasets</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The internal report structure is composed of <em>bands</em>. A band represents a section of the report that may appear zero or more times in the final document.</p>
+</div>
+<div class="paragraph">
+<p>A band is populated with data provided by one or multiple <em>datasets</em> associated with the band.</p>
+</div>
+<div class="paragraph">
+<p>In the report template, the bands are marked up in a way that depends on the file format. The report definition includes the hierarchical structure of bands, corresponding to the template bands.</p>
+</div>
+<div class="paragraph">
+<p>The picture below shows an example of bands used in a report:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="bands 1" src="../_images/create/bands-1.svg" width="611"/>
+</div>
+<div class="title">Figure 1. Sample report bands</div>
+</div>
+<div class="paragraph">
+<p>The <code>Root</code> band in the report definition is predefined, however, it may not be used in a template.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can find examples of various bands and datasets in the <a class="xref page" href="../../reports-guide/index.html">Report Generation</a> guide.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="bands"><a class="anchor" href="#bands"></a>Bands</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="bands-tab"><a class="anchor" href="#bands-tab"></a>Bands Tab</h3>
+<div class="paragraph">
+<p>The <strong>Bands</strong> tab of the runtime report editor allows you to define the band hierarchy and datasets for each band.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="bands" src="../_images/bands.png" width="1079"/>
+</div>
+</div>
+<div class="paragraph">
+<p>A report band has the following parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong> — band name, unique within the report. It must contain only Latin letters, numbers, and underscores.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If the band name starts with <strong>header</strong>, its data will not be printed when using the <a class="xref page" href="templates.html#table_output">table formatter</a>.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><strong>Orientation</strong> — band orientation: <strong>Horizontal</strong>, <strong>Vertical</strong> or <strong>Crosstab</strong>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Horizontal</strong> bands are copied downwards. They may contain sub-bands.</p>
+</li>
+<li>
+<p><strong>Vertical</strong> bands are copied to the right.</p>
+</li>
+<li>
+<p><strong>Crosstab</strong> bands are copied to the right and downwards as a matrix.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Parent</strong> — parent band.</p>
+</li>
+<li>
+<p><strong>Multiple Datasets</strong> — select this checkbox if you want to define more than one dataset for the band.</p>
+</li>
+<li>
+<p><strong>Dataset type</strong> — <a href="#datasets">the type</a> of dataset.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Each band includes one or more datasets. When running a report, datasets are transformed into lists of rows, where each row contains a map of name-value pairs. A band appears in the report as many times as the number of rows in its longest dataset.</p>
+</div>
+<div class="paragraph">
+<p>Fields defined in the report template are replaced with corresponding values from the dataset when the report is executed. When defining datasets, you can use <a class="xref page" href="parameters.html">report external parameters</a> and fields from other bands, which lets you link bands.</p>
+</div>
+<div class="paragraph">
+<p>Each report has the <strong>Root</strong> band. You can create datasets in it and refer to their fields from other bands.</p>
+</div>
+<div class="paragraph">
+<p>Note that the <strong>Dataset name</strong> column, available when working with multiple datasets, is for user convenience only.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="band-def"><a class="anchor" href="#band-def"></a>@BandDef Annotation</h3>
+<div class="paragraph">
+<p>The <code>@BandDef</code> allows you to define bands when creating a report at design time. It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>name</code> — band name, unique within the report. It must contain only Latin letters, numbers, and underscores.</p>
+</li>
+<li>
+<p><code>parent</code> — name of the parent band. Can be omitted only for the <code>Root</code> band.</p>
+</li>
+<li>
+<p><code>root</code> — must be set to <code>true</code> only for the <code>Root</code> band. <code>false</code> by default.</p>
+</li>
+<li>
+<p><code>orientation</code> — band’s orientation defined by the <code>Orientation</code> enum: <code>HORIZONTAL</code>, <code>VERTICAL</code>, <code>CROSS</code>. It’s <code>HORIZONTAL</code> by default.</p>
+</li>
+<li>
+<p><code>dataSets</code> — datasets defined by the array of <code>@DataSetDef</code> annotations.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The report must include the definition of the <code>Root</code> band with <code>name = "Root"</code> and <code>root = true</code> attributes.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The order of <code>@BandDef</code> annotations in the report definition Java class is important. It affects the printing order of bands on the same level of the hierarchy.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="datasets"><a class="anchor" href="#datasets"></a>Datasets</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="structure_sql"><a class="anchor" href="#structure_sql"></a>SQL Dataset</h3>
+<div class="paragraph">
+<p><strong>SQL</strong> dataset is produced as a result of SQL query execution. It is recommended to use aliases for query result fields using the <code>as</code> operator. It is also recommended to enclose the aliases in double quotes to prevent possible case conversion by the DBMS:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">select u.name as "userName", u.login as "userLogin"
+from user_ u</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can use report input parameters and parent bands fields in the query. Parameters should be addressed by name enclosed in <code>${}</code>, for example, <code>${dateFrom}</code>. Parent band fields should be addressed similarly, by adding the band name in front of the field name: <code>${band1.field1}</code>.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of an SQL query with a <code>groupId</code> parameter, obtained from the <code>group</code> parent band and an external <code>enabled</code> parameter:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">select u.name as "userName", u.login as "userLogin"
+from user_ u
+where u.group_id = ${group.groupId}
+    and u.active = ${active}
+    and u.deleted_date is null</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You should manually include conditions to filter soft deleted records for SQL queries.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="dlist" id="link_field">
+<dl>
+<dt class="hdlist1">Merge multiple datasets</dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>The <strong>Link field</strong> is used to merge data from multiple datasets inside one band. It can be used when the whole data for the report row could not be received by a single query or a Groovy script.</p>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="dlist" id="data_store">
+<dl>
+<dt class="hdlist1">Selecting data store</dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>By default, queries are executed on the main database. If you want to query an <a class="xref page" href="../../data-model/data-stores.html#additional">additional data store</a>, set its name in the <strong>Data store</strong> field.</p>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="dlist" id="query_preprocessing">
+<dl>
+<dt class="hdlist1">Query preprocessing in bands</dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>If you need to modify the SQL/JPQL query dynamically depending on the report input parameters or the parameter values from the parent band, you can use the SQL preprocessing. The template engine enables you to modify SQL/JPQL queries using Groovy. In order to activate it, check the <strong>Preprocess query as Groovy template</strong> checkbox below the band editor. The resulting query will be processed by <code>GStringTemplateEngine</code> that will have access to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>the report parameters: <code>${&lt;parameter_name&gt;}</code>,</p>
+</li>
+<li>
+<p>values from parent bands: <code>${&lt;band_name&gt;.&lt;parameter_name&gt;}</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Let’s consider the following example: depending on whether the <code>createTs2</code> report parameter is passed you need to select one of the query conditions: <code>e.create_ts &lt; ${createTs2}</code> or <code>e.create_ts &lt; current_timestamp</code>.</p>
+</div>
+<div class="paragraph">
+<p>In this case, the query should look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">select e.create_ts, e.id, e.vin from ref_car e
+where
+e.create_ts &gt;= ${createTs1}
+and
+&lt;% out &lt;&lt; (createTs2 != null  ? 'e.create_ts &lt; ${createTs2}' : 'e.create_ts &lt; current_timestamp')%&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Thus, if the <code>createTs2</code> parameter is not passed, the initial query will be transformed into the following resulting query:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">select e.create_ts, e.id, e.vin from ref_car e
+where
+e.create_ts &gt;= ${createTs1}
+and
+e.create_ts &lt; current_timestamp</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If <code>createTs2</code> is passed, the following resulting query will be used for the band:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">select e.create_ts, e.id, e.vin from ref_car e
+where
+e.create_ts &gt;= ${createTs1}
+and
+e.create_ts &lt; ${createTs2}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="structure_jpql"><a class="anchor" href="#structure_jpql"></a>JPQL Dataset</h3>
+<div class="paragraph">
+<p><strong>JPQL</strong> dataset is produced as a result of JPQL query execution. The resulted query fields must have aliases provided using the <code>as</code> operator. Similar to SQL query, you can use report input parameters and parent bands fields in the JPQL query.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of a JPQL query with a <code>groupId</code> parameter, obtained from the <code>group</code> parent band and an external <code>enabled</code> parameter:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select u.name as userName, u.login as userLogin
+from User u
+where u.group.id = ${group.groupId}
+    and u.active = ${active}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>JPQL queries automatically support soft deletion and return only records that are not deleted.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When using a JPQL query as a data source for a report, please note that the query is executed directly against the database and bypasses <a class="xref page" href="../../data-access/data-manager.html">DataManager</a>. This means that the system’s regular <a class="xref page" href="../../security/authorization.html#data-access-checks">data access security checks</a> (row-level and resource) are <strong>not applied automatically</strong>. You must ensure that your JPQL queries only retrieve data that the user is authorized to access. It is your responsibility to implement any necessary security checks in your queries.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can also use <strong>Link field</strong> to <a href="#link_field">merge multiple datasets</a>, use <strong>Data store</strong> to <a href="#data_store">query additional data store</a> or activate <a href="#query_preprocessing">query preprocessing</a> by checking the <strong>Preprocess query as Groovy template</strong> checkbox below the band editor.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="structure_groovy"><a class="anchor" href="#structure_groovy"></a>Groovy Dataset</h3>
+<div class="paragraph">
+<p><strong>Groovy</strong> dataset is produced as a result of Groovy script execution. The script returns an object of the <code>List&lt;Map&lt;String, Object&gt;&gt;</code> type. Each element of this list - an object of the <code>Map&lt;String, Object&gt;</code> type - corresponds to one dataset record.</p>
+</div>
+<div class="paragraph">
+<p>The following objects are passed into the script:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>params</code> - external report parameters map. Below is an example to get a parameter value:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def active = params['active']</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>parentBand</code> - parent band as an object of the <code>io.jmix.reports.yarg.structure.BandData</code> type. This object allows you to get a parent band field value by invoking the <code>getParameterValue()</code> method, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def groupId = parentBand.getParameterValue('groupId')</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>currentAuthentication</code> - an object of the <code>io.jmix.core.security.CurrentAuthentication</code> type associated with the currently authenticated user. For example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def user = currentAuthentication.getUser()</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>metadata</code> - an object of the <code>io.jmix.core.Metadata</code> type, providing access the application metadata. For example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def metaClass = metadata.getClass('User')</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>dataManager</code> - an object of the <code>io.jmix.core.DataManager</code> type that provides CRUD functionality. For example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def book = dataManager.load(Book.class).id(bookId).fetchPlan("book.edit").one()</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>timeSource</code> - an object of the <code>io.jmix.core.TimeSource</code> type used to obtain the current time. For example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def currentDate = timeSource.currentTimestamp()</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>applicationContext</code> - an object of the <code>org.springframework.context.ApplicationContext</code> type that provides access to managed beans. For example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def accountService = applicationContext.getBean(AccountService);</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="structure_entity"><a class="anchor" href="#structure_entity"></a>Entity Dataset</h3>
+<div class="paragraph">
+<p><strong>Entity</strong> dataset consists of a single row and is produced using attributes of a single JPA entity instance and the entities related to it.</p>
+</div>
+<div class="paragraph">
+<p>The data source is produced from an external parameter of the <strong>Entity</strong> type, which must be described in the <strong>Parameters</strong> tab. The value in the <strong>Entity parameter name</strong> field must match the parameter name.</p>
+</div>
+<div class="paragraph">
+<p>The report template must contain fields with entity attribute names. Attribute names can use names in the existing fetch plan by checking <strong>Use existing fetch plan</strong> or can be selected by the <strong>Select entity attributes</strong> button.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>As the reporting engine always reloads entities in the <strong>Entity</strong> dataset from the database, you cannot use it for DTO entities or JPA entity instances not saved to the database. Instead, use the <a href="#structure_groovy">Groovy dataset</a> and access the entity passed as a parameter in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">def entity = params['entity']
+
+return [['title': entity.title,
+        'description': entity.description]]</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="structure_list"><a class="anchor" href="#structure_list"></a>List of Entities Dataset</h3>
+<div class="paragraph">
+<p><strong>List of entities</strong> dataset is produced using a list of JPA entity instances.</p>
+</div>
+<div class="paragraph">
+<p>The data source is produced using an external parameter being a <strong>List of entities</strong>, which must be described in the <strong>Parameters</strong> tab. The value in the <strong>List of entities parameter name</strong> field must match the parameter alias.</p>
+</div>
+<div class="paragraph">
+<p>The report template must contain fields with entity attribute names. Attribute names can use names in the existing fetch plan by checking <strong>Use existing fetch plan</strong> or can be selected by the <strong>Select entity attributes</strong> button.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>As the reporting engine always reloads entities in the <strong>List of entities</strong> dataset from the database, you cannot use it for DTO entities or JPA entity instances not saved to the database. Instead, use the <a href="#structure_groovy">Groovy dataset</a> and access the list of entities passed as a parameter in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">return params['entities'].collect {[
+    'title': it.title,
+    'description': it.description
+]}</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="structure_json"><a class="anchor" href="#structure_json"></a>JSON Dataset</h3>
+<div class="paragraph">
+<p><strong>JSON</strong> dataset is generated from JSON data. This data can be received from the following sources:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Groovy script</strong></p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>The script provided by the user is supposed to return JSON data as a string.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">return ''' 
+        {
+          "items": [
+            {
+              "name": "Java Concurrency in practice",
+              "price": 15000
+            },
+            {
+              "name": "Clear code",
+              "price": 13000
+            },
+            {
+              "name": "Scala in action",
+              "price": 12000
+            }
+          ]
+        }
+        '''</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p><strong>URL</strong></p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>The report engine will perform a GET HTTP query against the URL.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">https://jsonplaceholder.typicode.com/users</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Parameter</strong></p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>The report external parameter of String type which contains the JSON data must be described in the <strong>Parameters</strong> tab.</p>
+</div>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The received JSON tree is queried using the JsonPath query. For example, you can use the <code>$.store.book[*]</code> JsonPath to return all books from the following JSON tree:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+    "store": {
+    "book": [
+            {
+                "category": "reference",
+                "author": "Nigel Rees",
+                "title": "Sayings of the Century",
+                "price": 8.95
+            },
+            {
+                "category": "fiction",
+                "author": "Evelyn Waugh",
+                "title": "Sword of Honour",
+                "price": 12.99,
+                "isbn": "0-553-21311-3"
+            }
+    ],
+    "bicycle": {
+        "color": "red",
+        "price": 19.95
+    }
+}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more details on JsonPath expressions, see the <a href="http://goessner.net/articles/JsonPath/" rel="noopener" target="_blank">documentation</a>.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Fields outputted by the report that have <code>Date</code>, <code>DateTime</code>, or <code>Time</code> data types do not support the format defined by <code>java.text.SimpleDateFormat</code>. To set the correct format, you should write a Groovy script.</p>
+</div>
+<div class="paragraph">
+<p>To do this, switch to the <strong>Value formats</strong> tab of the report detail view and open the <a class="xref page" href="value-formats.html">formatter</a> dialog. For example, for the field <code>bookPublication.dateTime</code> Groovy-script will look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">import java.text.SimpleDateFormat
+
+def simpleOldDateFormat = new SimpleDateFormat('yyyy-MM-dd HH:mm')
+def simpleNewDateFormat = new SimpleDateFormat('dd/MM/yyyy HH:mm')
+def oldDate = simpleOldDateFormat.parse(value)
+
+return simpleNewDateFormat.format(oldDate)</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="data-set-def"><a class="anchor" href="#data-set-def"></a>@DataSetDef Annotation</h3>
+<div class="paragraph">
+<p>The <code>@DataSetDef</code> annotation allows you to define datasets when creating a report at design time. It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>name</code> — dataset name. It is used in datasets of the <code>DELEGATE</code> type to link the dataset definition with the method that returns the delegate.</p>
+<div class="paragraph">
+<p>In a cross-tab band (<code>@BandDef.orientation = Orientation.CROSS</code>), the datasets must have the following names:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Column headers: <code>${band_name}_dynamic_header</code></p>
+</li>
+<li>
+<p>Row headers: <code>${band_name}_master_data</code></p>
+</li>
+<li>
+<p>Main content: <code>${band_name}</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>type</code> — dataset type defined by the <code>DataSetType</code> enum. Values of this enum correspond to the types of runtime datasets described above.</p>
+<div class="paragraph">
+<p>Usually, design-time reports use datasets of the <code>DELEGATE</code> type. In this case, they are linked by name with methods annotated with <code>@DataSetDelegate</code> annotation.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="data-set-delegate"><a class="anchor" href="#data-set-delegate"></a>@DataSetDelegate Annotation</h3>
+<div class="paragraph">
+<p>The <code>@DataSetDelegate</code> annotation allows you to define a method that returns a delegate for executing a dataset logic. It has the <code>name</code> attributes, which should be equal to the name of the corresponding dataset.</p>
+</div>
+<div class="paragraph">
+<p>The annotated method must not have any parameters and should return the <code>ReportDataLoader</code> functional interface.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Icons :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Custom Icons</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Additional icons can be added as an SVG sprite or standalone icons and used alongside the built-in sets.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="icon-set"><a class="anchor" href="#icon-set"></a>Icon Set</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An SVG sprite is a collection of SVG images loaded into an application as a single file, providing performance benefits. You can create a sprite manually or using one of many third-party tools.</p>
+</div>
+<div class="paragraph">
+<p>Follow the steps below to add an icon set:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a JavaScript file for your icon set in the <code>/frontend/icons/</code> directory. Use the following code as an example of a creating an icon set with three icons:</p>
+<div class="listingblock">
+<div class="title">my-icons.js</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-javascript hljs" data-lang="javascript">import '@vaadin/icon/vaadin-iconset.js';
+
+const template = document.createElement('template');
+
+template.innerHTML = `&lt;vaadin-iconset name="my-icons" size="24"&gt;
+  &lt;svg&gt;&lt;defs&gt;
+    &lt;g id="star"&gt;&lt;path d="M12 .587l3.668 7.568 8.332 1.207-6 5.848 1.416 8.263L12 18.896l-7.416 3.895L6 14.162l-6-5.848 8.332-1.207z" fill="#FFD700"/&gt;&lt;/g&gt;
+    &lt;g id="heart"&gt;&lt;path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF69B4"/&gt;&lt;/g&gt;
+    &lt;g id="circle"&gt;&lt;circle cx="12" cy="12" r="10" fill="#1E90FF"/&gt;&lt;/g&gt;
+  &lt;/defs&gt;&lt;/svg&gt;
+&lt;/vaadin-iconset&gt;`;
+
+document.head.appendChild(template.content);</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a Java enum that implements <code>IconFactory</code> and add the <code>@JsModule</code> annotation referring to the JavaScript file:</p>
+<div class="listingblock">
+<div class="title">MyIcons.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.icons;
+
+import com.vaadin.flow.component.dependency.JsModule;
+import com.vaadin.flow.component.icon.IconFactory;
+import java.util.Locale;
+
+@JsModule("./icons/my-icons.js")
+public enum MyIcons implements IconFactory {
+    STAR,
+    HEART,
+    CIRCLE;
+
+    public Icon create() {
+        return new Icon(this.name().toLowerCase(Locale.ENGLISH).replace('_', '-').replaceAll("^-", ""));
+    }
+
+    public static final class Icon extends com.vaadin.flow.component.icon.Icon {
+        Icon(String icon) {
+            super("my-icons", icon);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Custom icons can now be used in the same way as the default ones:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;icon icon="my-icons:star"/&gt;
+&lt;icon icon="my-icons:heart"/&gt;
+&lt;icon icon="my-icons:circle"/&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="sprite icons" src="../_images/icons/sprite-icons.png" width="125"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Or set it to a component in the Java code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">spriteIconButton.setIcon(MyIcons.STAR.create());</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="standalone-icon"><a class="anchor" href="#standalone-icon"></a>Standalone Icon</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Standalone icons can be added to the static content directory. By default, Spring Boot serves static resources from the following locations in the classpath: <code>/static</code>, <code>/public</code>, <code>/resources</code>, or <code>/META-INF/resources</code>. To help organize icons, you may set a subfolder <code>META-INF/resources/icons</code>.</p>
+</div>
+<div class="paragraph">
+<p>To serve a static resource, use the <code>svgIcon</code> component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;svgIcon resource="/icons/tree.svg"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To set the icon to a component, use its <a class="xref page" href="../vc/miscellaneous/prefix-suffix.html">prefix or suffix</a> elements.  For example, to put the icon before the button text:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Click!"&gt;
+    &lt;prefix&gt;
+        &lt;svgIcon resource="/icons/tree.svg"/&gt;
+    &lt;/prefix&gt;
+&lt;/button&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or, use the programmatic approach:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">StreamResource iconResource = new StreamResource("tree.svg",
+        () -&gt; getClass().getResourceAsStream("/META-INF/resources/icons/tree.svg"));
+SvgIcon treeIcon = new SvgIcon(iconResource);
+standaloneIconButton.setIcon(treeIcon);</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

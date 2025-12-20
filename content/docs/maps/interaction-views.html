@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4. Set Up Interaction Between Views :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">4. Set Up Interaction Between Views</h1>
+<div class="paragraph">
+<p>The user ought to have the capability to modify and save the base location by clicking on the map marker. As of now, our application doesn’t offer this functionality.</p>
+</div>
+<div class="paragraph">
+<p>Go to the <code>LocationLookupView</code> view controller and produce setter ang getter methods to pass the location we intend to display or save.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public Location getSelected() {
+    return selected;
+}
+
+public void setSelected(@Nullable Location selected) {
+    this.selected = selected;
+
+    currentLocationField.setValue(selected);
+
+    if (selected != null) {
+        setMapCenter(selected.getBuilding());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Navigate to the <code>UserDetailView</code> view controller and locate the <code>onLocationFieldSelect()</code> handler. Our goal is not only to open a dialog, but also to pass the previously saved location for the edited user. Additionally, we need to retrieve a result from the dialog once it has been closed. Let’s proceed with the necessary modifications to the handler:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixValuePicker&lt;Location&gt; locationField;
+
+@Subscribe("locationField.select")
+public void onLocationFieldSelect(final ActionPerformedEvent event) {
+    dialogWindows.view(this, LocationLookupView.class)
+            .withAfterCloseListener(closeEvent -&gt; {
+                if (closeEvent.closedWith(StandardOutcome.SELECT)) {
+                    locationField.setValue(closeEvent.getView().getSelected()); <i class="conum" data-value="1"></i><b>(1)</b>
+                }
+            })
+            .open()
+            .getView()
+            .setSelected(getEditedEntity().getLocation()); <i class="conum" data-value="2"></i><b>(2)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>AfterCloseEvent</code> object contains <code>CloseAction</code> passed to the view’s <code>close()</code> method. We analyze the close action using the <code>closedWith()</code> method of the event object. Remember: in the previous section, we established a <a class="xref page" href="dispay-markers.html#select-action-handler">handler</a> for the <code>select</code> action.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Passes the edited user’s location to the setter of <code>LocationLookupView</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Launch the application and make sure that the interaction between <code>UserDetailView</code> and <code>LocationLookupView</code> is correctly configured.</p>
+</div>
+
+</article>
+</body>
+</html>

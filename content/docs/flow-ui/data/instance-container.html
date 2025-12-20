@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InstanceContainer :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">InstanceContainer</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>InstanceContainer</code> interface is a root of the data containers hierarchy. It is designed to hold a single entity instance.</p>
+</div>
+<div class="paragraph">
+<p>You can define <code>InstanceContainer</code> in the XML descriptor in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;instance id="departmentDc"
+          class="com.company.onboarding.entity.Department"&gt;
+    &lt;fetchPlan extends="_base"&gt;
+        &lt;property name="hrManager" fetchPlan="_base"/&gt;
+    &lt;/fetchPlan&gt;
+    &lt;loader id="departmentDl"/&gt;
+&lt;/instance&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="methods"><a class="anchor" href="#methods"></a>Methods</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>InstanceContainer</code> has the following methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>setItem()</code> - sets an entity instance to the container.</p>
+</li>
+<li>
+<p><code>getItem()</code> - returns the instance stored in the container. If the container is empty, the method throws an exception. Use this method when you are sure that an entity has been set in the container, then you don’t have to check the returned value for <code>null</code>.</p>
+</li>
+<li>
+<p><code>getItemOrNull()</code> - returns the instance stored in the container. If the container is empty, this method returns <code>null</code>. You should always check the returned value for <code>null</code> before using it.</p>
+</li>
+<li>
+<p><code>getEntityMetaClass()</code> - returns the metaclass of the entity that can be stored in this container.</p>
+</li>
+<li>
+<p><code>setFetchPlan</code> - sets a fetch plan that must be used when loading entities for this container. Keep in mind that containers themselves do not load data, so this attribute just indicates the desired view for a loader connected to this container.</p>
+</li>
+<li>
+<p><code>getFetchPlan()</code> - returns a fetch plan that must be used when loading entities for this container.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="events"><a class="anchor" href="#events"></a>Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>InstanceContainer</code> interface allows you to register listeners to the following events:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ItemPropertyChangeEvent</code> is sent when the value of an attribute of the instance stored in the container is changed. Example of subscribing to the event for a container defined in the screen XML with <code>departmentDc</code> id:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "departmentDc", target = Target.DATA_CONTAINER)
+public void onDepartmentDcItemPropertyChange(
+        final InstanceContainer.ItemPropertyChangeEvent&lt;Department&gt; event) {
+    Department department = event.getItem();
+    String changedProperty = event.getProperty();
+    Object currentValue = event.getValue();
+    Object previousValue = event.getPrevValue();
+    // ...
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>ItemChangeEvent</code> is sent when another instance (or <code>null</code>) is set in the container. Example of subscribing to the event for a container defined in the screen XML with <code>departmentDc</code> id:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "departmentDc", target = Target.DATA_CONTAINER)
+public void onDepartmentDcItemChange(final InstanceContainer.ItemChangeEvent&lt;Department&gt; event) {
+    Department department = event.getItem();
+    Department previouslySelectedDepartment = event.getPrevItem();
+    // ...
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

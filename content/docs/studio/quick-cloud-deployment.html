@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Cloud Deployment :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Quick Cloud Deployment</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Quick cloud deployment allows you to deploy your application to AWS in a few clicks. It can be used for demo purposes or as a simple production deployment.</p>
+</div>
+<div class="paragraph">
+<p>Your application will run using <a href="https://docs.docker.com/compose/" rel="noopener" target="_blank">Docker Compose</a> on a dedicated EC2 instance in the same configuration as in your development environment. So by default the application will use the local PostgreSQL database and the file storage on the local file system.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="prerequisites"><a class="anchor" href="#prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Currently, only PostgreSQL is supported as a main data store. Studio configures it automatically in the generated <code>docker-compose</code> file. If your project uses additional data stores, you can configure them in <code>docker-compose</code> manually.</p>
+</div>
+<div class="paragraph">
+<p>Before starting the quick deployment, you need to:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create an AWS account and ensure that you have access to the <a href="https://console.aws.amazon.com/console/home" rel="noopener" target="_blank">AWS Console</a>.</p>
+</li>
+<li>
+<p>Install Docker and make sure the Docker CLI is available. The following terminal command should display information about the Docker client:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker info</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Install the <a href="https://plugins.jetbrains.com/plugin/7724-docker" rel="noopener" target="_blank">Docker plugin</a> into your IDE and enable it.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="initial-deployment"><a class="anchor" href="#initial-deployment"></a>Initial Deployment</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the Jmix tool window, select <strong>Deployment</strong> node and <strong>Quick Cloud Deployment</strong> in its context menu. If all <a href="#prerequisites">requirements</a> are met, you will see the following dialog:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="quick deployment 1" src="_images/quick-deployment/quick-deployment-1.png" width="451"/>
+</div>
+</div>
+</li>
+<li>
+<p>Click the <strong>Choose</strong> button to select or generate the <code>docker-compose</code> file. The <strong>Choose Docker-Compose</strong> dialog will appear. If the project doesn’t have a suitable file, the field in the dialog will be empty:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="quick deployment 2" src="_images/quick-deployment/quick-deployment-2.png" width="536"/>
+</div>
+</div>
+</li>
+<li>
+<p>Click the "plus" button in the field. The <strong>Docker Compose Services</strong> dialog will appear. It should contain two services: <code>Jmix App</code> and <code>Postgres</code>. The <code>Jmix App</code> service should have <code>Postgres</code> in the <strong>Depends on</strong> field:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="quick deployment 3" src="_images/quick-deployment/quick-deployment-3.png" width="568"/>
+</div>
+</div>
+</li>
+<li>
+<p>Click <strong>OK</strong> in the <strong>Docker Compose Services</strong> to save the generated <code>docker-compose.yaml</code> file. The file path will be set to the field in the <strong>Choose Docker-Compose</strong> dialog. Click <strong>OK</strong> to select the file for the quick deployment.</p>
+</li>
+<li>
+<p>Click the <strong>Start Deployment</strong> button in the <strong>Quick Cloud Deployment</strong> dialog. The <strong>Create AWS Deployment Configuration</strong> dialog will appear:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="quick deployment 4" src="_images/quick-deployment/quick-deployment-4.png" width="795"/>
+</div>
+</div>
+</li>
+<li>
+<p>In the <strong>Server</strong> dropdown, select <strong>Create new</strong> option. The <strong>AWS EC2 Instance</strong> dialog will appear:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="quick deployment 5" src="_images/quick-deployment/quick-deployment-5.png" width="807"/>
+</div>
+</div>
+</li>
+<li>
+<p>Select a desired region and instance type. Provide your AWS credentials: you can either enter them directly in the dialog or set up an <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html" rel="noopener" target="_blank">AWS CLI profile</a> on your computer.</p>
+</li>
+<li>
+<p>Click <strong>OK</strong> to save the instance settings. Then click <strong>Run</strong> in the <strong>Create AWS Deployment Configuration</strong> dialog.</p>
+</li>
+<li>
+<p>The <strong>Services</strong> tool window opens and the deployment starts. It creates the EC2 instance, connects to it by SSH and installs Docker. Then it builds the application image and starts <code>docker-compose</code> on the EC2 instance.</p>
+<div class="paragraph">
+<p>You can watch the status in the output of the <strong>AWS EC2 Instance → AWS EC2 via Docker-compose</strong> node.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="quick deployment 6" src="_images/quick-deployment/quick-deployment-6.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>⓵ - Overall deployment status. Note that <code>'AWS EC2 via Docker-compose' has been deployed successfully</code> message does not indicate that the application is already available at the designated URL. Look into the application log ⓶ to watch the application start.</p>
+</div>
+<div class="paragraph">
+<p>⓶ - The application container log.</p>
+</div>
+<div class="paragraph">
+<p>⓷ - The PostgreSQL container log.</p>
+</div>
+</li>
+<li>
+<p>To open the application web interface in the browser, right-click on the <strong>Deployment → Servers → AWS → AWS EC2 Instance</strong> node in the Jmix tool window and use the <strong>Open Application in Browser</strong> context menu action.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="redeployment"><a class="anchor" href="#redeployment"></a>Redeployment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To rebuild and redeploy the application to the same cloud server, launch the <code>AWS EC2 Instance Deployment</code> run configuration created during initial deployment.</p>
+</div>
+<div class="paragraph">
+<p>All data stored in the database and in the file storage will be preserved on redeployment thanks to the volume mappings defined in <code>docker-compose.yaml</code>. The data is actually stored outside containers in the EC2 instance file system.</p>
+</div>
+<div class="paragraph">
+<p>To refresh the view of the container logs in the <strong>Services</strong> tool window, open context menu of the <strong>AWS EC2 Docker &lt;instance-id&gt;</strong> docker node and execute first <strong>Disconnect</strong>, then <strong>Connect</strong> commands.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="maintenance"><a class="anchor" href="#maintenance"></a>Maintenance</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can connect to the running EC2 instance via SSH. To get the terminal command, select the <strong>Deployment → Servers → AWS → AWS EC2 Instance</strong> node in the Jmix tool window and click <strong>Connect to Server</strong> in its context menu. Copy the provided command text and run it in your terminal.</p>
+</div>
+<div class="paragraph">
+<p>To stop or terminate the EC2 instance, use corresponding actions in the context menu of the <strong>Deployment → Servers → AWS → AWS EC2 Instance</strong> node.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Terminating the instance completely removes it, so all data of the application will be lost.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

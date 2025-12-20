@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High-Density Data Visualization :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">High-Density Data Visualization</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>High-density data is a type of dataset that has a large number of data points within a specific spatial or temporal region.</p>
+</div>
+<div class="paragraph">
+<p>Large and dense datasets can be difficult to visualize effectively. There are several methods that can be used to visualize high-density data in a more meaningful manner. The following sections will discuss these methods.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="clustering"><a class="anchor" href="#clustering"></a>Clustering</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Clustering is a method of grouping <a class="xref page" href="features-geometries.html">features</a> in a layer based on their proximity to each other. Typically, the size of each cluster is proportional to the number of features contained within it. This can be useful for showing areas where many points are located close together.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="clustering main" src="_images/clustering-main.png" width="779"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Clustering is configured on the cluster source associated with the <a class="xref page" href="layers-sources.html#vector-layer">vector layer</a>. The cluster source should either incorporate a nested <a class="xref page" href="layers-sources.html#data-vector-source">DataVectorSource</a> or a <a class="xref page" href="layers-sources.html#vector-source">VectorSource</a>.</p>
+</div>
+<div class="paragraph">
+<p>For example, to cluster features from a data container in XML, follow these steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include a vector layer in the <a class="xref page" href="map-component.html">geoMap</a> component.</p>
+</li>
+<li>
+<p>Add <code>ClusterSource</code> to this layer.</p>
+</li>
+<li>
+<p>Set up <code>DataVectorSource</code> for the cluster in the following manner:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="geoMap"
+             width="100%"
+             height="100%"&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:osmSource/&gt;
+        &lt;/maps:tile&gt;
+        &lt;maps:vector id="vectorLayer"&gt;
+            &lt;maps:cluster&gt;
+                &lt;maps:dataVectorSource dataContainer="locationsDc"
+                                       property="building"/&gt;
+            &lt;/maps:cluster&gt;
+        &lt;/maps:vector&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Below, we will outline the key aspects of clustering.</p>
+</div>
+<div class="sect2">
+<h3 id="cluster-source"><a class="anchor" href="#cluster-source"></a>ClusterSource</h3>
+<div class="paragraph">
+<p><code>ClusterSource</code> is a source that enables feature clustering on the map. It requires an additional source to supply features, which can be either:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>DataVectorSource</code></p>
+</li>
+<li>
+<p><code>VectorSource</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To cluster features without data binding use <code>VectorSource</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="map"
+             width="100%"
+             height="100%"&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:osmSource/&gt;
+        &lt;/maps:tile&gt;
+        &lt;maps:vector id="vector"&gt;
+            &lt;maps:cluster&gt;
+                &lt;maps:vectorSource/&gt;
+            &lt;/maps:cluster&gt;
+        &lt;/maps:vector&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="cluster-attributes"><a class="anchor" href="#cluster-attributes"></a>Cluster Attributes</h3>
+<div class="paragraph">
+<p>Cluster has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>attributions</code> represents text for credits.</p>
+</li>
+<li>
+<p><code>disableAtZoom</code> establishes a zoom level at which clustering becomes disabled.</p>
+</li>
+<li>
+<p><code>distance</code> indicates the distance in pixels at which features get clustered together.</p>
+</li>
+<li>
+<p><code>minDistance</code> denotes the minimum pixel distance between clusters. (For more details, refer to <a href="https://openlayers.org/en/latest/apidoc/module-ol_source_Cluster-Cluster.html" rel="noopener" target="_blank">OSM documentation</a>).</p>
+</li>
+<li>
+<p><code>showSinglePointAsCluster</code> displays a single point as a cluster of size 1.</p>
+</li>
+<li>
+<p><code>weightProperty</code> - if provided, each point in the layer will have an integer weight value based on the <code>weight</code> property of the <a class="xref page" href="geo-objects.html">geo-object</a>. This value aids in calculating the combined cluster value (by default, the point count is utilized).</p>
+</li>
+<li>
+<p><code>wrapX</code> determines whether the world should be horizontally wrapped.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="weight-property"><a class="anchor" href="#weight-property"></a>Weight Property</h3>
+<div class="paragraph">
+<p>By default, the cluster computes the count of points within it, which is then displayed on the cluster marker. <code>weightProperty</code> allows us to indicate the property that the cluster should utilize for calculation.</p>
+</div>
+<div class="paragraph">
+<p>For instance, the project includes a JPA entity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "LOCATION")
+@Entity
+public class Location {
+
+    @Column(name = "BUILDING")
+    private Point building; <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @Column(name = "WEIGHT")
+    private Integer weight; <i class="conum" data-value="2"></i><b>(2)</b>
+
+    // getters and setters
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>building</code> attribute contains coordinates locating the building on the map.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>weight</code> attribute holds a numerical value that provides information about a building.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the XML descriptor, we set up the configuration for the cluster:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="locationsDc" class="com.company.mapssample.entity.Location"&gt;
+        &lt;loader id="locationsDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Location e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;maps:geoMap id="locationsMap"
+                 width="100%"
+                 height="100%"&gt;
+        &lt;maps:layers&gt;
+            &lt;maps:tile&gt;
+                &lt;maps:osmSource/&gt;
+            &lt;/maps:tile&gt;
+            &lt;maps:vector id="vectorL"&gt;
+                &lt;maps:cluster weightProperty="weight"&gt;
+                    &lt;maps:dataVectorSource dataContainer="locationsDc"
+                                           property="building"/&gt;
+                &lt;/maps:cluster&gt;
+            &lt;/maps:vector&gt;
+        &lt;/maps:layers&gt;
+    &lt;/maps:geoMap&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="cluster-styling"><a class="anchor" href="#cluster-styling"></a>Cluster Icon Styling</h3>
+<div class="paragraph">
+<p>Cluster icons can be customized using the Java API. There are two methods for styling:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Introduce a new style that covers the default one.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("locationMap.vectorLr.cluster")
+public ClusterSource cluster;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    cluster.addPointStyles(new Style()
+            .withImage(new CircleStyle()
+                    .withRadius(15)
+                    .withFill(new Fill("#7F70D8"))));
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="cluster new style" src="_images/cluster-new-style.png" width="100"/>
+</div>
+</div>
+</li>
+<li>
+<p>Removing the default style and adding a completely new one.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("styledMap.vectLr.clusterS")
+public ClusterSource clusterS;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    clusterS.removeAllPointStyles();
+    clusterS.addPointStyles(
+            new Style()
+                    .withImage(new CircleStyle()
+                            .withRadius(20)
+                            .withFill(new Fill("rgba(163, 104, 213, 0.6)"))),
+            new Style()
+                    .withImage(new CircleStyle()
+                            .withRadius(15)
+                            .withFill(new Fill("rgba(144, 64, 213, 1)"))));
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="cluster remove add style" src="_images/cluster-remove-add-style.png" width="100"/>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>To change text style, use the <code>setPointTextStyle()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("textStyleMap.vctLayer.clusterSource")
+public ClusterSource clusterSource;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    clusterSource.setPointTextStyle(new Style()
+            .withText(new TextStyle()
+                    .withFont("13px sans-serif")
+                    .withOffsetY(1)
+                    .withFill(new Fill("#FAAF22"))));
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="cluster text style" src="_images/cluster-text-style.png" width="100"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="feature-property"><a class="anchor" href="#feature-property"></a>Set Property for Feature</h3>
+<div class="paragraph">
+<p>Features have the ability to define the properties that will be associated with these features.</p>
+</div>
+<div class="paragraph">
+<p>If the cluster specifies the weight property, it will try to obtain it from the features' properties.</p>
+</div>
+<div class="paragraph">
+<p>Let’s consider the following example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="featuresMap"
+             height="100%"
+             width="100%"&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:osmSource/&gt;
+        &lt;/maps:tile&gt;
+        &lt;maps:vector id="pointsLayer"&gt;
+            &lt;maps:cluster id="pointClusterSource"
+                          weightProperty="weight" &gt;
+                &lt;maps:vectorSource id="source"/&gt;
+            &lt;/maps:cluster&gt;
+        &lt;/maps:vector&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("featuresMap.pointsLayer.pointClusterSource.source")
+public VectorSource source;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    source.addAllFeatures(generatePoints());
+}
+private List&lt;Feature&gt; generatePoints() {
+    List&lt;Feature&gt; features = new ArrayList&lt;&gt;(10000);
+    int e = 45;
+    for (int i = 0; i &lt; 10000; i++) {
+        Point point = GeometryUtils.createPoint(2 * e * Math.random(),
+                2 * e * Math.random() - e);
+        features.add(
+                new PointFeature(point)
+                        .withProperty("weight",
+                                Double.valueOf(Math.random() * 10).intValue()));
+    }
+    return Collections.unmodifiableList(features);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="heatmap"><a class="anchor" href="#heatmap"></a>Heatmap</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A heatmap renders point <a class="xref page" href="features-geometries.html">features</a> as a raster surface, highlighting areas with a higher concentration of points along a continuous color gradient.</p>
+</div>
+<div class="paragraph">
+<p>Warmer colors (such as red or orange) indicate areas with higher values, while cooler colors (like blue or green) indicate lower values.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="heatmap main" src="_images/heatmap-main.png" width="623"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Heatmaps are configured on the <code>HeatmapLayer</code>. This layer displays data in the form of heat points. <code>HeatmapLayer</code> works with <code>HeatmapDataVectorSource</code> and <a class="xref page" href="layers-sources.html#vector-source">VectorSource</a>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>HeatmapDataVectorSource</code> is used to bind with <a class="xref page" href="../flow-ui/data/data-containers.html">data containers</a> (entities or DTOs). The <code>property</code> attribute should refer to the property of the entity that has the <code>Point</code> type.</p>
+</li>
+<li>
+<p><code>VectorSource</code> should be used when there is no need to bind with the data containers.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example, to add a heatmap linked to the data container, follow these steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include a heatmap layer in the <a class="xref page" href="map-component.html">geoMap</a> component: select the <code>geoMap</code> element in the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, then click the <strong>Add</strong> button in the inspector panel. From the drop-down list, choose <strong>Layers → HeatmapLayer</strong>.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add heatmap layer" src="_images/add-heatmap-layer.png" width="351"/>
+</div>
+</div>
+</li>
+<li>
+<p>Add <code>HeatmapDataVectorSource</code> to this layer. Set up this source in the following manner:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="locationsDc"
+                class="com.company.mapssample.entity.Location"&gt;
+        &lt;loader id="locationsDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Location e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;maps:geoMap id="defaultMap"
+                 width="100%"
+                 height="100%"&gt;
+        &lt;maps:layers&gt;
+            &lt;maps:tile&gt;
+               &lt;maps:osmSource/&gt;
+            &lt;/maps:tile&gt;
+            &lt;maps:heatmap blur="20"
+                          radius="15"&gt;
+                &lt;maps:heatmapDataVectorSource dataContainer="locationsDc"
+                                              property="building"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;/maps:heatmap&gt;
+        &lt;/maps:layers&gt;
+    &lt;/maps:geoMap&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Define a property from the <code>Location</code> entity that has a <code>Point</code> type.</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Below, we will outline the key aspects of heatmaps.</p>
+</div>
+<div class="sect2">
+<h3 id="heatmap-attributes"><a class="anchor" href="#heatmap-attributes"></a>Heatmap Attributes</h3>
+<div class="paragraph">
+<p>Heatmap has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <a href="#heatmap-weight-property">weightProperty</a> attribute specifies the entity property from which to retrieve the weight (intensity) or the property from <code>Feature</code>.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If the property is not specified, the maximum available weight value will be utilized.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><code>maxWeight</code> - it indicates the maximum intensity value, ranging from <code>0.0</code> to <code>1.0.</code></p>
+</li>
+<li>
+<p><code>blur</code> specifies the pixel size of the point blur effect.</p>
+</li>
+<li>
+<p><code>radius</code> specifies the pixel size of the point radius.</p>
+</li>
+<li>
+<p><code>gradient</code> - the color gradient of the point, which should consist of CSS colors separated by commas.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Additionally, include the base layer properties: <code>className</code>, <code>maxZoom</code>, <code>minZoom</code>, <code>opacity</code>, <code>visible</code>, <code>zIndex</code></p>
+</div>
+<div class="paragraph">
+<p>Take a look at the example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:heatmap weightProperty="intensity"
+              maxWeight="0.5"
+              blur="20"
+              radius="20"
+              gradient="#32CD32, #00FF00, #7CFC00, #7FFF00, #ADFF2F"&gt;
+    &lt;maps:heatmapDataVectorSource dataContainer="locationsDc"
+                                  property="building"/&gt;
+&lt;/maps:heatmap&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="heatmap-weight-property"><a class="anchor" href="#heatmap-weight-property"></a>Weight Property</h3>
+<div class="paragraph">
+<p><code>weightProperty</code> is a property that determines the intensity or weight of a point displayed on the heatmap. It should be specified either in a <code>Feature</code> or an entity. The values for this property should be within the range of <code>0.0</code> and <code>1.0</code> and should be of type <code>Double</code>.</p>
+</div>
+<div class="paragraph">
+<p>If the <code>weightProperty</code> value is not explicitly defined, a default value of <code>1</code> is commonly used to represent the maximum intensity level for the heatmap points.</p>
+</div>
+<div class="paragraph">
+<p>Take a look at <a href="#heatmap-without-data-binding">this</a> and <a href="#heatmap-linked-to-data">this</a> examples utilizing the <code>weightProperty</code> property.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="heatmap-examples"><a class="anchor" href="#heatmap-examples"></a>Examples</h3>
+<div class="sect3">
+<h4 id="heatmap-without-data-binding"><a class="anchor" href="#heatmap-without-data-binding"></a>Heatmap without Data Binding</h4>
+<div class="paragraph">
+<p><code>VectorSource</code> is used when there is no need to bind with the data containers.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, a map is created and initially configured using XML.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="map"
+             width="100%"
+             height="100%"&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:osmSource/&gt;
+        &lt;/maps:tile&gt;
+        &lt;maps:heatmap id="heatmap"
+                      blur="10"
+                      radius="15"
+                      weightProperty="weight"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;maps:vectorSource id="vectorSource"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+        &lt;/maps:heatmap&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Set the property that will be associated with <code>Feature</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Specify <code>id</code> for the vector source, which will enable you to inject it into the controller.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After that, additional properties are set programmatically in Java controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("map.heatmap.vectorSource") <i class="conum" data-value="1"></i><b>(1)</b>
+private VectorSource vectorSource;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    PointFeature feature = new PointFeature(GeometryUtils.createPoint(10, 10));
+    feature.withProperty("weight", 1); <i class="conum" data-value="2"></i><b>(2)</b>
+
+    vectorSource.addFeature(feature);
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Inject <code>vectorSource</code> into the controller class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Pass the <code>weight</code> value into the method, which we previously specified for the <code>heatmap</code> element in the XML descriptor.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="heatmap-linked-to-data"><a class="anchor" href="#heatmap-linked-to-data"></a>Heatmap Linked to Data</h4>
+<div class="paragraph">
+<p>For instance, the project includes a JPA entity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "LOCATION")
+@Entity
+public class Location {
+
+    @Column(name = "BUILDING")
+    private Point building; <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @Column(name = "INTENSITY")
+    private Double intensity; <i class="conum" data-value="2"></i><b>(2)</b>
+
+    // getters and setters
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>building</code> attribute contains coordinates locating the building on the map.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>intensity</code> attribute holds a numerical value that provides some additional information.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the XML descriptor, we set up the configuration for a heatmap:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="locationsDc"
+                class="com.company.mapssample.entity.Location"&gt;
+        &lt;loader id="locationsDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Location e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;maps:geoMap id="geoMap"
+                 width="100%"
+                 height="100%"&gt;
+        &lt;maps:layers&gt;
+            &lt;maps:tile&gt;
+                &lt;maps:osmSource/&gt;
+            &lt;/maps:tile&gt;
+            &lt;maps:heatmap blur="10"
+                          radius="15"
+                          weightProperty="intensity"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+                &lt;maps:heatmapDataVectorSource dataContainer="locationsDc"
+                                              property="building"/&gt;
+            &lt;/maps:heatmap&gt;
+        &lt;/maps:layers&gt;
+    &lt;/maps:geoMap&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Specify in the <code>weightProperty</code> attribute the value of the entity property that contains the intensity value of the point.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="heatmap-weightProvider"><a class="anchor" href="#heatmap-weightProvider"></a>Heatmap with WeightProvider</h4>
+<div class="paragraph">
+<p><code>HeatmapDataVectorSource</code> has a specific method in cases where an entity/DTO doesn’t have a <a href="#heatmap-weight-property">weight property</a> or needs to calculate it in some other way. In these cases, it is not necessary to specify <code>weightProperty</code>, as the provider will be used instead.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, a map is created and initially configured using XML.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="locationMap"
+             width="100%"
+             height="100%"&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:osmSource/&gt;
+        &lt;/maps:tile&gt;
+        &lt;maps:heatmap id="heatmapLayer"
+                      weightProperty="intensity"
+                      blur="15"
+                      radius="20"&gt;
+            &lt;maps:heatmapDataVectorSource
+                    id="heatmapDataVectorSource"
+                    dataContainer="locationsDc"
+                    property="building"/&gt;
+        &lt;/maps:heatmap&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Afterward, we will set up a weight provider for <code>heatmapDataVectorSource</code> in Java controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("locationMap.heatmapLayer.heatmapDataVectorSource")
+private HeatmapDataVectorSource&lt;Location&gt; heatmapDataVectorSource; <i class="conum" data-value="1"></i><b>(1)</b>
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    heatmapDataVectorSource.setWeightProvider(location -&gt; { <i class="conum" data-value="2"></i><b>(2)</b>
+        int weight = location.getWeight();
+        if (weight &gt; 50) {
+            return 0.7;
+        }
+        return 0.3;
+    });
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Please note: <code>heatmapDataVectorSource</code> is parameterized.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The provider is called for each item and should return a calculated weight value.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

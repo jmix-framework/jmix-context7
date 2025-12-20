@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using Search in UI :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Using Search in UI</h1>
+<div class="sect1">
+<h2 id="visual-components"><a class="anchor" href="#visual-components"></a>Visual Components</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Search add-on provides two UI components: <code>SearchField</code> and <code>FullTextFilter</code>.</p>
+</div>
+<div class="paragraph">
+<p>These components are available in the <strong>Add Component</strong> palette of the Studio <a class="xref page" href="../studio/view-designer.html">View Designer</a> as soon as you install the add-on in your project.</p>
+</div>
+<div class="paragraph">
+<p>If you don’t use the view designer, declare the <code>search</code> namespace in your view’s XML descriptor manually:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:search="http://jmix.io/schema/search/ui"
+      title="msg://searchView.title"&gt;</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="search-field"><a class="anchor" href="#search-field"></a>SearchField</h3>
+<div class="paragraph">
+<p>The <code>SearchField</code> component presents a text input field along with a button for executing searches.</p>
+</div>
+<div class="paragraph">
+<p>Here’s a usage example of the <code>SearchField</code> component within a view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:search="http://jmix.io/schema/search/ui"
+      title="msg://searchView.title"&gt;
+    &lt;layout&gt;
+        &lt;search:searchField id="searchField"/&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Attributes of the <code>SearchField</code> component:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>searchStrategy</code> - determines the search strategy applied. If no strategy is specified, the default one is used.</p>
+</li>
+<li>
+<p><code>entities</code> - specifies the entities for searching. Multiple entities can be listed as a comma-separated sequence:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;search:searchField id="searchField"
+                    entities="Customer, Order_"/&gt;</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By default, <code>searchField</code> opens the built-in <code>SearchResultsView</code>. This view handles the search engine querying process and presents a result list within the navigation view or in a new dialog, based on the <code>openMode</code> attribute of <code>searchField</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you wish to modify this functionality, you can configure the <code>SearchCompletedHandler</code> in the following manner:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+@ViewComponent
+private SearchField searchField;
+
+@Install(to = "searchField", subject = "searchCompletedHandler")
+private void searchFieldSearchCompletedHandler(
+        final SearchField.SearchCompletedEvent event) {
+    SearchResult searchResult = event.getSearchResult();
+    DialogWindow&lt;SearchResultsView&gt; searchResultsDialog =
+            dialogWindows.view(UiComponentUtils.getView(this),
+                            SearchResultsView.class)
+                    .build();
+    SearchResultsView view = searchResultsDialog.getView();
+    view.initView(new SearchFieldContext(searchField));
+    searchResultsDialog.open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can use the <code>setSearchCompletedHandler()</code> method of the component.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="full-text-filter"><a class="anchor" href="#full-text-filter"></a>FullTextFilter</h3>
+<div class="paragraph">
+<p>The <code>FullTextFilter</code> component functions similarly to the <a class="xref page" href="../flow-ui/vc/components/propertyFilter.html">propertyFilter</a> component.</p>
+</div>
+<div class="paragraph">
+<p>Here’s an example of using <code>fullTextFilter</code> in the view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="ordersDc"
+                class="com.company.demo.entity.Order"&gt;
+        &lt;loader id="ordersDl"
+                readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Order_ e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="customer"
+                      fetchPlan="_base"/&gt;
+        &lt;/fetchPlan&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;search:fullTextFilter dataLoader="ordersDl"
+                           autoApply="true"/&gt;
+    &lt;dataGrid id="ordersDataGrid"
+              width="100%"
+              dataContainer="ordersDc"&gt;
+        &lt;columns&gt;
+            &lt;column property="number"/&gt;
+            &lt;column property="date"/&gt;
+            &lt;column property="amount"/&gt;
+            &lt;column property="product"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Attributes of the <code>FullTextFilter</code> component:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>dataLoader</code> specifies the <code>DataLoader</code> to be filtered.</p>
+</li>
+<li>
+<p><code>searchStrategy</code> determines the search strategy to be employed. If not explicitly defined, a default strategy is utilized.</p>
+</li>
+<li>
+<p><code>autoApply</code> - when set to <code>true</code>, the <code>FullTextFilter</code> component automatically applies itself to the <code>DataLoader</code> upon changes to its value.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>FullTextFilter</code> works as follows: it finds identifiers of entities through a full-text search, and subsequently appends a condition containing these identifiers to the data loader. Consequently, when a <code>DataGrid</code> is linked to this data loader, it will display only those records that match the full-text search criteria, combined with other filters, if any.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="search-strategies"><a class="anchor" href="#search-strategies"></a>Search Strategies</h3>
+<div class="paragraph">
+<p>A search strategy defines how the search term is processed. Basically it configures search request with some query.</p>
+</div>
+<div class="paragraph">
+<p>The <code>SearchField</code> and <code>FullTextFilter</code> components support the following built-in search strategies:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>anyTermAnyField</code> - a document matches if it contains at least one of input words in any indexed field.</p>
+</li>
+<li>
+<p><code>allTermsAnyField</code> - a document matches if it contains all input words in any field in any order.  This strategy is set by default.</p>
+</li>
+<li>
+<p><code>allTermsSingleField</code> - a document matches if it has at least one field that contains all input words in any order.</p>
+</li>
+<li>
+<p><code>phrase</code> - a document matches if it has at least one field that contains all input words in the provided order.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can set the proper strategy by using the <code>strategy</code> attribute, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;search:fullTextFilter dataLoader="ordersDl"
+                       autoApply="true"
+                       searchStrategy="anyTermAnyField"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To override the default strategy, add the following property to your <code>application.properties</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.search.default-search-strategy = allTermsSingleField</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="custom-search-strategies"><a class="anchor" href="#custom-search-strategies"></a>Custom Search Strategies</h4>
+<div class="paragraph">
+<p>Additionally, you can create a custom search strategy. For that purpose, you need to create a new Spring bean implementing one of the platform-specific interfaces:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>OpenSearchSearchStrategy</code> - if you use OpenSearch.</p>
+</li>
+<li>
+<p><code>ElasticsearchSearchStrategy</code> - if you use Elasticsearch.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Then you need to implement 2 methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>String getName()</code> - should return a unique strategy name.</p>
+</li>
+<li>
+<p><code>void configureRequest(SearchRequest.Builder requestBuilder, SearchContext searchContext)</code> - configure you search request using provided builder according to your requirements.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class CustomOpenSearchSearchStrategy implements OpenSearchSearchStrategy {
+
+    @Override
+    public String getName() {
+        return "CustomStrategy";
+    }
+
+    @Override
+    public void configureRequest(SearchRequest.Builder requestBuilder, SearchContext searchContext) {
+        //configure your request
+        requestBuilder.query(queryBuilder -&gt;
+                queryBuilder.multiMatch(multiMatchQueryBuilder -&gt;
+                        multiMatchQueryBuilder.fields("*")
+                                .query(searchContext.getSearchText())
+                )
+        );
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, you can assign your custom strategy to the <code>SearchField</code> or <code>FullTextFilter</code> component using the strategy name.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fts-condition-in-filter-component"><a class="anchor" href="#fts-condition-in-filter-component"></a>Full-text Search Condition in GenericFilter Component</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When the Search add-on is added to the project, a new condition appears in the <strong>Add condition</strong> dialog of the <a class="xref page" href="../flow-ui/vc/components/genericFilter.html">GenericFilter</a> component:</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img alt="add condition" src="_images/add_condition.png" width="1151"/></span></p>
+</div>
+<div class="paragraph">
+<p>Within the <strong>Full-text filter condition editor</strong> dialog, you can define a caption for the full-text filter and choose a search strategy. If no search strategy is selected, then the default one is used.</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img alt="condition editor" src="_images/condition_editor.png" width="641"/></span></p>
+</div>
+<div class="paragraph">
+<p>Subsequently, the records in the list component linked to the filter will undergo filtering based on the outcome of the full-text search.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-search-api-in-views"><a class="anchor" href="#using-search-api-in-views"></a>Using Search API in Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use Search API in view controllers. Let’s look at the example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private EntitySearcher entitySearcher;
+
+@Autowired
+private SearchResultProcessor searchResultProcessor;
+
+@Subscribe(id = "searchBtn", subject = "clickListener") <i class="conum" data-value="1"></i><b>(1)</b>
+public void onSearchBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    SearchContext searchContext = new SearchContext("silver") <i class="conum" data-value="2"></i><b>(2)</b>
+            .setSize(20) <i class="conum" data-value="3"></i><b>(3)</b>
+            .setEntities("Order_"); <i class="conum" data-value="4"></i><b>(4)</b>
+    SearchResult searchResult = entitySearcher.search(searchContext); <i class="conum" data-value="5"></i><b>(5)</b>
+    Collection&lt;Object&gt; instances =
+            searchResultProcessor.loadEntityInstances(searchResult); <i class="conum" data-value="6"></i><b>(6)</b>
+    // ...
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>API is called from the view when clicking on a button.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Defining the search string is mandatory: here, the query will look through all fields marked for indexing that contain the <code>"silver"</code> string.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Adds the conditions for the query: firstly, the max amount of records in the result set. Default value is <code>10</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Next, the list of entities to search within. By default, all indexed entities are included.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The <code>EntitySearcher</code> service is used to start searching.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td><code>SearchResultProcessor</code> is used for fetching entities from the search result.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

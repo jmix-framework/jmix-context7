@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Modeling: Composition :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Data Modeling: Composition</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, you will learn about the Composition relationship in Jmix, a key feature that allows for tightly coupled and lifecycle-managed entity relationships. We will compare Compositions with Associations, highlighting their fundamental differences and when to use each.</p>
+</div>
+<div class="paragraph">
+<p>The guide explores two main types of Compositions—One-to-Many and One-to-One—through practical examples. By the end, you will understand how to set up and effectively use Compositions in your Jmix applications to ensure data consistency and intuitive workflows.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to implement this guide step by step, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup Jmix Studio</a></p>
+</li>
+<li>
+<p>Get the completed sample project, which includes all the examples used in this guide. This allows you to explore the finished implementation and experiment with the functionality right away.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>You can <a href="https://github.com/jmix-framework/jmix-data-modeling-composition-sample/archive/refs/heads/release_2_7.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+</li>
+<li>
+<p>Or clone it and switch to the <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-data-modeling-composition-sample
+cd jmix-data-modeling-composition-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Alternatively, you can start with the base <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> project and follow the step-by-step instructions in this guide to implement the features yourself.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="what-we-are-going-to-build"><a class="anchor" href="#what-we-are-going-to-build"></a>What We Are Going to Build</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide enhances the <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> example with practical use cases for managing compositions in a data model. Through real-world examples, we demonstrate how to model, implement, and interact with various types of compositions to achieve transactional consistency and streamlined user workflows.</p>
+</div>
+<div class="paragraph">
+<p>The application includes the following scenarios:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Managing Addresses for Owners</strong>: Using inline editing in a <code>DataGrid</code>, this example demonstrates how to use a One-To-Many composition to manage multiple <code>Address</code> entities associated with an <code>Owner</code>.</p>
+</li>
+<li>
+<p><strong>Tracking Medical Records for Pets</strong>: Using dialog-based editing, this example showcases a multi-level composition that links <code>Owner</code>, <code>Pet</code>, and <code>HealthRecord</code> entities. We will explore two examples using both implicit and explicit Parent Data Context handling.</p>
+</li>
+<li>
+<p><strong>Adding Coverage Details for Pets</strong>: Implements a One-To-One composition to associate <code>CoverageDetails</code> with a <code>Pet</code>. We will explore both dialog-based and inline editing approaches for this example.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="association-vs-composition"><a class="anchor" href="#association-vs-composition"></a>Association vs. Composition</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In Jmix, relationships between entities can be defined as either <code>Associations</code> or <code>Compositions</code>, depending on the desired level of coupling and lifecycle control.</p>
+</div>
+<div class="paragraph">
+<p>An <code>Association</code> establishes a flexible link between entities that can exist independently. For example, a <code>Customer</code> and a <code>Product</code> can be associated, but neither depends on the other for its existence.</p>
+</div>
+<div class="paragraph">
+<p>A <code>Composition</code>, on the other hand, enforces a "master-detail" relationship. Detail entities are tightly coupled to their master, meaning they cannot exist independently. This type of relationship is useful when you want to ensure transactional consistency and lifecycle management across related entities.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Although associations and compositions differ semantically, compositions are technically a superset of associations. For example, a One-to-Many composition is essentially a One-to-Many association with additional semantics provided by Jmix. These semantics include lifecycle management and UI behavior enhancements.</p>
+</div>
+<div class="paragraph">
+<p>It is important to note that compositions and associations are not alternative concepts; rather, a composition extends the functionality of an association to introduce master-detail relationships and transactional consistency at the application level.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the context of the Jmix Petclinic example, the relationship between an <code>Owner</code> and their <code>Addresses</code> is an example of a composition. An <code>Address</code> that does not belong to an <code>Owner</code> has no meaning within this domain. Changes made to an <code>Owner</code> and their <code>Addresses</code> are managed together and saved as part of a single transaction, ensuring data consistency.</p>
+</div>
+<div class="paragraph">
+<p>Compositions are closely related to the concept of aggregates, as described in Domain-Driven Design (DDD). Aggregates group related entities into a single, consistent structure with a root entity managing its components. For more details on how Jmix handles editing aggregates, see:
+<a class="xref page" href="../concepts/features.html#editing-aggregates">Concepts: Editing Aggregates</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Unlike JPA association annotations like <code>@OneToMany</code>, <code>@Composition</code> is a Jmix-specific concept and has no direct equivalent in JPA and is applied additionally to the association annotations. While JPA focuses primarily on persistence and relationships at the database level, a Composition in Jmix extends beyond persistence to also define behaviors in the user interface and the data lifecycle. For this reason, the <code>@Composition</code> annotation is part of the Jmix framework and not part of JPA.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="why-use-composition"><a class="anchor" href="#why-use-composition"></a>Why and When to Use Composition</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Compositions in Jmix provide a robust way to model tightly coupled relationships between entities. Child entities are always managed within the context of their parent, ensuring that their lifecycle is tightly coupled. This means that changes to the parent and its associated children are managed together, allowing for consistent and unified persistence within the same transaction. This simplifies lifecycle management and helps maintain consistent data structures without requiring extra manual handling.</p>
+</div>
+<div class="paragraph">
+<p>Another key advantage is how compositions enhance the user experience. They allow for cohesive editing of master-detail relationships, often enabling related entities to be handled within the same view. This approach minimizes context switching for users, making the interactions with complex data models more intuitive and aligned with the application’s transactional logic.</p>
+</div>
+<div class="paragraph">
+<p>At the same time, compositions require users to adapt to a specific behavior: changes to child entities are only persisted when the parent is saved. This behavior, while ensuring transactional consistency, might feel unfamiliar to users accustomed to systems where changes are immediately saved. To avoid confusion, it is important to provide clear visual cues and thoughtful UI design that emphasize the need to confirm changes at the parent level.</p>
+</div>
+<div class="paragraph">
+<p>By leveraging compositions effectively, you can model domain-specific relationships while reducing the complexity of maintaining consistent and interrelated data structures within your application.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="one-to-many-composition"><a class="anchor" href="#one-to-many-composition"></a>One-to-Many Composition</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The first example will be a one-to-many composition using the <code>Owner</code> and <code>Address</code> entities from the Petclinic domain model. The example demonstrates how to configure the data model and UI to enable inline editing of the composition entities in a detail view.</p>
+</div>
+<div class="sect2">
+<h3 id="one-to-many-data-model"><a class="anchor" href="#one-to-many-data-model"></a>Data Model</h3>
+<div class="paragraph">
+<p>The <code>Owner</code> entity contains a one-to-many collection of <code>Address</code> entities, managed as a composition. This is achieved using the <code>@Composition</code> and <code>@OneToMany</code> annotations. Here are the relevant parts of the model:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_OWNER")
+@Entity(name = "petclinic_Owner")
+public class Owner extends Person {
+
+    @Composition <i class="conum" data-value="1"></i><b>(1)</b>
+    @OnDelete(DeletePolicy.CASCADE)
+    @OneToMany(mappedBy = "owner") <i class="conum" data-value="2"></i><b>(2)</b>
+    private List&lt;Address&gt; addresses;
+
+    public List&lt;Address&gt; getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(List&lt;Address&gt; addresses) {
+        this.addresses = addresses;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>addresses</code> attribute is annotated with <code>@Composition</code>, which ensures that the <code>Address</code> instances are tightly bound to their parent <code>Owner</code>. This means the lifecycle of <code>Address</code> entities is managed together with the <code>Owner</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>@OneToMany</code> annotation specifies the database-level relationship between the <code>Owner</code> and its <code>Address</code> entities, ensuring that multiple <code>Address</code> instances can be linked to a single <code>Owner</code> as part of the One-to-Many association.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_ADDRESS", indexes = {
+        @Index(name = "IDX_PETCLINIC_ADDRESS_OWNER", columnList = "OWNER_ID")
+})
+@Entity(name = "petclinic_Address")
+public class Address {
+
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @Column(name = "STREET", nullable = false)
+    @NotNull
+    private String street;
+
+    @Column(name = "HOUSE_NUMBER")
+    private String houseNumber;
+
+    @Column(name = "POSTAL_CODE", nullable = false)
+    @NotNull
+    private String postalCode;
+
+    @Column(name = "CITY", nullable = false)
+    @NotNull
+    private String city;
+
+    @InstanceName
+    @Column(name = "TYPE_", nullable = false)
+    @NotNull
+    private String type;
+
+    @OnDeleteInverse(DeletePolicy.CASCADE)
+    @JoinColumn(name = "OWNER_ID", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private Owner owner; <i class="conum" data-value="1"></i><b>(1)</b>
+
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>Address</code> entity includes a <code>@ManyToOne</code> annotation, which links each <code>Address</code> instance to its owning <code>Owner</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>While the <code>@OneToMany</code> and <code>@ManyToOne</code> associations configure the standard JPA association behaviour, the addition of <code>@Composition</code> on the <code>Owner</code> entity ensures that the <code>Address</code> instances are managed as part of the <code>Owner</code> lifecycle. This distinction introduces additional semantics for lifecycle management and transactional consistency in Jmix.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="one-to-many-ui"><a class="anchor" href="#one-to-many-ui"></a>UI Representation</h3>
+<div class="paragraph">
+<p>In the <code>Owner</code> detail view, the user can manage multiple <code>Address</code> entities directly using an inline editable Data Grid. This provides a clear and intuitive overview of all addresses associated with the selected <code>Owner</code>. Users can view, add, edit, or delete addresses within the same view.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/owner-addresses-composition-datagrid.png"><img alt="Owner Detail View" src="_images/owner-addresses-composition-datagrid.png" width="800"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>In Jmix, there are two main approaches to editing related entities within a composition: dialog-based editing and inline editing. Dialog-based editing opens a separate view as a dialog for editing the detail entity, allowing for more extensive forms with multiple fields. Inline editing, on the other hand, enables users to directly interact with the entity within a <code>DataGrid</code> in the parent entity’s detail view.</p>
+</div>
+<div class="sect3">
+<h4 id="one-to-many-ui-inline-editing"><a class="anchor" href="#one-to-many-ui-inline-editing"></a>Inline Editing</h4>
+<div class="paragraph">
+<p>For this example, we are using inline editing to demonstrate how to manage <code>Address</code> entities directly within the <code>Owner</code> detail view. This approach works well when the detail entity has a small number of fields that can be edited easily in a tabular format. It provides an efficient workflow by keeping the user within the same view while editing.</p>
+</div>
+<div class="paragraph">
+<p>The inline editable data grid allows users to add new addresses, edit existing ones, and delete rows directly. These changes are temporarily stored in the <code>DataContext</code> of the <code>OwnerDetailView</code> and, just like during creation or editing, are only persisted to the database when the user confirms their changes by clicking "OK".</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/owner-addresses-composition-datagrid-editing.png"><img alt="Inline Editing for Addresses" src="_images/owner-addresses-composition-datagrid-editing.png" width="800"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>To configure inline editing for the <code>Address</code> entities in the <code>Owner</code> detail view, a <code>DataGrid</code> is used. As a first step, let’s take a look at the <code>owner-detail-view.xml</code> view descriptor, where the <code>dataGrid</code> is defined and configured for inline editing.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;tab id="addressesTab" label="msg://io.jmix.petclinic.entity.owner/Owner.addresses"&gt;
+    &lt;vbox width="100%"&gt;
+        &lt;hbox id="addressesButtonsPanel" classNames="buttons-panel"&gt;
+            &lt;button action="addressesDataGrid.create"/&gt;
+            &lt;button action="addressesDataGrid.edit"/&gt;
+            &lt;button action="addressesDataGrid.remove"/&gt;
+        &lt;/hbox&gt;
+        &lt;dataGrid id="addressesDataGrid"
+                  dataContainer="addressesDc"
+                  width="100%"
+                  minHeight="20em"
+                  editorBuffered="true"
+                  allRowsVisible="true"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;actions&gt;
+                &lt;action id="create" type="list_create"/&gt;
+                &lt;action id="edit" type="list_edit"/&gt;
+                &lt;action id="remove" type="list_remove"/&gt;
+            &lt;/actions&gt;
+            &lt;columns&gt;
+                &lt;column property="type" editable="true"/&gt;  <i class="conum" data-value="2"></i><b>(2)</b>
+                &lt;column property="street" editable="true"/&gt;
+                &lt;column property="houseNumber" editable="true"/&gt;
+                &lt;column property="postalCode" editable="true"/&gt;
+                &lt;column property="city" editable="true"/&gt;
+                &lt;editorActionsColumn key="bufferedEditorColumn"&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+                    &lt;editButton text="Edit" icon="PENCIL"/&gt;
+                    &lt;saveButton icon="CHECK" themeNames="success"/&gt;
+                    &lt;cancelButton icon="CLOSE" themeNames="error"/&gt;
+                &lt;/editorActionsColumn&gt;
+            &lt;/columns&gt;
+        &lt;/dataGrid&gt;
+    &lt;/vbox&gt;
+&lt;/tab&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>editorBuffered="true"</code> attribute ensures that changes made in the <code>DataGrid</code> editor are not immediately applied to the <code>DataContext</code> but remain in the editor buffer until the user explicitly confirms them.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Columns have to be marked as <code>editable</code>. In our case all columns are set to <code>true</code> as we want to create completely new addresses directly in the data grid.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>An <code>editorActionsColumn</code> is added to handle row-specific editing. It includes options to enable editing, save changes, or cancel edits.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The <code>editorBuffered="true"</code> attribute is a Vaadin-specific feature that introduces an intermediate buffer for inline editing in a <code>DataGrid</code>. This means that changes made within the grid editor are held temporarily in a local buffer and only applied to the <code>DataContext</code> when the user explicitly confirms them. This design ensures a controlled editing workflow and provides flexibility for users to review their changes before they are committed.</p>
+</div>
+<div class="paragraph">
+<p>For more details, see the Vaadin Grid documentation on <a href="https://vaadin.com/docs/latest/components/grid/inline-editing#buffered" rel="noopener" target="_blank">Inline Editing</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Next, we look at the changes needed in the <code>OwnerDetailView</code> controller. To fully enable inline editing, the controller must handle the creation and editing of records programmatically. For the "Create" action, a new <code>Address</code> entity is created, associated with the current <code>Owner</code>, and immediately opened for editing in the <code>DataGrid</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "owners/:id", layout = MainView.class)
+@ViewController("petclinic_Owner.detail")
+@ViewDescriptor("owner-detail-view.xml")
+@EditedEntityContainer("ownerDc")
+public class OwnerDetailView extends StandardDetailView&lt;Owner&gt; {
+
+    @ViewComponent
+    private MessageBundle messageBundle;
+    @ViewComponent
+    private DataGrid&lt;Address&gt; addressesDataGrid;
+    @ViewComponent
+    private CollectionPropertyContainer&lt;Address&gt; addressesDc;
+    @Autowired
+    protected Notifications notifications;
+    @Subscribe("addressesDataGrid.create")
+    protected void onAddressesDataGridCreate(ActionPerformedEvent event) {
+        if (addressesDataGrid.getEditor().isOpen()) {
+            notifications.create("Close the editor before creating a new entity")
+                    .withType(Notifications.Type.WARNING)
+                    .withCloseable(false)
+                    .show();
+            return;
+        }
+
+        Address newAddress = dataContext.create(Address.class); <i class="conum" data-value="1"></i><b>(1)</b>
+
+        newAddress.setOwner(getEditedEntity()); <i class="conum" data-value="2"></i><b>(2)</b>
+        addressesDc.getMutableItems().add(newAddress); <i class="conum" data-value="3"></i><b>(3)</b>
+
+        addressesDataGrid.select(newAddress);
+        addressesDataGrid.getEditor().editItem(newAddress); <i class="conum" data-value="4"></i><b>(4)</b>
+
+    }
+    @Subscribe("addressesDataGrid.edit")
+    protected void onAddressesDataGridEdit(ActionPerformedEvent event) {
+        Address selectedAddress = addressesDataGrid.getSingleSelectedItem();
+
+        if (selectedAddress == null || addressesDataGrid.getEditor().isOpen()) {
+            notifications.create(messageBundle.getMessage("editAlreadyOpened"))
+                    .withType(Notifications.Type.WARNING)
+                    .withCloseable(false)
+                    .show();
+            return;
+        }
+
+        addressesDataGrid.getEditor().editItem(selectedAddress);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Creates a new instance of the <code>Address</code> entity using the <code>DataContext</code>. This ensures the new entity is managed and tracked for persistence.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Associates the newly created <code>Address</code> with the currently edited <code>Owner</code>, establishing the parent-child relationship.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Adds the new <code>Address</code> instance to the <code>addressesDc</code> data container, making it available for display and editing in the <code>DataGrid</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Selects the newly added <code>Address</code> in the <code>DataGrid</code> and opens it in the inline editor for immediate modification.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="data-context"><a class="anchor" href="#data-context"></a>Role of the DataContext</h3>
+<div class="paragraph">
+<p>The <code>DataContext</code> in Jmix serves as a temporary storage for entities while a view is open. It allows changes made to entities—such as creating, modifying, or deleting them—to be tracked within the scope of the view without immediately persisting them to the database.</p>
+</div>
+<div class="paragraph">
+<p>In the <code>Owner</code> detail view, for example, any changes to the associated <code>Address</code> entities are held in the <code>DataContext</code>. These changes are only committed to the database when the user confirms them by clicking "OK" to save the Owner detail view. If the user cancels the view, the <code>DataContext</code> discards all pending changes, ensuring that no unintended modifications are persisted.</p>
+</div>
+<div class="paragraph">
+<p>This approach provides flexibility for editing workflows. Users can experiment with their changes in a safe, isolated context, knowing that nothing is committed until explicitly confirmed. At the same time, the <code>DataContext</code> ensures data consistency by grouping all changes into a single transaction when saved.</p>
+</div>
+<div class="paragraph">
+<p>For more details about Data Context, see the User Interface Section on
+<a class="xref page" href="../flow-ui/data/data-context.html">Data Components: DataContext</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="multi-level-composition"><a class="anchor" href="#multi-level-composition"></a>Multi-Level Composition</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After exploring a one-to-many composition with <code>Owner</code> and <code>Address</code>, this section demonstrates a multi-level one-to-many composition. The hierarchy consists of an <code>Owner</code> with multiple <code>Pets</code>, where each <code>Pet</code> can have multiple associated <code>HealthRecord</code> entities. This example illustrates how to model and manage nested compositions in Jmix.</p>
+</div>
+<div class="sect2">
+<h3 id="multi-level-data-model"><a class="anchor" href="#multi-level-data-model"></a>Data Model</h3>
+<div class="paragraph">
+<p>The multi-level composition is structured as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Owner → Pet</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>Owner</code> entity has a one-to-many relationship with <code>Pet</code>.</p>
+</li>
+<li>
+<p>This relationship is managed using the <code>@Composition</code> and <code>@OneToMany</code> annotations.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Pet → HealthRecord</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>Pet</code> entity contains a one-to-many relationship with <code>HealthRecord</code>.</p>
+</li>
+<li>
+<p>This relationship is also managed with the <code>@Composition</code> and <code>@OneToMany</code> annotations, ensuring that <code>HealthRecord</code> instances are tightly coupled with their parent <code>Pet</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Here is the updated data model configuration:</p>
+</div>
+<div class="listingblock">
+<div class="title">Owner.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_OWNER")
+@Entity(name = "petclinic_Owner")
+public class Owner extends Person {
+
+    @OnDelete(DeletePolicy.CASCADE)
+    @Composition
+    @OrderBy("identificationNumber")
+    @OneToMany(mappedBy = "owner")
+    private List&lt;Pet&gt; pets;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Pet.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_PET", indexes = {
+        @Index(name = "IDX_PETCLINIC_PET_COVERAGE_DETAILS", columnList = "COVERAGE_DETAILS_ID")
+})
+@Entity(name = "petclinic_Pet")
+public class Pet extends NamedEntity {
+
+    @JoinColumn(name = "OWNER_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Owner owner;
+
+    @OnDelete(DeletePolicy.CASCADE)
+    @Composition
+    @OneToMany(mappedBy = "pet")
+    private List&lt;HealthRecord&gt; healthRecords;
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">HealthRecord.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_HEALTH_RECORD", indexes = {
+        @Index(name = "IDX_PETCLINIC_HEALTH_RECORD_PET", columnList = "PET_ID")
+})
+@Entity(name = "petclinic_HealthRecord")
+public class HealthRecord {
+
+    @JoinColumn(name = "PET_ID", nullable = false)
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private Pet pet;
+
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="multi-level-ui"><a class="anchor" href="#multi-level-ui"></a>UI Representation</h3>
+<div class="paragraph">
+<p>To manage this multi-level hierarchy, we will configure nested compositions as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A <strong>DataGrid</strong> for managing <code>Pet</code> entities in the <code>OwnerDetailView</code>.</p>
+</li>
+<li>
+<p>Another <strong>DataGrid</strong> for managing <code>HealthRecord</code> entities in the <code>PetDetailView</code>.</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">owner-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance id="ownerDc"
+              class="io.jmix.petclinic.entity.owner.Owner"&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="pets" fetchPlan="_base"&gt;
+                &lt;property name="type" fetchPlan="_instance_name"/&gt;
+            &lt;/property&gt;
+            &lt;property name="addresses" fetchPlan="_base"/&gt;
+        &lt;/fetchPlan&gt;
+        &lt;loader/&gt;
+        &lt;collection id="petsDc" property="pets"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;collection id="addressesDc" property="addresses"/&gt;
+    &lt;/instance&gt;
+&lt;/data&gt;
+
+&lt;!-- ... --&gt;
+
+&lt;dataGrid id="petsDataGrid"
+          dataContainer="petsDc"
+          width="100%"
+          minHeight="20em"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;actions&gt;
+        &lt;action id="create" type="list_create"&gt;
+            &lt;properties&gt;
+                &lt;property name="openMode" value="DIALOG"/&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+            &lt;/properties&gt;
+        &lt;/action&gt;
+        &lt;action id="edit" type="list_edit"&gt;
+            &lt;properties&gt;
+                &lt;property name="openMode" value="DIALOG"/&gt;
+            &lt;/properties&gt;
+        &lt;/action&gt;
+        &lt;action id="remove" type="list_remove"/&gt;
+    &lt;/actions&gt;
+    &lt;columns&gt;
+        &lt;column property="name"/&gt;
+        &lt;column property="identificationNumber"/&gt;
+        &lt;column property="birthdate"/&gt;
+        &lt;column property="type"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>petsDc</code> is a nested <code>CollectionPropertyContainer</code> defined within the <code>OwnerDetailView</code>. It ensures that all <code>Pet</code> entities are automatically loaded when the parent <code>Owner</code> is fetched and also tracks changes made to the <code>Pet</code> entities within the same <code>DataContext</code> as the parent <code>Owner</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>petsDataGrid</code> is configured to display and manage the list of <code>Pet</code> entities associated with the <code>Owner</code>. It is bound to the <code>petsDc</code> container, which links the grid’s data to the parent <code>DataContext</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>create</code> and <code>edit</code> actions for the <code>petsDataGrid</code> are configured with <code>openMode="DIALOG"</code>. This ensures that new or edited <code>Pet</code> entities are handled within a dialog window, inheriting the <code>DataContext</code> from the parent view.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now, let’s take a look at the <code>PetDetailView</code>. Here, we follow the same approach by using the dialog mode again for editing <code>HealthRecord</code> entities associated with a <code>Pet</code>. This ensures that all changes are consistently linked back to the <code>Owner</code> and maintain the same <code>DataContext</code> hierarchy.</p>
+</div>
+<div class="listingblock">
+<div class="title">pet-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="healthRecordsDataGrid" dataContainer="healthRecordsDc" width="100%" height="100%"&gt;
+    &lt;actions&gt;
+        &lt;action id="create" type="list_create"&gt;
+            &lt;properties&gt;
+                &lt;property name="openMode" value="DIALOG"/&gt;
+            &lt;/properties&gt;
+        &lt;/action&gt;
+        &lt;action id="edit" type="list_edit"&gt;
+            &lt;properties&gt;
+                &lt;property name="openMode" value="DIALOG"/&gt;
+            &lt;/properties&gt;
+        &lt;/action&gt;
+        &lt;action id="nextCheckup" text="msg://nextCheckup" icon="vaadin:calendar" type="list_itemTracking"/&gt;
+        &lt;action id="remove" type="list_remove"/&gt;
+    &lt;/actions&gt;
+    &lt;columns&gt;
+        &lt;column property="recordDate"/&gt;
+        &lt;column property="diagnosis"/&gt;
+        &lt;column property="treatment"/&gt;
+        &lt;column property="medication"/&gt;
+        &lt;column property="healthStatus"/&gt;
+        &lt;column property="weight"/&gt;
+        &lt;column property="nextCheckupDate"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>PetDetailView</code> includes a nested <code>DataGrid</code> for managing <code>HealthRecord</code> entities. Using dialog windows ensures that changes to <code>HealthRecord</code> entities are linked to their parent <code>Pet</code> and ultimately to the <code>Owner</code>, with all changes saved together when the <code>Owner</code> is confirmed.</p>
+</div>
+<div class="sect3">
+<h4 id="multi-level-ui-dialog-based-editing"><a class="anchor" href="#multi-level-ui-dialog-based-editing"></a>Dialog-Based Editing and Implicit Parent Data Context</h4>
+<div class="paragraph">
+<p>When managing nested entities like <code>Pet</code> and <code>HealthRecord</code>, the use of <code>openMode="DIALOG"</code> for editing actions ensures that the parent-child relationship in the <code>DataContext</code> is automatically preserved. This behavior is similar to programmatically setting the <code>parentDataContext</code>, but it happens implicitly through the dialog-based navigation.</p>
+</div>
+<div class="paragraph">
+<p>By opening child views (e.g., <code>PetDetailView</code> or <code>HealthRecordDetailView</code>) in dialog windows, Jmix automatically links the <code>DataContext</code> of the child view to that of the parent view.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Using regular view-based navigation, where the child view replaces the currently visible parent view does not maintain the parent-child relationship in the <code>DataContext</code>. This is due to how Vaadin Flow operates, creating new view instances with separate <code>DataContext</code> objects for each navigation. To preserve these relationships and ensure transactional consistency, dialog-based navigation should be used.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Dialog windows not only maintain the Data Context but also provide users with a clear and intuitive understanding of their position within the hierarchy. This visual continuity enhances the user experience, making it easier to navigate complex aggregates while keeping the application context intact.</p>
+</div>
+<div class="paragraph">
+<p>For more details on dialog navigation and how it facilitates Data Context inheritance, see:
+<a class="xref page" href="../concepts/features.html#navigation-and-dialogs">Concepts: Navigation and Dialogs</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="multi-level-ui-explicit-parent-data-context"><a class="anchor" href="#multi-level-ui-explicit-parent-data-context"></a>Explicit Parent Data Context</h4>
+<div class="paragraph">
+<p>In addition to the implicit parent Data Context approach used in dialog-based navigation, there are scenarios where you need to explicitly define and set the parent data context on a dialog based view. This is particularly useful when custom logic is required, such as initializing fields or handling custom workflows.</p>
+</div>
+<div class="paragraph">
+<p>For this example, we introduce a <strong>Record Next Checkup</strong> feature in the <code>PetDetailView</code>. This feature allows users to create a new <code>HealthRecord</code> based on an existing record while pre-filling certain fields, like the <code>Next Checkup Date</code> and <code>Diagnosis</code>. Let’s see how it is configured in the controller:</p>
+</div>
+<div class="listingblock">
+<div class="title">PetDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("healthRecordsDataGrid.nextCheckup")
+public void onHealthRecordsDataGridNextCheckup(final ActionPerformedEvent event) {
+    HealthRecord originalHealthRecord = healthRecordsDataGrid.getSingleSelectedItem();
+
+    dialogWindows.detail(healthRecordsDataGrid) <i class="conum" data-value="1"></i><b>(1)</b>
+            .newEntity()
+            .withInitializer(healthRecord -&gt; {
+                healthRecord.setPet(originalHealthRecord.getPet()); <i class="conum" data-value="2"></i><b>(2)</b>
+                healthRecord.setRecordDate(originalHealthRecord.getNextCheckupDate());
+                healthRecord.setHealthStatus(originalHealthRecord.getHealthStatus());
+                healthRecord.setDiagnosis(originalHealthRecord.getDiagnosis());
+                healthRecord.setMedication(originalHealthRecord.getMedication());
+            })
+            .withParentDataContext(dataContext) <i class="conum" data-value="3"></i><b>(3)</b>
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>dialogWindows.detail</code> method creates a detail dialog for managing a new <code>HealthRecord</code> entity. Passing the <code>healthRecordsDataGrid</code> ensures that the new entity is added to the grid’s data container after the user confirms their changes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>setPet</code> method links the new <code>HealthRecord</code> with the currently selected <code>Pet</code>, maintaining the parent-child relationship.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>withParentDataContext</code> ensures that the new <code>HealthRecord</code> shares the same <code>dataContext</code> as the <code>PetDetailView</code>. This means the new record remains in a transient state until saved together with the Pet.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This implementation allows the system to maintain a clear connection between the <code>Pet</code> and its <code>HealthRecord</code> entities, even during custom workflows. By explicitly setting the parent <code>dataContext</code>, the <code>HealthRecord</code> remains in sync with the parent entity, ensuring transactional consistency.</p>
+</div>
+<div class="paragraph">
+<p>For more details on managing Data Context hierarchies, see:
+<a class="xref page" href="../flow-ui/data/data-context.html#parent-data-context">Data Components: DataContext - Parent Data Context</a>.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="one-to-one-composition"><a class="anchor" href="#one-to-one-composition"></a>One-to-One Composition</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In addition to the previously discussed One-to-Many compositions, Jmix also supports One-to-One compositions. This type of composition is useful when the child entity is singular and uniquely tied to its parent. For example, in the context of the Petclinic domain, we introduce the <code>CoverageDetails</code> entity, which represents specific coverage-related information for a pet. Each <code>Pet</code> can have at most one associated <code>CoverageDetails</code> instance.</p>
+</div>
+<div class="sect2">
+<h3 id="one-to-one-data-model"><a class="anchor" href="#one-to-one-data-model"></a>Data Model</h3>
+<div class="paragraph">
+<p>The data model for the One-to-One composition between <code>Pet</code> and <code>CoverageDetails</code> is structured as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">Pet.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_PET", indexes = {
+        @Index(name = "IDX_PETCLINIC_PET_COVERAGE_DETAILS", columnList = "COVERAGE_DETAILS_ID")
+})
+@Entity(name = "petclinic_Pet")
+public class Pet extends NamedEntity {
+
+    @Composition
+    @OnDelete(DeletePolicy.CASCADE)
+    @JoinColumn(name = "COVERAGE_DETAILS_ID")
+    @OneToOne(fetch = FetchType.LAZY)
+    private CoverageDetails coverageDetails;
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>@OneToOne</code> annotation defines a one-to-one relationship between the <code>Pet</code> and <code>CoverageDetails</code> entities, ensuring that each <code>Pet</code> can be associated with a single <code>CoverageDetails</code> instance. The <code>@JoinColumn</code> annotation specifies the foreign key column, <code>COVERAGE_DETAILS_ID</code>, in the <code>Pet</code> table, making the <code>Pet</code> entity the owning side of the relationship.</p>
+</div>
+<div class="paragraph">
+<p>Combined with <code>@Composition</code>, this setup ensures that the <code>CoverageDetails</code> entity’s lifecycle is tightly bound to the <code>Pet</code>. For example, when a <code>Pet</code> entity is deleted, the associated <code>CoverageDetails</code> is also automatically removed, as dictated by the <code>@OnDelete(DeletePolicy.CASCADE)</code> configuration.</p>
+</div>
+<div class="paragraph">
+<p>This example uses a unidirectional One-to-One association, meaning that we only have a reference from <code>Pet</code> to <code>CoverageDetails</code> and not the other way around. This is because there is no need to navigate from <code>CoverageDetails</code> to <code>Pet</code> within the scope of this example. However, if such a use case arises, you can easily make the association bidirectional by adding a corresponding back-reference in the <code>CoverageDetails</code> entity. Below is an example of how to define a bidirectional One-to-One association:</p>
+</div>
+<div class="listingblock">
+<div class="title">CoverageDetails.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@OneToOne(fetch = FetchType.LAZY, mappedBy = "coverageDetails")
+private Pet pet;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>mappedBy</code> attribute indicates that the <code>CoverageDetails</code> entity does not own the relationship; instead, it references the ownership on the <code>Pet</code> side.</p>
+</div>
+<div class="paragraph">
+<p>Adding this back-reference would allow navigation from <code>CoverageDetails</code> to <code>Pet</code> via Java and JPQL queries. For more information about unidirectional and bidirectional associations, as well as other JPA relationship concepts like owning side and inverse side, see the guide on <a class="xref page" href="../data-modeling-many-to-many-guide/index.html">Data Modeling: Many-to-Many Associations</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="one-to-one-ui"><a class="anchor" href="#one-to-one-ui"></a>UI Representation</h3>
+<div class="paragraph">
+<p>In this section, we will explore two approaches for managing One-to-One compositions in the user interface: <strong>Dialog-Based Editing</strong> and <strong>Inline Editing</strong>. By comparing these variants, you will gain an understanding of how each approach works and when to use them to best suit your application’s requirements.</p>
+</div>
+<div class="sect3">
+<h4 id="one-to-one-ui-dialog-based-editing"><a class="anchor" href="#one-to-one-ui-dialog-based-editing"></a>Dialog-Based Editing</h4>
+<div class="paragraph">
+<p>For this first case  of dialog based editing, we configure the <code>PetDetailView</code> to manage the <code>CoverageDetails</code> entity using a dialog-based detail view. This approach allows detailed editing of the <code>CoverageDetails</code> while preserving the context of the <code>Pet</code> in the parent view.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/pet-detail-view-dialog-example.png"><img alt="Pet Detail View with EntityPicker" src="_images/pet-detail-view-dialog-example.png" width="800"/></a>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/coverage-detail-dialog-example.png"><img alt="Coverage Details Dialog" src="_images/coverage-detail-dialog-example.png" width="800"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <code>PetDetailView</code>, the <code>CoverageDetails</code> entity is managed using an <code>EntityPicker</code> component with an <code>entity_openComposition</code> action. This action is specifically designed for One-to-One compositions and simplifies the creation and editing of associated entities.</p>
+</div>
+<div class="listingblock">
+<div class="title">pet-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityPicker id="coverageDetailsField" property="coverageDetails"&gt;
+    &lt;actions&gt;
+        &lt;action id="entityOpen" type="entity_openComposition"/&gt;
+    &lt;/actions&gt;
+&lt;/entityPicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>entity_openComposition</code> action ensures that a new instance of the <code>CoverageDetails</code> entity is created and added to the <code>DataContext</code> if it does not already exist. If the <code>CoverageDetails</code> entity is already linked to the <code>Pet</code>, the action will open the associated <code>CoverageDetails</code> entity in a dialog for editing.</p>
+</div>
+<div class="paragraph">
+<p>When the user interacts with the <code>entityPicker</code> and invokes this action, the <code>CoverageDetails</code> entity is seamlessly managed within the same transactional context as the <code>Pet</code>. This ensures that changes are held in the <code>DataContext</code> and only persisted to the database when the parent <code>Pet</code> is saved. If the user cancels the editing operation, the <code>DataContext</code> discards all changes, maintaining data integrity.</p>
+</div>
+<div class="paragraph">
+<p>See also: <a class="xref page" href="../flow-ui/actions/entity-picker-actions.html#entity_openComposition">Entity Picker Actions: entity_openComposition</a>.</p>
+</div>
+<div class="paragraph">
+<p>Let’s now look at an alternative implementation where we use inline editing in the context of a one-to-one composition.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="one-to-one-ui-inline-editing"><a class="anchor" href="#one-to-one-ui-inline-editing"></a>Inline Editing</h4>
+<div class="paragraph">
+<p>For the second example of inline editing, let’s improve the creation of new <code>Pet</code> entities by introducing a new dedicated <code>CreatePetDetailView</code> for creating pets. This view is designed to simplify the workflow by allowing users to define <code>CoverageDetails</code> at the same time as creating the <code>Pet</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>CreatePetDetailView</code> includes fields for entering the Pet’s basic information, such as <code>name</code>, <code>owner</code>, and <code>type</code>. Additionally, a dedicated section within the same view enables users to fill out the <code>CoverageDetails</code>, such as selecting the <code>coverageType</code>, linking an <code>insuranceProvider</code>, and providing the <code>policyNumber</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">create-pet-detail-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://createPetDetailView.title"
+      focusComponent="form"&gt;
+    &lt;data&gt;
+        &lt;instance id="petDc"
+                  class="io.jmix.petclinic.entity.pet.Pet"&gt;
+            &lt;fetchPlan extends="_base"&gt;
+                &lt;property name="owner" fetchPlan="_base"/&gt;
+                &lt;property name="type" fetchPlan="_base"/&gt;
+                &lt;property name="coverageDetails" fetchPlan="_base"/&gt;
+            &lt;/fetchPlan&gt;
+            &lt;loader id="petDl"/&gt;
+            &lt;instance id="coverageDetailsDc" property="coverageDetails"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;/instance&gt;
+        &lt;collection id="insuranceProvidersDc"
+                    class="io.jmix.petclinic.entity.coverage.InsuranceProvider"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="insuranceProvidersDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from petclinic_InsuranceProvider e]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+        &lt;collection id="ownersDc"
+                    class="io.jmix.petclinic.entity.owner.Owner"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="ownersDl"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from petclinic_Owner e]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+        &lt;collection id="petTypesDc"
+                    class="io.jmix.petclinic.entity.pet.PetType"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="petTypesDl"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from petclinic_PetType e]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;dataLoadCoordinator auto="true"/&gt;
+    &lt;/facets&gt;
+    &lt;actions&gt;
+        &lt;action id="saveAction" type="detail_saveClose"/&gt;
+        &lt;action id="closeAction" type="detail_close"/&gt;
+    &lt;/actions&gt;
+    &lt;layout&gt;
+        &lt;formLayout id="form" dataContainer="petDc"&gt;
+            &lt;responsiveSteps&gt;
+                &lt;responsiveStep minWidth="0" columns="1"/&gt;
+                &lt;responsiveStep minWidth="40em" columns="2"/&gt;
+            &lt;/responsiveSteps&gt;
+            &lt;textField id="nameField" property="name"/&gt;
+            &lt;textField id="identificationNumberField" property="identificationNumber"/&gt;
+            &lt;entityComboBox id="ownerField" property="owner" itemsContainer="ownersDc" /&gt;
+            &lt;entityComboBox id="typeField" property="type" itemsContainer="petTypesDc" /&gt;
+            &lt;datePicker id="birthdateField" property="birthdate"/&gt;
+        &lt;/formLayout&gt;
+        &lt;hr /&gt;
+        &lt;h3 text="msg://io.jmix.petclinic.entity.pet/Pet.coverageDetails" /&gt;
+
+        &lt;formLayout id="coverageDetailsForm" dataContainer="coverageDetailsDc"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+            &lt;responsiveSteps&gt;
+                &lt;responsiveStep minWidth="0" columns="1"/&gt;
+                &lt;responsiveStep minWidth="40em" columns="2"/&gt;
+            &lt;/responsiveSteps&gt;
+            &lt;select id="coverageTypeField" property="coverageType"/&gt;
+            &lt;entityComboBox id="insuranceProviderField"
+                            property="insuranceProvider"
+                            itemsContainer="insuranceProvidersDc"
+                            enabled="false"
+            /&gt;
+            &lt;textField id="policyNumberField" property="policyNumber" enabled="false"/&gt;
+            &lt;textField id="maxCoverageAmountField" property="maxCoverageAmount" enabled="false"/&gt;
+            &lt;textField id="coveragePercentageField" property="coveragePercentage" enabled="false"/&gt;
+        &lt;/formLayout&gt;
+        &lt;hbox id="detailActions"&gt;
+            &lt;button id="saveAndCloseButton" action="saveAction"/&gt;
+            &lt;button id="closeButton" action="closeAction"/&gt;
+        &lt;/hbox&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>coverageDetailsDc</code> is an <code>InstancePropertyContainer</code> bound to the <code>coverageDetails</code> attribute of the <code>Pet</code>. This ensures that the <code>CoverageDetails</code> entity is tightly integrated into the lifecycle of the <code>Pet</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>coverageDetailsForm</code> is directly embedded within the <code>CreatePetDetailView</code> and manages fields for the <code>CoverageDetails</code> entity. This is made possible by binding the form to the <code>coverageDetailsDc</code> container.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the controller, the associated <code>CoverageDetails</code> entity is initialized programmatically during the creation of a new <code>Pet</code>. This is achieved using the <code>DataContext</code> to create a new instance of <code>CoverageDetails</code>, which is then linked to the <code>Pet</code> entity.</p>
+</div>
+<div class="listingblock">
+<div class="title">CreatePetDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "pet-create/:id", layout = MainView.class)
+@ViewController(id = "petclinic_Pet.create")
+@ViewDescriptor(path = "create-pet-detail-view.xml")
+@EditedEntityContainer("petDc")
+public class CreatePetDetailView extends StandardDetailView&lt;Pet&gt; {
+    @ViewComponent
+    private DataContext dataContext;
+
+    @Subscribe
+    public void onInitEntity(final InitEntityEvent&lt;Pet&gt; event) {  <i class="conum" data-value="1"></i><b>(1)</b>
+        CoverageDetails coverageDetails = dataContext.create(CoverageDetails.class);  <i class="conum" data-value="2"></i><b>(2)</b>
+        event.getEntity().setCoverageDetails(coverageDetails); <i class="conum" data-value="3"></i><b>(3)</b>
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>onInitEntity</code> hook method is used to initialize a new <code>CoverageDetails</code> instance when creating a <code>Pet</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>We use <code>DataContext</code> to create a instance of <code>CoverageDetails</code> that is managed within the same transaction as the <code>Pet</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>CoverageDetails</code> is associated with the <code>Pet</code>, establishing the One-to-One composition.</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/inline-editing-coverage-details-example.png"><img alt="Create Pet View with Inline Editing" src="_images/inline-editing-coverage-details-example.png" width="800"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>By embedding the <code>CoverageDetails</code> form directly into the <code>CreatePetDetailView</code>, we enable users to define a <code>CoverageDetails</code> instance while creating a new <code>Pet</code>.</p>
+</div>
+<div class="paragraph">
+<p>All changes to both the <code>Pet</code> and its <code>CoverageDetails</code> are saved in a single transaction when the user confirms the operation. This ensures data consistency while reducing navigation complexity, as users no longer need to switch between multiple views to manage related entities.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, we explored the concept of composition in Jmix, a fundamental approach for modeling tightly coupled entity relationships where the lifecycle of child entities is bound to their parent. Compositions ensure data consistency and simplify transactional workflows by managing entities like Owners and their Addresses or Pets and their Coverage Details as unified structures. This allows for clean, aggregated data models aligned with the principles of domain-driven design.</p>
+</div>
+<div class="paragraph">
+<p>We examined two primary types of compositions: One-to-Many and One-to-One. One-to-Many compositions, such as between an Owner and multiple Addresses, allow for inline or dialog-based editing, providing flexibility in user interface design and transactional integrity. One-to-One compositions, as demonstrated with Pets and their Coverage Details, highlight the ability to maintain focused, singular relationships while offering robust lifecycle management.</p>
+</div>
+<div class="paragraph">
+<p>Compositions are a powerful tool in Jmix, enabling you to model master-detail relationships effectively. By choosing the right composition type and UI approach for your use case, you can streamline your application’s data management while maintaining clarity and consistency in your domain model.</p>
+</div>
+<div class="sect2">
+<h3 id="further-information"><a class="anchor" href="#further-information"></a>Further Information</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../concepts/features.html#editing-aggregates">Concepts: Editing Aggregates</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../data-model/entities.html#references">Data Model: References</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../data-model/entities.html#composition">Data Model: Composition</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../flow-ui/data/data-context.html">Data Components: DataContext</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5. Working with Data in UI :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">5. Working with Data in UI</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>At this stage of development, the application has the Steps and Departments management and the default User management with the added <code>Onboarding status</code> attribute. Now you need to link Users with Steps and Departments.</p>
+</div>
+<div class="paragraph">
+<p>In this chapter, you will do the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add <code>department</code> and <code>joiningDate</code> attributes to the <code>User</code> entity and show them in UI.</p>
+</li>
+<li>
+<p>Create the <code>UserStep</code> entity which links a user with an onboarding step.</p>
+</li>
+<li>
+<p>Add a collection of <code>UserStep</code> entities to the <code>User</code> entity and show it on the <code>User.edit</code> screen.</p>
+</li>
+<li>
+<p>Implement the generation and saving of <code>UserStep</code> instances in the <code>User.detail</code> view.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The diagram below shows the entities and attributes addressed in this chapter:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data in ui diagram" src="_images/data-in-ui/data-in-ui-diagram.svg"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ref-attr"><a class="anchor" href="#ref-attr"></a>Adding Reference Attribute</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You’ve already done a similar task when created the <a class="xref page" href="references.html#create-reference-attr">HR Manager attribute</a> of the <code>Department</code> entity as a reference to <code>User</code>. Now you need to create a link in the opposite direction: a User should have a reference to Department.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data in ui diagram 2" src="_images/data-in-ui/data-in-ui-diagram-2.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If your application is running, stop it using the <strong>Stop</strong> button (<span class="image"><img alt="suspend" src="_images/common/suspend.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Double-click on the <code>User</code> entity in <strong>Jmix</strong> tool window and select its last attribute (to add the new attribute to the end).</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) in the <strong>Attributes</strong> toolbar.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>New Attribute</strong> dialog, enter <code>department</code> into the <strong>Name</strong> field. Then select:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Attribute type</strong>: <code>ASSOCIATION</code></p>
+</li>
+<li>
+<p><strong>Type</strong>: <code>Department</code></p>
+</li>
+<li>
+<p><strong>Cardinality</strong>: <strong>Many to One</strong></p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add attr 1" src="_images/data-in-ui/add-attr-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Select the new <code>department</code> attribute and click the <strong>Add to Views</strong> (<span class="image"><img alt="add attribute to screens" src="_images/common/add-attribute-to-screens.svg"/></span>) button in the <strong>Attributes</strong> toolbar:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add attr 2" src="_images/data-in-ui/add-attr-2.png" width="490"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The appeared dialog window will show <code>User.detail</code> and <code>User.list</code> views. Select both screens and click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will add the <code>department</code> attribute to the <code>dataGrid</code> component of the <code>User.list</code> view and to the <code>formLayout</code> component of the <code>User.detail</code> view.</p>
+</div>
+<div class="paragraph">
+<p>You may also notice the following code added by Studio automatically to <code>user-list-view.xml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="usersDc"
+                class="com.company.onboarding.entity.User"&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="department" fetchPlan="_base"/&gt; &lt;!-- added --&gt;
+        &lt;/fetchPlan&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And to <code>user-detail-view.xml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance id="userDc"
+              class="com.company.onboarding.entity.User"&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="department" fetchPlan="_base"/&gt; &lt;!-- added --&gt;
+        &lt;/fetchPlan&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With this code, the referenced Department will be loaded together with the User in the same database query.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The views would work without including <code>department</code> in the fetch plans due to the <em>lazy loading</em> of references. But in this case, the references would be loaded by separate requests to the database. Lazy loading can affect performance of the list view, because then it loads a list of Users with a first request, and after that, executes separate requests for loading a Department of each User in the list (N+1 query problem).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Let’s run the application and see the new attribute in action.</p>
+</div>
+<div class="paragraph">
+<p>Click the <strong>Debug</strong> button (<span class="image"><img alt="start debugger" src="_images/common/start-debugger.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Studio will generate a Liquibase changelog for adding the <code>DEPARTMENT_ID</code> column to the <code>USER_</code> table, creating a foreign key constraint and an index. Confirm the changelog.</p>
+</div>
+<div class="paragraph">
+<p>Studio will execute the changelog and start the application.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>http://localhost:8080</code> in your web browser and log in to the application with <code>admin</code> / <code>admin</code> credentials.</p>
+</div>
+<div class="paragraph">
+<p>Click on the <strong>Users</strong> item in the <strong>Application</strong> menu. You will see the <strong>Department</strong> column in the <code>User.list</code> view and <strong>Department</strong> picker field in <code>User.detail</code>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add attr 3" src="_images/data-in-ui/add-attr-3.png" width="869"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-dropdown"><a class="anchor" href="#using-dropdown"></a>Using Dropdown for Selecting Reference</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, Studio generates the <code>entityPicker</code> component for selecting references. You can see it in the <code>User.detail</code> view. Open <code>user-detail-view.xml</code> and find the <code>entityPicker</code> component inside the <code>formLayout</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout ...&gt;
+    &lt;formLayout id="form" dataContainer="userDc"&gt;
+        ...
+        &lt;entityPicker id="departmentField" property="department"&gt;
+            &lt;actions&gt;
+                &lt;action id="entityLookup" type="entity_lookup"/&gt;
+                &lt;action id="entityClear" type="entity_clear"/&gt;
+            &lt;/actions&gt;
+        &lt;/entityPicker&gt;
+    &lt;/formLayout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This component allows you to select a related entity from a list view with filtering, sorting, and paging. But when the expected number of records is relatively small (say, less than 1000), it’s more convenient to select references from a simple dropdown list.</p>
+</div>
+<div class="paragraph">
+<p>Let’s change the <code>User.detail</code> view and use the <code>entityComboBox</code> component for selecting a Department.</p>
+</div>
+<div class="paragraph">
+<p>Change the XML element of the component to <code>entityComboBox</code> and remove the nested <code>actions</code> element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityComboBox id="departmentField" property="department"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Switch to the running application and reopen the User detail view.</p>
+</div>
+<div class="paragraph">
+<p>You will see that the <strong>Department</strong> field is now a dropdown, but it cannot be opened, even if you have created some Departments:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="dropdown 2" src="_images/data-in-ui/dropdown-2.png" width="430"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="options-container"><a class="anchor" href="#options-container"></a>Creating Items Data Container</h3>
+<div class="paragraph">
+<p>Let’s provide a list of items to the <code>entityComboBox</code> component displaying the reference to Department. The list should contain all Departments ordered by name.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add Component</strong> in the actions panel, select the <code>Data components</code> section, and double-click the <code>Collection</code> item. In the <strong>Data Container Properties Editor</strong> window, select <code>Department</code> in the <strong>Entity</strong> field and click <strong>OK</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="options container 1" src="_images/data-in-ui/options-container-1.gif"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The new <code>collection</code> element with <code>departmentsDc</code> id will be created under the <code>data</code> element in the <strong>Jmix UI</strong> structure panel and in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    ...
+    &lt;collection id="departmentsDc" class="com.company.onboarding.entity.Department"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader id="departmentsDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Department e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This element defines a <em>collection data container</em> and a <em>loader</em> for it. The data container will contain a list of Department entities loaded by the loader with the specified query.</p>
+</div>
+<div class="paragraph">
+<p>You can edit the query right in the XML or with JPQL Query Designer. To start the designer, find the link next to the <code>query</code> attribute in the <strong>Jmix UI</strong> inspector panel and click it:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="options container 2" src="_images/data-in-ui/options-container-2.png" width="365"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>JPQL Query Designer</strong> window, switch to the <strong>ORDER</strong> tab and add the <code>name</code> attribute to the list:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="options container 3" src="_images/data-in-ui/options-container-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>The resulting query in XML will look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    ...
+    &lt;collection id="departmentsDc" class="com.company.onboarding.entity.Department"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader id="departmentsDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Department e
+                order by e.name asc]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you need to link the <code>entityComboBox</code> component with the <code>departmentsDc</code> collection container.</p>
+</div>
+<div class="paragraph">
+<p>Select <code>departmentField</code> in the <strong>Jmix UI</strong> structure panel and select <code>departmentsDc</code> for the <code>itemsContainer</code> attribute in the inspector panel:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="options container 4" src="_images/data-in-ui/options-container-4.png" width="364"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Switch to the running application and reopen the User editor screen.</p>
+</div>
+<div class="paragraph">
+<p>You will see that the <strong>Department</strong> dropdown now has a list of options:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="dropdown 3" src="_images/data-in-ui/dropdown-3.png" width="438"/>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The <code>entityComboBox</code> component allows you to filter options by entering text into the field. But keep in mind that filtering is performed in the server memory, all options are loaded from the database at once.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="user-step-entity"><a class="anchor" href="#user-step-entity"></a>Creating UserStep Entity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will create the <code>UserStep</code> entity which represents onboarding Steps for a particular User:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data in ui diagram 3" src="_images/data-in-ui/data-in-ui-diagram-3.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If your application is running, stop it using the <strong>Stop</strong> button (<span class="image"><img alt="suspend" src="_images/common/suspend.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Jmix</strong> tool window, click <strong>New</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) → <strong>JPA Entity</strong> and create <code>UserStep</code> entity with <strong>Versioned</strong> trait as you did <a class="xref page" href="references.html#create-entity">before</a>.</p>
+</div>
+<div class="paragraph">
+<p>Add the following attributes to the new entity:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Attribute type</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Cardinality</th>
+<th class="tableblock halign-left valign-top">Mandatory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">user</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ASSOCIATION</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Many to One</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">step</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ASSOCIATION</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Step</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Many to One</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">dueDate</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DATATYPE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LocalDate</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">completedDate</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DATATYPE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LocalDate</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sortValue</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DATATYPE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integer</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The final state of the entity designer should look as below:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create user step 1" src="_images/data-in-ui/create-user-step-1.png"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="composition-attr"><a class="anchor" href="#composition-attr"></a>Adding Composition Attribute</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Consider the relationship between <code>User</code> and <code>UserStep</code> entities. <code>UserStep</code> instances exist only in the context of a particular <code>User</code> instance (owned by it). A <code>UserStep</code> instance cannot change its owner - it just doesn’t make any sense. Also, there are no links to <code>UserStep</code> from other data model objects, they are completely encapsulated in a User context.</p>
+</div>
+<div class="paragraph">
+<p>In Jmix, such a relationship is called <em>composition</em>: the User is composed of a collection of UserSteps, among other attributes.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Composition in Jmix implements the Aggregate pattern of Domain-Driven Design.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>It’s often convenient to create an attribute that contains the collection of composition items in the owning entity.</p>
+</div>
+<div class="paragraph">
+<p>Let’s create the <code>steps</code> attribute in the <code>User</code> entity:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data in ui diagram 4" src="_images/data-in-ui/data-in-ui-diagram-4.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If your application is running, stop it using the <strong>Stop</strong> button (<span class="image"><img alt="suspend" src="_images/common/suspend.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Open the <code>User</code> entity designer and click <strong>Add</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) in the <strong>Attributes</strong> toolbar. In the <strong>New Attribute</strong> dialog, enter <code>steps</code> into the <strong>Name</strong> field. Then select:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Attribute type</strong>: <code>COMPOSITION</code></p>
+</li>
+<li>
+<p><strong>Type</strong>: <code>UserStep</code></p>
+</li>
+<li>
+<p><strong>Cardinality</strong>: <strong>One to Many</strong></p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="composition 1" src="_images/data-in-ui/composition-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that <code>user</code> is selected automatically in the <strong>Mapped by</strong> field. It’s the attribute of the <code>UserStep</code> entity mapped to a database column which maintains the relationship between UserSteps and Users (the foreign key).</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>The attribute source code will have the <code>@Composition</code> annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Composition
+@OneToMany(mappedBy = "user")
+private List&lt;UserStep&gt; steps;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>UserSteps should be displayed in the User edit screen, so select the new <code>steps</code> attribute and click the <strong>Add to Views</strong> (<span class="image"><img alt="add attribute to screens" src="_images/common/add-attribute-to-screens.svg"/></span>) button in the <strong>Attributes</strong> toolbar. Select <code>User.detail</code> view and click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will modify <code>user-detail-view.xml</code> as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance id="userDc"
+              class="com.company.onboarding.entity.User"&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="department" fetchPlan="_base"/&gt;
+            &lt;property name="steps" fetchPlan="_base"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;/fetchPlan&gt;
+        &lt;loader/&gt;
+        &lt;collection id="stepsDc" property="steps"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/instance&gt;
+    ...
+&lt;layout ...&gt;
+    &lt;formLayout id="form" dataContainer="userDc"&gt;
+        ...
+    &lt;/formLayout&gt;
+    &lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+        &lt;button action="stepsDataGrid.createAction"/&gt;
+        &lt;button action="stepsDataGrid.editAction"/&gt;
+        &lt;button action="stepsDataGrid.removeAction"/&gt;
+    &lt;/hbox&gt;
+    &lt;dataGrid id="stepsDataGrid" dataContainer="stepsDc" ...&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+        &lt;actions&gt;
+            &lt;action id="createAction" type="list_create"/&gt;
+            &lt;action id="editAction" type="list_edit"/&gt;
+            &lt;action id="removeAction" type="list_remove"/&gt;
+        &lt;/actions&gt;
+        &lt;columns&gt;
+            &lt;column property="version"/&gt;
+            &lt;column property="dueDate"/&gt;
+            &lt;column property="completedDate"/&gt;
+            &lt;column property="sortValue"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Attribute <code>steps</code> of the fetch plan ensures the collection of UserSteps is loaded eagerly together with User.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The nested <code>stepsDc</code> collection data container enables binding of visual components to the <code>steps</code> collection attribute.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>dataGrid</code> component displays data from the linked <code>stepsDc</code> collection container.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Let’s run the application and see these changes in action.</p>
+</div>
+<div class="paragraph">
+<p>Click the <strong>Debug</strong> button (<span class="image"><img alt="start debugger" src="_images/common/start-debugger.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Studio will generate a Liquibase changelog for creating the <code>USER_STEP</code> table, foreign key constraints, and indexes for references to <code>USER_</code> and <code>STEP</code>. Confirm the changelog.</p>
+</div>
+<div class="paragraph">
+<p>Studio will execute the changelog and start the application.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>http://localhost:8080</code> in your web browser and log in to the application with <code>admin</code> / <code>admin</code> credentials.</p>
+</div>
+<div class="paragraph">
+<p>Open a user for editing. You will see the data grid displaying the <code>UserStep</code> entity:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="composition 2" src="_images/data-in-ui/composition-2.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If you click <strong>Create</strong> in the data grid, you will get an exception saying that <code>View 'UserStep.detail' is not defined</code>. This is true - you didn’t create a detail view for the <code>UserStep</code> entity. But it’s not actually needed in our application, because <code>UserStep</code> instances should be generated from the predefined <code>Step</code> instances for the particular <code>User</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="generate-user-steps"><a class="anchor" href="#generate-user-steps"></a>Generating UserSteps for User</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will implement the generation and showing of <code>UserStep</code> instances for the edited <code>User</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="joining-date-attr"><a class="anchor" href="#joining-date-attr"></a>Adding JoiningDate Attribute</h3>
+<div class="paragraph">
+<p>First, let’s add the <code>joiningDate</code> attribute to the <code>User</code> entity:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="data in ui diagram 5" src="_images/data-in-ui/data-in-ui-diagram-5.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>It will be used to calculate the <code>dueDate</code> attribute of the generated <code>UserStep</code> entity: <code>UserStep.dueDate = User.joiningDate + Step.duration</code>.</p>
+</div>
+<div class="paragraph">
+<p>If your application is running, stop it using the <strong>Stop</strong> button (<span class="image"><img alt="suspend" src="_images/common/suspend.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) in the <strong>Attributes</strong> toolbar of the <code>User</code> entity designer. In the <strong>New Attribute</strong> dialog, enter <code>joiningDate</code> into the <strong>Name</strong> field and select <code>LocalDate</code> in the <strong>Type</strong> field:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="joining date 1" src="_images/data-in-ui/joining-date-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Select the newly created <code>joiningDate</code> attribute and click the <strong>Add to Views</strong> (<span class="image"><img alt="add attribute to screens" src="_images/common/add-attribute-to-screens.svg"/></span>) button in the <strong>Attributes</strong> toolbar. Select both <code>User.detail</code> and <code>User.list</code> views in the appeared dialog and click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Click the <strong>Debug</strong> button (<span class="image"><img alt="start debugger" src="_images/common/start-debugger.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Studio will generate a Liquibase changelog for adding the <code>JOINING_DATE</code> column to the <code>USER_</code> table. Confirm the changelog.</p>
+</div>
+<div class="paragraph">
+<p>Studio will execute the changelog and start the application. Open <code>http://localhost:8080</code> in your web browser, log in to the application and check that the new attribute is shown in the User list and detail views.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="custom-button"><a class="anchor" href="#custom-button"></a>Adding Custom Button</h3>
+<div class="paragraph">
+<p>Now you need to remove the standard actions and buttons for managing UserSteps and add a button for starting a custom logic of creating entities.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>user-detail-view.xml</code> and remove all <code>button</code> elements from <code>hbox</code> and the entire <code>actions</code> element from <code>dataGrid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+&lt;/hbox&gt;
+&lt;dataGrid id="stepsDataGrid" dataContainer="stepsDc" width="100%" height="100%"&gt;
+    &lt;columns&gt;
+        &lt;column property="version"/&gt;
+        &lt;column property="dueDate"/&gt;
+        &lt;column property="completedDate"/&gt;
+        &lt;column property="sortValue"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then select <code>buttonsPanel</code> in the <strong>Jmix UI</strong> structure panel and click <strong>Add Component</strong> in the context menu of the node. Find <code>Components → Button</code> in the palette and double-click it. Set the <code>id</code> of the created <code>button</code> element to <code>generateButton</code> and <code>text</code> to <code>Generate</code> in the <strong>Jmix UI</strong> inspector panel. After that, switch to the <strong>Handlers</strong> tab and create a <code>ClickEvent</code> handler method:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="button 1" src="_images/data-in-ui/button-1.gif"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh the User detail view and check that the <strong>Generate</strong> button is shown instead of the standard CRUD buttons:</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img alt="button 2" src="_images/data-in-ui/button-2.png"/></span></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="create-user-steps"><a class="anchor" href="#create-user-steps"></a>Creating and Saving UserStep Instances</h3>
+<div class="paragraph">
+<p>Let’s implement the logic of generating <code>UserStep</code> instances.</p>
+</div>
+<div class="paragraph">
+<p>Add the following fields to the <code>UserDetailView</code> controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class UserDetailView extends StandardDetailView&lt;User&gt; {
+
+    @Autowired
+    private DataManager dataManager;
+
+    @ViewComponent
+    private DataContext dataContext;
+
+    @ViewComponent
+    private CollectionPropertyContainer&lt;UserStep&gt; stepsDc;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you copy the fields above and paste them to the source code, IDE will highlight them as errors because you also need to add <code>import</code> statements for the classes. Place the cursor on each error and the IDE will suggest you an appropriate import. If it doesn’t, close the editor tab, then open <code>UserDetailView.java</code> again.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can inject view components and Spring beans using the <strong>Inject</strong> button in the actions panel:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="inject 1" src="_images/data-in-ui/inject-1.gif"/>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Add the logic of creating and saving <code>UserStep</code> objects to the <code>generateButton</code> click handler method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("generateButton")
+public void onGenerateButtonClick(final ClickEvent&lt;Button&gt; event) {
+    User user = getEditedEntity(); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    if (user.getJoiningDate() == null) { <i class="conum" data-value="2"></i><b>(2)</b>
+        notifications.create("Cannot generate steps for user without 'Joining date'")
+                .show();
+        return;
+    }
+
+    List&lt;Step&gt; steps = dataManager.load(Step.class)
+            .query("select s from Step s order by s.sortValue asc")
+            .list(); <i class="conum" data-value="3"></i><b>(3)</b>
+
+    for (Step step : steps) {
+        if (stepsDc.getItems().stream().noneMatch(userStep -&gt;
+                userStep.getStep().equals(step))) { <i class="conum" data-value="4"></i><b>(4)</b>
+            UserStep userStep = dataContext.create(UserStep.class); <i class="conum" data-value="5"></i><b>(5)</b>
+            userStep.setUser(user);
+            userStep.setStep(step);
+            userStep.setDueDate(user.getJoiningDate().plusDays(step.getDuration()));
+            userStep.setSortValue(step.getSortValue());
+            stepsDc.getMutableItems().add(userStep); <i class="conum" data-value="6"></i><b>(6)</b>
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Use <code>getEditedEntity()</code> method of the base <code>StandardDetailView</code> class to get the <code>User</code> being edited.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>If <code>joiningDate</code> attribute is not set, show a message and quit.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Load the list of registered Steps.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Skip the Step if it’s already in the <code>stepsDc</code> collection container.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Create new <code>UserStep</code> instance using <code>DataContext.create()</code> method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Add the new <code>UserStep</code> instance to the <code>stepsDc</code> collection container to show it in the UI.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When you create an entity instance through the <code>DataContext</code> object, the instance becomes managed by <code>DataContext</code> and is saved automatically when the view is saved, that is, when you click <strong>OK</strong> button of the view.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh the User detail view and check that when you click the <strong>Generate</strong> button, a few records corresponding to the onboarding Steps are created.</p>
+</div>
+<div class="paragraph">
+<p>If you save the view by clicking <strong>OK</strong>, all created UserSteps will be saved. If you click <strong>Cancel</strong>, nothing will be saved to the database. It happens because in the code above, you don’t save the created <code>UserStep</code> objects directly to the database. Instead, you merge them into the view’s <code>DataContext</code> by creating them through <code>DataContext.create()</code>. So the new instances are saved only when the entire <code>DataContext</code> is saved.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="improve-data-grid"><a class="anchor" href="#improve-data-grid"></a>Improving UserSteps Data Grid</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the sections below, you will finalize the UI for working with generated UserSteps.</p>
+</div>
+<div class="sect2">
+<h3 id="order-nested-collection"><a class="anchor" href="#order-nested-collection"></a>Ordering Nested Collection</h3>
+<div class="paragraph">
+<p>You may notice that when you open a User with previously generated UserSteps, they are not ordered according to the <code>sortValue</code> attribute:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="ordering 1" src="_images/data-in-ui/ordering-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The data grid displays the <code>steps</code> collection attribute of the <code>User</code> entity, so you can introduce ordering on the data model level.</p>
+</div>
+<div class="paragraph">
+<p>Open the <code>User</code> entity, select <code>steps</code> attribute and enter <code>sortValue</code> to the <strong>Order by</strong> field:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="ordering 2" src="_images/data-in-ui/ordering-2.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If you switch to the <strong>Text</strong> tab, you can see the <code>@OrderBy</code> annotation on the <code>steps</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@OrderBy("sortValue")
+@Composition
+@OneToMany(mappedBy = "user")
+private List&lt;UserStep&gt; steps;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now when you load the <code>User</code> entity, its <code>steps</code> collection will be sorted by the <code>UserStep.sortValue</code> attribute.</p>
+</div>
+<div class="paragraph">
+<p>If your application is running, restart it.</p>
+</div>
+<div class="paragraph">
+<p>Open the User detail view. Now the ordering of UserSteps is correct:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="ordering 3" src="_images/data-in-ui/ordering-3.png"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="rearrange-data-grid-columns"><a class="anchor" href="#rearrange-data-grid-columns"></a>Rearranging Data Grid Columns</h3>
+<div class="paragraph">
+<p>Currently, the UserSteps data grid is not very informative. Let’s remove the <code>Sort value</code> column and add a column showing the Step name.</p>
+</div>
+<div class="paragraph">
+<p>Removing a column is straightforward: just select it in the <strong>Jmix UI</strong> structure panel and press <strong>Delete</strong>, or remove the element directly from XML.</p>
+</div>
+<div class="paragraph">
+<p>To add a column, select the <code>columns</code> element in the <strong>Jmix UI</strong> structure panel and click <strong>Add</strong> → <strong>Column</strong> in the <strong>Jmix UI</strong> inspector panel. The <strong>Add Column</strong> dialog appears:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="columns 2" src="_images/data-in-ui/columns-2.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Select <code>step</code> → <code>name</code> and click <strong>OK</strong>. The new column will be added to the end of the columns list:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="stepsDataGrid" dataContainer="stepsDc" ...&gt;
+    &lt;columns&gt;
+        &lt;column property="dueDate"/&gt;
+        &lt;column property="completedDate"/&gt;
+        &lt;column property="step.name"/&gt;
+    &lt;/columns&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, the nested attribute will be automatically added to the fetch plan XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;instance id="userDc"
+          class="com.company.onboarding.entity.User"&gt;
+    &lt;fetchPlan extends="_base"&gt;
+        &lt;property fetchPlan="_base" name="department"/&gt;
+        &lt;property fetchPlan="_base" name="steps"&gt;
+            &lt;property name="step" fetchPlan="_base"/&gt;
+        &lt;/property&gt;
+    &lt;/fetchPlan&gt;
+    &lt;loader/&gt;
+    &lt;collection id="stepsDc" property="steps"/&gt;
+&lt;/instance&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now the collection of UserSteps will be eagerly loaded from the database together with the related <code>Step</code> instances.</p>
+</div>
+<div class="paragraph">
+<p>Instead of <code>step.name</code> you could use just <code>step</code>. In this case, the column would display the <a class="xref page" href="references.html#instance-name">instance name</a> of the entity. For <code>Step</code>, the instance name is obtained from the <code>name</code> attribute, so the result would be the same.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You could also add the <code>step</code> column without modifying the fetch plan, and the UI would still work due to lazy loading of references. But then <code>Step</code> instances would be loaded by separate requests for each <code>UserStep</code> in the collection (N+1 query problem).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Move the <code>step.name</code> column to the beginning by dragging and dropping the element in the <strong>Jmix UI</strong> structure panel or editing the XML directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="stepsDataGrid" dataContainer="stepsDc" width="100%" height="100%"&gt;
+    &lt;columns&gt;
+        &lt;column property="step.name"/&gt;
+        &lt;column property="dueDate"/&gt;
+        &lt;column property="completedDate"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh the User detail view and check that the data grid now shows the Step name:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="columns 6" src="_images/data-in-ui/columns-6.png"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="component-column"><a class="anchor" href="#component-column"></a>Adding Component Column</h3>
+<div class="paragraph">
+<p>In this section, you will implement an ability to mark a UserStep completed by clicking a checkbox in the data grid row. The checkbox will be rendered in the additional column on the left side of the data grid.</p>
+</div>
+<div class="paragraph">
+<p>Add a new column to <code>stepsDataGrid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="stepsDataGrid" ...&gt;
+    &lt;columns&gt;
+        &lt;column key="completed" sortable="false" width="4em" flexGrow="0"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This column is not bound to an entity attribute, so it has the <code>key</code> attribute instead of <code>property</code>.</p>
+</div>
+<div class="paragraph">
+<p>Select the <code>completed</code> column, switch to the <strong>Handlers</strong> tab of the component inspector and create the <code>renderer</code> handler method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "stepsDataGrid.completed", subject = "renderer")
+private Renderer&lt;UserStep&gt; stepsDataGridCompletedRenderer() {
+    return null;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inject <code>UiComponents</code> object into controller class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can use <strong>Inject</strong> button in the top actions panel of the editor to inject dependencies into view controllers and Spring beans.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Implement the <code>stepsDataGridCompletedRenderer</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "stepsDataGrid.completed", subject = "renderer")
+private Renderer&lt;UserStep&gt; stepsDataGridCompletedRenderer() {
+    return new ComponentRenderer&lt;&gt;(userStep -&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+        Checkbox checkbox = uiComponents.create(Checkbox.class); <i class="conum" data-value="2"></i><b>(2)</b>
+        checkbox.setValue(userStep.getCompletedDate() != null);
+        checkbox.addValueChangeListener(e -&gt; { <i class="conum" data-value="3"></i><b>(3)</b>
+            if (userStep.getCompletedDate() == null) {
+                userStep.setCompletedDate(LocalDate.now());
+            } else {
+                userStep.setCompletedDate(null);
+            }
+        });
+        return checkbox; <i class="conum" data-value="4"></i><b>(4)</b>
+    });
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The method returns a <code>Renderer</code> object that creates a UI component to be rendered in the column. The renderer receives an entity instance for the current row.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>Checkbox</code> component instance is created using the <code>UiComponents</code> factory.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>When you click the checkbox, its value changes and the checkbox calls its <code>ValueChangeEvent</code> listener. The listener sets the <code>completedDate</code> attribute of the <code>UserStep</code> entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The renderer returns the visual component to be shown in the column cells.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh the User detail view and click checkboxes for some rows. The <strong>Completed date</strong> column will change accordingly:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generated column 5" src="_images/data-in-ui/generated-column-5.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The changes in <code>UserStep</code> instances will be saved to the database when you click <strong>OK</strong> in the view. It’s the responsibility of the screen’s <code>DataContext</code>: it tracks changes in all entities and saves to the database changed instances.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="reacting-to-changes"><a class="anchor" href="#reacting-to-changes"></a>Reacting to Changes</h3>
+<div class="paragraph">
+<p>When you generate steps for the user, mark a UserStep completed or remove a step, the <code>Onboarding status</code> field should change accordingly.</p>
+</div>
+<div class="paragraph">
+<p>Let’s implement reaction to the UserSteps collection changes.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>UserDetailView</code> controller and click <strong>Generate Handler</strong> in the top actions panel. Collapse all items, then select <code>ItemPropertyChangeEvent</code> and <code>CollectionChangeEvent</code> items in <code>Data containers handlers</code> → <code>stepsDc</code>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="container listener 1" src="_images/data-in-ui/container-listener-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will generate two method stubs: <code>onStepsDcItemPropertyChange()</code> and <code>onStepsDcCollectionChange()</code>. Implement them as below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "stepsDc", target = Target.DATA_CONTAINER)
+public void onStepsDcCollectionChange(final CollectionContainer.CollectionChangeEvent&lt;UserStep&gt; event) {
+    updateOnboardingStatus(); <i class="conum" data-value="1"></i><b>(1)</b>
+}
+
+@Subscribe(id = "stepsDc", target = Target.DATA_CONTAINER)
+public void onStepsDcItemPropertyChange(final InstanceContainer.ItemPropertyChangeEvent&lt;UserStep&gt; event) {
+    updateOnboardingStatus(); <i class="conum" data-value="2"></i><b>(2)</b>
+}
+
+private void updateOnboardingStatus() {
+    User user = getEditedEntity(); <i class="conum" data-value="3"></i><b>(3)</b>
+
+    long completedCount = user.getSteps() == null ? 0 :
+            user.getSteps().stream()
+                    .filter(us -&gt; us.getCompletedDate() != null)
+                    .count();
+    if (completedCount == 0) {
+        user.setOnboardingStatus(OnboardingStatus.NOT_STARTED); <i class="conum" data-value="4"></i><b>(4)</b>
+    } else if (completedCount == user.getSteps().size()) {
+        user.setOnboardingStatus(OnboardingStatus.COMPLETED);
+    } else {
+        user.setOnboardingStatus(OnboardingStatus.IN_PROGRESS);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>ItemPropertyChangeEvent</code> handler is invoked when an attribute of the entity changes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>CollectionChangeEvent</code> handler is invoked when items are added to or removed from the container.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Get the currently edited <code>User</code> instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Update <code>onboardingStatus</code> attribute. Thanks to the data binding, the changed value will be immediately shown by the UI component.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh the User detail view and make some changes in the UserStep table. Watch the <code>Onboarding status</code> field value.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you have implemented two features:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Ability to specify a department for a user.</p>
+</li>
+<li>
+<p>Generation and management of onboarding steps for a user.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You have learned that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Reference attributes should be added to a screen’s <a class="xref page" href="../data-access/fetching.html#fetch-plan">fetch plan</a> to avoid the N+1 query problem.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../flow-ui/vc/components/entityComboBox.html">entityComboBox</a> component can be used to select a related entity from a dropdown. This component requires a <a class="xref page" href="../flow-ui/data/collection-container.html">CollectionContainer</a> with options to be set in the <code>itemsContainer</code> property.</p>
+</li>
+<li>
+<p>The relationship between <code>User</code> and <code>UserStep</code> entities is an example of <em>composition</em>, when instances of the related entity (<code>UserStep</code>) can exist only as a part of its owner (<code>User</code>). Such a reference is marked with <a class="xref page" href="../data-model/entities.html#composition">@Composition</a> annotation.</p>
+</li>
+<li>
+<p>A collection of related entities can be ordered using the <code>@OrderBy</code> annotation on the reference attribute.</p>
+</li>
+<li>
+<p>The <code>ClickEvent</code> handler of the <a class="xref page" href="../flow-ui/vc/components/button.html">button</a> component is used to handle button clicks. It can be generated on the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel.</p>
+</li>
+<li>
+<p>The <code>getEditedEntity()</code> method of the entity detail view returns the entity instance being edited.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../flow-ui/notifications.html">Notifications</a> interface is used to show popup notifications.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../data-access/data-manager.html">DataManager</a> interface can be used to load data from the database.</p>
+</li>
+<li>
+<p>A nested collection of related entities is loaded into a <a class="xref page" href="../flow-ui/data/property-containers.html">CollectionPropertyContainer</a>. Its <code>getItems()</code> and <code>getMutableItems()</code> methods can be used to iterate over and to add/remove items to the collection.</p>
+</li>
+<li>
+<p><a class="xref page" href="../flow-ui/data/data-context.html">DataContext</a> tracks changes in entities and saves changed instances to the database when user clicks <strong>OK</strong> in the screen.</p>
+</li>
+<li>
+<p>The UI data grid can have columns that display arbitrary visual components.</p>
+</li>
+<li>
+<p><a class="xref page" href="../flow-ui/data/instance-container.html#events">ItemPropertyChangeEvent</a> and <a class="xref page" href="../flow-ui/data/collection-container.html#events">CollectionChangeEvent</a> can be used to react to changes in entities located in data containers.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

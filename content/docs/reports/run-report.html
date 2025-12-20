@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Running Reports :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Running Reports</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Users can run reports through the admin UI or from relevant application views using the actions provided by the Reports add-on. The report engine loads the report definition and the template from the application code or from the database and generates the output document:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run 1" src="_images/run/run-1.svg" width="552"/>
+</div>
+<div class="title">Figure 1. Running a report</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="run-from-list"><a class="anchor" href="#run-from-list"></a>Running from Reports List</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The easiest way to run reports is from the <a class="xref page" href="reports-ui.html#run-report-view">Run report</a> view. The user must have the permission to access this view. The list will contain all reports that are <a class="xref page" href="creation/permissions.html">available to the user</a> in accordance with their role. If the report has external parameters, they will be requested in a special form when running the report.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="run-actions"><a class="anchor" href="#run-actions"></a>Running from Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Users can run reports from arbitrary views using special actions and associated buttons or component context menu items. In this case, the <a class="xref page" href="creation/permissions.html">availability</a> of the report in this view is checked in addition to the user role.</p>
+</div>
+<div class="paragraph">
+<p>Action types and examples of their use are described below.</p>
+</div>
+<div class="sect2">
+<h3 id="run-report-action"><a class="anchor" href="#run-report-action"></a>RunReportAction</h3>
+<div class="paragraph">
+<p><code>io.jmix.reportsflowui.action.RunReportAction</code> is a <a class="xref page" href="../flow-ui/actions/standard-actions.html">standard action</a> for running the reports associated with the current view or list component. It should be defined for a <code>Button</code> or a list component (<a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a>, <a class="xref page" href="../flow-ui/vc/components/treeDataGrid.html">treeDataGrid</a>).</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of using the declarative action for the <code>DataGrid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+    &lt;!-- ...  --&gt;
+    &lt;button id="runBtn" action="booksDataGrid.run"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;/hbox&gt;
+&lt;dataGrid id="booksDataGrid"
+          width="100%"
+          minHeight="20em"
+          dataContainer="booksDc"&gt;
+    &lt;actions&gt;
+        &lt;!-- ...  --&gt;
+        &lt;action id="run" type="report_runReport"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/actions&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Add a button with run report action.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>type</code> attribute defines a specific <code>report_runReport</code> action type, provided by the Reports add-on.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Example of programmatically creating the action together with a button declared in the view XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixButton runBtn;
+
+@Autowired
+private Actions actions;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    RunReportAction&lt;Book&gt; action = actions.create(RunReportAction.ID);
+
+    runBtn.setAction(action);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the action is performed, a modal <strong>Run report</strong> dialog will appear, displaying reports related to the current view. When the user selects a report from the list, the parameters input form is displayed (if any have been defined) and the report will be generated.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="run-list-entity-report-action"><a class="anchor" href="#run-list-entity-report-action"></a>RunListEntityReportAction</h3>
+<div class="paragraph">
+<p><code>io.jmix.reportsflowui.action.RunListEntityReportAction</code> is a <a class="xref page" href="../flow-ui/actions/standard-actions.html">standard action</a> for printing reports for entity instances associated with a list component (<a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a>, <a class="xref page" href="../flow-ui/vc/components/treeDataGrid.html">treeDataGrid</a>).</p>
+</div>
+<div class="paragraph">
+<p>The action only selects reports having an external parameter of the <strong>Entity</strong> or the <strong>List of entities</strong> type and where the parameter entity type matches the entity type displayed by the list component. If only one report is available as a result of selection, it is invoked immediately. If several reports are available, their list is offered to the user for selection.</p>
+</div>
+<div class="paragraph">
+<p>The external parameter value is passed to the report using the following rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the parameter has the <strong>List of entities</strong> type, the list of instances currently selected in the list component is passed into it.</p>
+</li>
+<li>
+<p>If the parameter has the <strong>Entity</strong> type, and the list component has a single instance selected (one row is highlighted), then this instance is passed into the report.</p>
+</li>
+<li>
+<p>If the parameter is of the <strong>Entity</strong> type, and the list component has several rows selected, then the report runs several times according to the number of selected instances. After execution, the user gets a single ZIP archive containing all generated reports.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Below is an example of using the declarative action for the <code>DataGrid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+    &lt;!-- ...  --&gt;
+    &lt;button id="runListBtn" action="authorsDataGrid.runList"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;/hbox&gt;
+&lt;dataGrid id="authorsDataGrid"
+          width="100%"
+          minHeight="20em"
+          dataContainer="authorsDc"&gt;
+    &lt;actions&gt;
+        &lt;!-- ...  --&gt;
+        &lt;action id="runList" type="report_runListEntityReport"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/actions&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Add a button with run list entity report action.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>type</code> attribute defines a specific <code>report_runListEntityReport</code> action type, provided by the framework.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Example of programmatically creating the action together with a button declared in the view XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixButton runListBtn;
+
+@Autowired
+private Actions actions;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    RunListEntityReportAction&lt;Author&gt; action = actions.create(RunListEntityReportAction.ID);
+
+    runListBtn.setAction(action);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the action is performed, if no entities were selected from the list component, a confirmation window will be displayed.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run list entity report action confirmation" src="_images/run-list-entity-report-action-confirmation.png" width="402"/>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, the modal <strong>Run report</strong> dialog will open where reports related to the current view will be displayed. From this modal view, the user can run some report for the selected entity.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="run-single-entity-report-action"><a class="anchor" href="#run-single-entity-report-action"></a>RunSingleEntityReportAction</h3>
+<div class="paragraph">
+<p><code>io.jmix.reportsflowui.action.RunSingleEntityReportAction</code> is an action associated with an entity detail view. The action only selects reports having an external parameter of the <strong>Entity</strong> or the <strong>List of entities</strong> type and where the parameter entity type matches the edited entity type. If only one report is available as a result of selection, it is invoked immediately. If several reports are available, their list is offered to user for selection.</p>
+</div>
+<div class="paragraph">
+<p>The external parameter value - edited entity instance - is passed into the report. If the parameter has the <strong>List of entities</strong> type, then a list containing a single item is passed.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of using the action in a button located near the standard <strong>OK</strong> and <strong>Cancel</strong> buttons:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="detailActions"&gt;
+    &lt;button id="saveAndCloseBtn" action="saveAction"/&gt;
+    &lt;button id="closeBtn" action="closeAction"/&gt;
+    &lt;button id="reportButton" icon="PRINT"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Actions actions;
+
+@ViewComponent
+private JmixButton reportButton;
+
+@Subscribe
+public void onInitEntity(final InitEntityEvent&lt;Book&gt; event) {
+    RunSingleEntityReportAction&lt;Book&gt; action = actions.create(RunSingleEntityReportAction.ID);
+    action.setReportOutputName(null);
+
+    reportButton.setAction(action);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="reports-api"><a class="anchor" href="#reports-api"></a>Reports API</h2>
+<div class="sectionbody">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use <a class="xref page" href="../studio/code-snippets.html">Code Snippets</a> to generate code for running reports using the API.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="report-runner"><a class="anchor" href="#report-runner"></a>ReportRunner</h3>
+<div class="paragraph">
+<p><code>ReportRunner</code> is an interface used for running reports. All its methods return the <code>ReportOutputDocument</code> object that contains the result of report execution.</p>
+</div>
+<div class="paragraph">
+<p>Below are a few examples using <code>ReportRunner</code>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Running a report based on the information specified in the <a href="#report-run-context">ReportRunContext</a> object:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ReportRunner reportRunner;
+
+@Subscribe("rrcBtn2")
+public void onRrcBtn2Click(ClickEvent&lt;JmixButton&gt; event) {
+    ReportOutputDocument document = reportRunner
+            .run(new ReportRunContext(report).setParams(paramsMap)); <i class="conum" data-value="1"></i><b>(1)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>ReportRunContext</code> contains the report entity and parameters.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Running a report by its code and additional information specified using the fluent interface:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ReportRunner reportRunner;
+
+@Subscribe("rrBtn1")
+public void onRrBtn1Click(ClickEvent&lt;JmixButton&gt; event) {
+    ReportOutputDocument document = reportRunner.byReportCode("BOOKS") <i class="conum" data-value="1"></i><b>(1)</b>
+            .addParam("type", type) <i class="conum" data-value="2"></i><b>(2)</b>
+            .withTemplateCode("books-template") <i class="conum" data-value="3"></i><b>(3)</b>
+            .run(); <i class="conum" data-value="4"></i><b>(4)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Entry point to the fluent interface for a report with a specified code.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Adds an input parameter to the parameter map.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Sets a code of template that will be used to run a report.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Builds a <code>ReportRunContext</code> instance and runs a report using this run context.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Running a report by the report entity and additional information specified using the fluent interface:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ReportRunner reportRunner;
+
+@Subscribe("rrBtn2")
+public void onRrBtn2Click(ClickEvent&lt;JmixButton&gt; event) {
+    ReportOutputDocument document = reportRunner.byReportEntity(report)
+            .addParam("type", type)
+            .withOutputType(ReportOutputType.PDF) <i class="conum" data-value="1"></i><b>(1)</b>
+            .withOutputNamePattern("Books") <i class="conum" data-value="2"></i><b>(2)</b>
+            .run();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Sets a type of output document.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Sets a name pattern of an output document.</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You can get the report contents and file name directly from <code>ReportOutputDocument</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String documentName = document.getDocumentName();
+
+byte[] content = document.getContent();</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ui-report-runner"><a class="anchor" href="#ui-report-runner"></a>UiReportRunner</h3>
+<div class="paragraph">
+<p><code>UiReportRunner</code> is an interface for executing reports from the application views. In addition to the options required to run a report, <code>UiReportRunner</code> allows you to configure the following features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Displaying the result of the report execution in the browser (in the case of table templates).</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">uiReportRunner.runAndShow(new UiReportRunContext(report));</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Whether to show a dialog to input the report parameters before run. Use <code>ParametersDialogShowMode</code> for this purpose. Three modes are supported:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>YES</code> - to show the dialog to input the report parameters.</p>
+</li>
+<li>
+<p><code>NO</code> - do not show the dialog to input the report parameters.</p>
+</li>
+<li>
+<p><code>IF_REQUIRED</code> - to show the dialog to input the report parameters if:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The report has input parameters;</p>
+</li>
+<li>
+<p>The report has several templates;</p>
+</li>
+<li>
+<p>The report has one template with an alterable output type.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Execute report generation synchronously or in the background:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">uiReportRunner.byReportEntity(report)
+        .withParametersDialogShowMode(ParametersDialogShowMode.IF_REQUIRED)
+        .inBackground(RunReportView.this)
+        .runAndShow();</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Run a report several times for the specified parameter alias and values:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">uiReportRunner.byReportEntity(report)
+        .withOutputType(ReportOutputType.PDF)
+        .withTemplateCode("publication-template")
+        .withParametersDialogShowMode(ParametersDialogShowMode.NO)
+        .runMultipleReports("entity", publicationList);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>runMultipleReports()</code> method runs a report for each object from the specified collection. Objects in the collection should have the same type as an input parameter with specified alias.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="report-run-context"><a class="anchor" href="#report-run-context"></a>ReportRunContext</h3>
+<div class="paragraph">
+<p>The <code>ReportRunContext</code> class stores the following information required for report running:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>Report</code> entity;</p>
+</li>
+<li>
+<p>The <code>ReportTemplate</code> entity: if not specified, the default template is used;</p>
+</li>
+<li>
+<p>Input parameters;</p>
+</li>
+<li>
+<p>Type of output document;</p>
+</li>
+<li>
+<p>Output name pattern.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Let’s look at examples of creating a <code>ReportRunContext</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">ReportRunContext context = new ReportRunContext(report)
+        .addParam("type", type)
+        .setOutputNamePattern("Books");
+
+ReportRunContext context = new ReportRunContext(report)
+        .setReportTemplate(template)
+        .setOutputType(ReportOutputType.PDF)
+        .setParams(paramsMap);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="report-zip-utils"><a class="anchor" href="#report-zip-utils"></a>ReportZipUtils</h3>
+<div class="paragraph">
+<p>The <code>ReportZipUtils</code> interface helps package a list of <code>ReportOutputDocument</code> objects into one ZIP archive.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">byte[] zipArchiveContent = reportZipUtils.createZipArchive(documents);
+downloader.download(zipArchiveContent, "Reports.zip", DownloadFormat.ZIP);</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

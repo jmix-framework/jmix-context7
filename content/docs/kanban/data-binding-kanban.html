@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. Binding Kanban to Data :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">1. Binding Kanban to Data</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this chapter, you will create:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>TaskStatus</code> enumeration.</p>
+</li>
+<li>
+<p>The <code>KanbanTask</code> entity with the attributes required to be displayed on the Kanban board.</p>
+</li>
+<li>
+<p>CRUD views with a Kanban board on the <code>KanbanTask.list</code> view.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-and-view-creation"><a class="anchor" href="#entity-and-view-creation"></a>Creating KanbanTask Entity and Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To start, you’ll need to generate a <code>TaskStatus</code> enumeration consisting of the following values:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Todo</code></p>
+</li>
+<li>
+<p><code>In progress</code></p>
+</li>
+<li>
+<p><code>Verification</code></p>
+</li>
+<li>
+<p><code>Done</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The detailed instructions for creating enumerations can be found in the <a class="xref page" href="../tutorial/enumerations.html">Using Enumerations</a> section of the Tutorial.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="enumeration task status type" src="_images/enumeration-task-status-type.png" width="406"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, create the <code>KanbanTask</code> entity. You can find detailed instructions for creating entities in the <a class="xref page" href="../tutorial/simple-crud.html">Simple CRUD</a> section of the Tutorial.</p>
+</div>
+<div class="paragraph">
+<p>The <code>KanbanTask</code> entity has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>text</code> with <code>String</code> type. Select the <strong>Mandatory</strong> checkbox.</p>
+</li>
+<li>
+<p><code>status</code> with <code>TaskStatus</code> enumeration type. Select the <strong>Mandatory</strong> checkbox.</p>
+</li>
+<li>
+<p><code>assignee</code> with association to <code>User</code>, many-to-one cardinality.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="assignee attribute" src="_images/assignee-attribute.png" width="862"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Define the <code>text</code> attribute for generation an <a class="xref page" href="../studio/entity-designer.html#creating-instance-name">instance name</a>.</p>
+</div>
+<div class="paragraph">
+<p>Create <em>detail view</em> for the <code>KanbanTask</code> entity. You’ll find the detailed steps for generating entity list and detail views in the <a class="xref page" href="../tutorial/simple-crud.html#create-views">Creating CRUD Views</a> section of the Tutorial.</p>
+</div>
+<div class="paragraph">
+<p>Follow the suggested values at each step of the view creation wizard.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+On the <strong>Entity detail view fetch plan</strong> step, add the <code>assignee</code> attribute to the selection. Now you can be sure that the referenced <code>User</code> entity will be loaded together with the root <code>KanbanTask</code> entity and displayed in the detail view.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Studio will automatically generate <code>KanbanTask.detail</code>, and open the corresponding source code.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-kanban"><a class="anchor" href="#adding-kanban"></a>Adding Kanban on View</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You’ll need to create a blank view with <code>KanbanTask.list</code> id. This view will be used to add a Kanban board.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="kanban task list view wizard" src="_images/kanban-task-list-view-wizard.png" width="776"/>
+</div>
+</div>
+<div class="paragraph">
+<p>At the final step of the wizard, set the localizable message of the view title: <code>Kanban board</code>.</p>
+</div>
+<div class="paragraph">
+<p>Locate <code>kanban-task-list-view.xml</code> in the <strong>Jmix</strong> tool window and double-click it. The view designer will appear.
+To start, you’ll add a <code>collectionContainer</code> to load tasks from the database. The detailed instructions for defining Data Container can be found in the <a class="xref page" href="../tutorial/ui-from-scratch.html#define-data-container">Creating UI from Scratch</a> of the Tutorial.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add Component</strong> in the actions panel, then find the <code>CollectionContainer</code> item and double-click it:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create kanban task collection container" src="_images/create-kanban-task-collection-container.png" width="647"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the dialog that opens, select the <code>KanbanTask</code> entity. The new <code>collectonContainer</code> element will be added to both the <strong>Jmix UI</strong> hierarchy panel and the XML.</p>
+</div>
+<div class="paragraph">
+<p>To ensure the <code>dataLoader</code> automatically loads data when the view opens, you need to add the <a class="xref page" href="../flow-ui/facets/dataLoadCoordinator.html">dataLoadCoordinator</a> facet. Click <strong>Add Component</strong> in the action panel, then find the <code>DataLoadCoordinator</code> item and double-click it:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create data load coordinator" src="_images/create-data-load-coordinator.png" width="511"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to display a Kanban on the view, you should include the <a class="xref page" href="kanban-component.html">kanban</a> UI component in the XML descriptor.</p>
+</div>
+<div class="paragraph">
+<p>Place the cursor inside the <code>layout</code> element.</p>
+</div>
+<div class="paragraph">
+<p>Next, click <strong>Add Component</strong> in the actions panel, then find the <code>Kanban</code> item and double-click it:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create kanban component" src="_images/create-kanban-component.png" width="743"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Configure the <code>id</code>, <code>dataContainer</code>, <code>height</code> and <code>width</code> attributes as shown below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;kanban:kanban id="kanban" dataContainer="kanbanTasksDc" width="100%" height="100%"/&gt;</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="configuring-columns"><a class="anchor" href="#configuring-columns"></a>Configuring Columns</h3>
+<div class="paragraph">
+<p>To display the <code>Kanban</code> board component on the view, you need to define <a class="xref page" href="kanban-component.html#column">columns</a>. To do this, select <code>kanban</code> in the <strong>Jmix UI</strong> hierarchy panel or in the XML descriptor, then click the <strong>Add</strong> button in the component inspector panel. From the drop-down list, choose <strong>Columns → Column</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create kanban column" src="_images/create-kanban-column.png" width="398"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the dialog that opens, you’ll define the mandatory column attribute <code>dataField</code>. This attribute is the identifier of the column in the <code>kanban</code> component. You need to define the column so that the values of the <code>dataField</code> attribute match the values of the <code>TaskStatus</code> enumeration. Additionally, you need to define the <code>label</code> attribute. The value of this attribute will be displayed in the column header.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="configure kanban columns" src="_images/configure-kanban-columns.png" width="1314"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, you can run the application to see the new component in action.</p>
+</div>
+<div class="paragraph">
+<p>Click the <strong>Debug</strong> button (<span class="image"><img alt="start debugger" src="_images/start-debugger.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Before launching the application, Studio compares the project data model with the database schema. When you created a new entity, Studio automatically generates a Liquibase changelog to reflect the relevant database modifications (such as creating the <code>KANBAN_TASK</code> table):</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="changelog kanban task" src="_images/changelog-kanban-task.png" width="1036"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Save and run</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will execute the changelog on your database, followed by building and running the application:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app" src="_images/run-app.png" width="1040"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Once the application is up and running, navigate to <code>http://localhost:8080</code> using your web browser and sign in to the application with the credentials admin/admin.</p>
+</div>
+<div class="paragraph">
+<p>Choose the <strong>Kanban board</strong> item from the <strong>Application</strong> menu. You will see the <code>KanbanTask.list</code> view:</p>
+</div>
+<div class="imageblock text-center', width=">
+<div class="content">
+<img "="" alt="kanban task list" src="_images/kanban-task-list.png" width="1143"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="adding-actions"><a class="anchor" href="#adding-actions"></a>Adding Actions</h3>
+<div class="paragraph">
+<p>To provide the ability to create, edit and remove tasks, you need to add <a class="xref page" href="kanban-component.html#actions">actions</a> to the component.</p>
+</div>
+<div class="paragraph">
+<p>Choose <code>kanban</code> within the <strong>Jmix UI</strong> hierarchy panel or in the view XML descriptor, and then click the <strong>Add</strong> button in the component inspector panel. From the drop-down list, choose <strong>Actions → Action</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create kanban actions" src="_images/create-kanban-actions.png" width="477"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Specify the actions you want to add. For example: <code>list_create</code>, <code>list_edit</code>, <code>list_remove</code>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create kanban actions2" src="_images/create-kanban-actions2.png" width="563"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click the <strong>OK</strong> button. The <code>action</code> elements will be added in both the <strong>Jmix UI</strong> hierarchy panel and in the XML. Next, to use these actions, you need to create buttons panel.</p>
+</div>
+<div class="paragraph">
+<p>Place the cursor before the <code>kanban</code> element. Next, click <strong>Add Component</strong> in the actions panel, then find the <code>hbox</code> item and double-click it. To add the required styles, add the <code>classNames</code> attribute with the value <code>buttons-panel</code> to the <code>hbox</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox classNames="buttons-panel"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Select <code>hbox</code> within the <strong>Jmix UI</strong> hierarchy panel or in the view XML descriptor, and then click the <strong>Add Component</strong> button in the actions  panel, then find the <code>button</code> item and double-click it.</p>
+</div>
+<div class="paragraph">
+<p>Use the component inspector panel to assign an action to the <code>button</code>. Create and assign buttons for each action.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create kanban buttons" src="_images/create-kanban-buttons.png" width="613"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To make task editing more convenient, you’ll need to open the detail view in dialog mode. To do this, select the <code>create</code> action in the <strong>Jmix UI</strong> hierarchy panel or in the XML descriptor, then change the open mode property to <code>DIALOG</code>. Repeat the same steps for the <code>edit</code> action.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create kanban actions3" src="_images/create-kanban-actions3.png" width="477"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application.</p>
+</div>
+<div class="paragraph">
+<p>Choose the <strong>Kanban board</strong> item from the <strong>Application</strong> menu. You can now create, edit and remove tasks using the detail view dialog:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="task entity crud" src="_images/task-entity-crud.png" width="1143"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_auto_data_saving"><a class="anchor" href="#_auto_data_saving"></a>Auto Data Saving</h2>
+<div class="sectionbody">
+<div class="paragraph" id="auto-data-saving">
+<p>The <code>kanban</code> component keeps temporary changes in a data container until a confirmation action is triggered to commit them to the database. This behavior is typical for visual components.</p>
+</div>
+<div class="paragraph">
+<p>To enable automatic saving of the <a class="xref page" href="../flow-ui/data/data-context.html">DataContext</a>, you can use the <a class="xref page" href="kanban-component.html#autoSave">autoSave</a> attribute.</p>
+</div>
+<div class="paragraph">
+<p>Choose <code>kanban:kanban</code> in the <strong>Jmix UI</strong> hierarchy panel or in the view XML descriptor, and then check the <strong>autoSave</strong> box in the inspector panel.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Don’t forget to remove the <code>readOnly="true"</code> attribute from the <code>loader</code>. Otherwise, the changes will not be saved to the database.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="auto data saving" src="_images/auto-data-saving.png" width="1097"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application.</p>
+</div>
+<div class="paragraph">
+<p>Move any <code>kanbanTask</code> to a different column on the Kanban board and make sure the task’s new status persists even after you reopen the board.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="editing-double-click"><a class="anchor" href="#editing-double-click"></a>Editing by Double-Clicking</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Kanban supports event handling. For more information on available events, please refer to the <a class="xref page" href="kanban-component.html#handlers">handlers</a> section.</p>
+</div>
+<div class="paragraph">
+<p>To enable editing a Kanban task card by double-clicking, you need to implement a <a class="xref page" href="kanban-component.html#KanbanTaskDoubleClickEvent">KanbanTaskDoubleClickEvent</a> handler.</p>
+</div>
+<div class="paragraph">
+<p>Open the <code>KanbanTaskListView.java</code> class. To generate the handler method from scratch, click <strong>Generate Handler</strong> in the actions panel at the top of the code editor:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generate handlers" src="_images/generate-handlers.png" width="727"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Then select <code>KanbanTaskDoubleClickEvent</code> in the <code>Kanban</code> handlers section of the tree:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generate task double click handler" src="_images/generate-task-double-click-handler.png" width="987"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you need to implement the logic for opening the detail view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private Kanban&lt;KanbanTask&gt; kanban;
+
+@Autowired
+private DialogWindows dialogWindows;
+
+@Subscribe("kanban")
+public void onKanbanKanbanTaskDoubleClick(
+        final KanbanTaskDoubleClickEvent&lt;KanbanTask&gt; event) {
+    dialogWindows.detail(kanban)
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. You can now edit the card by double-clicking.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section has covered how to connect the <code>Kanban</code> component to your application’s data, and described the steps to create a Kanban board.</p>
+</div>
+<div class="paragraph">
+<p>This section has demonstrated:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Creating a JPA entity</strong> called <code>KanbanTask</code> to represent a task on the Kanban board.</p>
+</li>
+<li>
+<p><strong>Connecting the Kanban component to data</strong>: you have learned how to bind the Kanban component to a collection container.</p>
+</li>
+<li>
+<p><strong>Defining Kanban columns</strong>: you have discovered how to create and configure columns on the Kanban board, representing different task statuses.</p>
+</li>
+<li>
+<p><strong>Handling actions and events</strong>: you have explored how to implement actions for creating, editing, and deleting tasks, as well as how to handle events such as double-clicking.</p>
+</li>
+<li>
+<p><strong>Enabling automatic data saving</strong>: you have learned how to configure the Kanban component to automatically save changes to your data source.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

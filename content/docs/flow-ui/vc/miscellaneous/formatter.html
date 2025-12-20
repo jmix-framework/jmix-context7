@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formatter :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Formatter</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>Formatter</code> is designed to convert some value to its string representation.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Formatters can be used only with non-editable components, such as <a class="xref page" href="../components/valuePicker.html">valuePicker</a>, <a class="xref page" href="../components/multiValuePicker.html">multiValuePicker</a> and <a class="xref page" href="../components/entityPicker.html">entityPicker</a>. Values of directly editable components, for example, <a class="xref page" href="../components/textField.html">textField</a>, are formatted using the <a class="xref page" href="../../../data-model/datatype.html">Datatype</a> mechanism.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The framework contains the set of formatters that can be used in your project.</p>
+</div>
+<div class="paragraph">
+<p>In a view XML-descriptor, formatters are defined in the <code>formatter</code> element nested in the component element.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To add a <code>formatter</code> to a component in Jmix Studio, select the component in the view XML descriptor or in the <strong>Jmix UI</strong> structure panel and click on the <strong>Add</strong> button in the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of adding a formatter to the <a class="xref page" href="../components/valuePicker.html">valuePicker</a> component:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add formatter" src="../../_images/visual-components/add-formatter.png" width="607"/>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Standard formatters are defined by prototype beans, so if you need to create them in Java, use <code>ApplicationContext</code> or <code>ObjectProvider</code>. See examples below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="number-formatter"><a class="anchor" href="#number-formatter"></a>Number Formatter</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Number formatter presents a number value as a string according to the specified format.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>format</code> - a format string to create the <code>DecimalFormat</code> instance. It can be either a format string itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;valuePicker id="valueNumberPicker" label="Number"&gt;
+    &lt;actions&gt;
+        &lt;action id="generate" icon="REFRESH"/&gt;
+    &lt;/actions&gt;
+    &lt;formatter&gt;
+        &lt;number format="#,##0.00"/&gt;
+    &lt;/formatter&gt;
+&lt;/valuePicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixValuePicker&lt;BigDecimal&gt; valueNumberPicker;
+
+@Autowired
+private ApplicationContext applicationContext;
+
+@Subscribe
+public void onInit(InitEvent event) {
+    NumberFormatter formatter = applicationContext.getBean(NumberFormatter.class);
+    formatter.setFormat("#,##0.00");
+    valueNumberPicker.setFormatter(formatter);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="date-time-formatter"><a class="anchor" href="#date-time-formatter"></a>Date and Time Formatter</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Date formatter presents a date and time value as a string according to the specified format.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>format</code> - a format string to create the <code>SimpleDateFormat</code> instance. It can be either a format string itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>.</p>
+</li>
+<li>
+<p><code>type</code> - the formatter type: <code>DATE</code> or <code>DATETIME</code>. If it is specified, the value will be formatted using <code>DateDatatype</code> or <code>DateTimeDatatype</code>, respectively.</p>
+</li>
+<li>
+<p><code>useUserTimezone</code> - whether the formatter should display the date and time in the current user’s timezone. By default, <code>DateFormatter</code> displays the date and time in the server timezone. To show the current user’s timezone, set <code>true</code> in this attribute.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;valuePicker id="valuePicker" label="Date"&gt;
+    &lt;actions&gt;
+        &lt;action id="generate" icon="REFRESH"/&gt;
+    &lt;/actions&gt;
+    &lt;formatter&gt;
+        &lt;date type="DATE" format="h:mm a"/&gt;
+    &lt;/formatter&gt;
+&lt;/valuePicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixValuePicker&lt;LocalDateTime&gt; valuePicker;
+
+@Autowired
+private ApplicationContext applicationContext;
+
+@Subscribe
+public void onInit(InitEvent event) {
+    DateFormatter dateFormatter = applicationContext.getBean(DateFormatter.class);
+    dateFormatter.setFormat("h:mm a");
+    valuePicker.setFormatter(dateFormatter);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="collection-formatter"><a class="anchor" href="#collection-formatter"></a>Collection Formatter</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Collection formatter presents a collection as a string of comma-separated elements of the collection.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-formatter"><a class="anchor" href="#custom-formatter"></a>Creating Custom Formatters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A custom formatter can be defined by a prototype bean implementing the <code>Formatter</code> interface.</p>
+</div>
+<div class="paragraph">
+<p>Example of creating a custom formatter:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
+public class CurrencyFormatter implements Formatter&lt;BigDecimal&gt; {
+
+    @Override
+    public String apply(BigDecimal value) {
+        return NumberFormat.getCurrencyInstance(Locale.getDefault()).format(value);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In a view XML descriptor, the custom formatter should be defined in the nested <code>custom</code> element. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;valuePicker id="numberPicker" label="Number with CurrencyFormatter"&gt;
+    &lt;actions&gt;
+        &lt;action id="generate" icon="REFRESH"/&gt;
+    &lt;/actions&gt;
+    &lt;formatter&gt;
+        &lt;custom bean="currencyFormatter"/&gt;
+    &lt;/formatter&gt;
+&lt;/valuePicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A formatter can also be defined by a lambda and added programmatically, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private EntityPicker&lt;Department&gt; entityPicker;
+
+@Subscribe
+public void onInit(InitEvent event) {
+    entityPicker.setFormatter(value -&gt; value.getName() + " department");
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subprocesses :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Subprocesses</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Subprocess</strong> is an activity that contains other activities, gateways, events,
+and so on, which in itself forms a process that is part of the bigger process.
+Subprocesses allow hierarchical modeling, resulting in a high-level, end-to-end overview of the business process.
+Subprocesses can be nested.</p>
+</div>
+<div class="paragraph">
+<p>Besides, a subprocess creates a new <a class="xref page" href="../process-variables.html#variable-scopes">scope</a>
+for process variables and <a class="xref page" href="bpmn-events.html">events</a>.
+Events that are thrown during execution of the subprocess can be caught by a boundary event on the boundary of the subprocess,
+creating a scope for that event limited to the subprocess.</p>
+</div>
+<div class="paragraph">
+<p>There are three types of subprocesses in Jmix BPM:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#embedded-subprocess">Embedded subprocess</a></p>
+</li>
+<li>
+<p><a href="#event-subprocess">Event subprocess</a></p>
+</li>
+<li>
+<p><a href="#transaction-subprocess">Transaction subprocess</a></p>
+</li>
+<li>
+<p><a href="#call-activity">Call activity</a></p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="subprocess types" src="../_images/bpmn-subprocesses/subprocess-types.png" width="700"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="embedded-subprocess"><a class="anchor" href="#embedded-subprocess"></a>Embedded Subprocess</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A subprocess completely defined inside a parent process is called <em>embedded</em>.
+Embedded subprocesses aren’t reusable.
+In other words, you can’t call them from anywhere;
+they are a solid part of parent process.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A subprocess is represented as a rounded rectangle. To create a subprocess, select <span class="image"><img alt="icon subprocess" src="../_images/bpmn-subprocesses/icon-subprocess.png" width="30"/></span> from the palette and place it on the canvas.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="create subprocess" src="../_images/bpmn-subprocesses/create-subprocess.png" width="500"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Then you can drag-and-drop existing elements into subprocess or create new ones inside it.
+An embedded subprocess can only have one <em>'none start event'</em>; no other start event types are allowed.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>An embedded subprocess is defined by the <em>subProcess</em> element.
+All activities, gateways, events, and so on, that are part of the subprocess need to be enclosed within this element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;subProcess id="Activity_17a4us1" name="Subprocess"&gt;
+  &lt;startEvent id="subProcessStart" /&gt;
+
+... other subprocess elements ...
+
+  &lt;endEvent id="subProcessEnd" /&gt;
+ &lt;/subProcess&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>Embedded subprocess has no special properties, only general ones.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="subprocess properties" src="../_images/bpmn-subprocesses/subprocess-properties.png" width="463"/>
+</div>
+</div>
+<div class="paragraph">
+<p>A subprocess may be <a class="xref page" href="transactions.html#asynchronous-continuation">asynchronous</a>
+and <a class="xref page" href="multi-instance-activities.html">multi-instance</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="event-subprocess"><a class="anchor" href="#event-subprocess"></a>Event Subprocess</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Event subprocess</strong> is a subprocess triggered by an event.
+It can be added at the process level or at any subprocess level.</p>
+</div>
+<div class="paragraph">
+<p>The event used to trigger an event subprocess is configured using a start event.
+An event subprocess might be triggered using events, such as message events, error events, signal events, timer events, or compensation events.
+The subscription to the start event is created when the scope (process instance or subprocess) hosting the event subprocess is created.
+The subscription is to be removed when the scope is destroyed.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>Event subprocesses are visualized as rounded rectangles with dotted outlines.
+To create event subprocess, you should add an embedded subprocess and then change it to event subprocess:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="creating event subprocess" src="../_images/bpmn-subprocesses/creating-event-subprocess.png" width="600"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you can go on designing event subprocess.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="creating event subprocess 2" src="../_images/bpmn-subprocesses/creating-event-subprocess-2.png" width="550"/>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>None start events</em> are not supported for event subprocesses.
+It doesn’t cause error at deployment or runtime, but this subprocess will never be triggered.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>An event subprocess is represented using XML in the same way as an embedded subprocess.
+In addition, the attribute <em>triggeredByEvent</em> must have the value true:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;subProcess id="event-subprocess" name="Event subprocess" triggeredByEvent="true"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+  &lt;sequenceFlow id="Flow_14hzcqy" sourceRef="start-message-event" targetRef="Activity_0iuoq5t" /&gt;
+  &lt;startEvent id="start-message-event"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;messageEventDefinition id="MessageEventDefinition_1hzz5hc" messageRef="cancel-order" /&gt;
+  &lt;/startEvent&gt;
+
+... other subprocess elements ...
+
+&lt;/subProcess&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — <em>triggeredByEvent</em> attribute</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — Message start event</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Example</strong></div>
+<p>The following is an example of an event subprocess triggered using an <em>Error Start Event</em>.
+The event subprocess is located at the "process level", in other words, is scoped to the process instance:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="event subprocess example" src="../_images/bpmn-subprocesses/event-subprocess-example.png" width="500"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Event subprocess can be defined in embedded subprocess.
+In this case, when the error event is triggered, the event subprocess will have access to subprocess local variables:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="event subprocess error" src="../_images/bpmn-subprocesses/event-subprocess-error.png" width="600"/>
+</div>
+</div>
+<div class="paragraph">
+<p>When you use an error boundary event, the external event handler won’t see local variables:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="subprocess error" src="../_images/bpmn-subprocesses/subprocess-error.png" width="600"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="transaction-subprocess"><a class="anchor" href="#transaction-subprocess"></a>Transaction Subprocess</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <strong>transaction subprocess</strong> is an embedded subprocess that can be used to group multiple activities to a transaction.
+A transaction is a logical unit of work that allows to group a set of individual activities,
+such that they either succeed or fail collectively.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A transaction subprocess is visualized as a rounded rectangle with a double outline.
+To create transaction subprocess, you should add an embedded subprocess and then change it to transaction subprocess:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="transaction subprocess" src="../_images/bpmn-subprocesses/transaction-subprocess.png" width="300"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A transaction subprocess is represented in XML using the transaction tag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;transaction id="transaction-subprocess" name="Transaction subprocess"&gt;
+  . . .
+&lt;/transaction&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="possible-outcomes-of-a-transaction">
+<div class="title"><strong>Possible Outcomes of a Transaction</strong></div>
+<p>A transaction can have three different outcomes:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Successful</dt>
+<dd>
+<p>If a transaction subprocess is completed a regular way, it is successful and then the main process will be continued using the outgoing sequence flows.
+A successful transaction might be compensated if a compensation event is thrown later in the process.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Just as with "ordinary" embedded subprocesses, a transaction may be compensated after successful completion using an intermediary throwing compensation event.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</dd>
+<dt class="hdlist1">Canceled</dt>
+<dd>
+<p>If an execution reaches the <em>cancel end event</em>, the transaction is considered canceled.
+In this case, all executions are terminated and removed.
+A single remaining execution is then set to the cancel boundary event, which triggers compensation.
+After compensation has completed, the transaction subprocess is left using the outgoing sequence flows of the cancel boundary event.</p>
+</dd>
+<dt class="hdlist1">Hazard</dt>
+<dd>
+<p>A transaction is ended by a hazard if an <em>error event</em> is thrown that is not caught within the scope of the transaction subprocess.
+This also applies if the error is caught on the boundary of the transaction subprocess.
+In these cases, compensation is not performed.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="transaction subprocess example" src="../_images/bpmn-subprocesses/transaction-subprocess-example.png" width="900"/>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>It is important not to confuse the BPMN transaction subprocess with technical (ACID) transactions.
+See more in the <a class="xref page" href="transactions.html">BPMN Transactions</a> section.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="call-activity"><a class="anchor" href="#call-activity"></a>Call Activity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Call Activity allows you to call a reusable process or a global task from within another process.
+It provides a way to break down complex processes into smaller, more manageable parts and promotes reusability.</p>
+</div>
+<div class="paragraph">
+<p>Opposite to embedded subprocess, <em>call activity</em> is an <em>external</em> subprocess.</p>
+</div>
+<div class="paragraph">
+<p>When process execution arrives at the call activity,
+a new execution is created that is a sub-execution of the execution that arrived at the call activity.
+This sub-execution is then used to execute the subprocess, potentially creating parallel child executions, as within a regular process.
+The super-execution waits until the subprocess has completely ended, and continues with the original process afterward.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A call activity is visualized by rounded rectangle as a normal task,
+but with a thick border and the subprocess <a class="xref page" href="bpmn-elements.html#markers">marker</a> inside:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="call activity" src="../_images/bpmn-subprocesses/call-activity.png" width="300"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A call activity is a regular activity, which requires a <code>calledElement</code> that references a process definition by its key.
+In practice, this means that the ID of the process is used in the <code>calledElement</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;callActivity id="Activity_08ermzt" name="Call activity"
+              calledElement="data-task-sample" <i class="conum" data-value="1"></i><b>(1)</b>
+              flowable:inheritBusinessKey="true"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+  &lt;extensionElements&gt;
+    &lt;flowable:in sourceExpression="${customer.name}" <i class="conum" data-value="3"></i><b>(3)</b>
+                 target="customerName" /&gt;
+    &lt;flowable:out source="customerName"  <i class="conum" data-value="4"></i><b>(4)</b>
+                  target="customerName" /&gt;
+  &lt;/extensionElements&gt;
+  &lt;incoming&gt;Flow_0sdrrfm&lt;/incoming&gt;
+&lt;/callActivity&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — Called element, by default referenced by process id (process definition key)</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — Business key will be inherited</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td> — In mapping by expression</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td> — Out mapping by variable</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The process definition of the subprocess is resolved at runtime.
+This means that the subprocess can be deployed independently of the calling process, if needed.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Properties</strong></div>
+<p>You can configure a call activity by setting its properties:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="call activity properties" src="../_images/bpmn-subprocesses/call-activity-properties.png" width="463"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Called element</strong>: This property refers to an existing process definition.</p>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Avoid unmanaged recursion! Technically, it’s possible to call another instance of the process from within itself.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><strong>Called element type</strong>: by default, the <em>Key</em> parameter is used, which calls the most recent version of the process. You can call a specific version of the process using its id.</p>
+</li>
+<li>
+<p><strong>Business key expression</strong>: You can define it by expression or inherit from the parent process. See <a class="xref page" href="../bpm-concepts.html#business-key">business key</a> for more details.</p>
+</li>
+<li>
+<p><strong>Variables Mapping</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Inheriting variables</strong>: Call activity can inherit process variables from the parent process.When the called process starts, new instances of the process variables will be created, distinct from the original references.</p>
+</li>
+<li>
+<p><strong>In mapping</strong>: You can pass parameters to the called process using existing process variables (source) to map them to variables within the called process (target):</p>
+<div class="imageblock">
+<div class="content">
+<img alt="in mapping" src="../_images/bpmn-subprocesses/in-mapping.png" width="463"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can use expressions:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="in mapping expression" src="../_images/bpmn-subprocesses/in-mapping-expression.png" width="463"/>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Out Mapping</strong>: Similarly, you can map variables from the called process (source) on the variables in the parent process (target):</p>
+<div class="imageblock">
+<div class="content">
+<img alt="out mapping" src="../_images/bpmn-subprocesses/out-mapping.png" width="463"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="user-task-call-activity"><a class="anchor" href="#user-task-call-activity"></a>User Tasks in Call Activity</h3>
+<div class="paragraph">
+<p>If the called process has <em>user tasks</em>, assigned users will see them in the task list (<em>My tasks</em> view)
+under the name of called process, not the parent process.
+That’s why it is important to use a business key when creating processes.</p>
+</div>
+<div class="paragraph">
+<p>So, if you want to manage all tasks from your process, and it has call activities, you should take care of this.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

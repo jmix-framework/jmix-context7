@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datatype Interface :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Datatype Interface</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Each non-reference entity attribute is associated with an implementation of the <code>Datatype</code> interface. This interface defines methods for converting attribute values to and from strings (formatting and parsing) when displaying entities in <a class="xref page" href="../flow-ui/index.html">User Interface</a> and serializing in <a class="xref page" href="../rest/index.html">REST API</a>.</p>
+</div>
+<div class="paragraph">
+<p>The framework provides a set of <code>Datatype</code> implementations corresponding to standard data types of <a class="xref page" href="entities.html#attributes">entity attributes</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+We use term <em>datatype</em> in all lowercase to refer to implementations of the <code>Datatype</code> interface.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="localized-format-strings"><a class="anchor" href="#localized-format-strings"></a>Localized Format Strings</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Many standard datatypes use a set of format strings defined in the <a class="xref page" href="../localization/message-bundles.html">message bundle</a>. It enables formatting and parsing dependent on the current user locale. The default set of format strings defined in the framework is the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># Date/time formats
+dateFormat = dd/MM/yyyy
+dateTimeFormat = dd/MM/yyyy HH:mm
+offsetDateTimeFormat = dd/MM/yyyy HH:mm Z
+timeFormat = HH:mm
+offsetTimeFormat = HH:mm Z
+
+# Number formats
+integerFormat = #,##0
+doubleFormat = #,##0.###
+decimalFormat = #,##0.##
+
+# Number separators
+numberDecimalSeparator = .
+numberGroupingSeparator = ,
+
+# Booleans
+trueString = True
+falseString = False</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To provide your own format strings, add the corresponding messages to the message bundle of your application. For example, to use the United States date format with the English locale, add the following lines to your <code>messages_en.properties</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">messages_en.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">dateFormat = MM/dd/yyyy
+dateTimeFormat = MM/dd/yyyy HH:mm
+offsetDateTimeFormat = MM/dd/yyyy HH:mm Z</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, define a separate <code>en_US</code> locale and set the data format strings in the <code>messages_en_US.properties</code> file.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can configure data format strings using Studio: open the <strong>Locales</strong> tab of the <strong>Project Properties</strong> window and click <strong>Show data format strings</strong> checkbox.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-format"><a class="anchor" href="#custom-format"></a>Customized Formatting and Parsing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can customize formatting and parsing of values for particular entity attributes by creating your own datatype and assigning it to the attributes.</p>
+</div>
+<div class="paragraph">
+<p>Suppose that some entity attributes in your application store calendar years, represented by integer numbers. Users should be able to view and edit a year, and if a user enters just two digits, the application should transform it to a year between 2000 and 2100. Otherwise, the whole entered number should be accepted as a year.</p>
+</div>
+<div class="paragraph">
+<p>First, create the <code>Datatype</code> implementation class and annotate it with <code>@DatatypeDef</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.google.common.base.Strings;
+import io.jmix.core.metamodel.annotation.DatatypeDef;
+import io.jmix.core.metamodel.annotation.Ddl;
+import io.jmix.core.metamodel.datatype.Datatype;
+import org.springframework.lang.Nullable;
+
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.util.Locale;
+
+@DatatypeDef(
+        id = "year", <i class="conum" data-value="1"></i><b>(1)</b>
+        javaClass = Integer.class <i class="conum" data-value="2"></i><b>(2)</b>
+)
+@Ddl("int")
+public class YearDatatype implements Datatype&lt;Integer&gt; {
+
+    private static final String PATTERN = "##00";
+
+    @Override
+    public String format(@Nullable Object value) { <i class="conum" data-value="3"></i><b>(3)</b>
+        if (value == null)
+            return "";
+        DecimalFormat format = new DecimalFormat(PATTERN);
+        return format.format(value);
+    }
+
+    @Override
+    public String format(@Nullable Object value, Locale locale) { <i class="conum" data-value="4"></i><b>(4)</b>
+        return format(value);
+    }
+
+    @Nullable
+    @Override
+    public Integer parse(@Nullable String value) throws ParseException { <i class="conum" data-value="5"></i><b>(5)</b>
+        if (Strings.isNullOrEmpty(value))
+            return null;
+        DecimalFormat format = new DecimalFormat(PATTERN);
+        int year = format.parse(value).intValue();
+        if (year &gt; 2100 || year &lt; 0)
+            throw new ParseException("Invalid year", 0);
+        if (year &lt; 100)
+            year += 2000;
+        return year;
+    }
+
+    @Nullable
+    @Override
+    public Integer parse(@Nullable String value, Locale locale) throws ParseException { <i class="conum" data-value="6"></i><b>(6)</b>
+        return parse(value);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A unique identifier of the datatype.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Java class handled by the datatype.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Formatting without current user’s locale. This method is called for system-level conversion.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Formatting considering current user’s locale. This method is called in the UI.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Parsing without current user’s locale. This method is called for system-level conversion.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Parsing considering current user’s locale. This method is called in the UI.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After creating a <code>Datatype</code> implementation, you can specify it for an entity attribute using the <a class="xref page" href="entities.html#property-datatype">@PropertyDatatype</a> annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@PropertyDatatype("year")
+@Column(name = "YEAR_")
+private Integer productionYear;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><code>Datatype</code> implementations are Spring beans (because <code>@DatatypeDef</code> is itself annotated with <code>@Component</code>), but you cannot inject other beans like <a class="xref page" href="../localization/message-bundles.html#using-messages-in-java">Messages</a> directly into the datatype class using <code>@Autowired</code>, because datatypes are initialized early in the startup process and such injection will cause a circular dependency.</p>
+</div>
+<div class="paragraph">
+<p>Instead, inject <code>ApplicationContext</code> and use its <code>getBean()</code> methods to locate required beans when needed.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-type"><a class="anchor" href="#custom-type"></a>Support for Custom Java Type</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use a custom Java class as a type of entity attributes.</p>
+</div>
+<div class="paragraph">
+<p>Suppose that you have created a Java class representing a geographical coordinate:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import java.io.Serializable;
+import java.util.Objects;
+
+public class GeoPoint implements Serializable {
+
+    public final double latitude;
+    public final double longitude;
+
+    public GeoPoint(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GeoPoint that = (GeoPoint) o;
+        return Double.compare(that.latitude, latitude) == 0 &amp;&amp;
+                Double.compare(that.longitude, longitude) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(latitude, longitude);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you want to use this class as a type of JPA entity attribute.</p>
+</div>
+<div class="paragraph">
+<p>First, create a JPA converter for your class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.entity.GeoPoint;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+
+@Converter(autoApply = true) <i class="conum" data-value="1"></i><b>(1)</b>
+public class GeoPointConverter implements AttributeConverter&lt;GeoPoint, String&gt; {
+
+    @Override
+    public String convertToDatabaseColumn(GeoPoint attribute) {
+        if (attribute == null)
+            return null;
+        return attribute.latitude + "|" + attribute.longitude;
+    }
+
+    @Override
+    public GeoPoint convertToEntityAttribute(String dbData) {
+        if (dbData == null)
+            return null;
+        String[] strings = dbData.split("\\|");
+        return new GeoPoint(Double.parseDouble(strings[0]), Double.parseDouble(strings[1]));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>With <code>autoApply = true</code> you don’t need to specify the converter on each attribute. The converter will be applied for all attributes of the corresponding type.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Then create a <code>Datatype</code> implementation class for <code>GeoPoint</code> and annotate it with <code>@DatatypeDef</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.entity.GeoPoint;
+import io.jmix.core.metamodel.annotation.DatatypeDef;
+import io.jmix.core.metamodel.annotation.Ddl;
+import io.jmix.core.metamodel.datatype.Datatype;
+import org.springframework.lang.Nullable;
+
+import java.text.ParseException;
+import java.util.Locale;
+
+@DatatypeDef(
+        id = "geoPoint", <i class="conum" data-value="1"></i><b>(1)</b>
+        javaClass = GeoPoint.class, <i class="conum" data-value="2"></i><b>(2)</b>
+        defaultForClass = true <i class="conum" data-value="3"></i><b>(3)</b>
+)
+@Ddl("varchar(255)") <i class="conum" data-value="4"></i><b>(4)</b>
+public class GeoPointDatatype implements Datatype&lt;GeoPoint&gt; {
+
+    @Override
+    public String format(@Nullable Object value) { <i class="conum" data-value="5"></i><b>(5)</b>
+        if (value instanceof GeoPoint) {
+            return ((GeoPoint) value).latitude + "|" + ((GeoPoint) value).longitude;
+        }
+        return null;
+    }
+
+    @Override
+    public String format(@Nullable Object value, Locale locale) { <i class="conum" data-value="6"></i><b>(6)</b>
+        return format(value);
+    }
+
+    @Nullable
+    @Override
+    public GeoPoint parse(@Nullable String value) throws ParseException { <i class="conum" data-value="7"></i><b>(7)</b>
+        if (value == null)
+            return null;
+        String[] strings = value.split("\\|");
+        try {
+            return new GeoPoint(Double.parseDouble(strings[0]), Double.parseDouble(strings[1]));
+        } catch (Exception e) {
+            throw new ParseException(String.format("Cannot parse %s as GeoPoint: %s", value, e.toString()), 0);
+        }
+    }
+
+    @Nullable
+    @Override
+    public GeoPoint parse(@Nullable String value, Locale locale) throws ParseException { <i class="conum" data-value="8"></i><b>(8)</b>
+        return parse(value);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A unique identifier of the datatype.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Java class handled by the datatype.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>defaultForClass = true</code> means that the datatype will be automatically applied to all entity attributes of <code>GeoPoint</code> type.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <code>@Ddl</code> annotation specifies that Studio should generate <code>varchar(255)</code> column in the database for attributes of this type. See <a href="#ddl-annotation">below</a> for more information.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Formatting without current user’s locale. This method is called for system-level conversion.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Formatting considering current user’s locale. This method is called in the UI.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Parsing without current user’s locale. This method is called for system-level conversion.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>Parsing considering current user’s locale. This method is called in the UI.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After that, when you define an entity attribute of <code>GeoPoint</code> type, the framework will use your custom JPA converter and datatype:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Column(name = "GEO_POINT")
+private GeoPoint geoPoint;</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ddl-annotation"><a class="anchor" href="#ddl-annotation"></a>@Ddl Annotation</h3>
+<div class="paragraph">
+<p>The <code>@Ddl</code> annotation on a datatype class allows you to specify what SQL type should be used for entity attributes. Studio considers this annotation when it generates <a class="xref page" href="db-migration.html">database migration</a> scripts.</p>
+</div>
+<div class="paragraph">
+<p>The SQL type is specified in the <code>value</code> attribute of the annotation, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@DatatypeDef(id = "foo", javaClass = Foo.class, defaultForClass = true)
+@Ddl("varchar(255)")
+public class FooDatatype implements Datatype&lt;Foo&gt; {</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need to specify different SQL types for different databases, add several <code>@Ddl</code> annotations with <code>dbms</code> attributes. In the following example, the database column will be of <code>text</code> type in PostgreSQL, <code>varchar2(255)</code> type in Oracle, and <code>varchar(255)</code> type in all other databases:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@DatatypeDef(id = "bar", javaClass = Bar.class, defaultForClass = true)
+@Ddl("varchar(255)")
+@Ddl(value = "text", dbms = "postgres")
+@Ddl(value = "varchar2(255)", dbms = "oracle")
+public class BarDatatype implements Datatype&lt;Bar&gt; {</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Studio recognizes the following values in the <code>dbms</code> attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>hsql</code></p>
+</li>
+<li>
+<p><code>postgres</code></p>
+</li>
+<li>
+<p><code>mysql</code></p>
+</li>
+<li>
+<p><code>mssql</code></p>
+</li>
+<li>
+<p><code>mssql-2005</code></p>
+</li>
+<li>
+<p><code>mssql-2008</code></p>
+</li>
+<li>
+<p><code>mssql-2012</code></p>
+</li>
+<li>
+<p><code>oracle</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

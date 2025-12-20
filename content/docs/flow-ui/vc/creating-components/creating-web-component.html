@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating Web Component :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Creating Web Component</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/custom-component-from-scratch" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>You can create <a href="https://vaadin.com/docs/latest/flow/create-ui/web-components/introduction-to-webcomponents" rel="noopener" target="_blank">Web Components</a> from scratch based on <a href="https://polymer-library.polymer-project.org/" rel="noopener" target="_blank">Polymer 3</a> or <a href="https://lit.dev/" rel="noopener" target="_blank">Lit</a> libraries. After a JavaScript Web Component is implemented, you can create a Java API for it.</p>
+</div>
+<div class="paragraph">
+<p>The example below shows how to build the light/dark theme toggle based on <a href="https://lit.dev/" rel="noopener" target="_blank">Lit</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="web-component"><a class="anchor" href="#web-component"></a>Creating JavaScript Web Component</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Create the <code>theme-toggle.js</code> file in the <code>frontend/src/component/theme-toggle</code> folder. It contains a Web Component implementing the light/dark theme toggle.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-javascript hljs" data-lang="javascript">import {html, LitElement} from 'lit';
+import {PolylitMixin} from '@vaadin/component-base/src/polylit-mixin.js';
+import {defineCustomElement} from '@vaadin/component-base/src/define.js';
+import {ElementMixin} from '@vaadin/component-base/src/element-mixin.js';
+import {TooltipController} from "@vaadin/component-base/src/tooltip-controller";
+import {css, ThemableMixin} from '@vaadin/vaadin-themable-mixin/vaadin-themable-mixin.js';
+import {buttonStyles} from '@vaadin/button/src/vaadin-button-core-styles.js';
+import {button as buttonLumoStyles} from '@vaadin/button/theme/lumo/vaadin-button-styles.js';
+import {ButtonMixin} from '@vaadin/button/src/vaadin-button-mixin.js';
+
+const themeToggleStyles = css`
+    :host {
+        background: transparent;
+        color: var(--lumo-text-color);
+        min-width: var(--lumo-button-size);
+        padding-left: calc(var(--lumo-button-size) / 4);
+        padding-right: calc(var(--lumo-button-size) / 4);
+    }
+`;
+
+class ThemeToggle extends ButtonMixin(ElementMixin(ThemableMixin(PolylitMixin(LitElement)))) { <i class="conum" data-value="1"></i><b>(1)</b>
+
+    static get is() {
+        return 'theme-toggle'; <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+
+    static get styles() { <i class="conum" data-value="3"></i><b>(3)</b>
+        return [buttonStyles, buttonLumoStyles, themeToggleStyles];
+    }
+
+    render() { <i class="conum" data-value="4"></i><b>(4)</b>
+        return html`
+            &lt;div class="vaadin-button-container"&gt;
+                &lt;vaadin-icon icon="vaadin:adjust"&gt;&lt;/vaadin-icon&gt;
+            &lt;/div&gt;
+
+            &lt;slot name="tooltip"&gt;&lt;/slot&gt;
+        `;
+    }
+
+    static get properties() { <i class="conum" data-value="5"></i><b>(5)</b>
+        return {
+            ariaLabel: {
+                type: String,
+                value: 'Theme toggle',
+                reflectToAttribute: true,
+            }
+        };
+    }
+
+    constructor() {
+        super();
+
+        this._storageKey = "app-theme";
+        this.addEventListener('click', () =&gt; this.toggleTheme());
+    }
+
+    /** @protected */
+    ready() {
+        super.ready();
+
+        this._tooltipController = new TooltipController(this); <i class="conum" data-value="6"></i><b>(6)</b>
+        this.addController(this._tooltipController);
+        this.applyStorageTheme();
+    }
+
+    applyStorageTheme() {
+        let storageTheme = this.getStorageTheme();
+        let currentTheme = this.getCurrentTheme();
+        if (storageTheme &amp;&amp; currentTheme !== storageTheme) {
+            this.applyTheme(storageTheme);
+        }
+    }
+
+    getStorageTheme() {
+        return localStorage.getItem(this._storageKey);
+    }
+
+    getCurrentTheme() {
+        return document.documentElement.getAttribute("theme");
+    }
+
+    toggleTheme() {
+        const theme = this.getCurrentTheme();
+        this.applyTheme(theme === "dark" ? "" : "dark");
+    }
+
+    applyTheme(theme) {
+        document.documentElement.setAttribute("theme", theme);
+        localStorage.setItem(this._storageKey, theme);
+
+        const customEvent = new CustomEvent('theme-changed', {detail: {value: theme}});
+        this.dispatchEvent(customEvent); <i class="conum" data-value="7"></i><b>(7)</b>
+    }
+}
+
+defineCustomElement(ThemeToggle); <i class="conum" data-value="8"></i><b>(8)</b>
+
+export {ThemeToggle};</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Defines base classes for custom components. Since <code>ThemeToggle</code> needs to look and behave like a button, one of the base classes is <code>ButtonMixin</code>, which provides properties and handlers specific to buttons.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Defines the name of HTML element.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Defines styles of the component as a combination of imported <code>vaadin-button</code> styles and custom styles.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Defines Shadow DOM template</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Defines custom properties.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Initializes <code>TooltipController</code> class that handles tooltip changes. Controller classes are used as delegates for repetitive functionality of visual components.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Dispatches custom event with the <code>theme-changed</code> name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>Exports custom HTML element with the name defined in the <code>static get is()</code> method.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-web-component-java-api"><a class="anchor" href="#creating-web-component-java-api"></a>Creating Java API for Web Component</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Create the <code>ThemeToggle.java</code> file which is a UI component class. It defines an API for the server code, accessor methods, event listeners, and data sources connection.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.dependency.JsModule;
+import com.vaadin.flow.component.shared.HasTooltip;
+import com.vaadin.flow.shared.Registration;
+
+@Tag("theme-toggle") <i class="conum" data-value="1"></i><b>(1)</b>
+@JsModule("./src/component/theme-toggle/theme-toggle.js") <i class="conum" data-value="2"></i><b>(2)</b>
+public class ThemeToggle extends Component implements ClickNotifier&lt;ThemeToggle&gt;,
+        Focusable&lt;ThemeToggle&gt;, HasTheme, HasEnabled, HasSize, HasStyle, HasTooltip, HasAriaLabel { <i class="conum" data-value="3"></i><b>(3)</b>
+
+    public ThemeToggle() {
+    }
+
+    public Registration addThemeChangeListener(ComponentEventListener&lt;ThemeToggleThemeChangedEvent&gt; listener) {
+        return addListener(ThemeToggleThemeChangedEvent.class, listener);
+    }
+
+    @DomEvent("theme-changed") <i class="conum" data-value="4"></i><b>(4)</b>
+    public static class ThemeToggleThemeChangedEvent extends ComponentEvent&lt;ThemeToggle&gt; {
+
+        protected String value;
+
+        public ThemeToggleThemeChangedEvent(ThemeToggle source, boolean fromClient,
+                                            @EventData("event.detail.value") String value) { <i class="conum" data-value="5"></i><b>(5)</b>
+            super(source, fromClient);
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Defines the <strong>root</strong> element that is created automatically by the <code>Component</code> class and can be accessed using the <code>getElement()</code> method. Must be the same as the Web Component exports.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>@JsModule</code> annotation defines the import of the JavaScript module.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Using <a href="https://vaadin.com/docs/latest/flow/create-ui/creating-components/mixins" rel="noopener" target="_blank">Vaadin Mixin Interfaces</a> to provide common APIs and default behavior for sets of functionalities found in most Web Components.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Using the <code>@DomEvent</code> annotation to connect a ThemeToggle component to the <code>theme-changed</code> DOM event.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Using the <code>@EventData</code> annotation to define additional event data, the theme value in this case.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+More information about creating custom components can be found in Vaadin documentation: <a href="https://vaadin.com/docs/latest/flow/create-ui/creating-components" rel="noopener" target="_blank">Creating Components</a>, <a href="https://vaadin.com/docs/latest/flow/create-ui/creating-components/mixins" rel="noopener" target="_blank">Using Vaadin Mixin Interfaces</a>, <a href="https://vaadin.com/docs/latest/flow/create-ui/creating-components/events">Using Events with Components&amp;</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="usage-example"><a class="anchor" href="#usage-example"></a>Usage Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After a component is implemented it can be used in views, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onInit(final InitEvent event) {
+    ThemeToggle themeToggle = new ThemeToggle();
+    getContent().add(themeToggle);
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="theme toggle usage" src="../../_images/visual-components/creating-components/theme-toggle-usage.gif" width="325"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

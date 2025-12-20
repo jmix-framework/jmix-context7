@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entity Log :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Entity Log</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Entity Log is a mechanism for monitoring changes made to JPA entities. It records changes in entity attributes and provides a user interface for querying and displaying details regarding the changes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>What entity instance was changed.</p>
+</li>
+<li>
+<p>Old and new values of changed attributes.</p>
+</li>
+<li>
+<p>When the entity was changed.</p>
+</li>
+<li>
+<p>Which user changed the entity.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="register-changes"><a class="anchor" href="#register-changes"></a>Registering Changes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Entity Log automatically records changes made to JPA entities upon transaction commit when working with <a class="xref page" href="../data-access/data-manager.html">DataManager</a> or <a class="xref page" href="../data-access/entity-manager.html">EntityManager</a>. It is not operational when native SQL is used.</p>
+</div>
+<div class="paragraph">
+<p>Also, if you load entities by <code>EntityManager</code>, you can use the <code>EntityLog</code> bean directly to log changes in entities from your application code. In this case, invoke <code>registerCreate()</code>, <code>registerModify()</code> and <code>registerDelete()</code> methods with the <code>auto</code> parameter set to <code>false</code>. When the entity log is called automatically by the framework, this parameter is set to <code>true</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>EntityLog</code> can register changes only when used for <em>managed</em> entities inside a transaction. It means that you should invoke <code>EntityLog</code> from application code only if you use <code>EntityManager</code> for loading data. Entities loaded with <code>DataManager</code> are always <em>detached</em> and their changes cannot be registered by invoking <code>EntityLog</code> manually.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setup"><a class="anchor" href="#setup"></a>Setting Up Entity Log</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+To be able to use the administrative UI at runtime, a user must have the <code>entity-log</code> resource role provided by the Audit add-on.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can configure the entity log in the <strong>Audit → Entity Log</strong> view. Switch to the <strong>Setup</strong> tab:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="entity log set" src="_images/entity-log-set.png" width="1300"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To establish entity log configuration, click the <strong>Create</strong> button.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Choose the entity from the <strong>Name</strong> drop-down list and select the attributes for auditing.</p>
+</li>
+<li>
+<p>The <strong>Auto</strong> checkbox determines whether the system logs changes when <code>EntityLog</code> is invoked by the JPA subsystem on transaction commit (with <code>auto = true</code> parameter).</p>
+</li>
+<li>
+<p>The <strong>Manual</strong> checkbox determines whether the system logs changes when <code>EntityLog</code> is invoked by application code (with <code>auto = false</code> parameter).</p>
+</li>
+<li>
+<p>The <strong>Export</strong> and <strong>Import</strong> actions allow you to export and import configurations in JSON or ZIP format.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Also, you can set up entity log by entering some records in the database if you want to include the configuration to the database initialization.</p>
+</div>
+<div class="paragraph">
+<p>Logging configuration involves the <code>LoggedEntity</code> and <code>LoggedAttribute</code> entities, which correspond to the <code>AUDIT_LOGGED_ENTITY</code> and <code>AUDIT_LOGGED_ATTR</code> tables.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>LoggedEntity</code> specifies the entity types to be logged.</p>
+</li>
+<li>
+<p><code>LoggedAttribute</code> defines the entity attribute to be logged and contains a link to the <code>LoggedEntity</code> and the attribute name.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To configure logging for a specific entity, insert the corresponding entries into the <code>AUDIT_LOGGED_ENTITY</code> and <code>AUDIT_LOGGED_ATTR</code> tables.</p>
+</div>
+<div class="paragraph">
+<p>In the following example, logging changes to the <code>phone</code> attribute of the <code>Customer</code> entity is configured during database initialization:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;changeSet id="1" author="audit"&gt;
+    &lt;insert tableName="AUDIT_LOGGED_ENTITY"&gt;
+        &lt;column name="ID" value="0a6ba81c-a8b9-bc8f-3829-53a6cef48871"/&gt;
+        &lt;column name="CREATED_BY" value="admin"/&gt;
+        &lt;column name="CREATE_TS" valueDate="2024-02-21T14:57:25.339"/&gt;
+        &lt;column name="NAME" value="Customer"/&gt;
+        &lt;column name="AUTO" value="true"/&gt;
+        &lt;column name="MANUAL" value="true"/&gt;
+    &lt;/insert&gt;
+&lt;/changeSet&gt;
+&lt;changeSet id="2" author="audit"&gt;
+    &lt;insert tableName="AUDIT_LOGGED_ATTR"&gt;
+        &lt;column name="ID" value="8e6e9825-1381-5299-e704-eadf1b96996e"/&gt;
+        &lt;column name="CREATE_TS" valueDate="2024-02-21T14:57:25.339"/&gt;
+        &lt;column name="CREATED_BY" value="admin"/&gt;
+        &lt;column name="ENTITY_ID" value="0a6ba81c-a8b9-bc8f-3829-53a6cef48871"/&gt;
+        &lt;column name="NAME" value="phone"/&gt;
+    &lt;/insert&gt;
+&lt;/changeSet&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="view"><a class="anchor" href="#view"></a>Viewing Entity Log</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To access the content of the entity log, navigate to the <strong>View</strong> tab within the <strong>Audit → Entity Log</strong> view. Configure the required filters to locate specific log entries.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="entity log view" src="_images/entity-log-view.png" width="1417"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Additionally, you can access the log entries for a particular entity from any application view.</p>
+</div>
+<div class="paragraph">
+<p>Log entries are stored in the <code>AUDIT_ENTITY_LOG</code> table corresponding to the <code>EntityLogItem</code> entity. Changed attribute values are stored in the <code>CHANGES</code> column and are converted to instances of <code>EntityLogAttr</code> entity.</p>
+</div>
+<div class="paragraph">
+<p>In the following example, an <code>Order</code> detail view displays data grids containing the entity log information. Below is an excerpt from the view’s XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance id="orderDc"
+              class="com.company.demo.entity.Order"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader/&gt;
+    &lt;/instance&gt;
+    &lt;collection id="entityLogItemsDc"
+                class="io.jmix.audit.entity.EntityLogItem"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;fetchPlan extends="_local"/&gt;
+        &lt;loader id="entityLogItemsDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from audit_EntityLog e
+                where e.entityRef.entityId = :entityOrder]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+        &lt;collection id="entityLogAttrDc" property="attributes"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;actions&gt;
+    &lt;action id="saveAction" type="detail_saveClose"/&gt;
+    &lt;action id="closeAction" type="detail_close"/&gt;
+&lt;/actions&gt;
+&lt;layout&gt;
+    &lt;formLayout id="form" dataContainer="orderDc"&gt;
+        &lt;datePicker id="dateField" property="date"/&gt;
+        &lt;textField id="productField" property="product"/&gt;
+        &lt;textField id="amountField" property="amount"/&gt;
+        &lt;textField id="priceField" property="price"/&gt;
+    &lt;/formLayout&gt;
+    &lt;formLayout&gt;
+        &lt;dataGrid id="entityLogItemsDataGrid"
+                  dataContainer="entityLogItemsDc"&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+            &lt;columns&gt;
+                &lt;column property="eventTs"/&gt;
+                &lt;column property="username"/&gt;
+                &lt;column property="type"/&gt;
+            &lt;/columns&gt;
+        &lt;/dataGrid&gt;
+        &lt;dataGrid id="entityLogAttrsDataGrid"
+                  dataContainer="entityLogAttrDc"&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+            &lt;columns&gt;
+                &lt;column property="name"/&gt;
+                &lt;column property="oldValue"/&gt;
+                &lt;column property="value"/&gt;
+            &lt;/columns&gt;
+        &lt;/dataGrid&gt;
+    &lt;/formLayout&gt;
+    &lt;hbox id="detailActions"&gt;
+        &lt;button id="saveAndCloseBtn" action="saveAction"/&gt;
+        &lt;button id="closeBtn" action="closeAction"/&gt;
+    &lt;/hbox&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Loading a collection of <code>EntityLogItem</code> into the <code>entityLogItemsDc</code> data container.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Loading associated <code>EntityLogAttr</code> instances into the <code>entityLogAttrDc</code> data container.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Binding a data grid to the <code>entityLogItemsDc</code> container.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Binding a data grid to the <code>entityLogAttrDc</code> container.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><code>Order</code> view controller looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionLoader&lt;EntityLogItem&gt; entityLogItemsDl;
+
+@Subscribe(id = "orderDc", target = Target.DATA_CONTAINER)
+public void onOrderDcItemChange(final InstanceContainer.ItemChangeEvent&lt;Order&gt; event) { <i class="conum" data-value="1"></i><b>(1)</b>
+    entityLogItemsDl.setParameter("entityOrder",event.getItem().getId());
+    entityLogItemsDl.load();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>In the <code>ItemChangeEvent</code> handler of the <code>orderDc</code> container, a parameter is set to the dependent loader and it is triggered.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

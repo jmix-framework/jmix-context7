@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In-memory User Management :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">In-memory User Management</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to manage users fully in LDAP, set the following property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.ldap.user-details-source = ldap</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, standard <code>LdapUserDetails</code> objects are created by Spring Security after each authentication and preserved in memory instead of being taken from the database as the <code>User</code> entity. User authorities are obtained by the role mapping process described in the <a class="xref page" href="obtaining-user-authorities.html">Obtaining User Authorities</a> section.</p>
+</div>
+<div class="paragraph">
+<p>The case when maintaining users in the application is described in the <a class="xref page" href="getting-started.html">Getting Started</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ldap-user-repository"><a class="anchor" href="#ldap-user-repository"></a>LDAP User Repository</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When users are primarily managed in LDAP, they can be placed in the application where you need to choose a user or find a user in <code>SuggestionField</code>. For this purpose, the addon comes with the LDAP implementation of <code>UserRepository</code>. This user repository provides access to users from LDAP, but it does not provide <code>system</code> or <code>anonymous</code> users. Also, you may want users from the database to be searchable as well.</p>
+</div>
+<div class="paragraph">
+<p>To achieve this, declare the <code>CompositeUserRepository</code> bean, which comprises all instances of <code>UserRepository</code> in the application, for example, <code>LdapUserRepository</code> and <code>DatabaseUserRepository</code>.</p>
+</div>
+<div class="paragraph">
+<p>Remove the <code>@Primary</code> annotation from the <code>DatabaseUserRepository</code> not to conflict with the composite repository. Make this <code>UserRepository</code> primary in the application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+@Primary
+UserRepository userRepository() {
+    return new CompositeUserRepository();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

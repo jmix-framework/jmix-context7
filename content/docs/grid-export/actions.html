@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Actions :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Export Actions</h1>
+<div class="sect1">
+<h2 id="export-action"><a class="anchor" href="#export-action"></a>ExportAction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>ExportAction</code> is a base <a class="xref page" href="../flow-ui/actions/list-actions.html">list action</a> designed for exporting data grid contents using a specified exporter. An instance of <a class="xref page" href="exporters.html">DataGridExporter</a> is required for this action.</p>
+</div>
+<div class="paragraph">
+<p>This action can be configured for use with both <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a> and <a class="xref page" href="../flow-ui/vc/components/treeDataGrid.html">treeDataGrid</a> components.</p>
+</div>
+<div class="paragraph">
+<p>Within <code>ExportAction</code>, there are methods available for managing functions that extract values from <code>DataGrid</code> columns:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>addColumnValueProvider()</code> adds a function to retrieve values from a column.</p>
+</li>
+<li>
+<p><code>removeColumnValueProvider()</code> removes a column value provider function by column <code>id</code>.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="export-modes"><a class="anchor" href="#export-modes"></a>Export Modes</h3>
+<div class="paragraph">
+<p><code>ExportAction</code> has three export modes: all rows, the current page, and selected rows.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="export action" src="_images/export-action.png" width="873"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>All rows</strong> option exports all database records matching the applied filter and the initial query used to populate the view’s data.</p>
+<div class="paragraph">
+<p>Data loading and export happen in <strong>batches</strong> to optimize performance and manage memory usage. The batch size is configurable via the <a class="xref page" href="properties.html#jmix.gridexport.export-all-batch-size">jmix.gridexport.export-all-batch-size</a> application property. The default batch size is <code>1000</code>.</p>
+</div>
+<div class="paragraph">
+<p>When exporting all records, the default <strong>pagination strategy</strong> is <code>keyset</code>. To change this, use the <a class="xref page" href="properties.html#jmix.gridexport.export-all-pagination-strategy">jmix.gridexport.export-all-pagination-strategy</a> application property.</p>
+</div>
+</li>
+<li>
+<p>The <strong>Current page</strong> option exports only the content displayed on the current page of the data grid.</p>
+</li>
+<li>
+<p>The <strong>Selected rows</strong> option export only records selected in the data grid.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The set of export options can be defined by a particular action using its <code>setAvailableExportModes()</code> method and corresponding <code>availableExportModes</code> property in XML. The default set of options is defined by the <a class="xref page" href="properties.html#jmix.gridexport.default-export-modes">jmix.gridexport.default-export-modes</a> application property.</p>
+</div>
+<div class="paragraph">
+<p>You can override the header and message of the dialog by adding messages with <code>exportConfirmationDialog.header</code> and <code>exportConfirmationDialog.message</code> keys to your <a class="xref page" href="../localization/message-bundles.html">message bundle</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="columns-export"><a class="anchor" href="#columns-export"></a>Columns Exporting</h3>
+<div class="paragraph">
+<p>You can control which columns are included in the export using three different filtering options:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Predefined Column Filter Predicate (Enumeration)</strong></p>
+<div class="paragraph">
+<p>This option allows you to select from a predefined set of filtering behaviors to determine which columns are exported. Configure this using the <a class="xref page" href="properties.html#jmix.gridexport.default-columns-to-export">jmix.gridexport.default-columns-to-export</a> application property or the <code>columnsToExport</code> <a class="xref page" href="../flow-ui/actions/standard-actions.html#additional-properties">additional property</a> directly on the export action. The available options are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ALL_COLUMNS</code>: Exports all columns, regardless of visibility.</p>
+</li>
+<li>
+<p><code>VISIBLE_COLUMNS</code>: Exports only the columns currently visible in the <code>DataGrid</code>. Columns marked as visible using the <a class="xref page" href="../flow-ui/vc/components/gridColumnVisibility.html">gridColumnVisibility</a> component are included in the list of exported columns. This means that hidden columns will be excluded.</p>
+<div class="paragraph">
+<p>The default value for new projects is <code>VISIBLE_COLUMNS</code>. Existing projects will have their previous export behavior (likely <code>ALL_COLUMNS</code>) migrated to the <code>application.properties</code> file.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example showing how to configure the export of all columns for a customer <code>dataGrid</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="customersDataGrid" dataContainer="customersDc"
+          width="100%"
+          minHeight="20em"&gt;
+    &lt;actions&gt;
+        &lt;action id="excelExport" type="grdexp_excelExport"&gt;
+            &lt;properties&gt;
+                &lt;property name="columnsToExport" value="ALL_COLUMNS"/&gt;
+            &lt;/properties&gt;
+        &lt;/action&gt;
+    &lt;/actions&gt;
+    &lt;columns&gt;
+        &lt;column property="firstName"/&gt;
+        &lt;column property="lastName"/&gt;
+        &lt;column property="email"/&gt;
+        &lt;column property="age"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This method has the lowest priority; more specific methods will override this setting.
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Flexible Filtering Predicate (Extension Point)</strong></p>
+<div class="paragraph">
+<p>This provides a mechanism for highly customized column selection logic. Create a method annotated with <code>@Install</code>, targeting the export action. This method receives a <code>Grid.Column</code> object and returns <code>true</code> if the column should be exported, <code>false</code> otherwise.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "customersDataGrid.excelExport", subject = "columnsExportFilter")
+private boolean customersDataGridExcelExportColumnsExportFilter(
+        final Grid.Column&lt;Customer&gt; column) {
+    return column.getKey().contains("firstName")
+            || column.getKey().contains("email");
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This approach has medium priority, meaning it will override the predefined column filter predicate but will be overridden by explicitly specifying column keys.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><strong>Explicit Column Key Specification (List of Keys)</strong>:</p>
+<div class="paragraph">
+<p>This provides the most direct control over which columns are exported. Use the <code>columnKeysToExport</code> <a class="xref page" href="../flow-ui/actions/standard-actions.html#additional-properties">additional property</a> of the export action to define a comma-separated list of column keys to export within the <code>&lt;action&gt;</code> definition:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;action id="excel" type="grdexp_excelExport"&gt;
+    &lt;properties&gt;
+        &lt;property name="columnKeysToExport" value="email, firstName, lastName"/&gt;
+    &lt;/properties&gt;
+&lt;/action&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This option has the highest priority and will override any other settings.
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p><strong>Priority Order</strong>. So, the filtering options are processed in this order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Explicit column key specification.</p>
+</li>
+<li>
+<p>Flexible filtering predicate.</p>
+</li>
+<li>
+<p>Predefined column filter predicate.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="excel-export-action"><a class="anchor" href="#excel-export-action"></a>ExcelExportAction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>ExcelExportAction</code> is an action extending <code>ExportAction</code> and designed to export the data grid content in XLSX format.</p>
+</div>
+<div class="paragraph">
+<p>The action is implemented by the <code>io.jmix.gridexportflowui.action.ExcelExportAction</code> class and should be defined in XML using <code>type="grdexp_excelExport"</code> action’s attribute for a list component. Common action parameters can be configured through XML attributes within the <code>action</code> element. For more information, refer to the <a class="xref page" href="../flow-ui/actions/declarative-actions.html">Declarative Actions</a> documentation.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;actions&gt;
+    &lt;action id="excelExport" type="grdexp_excelExport"/&gt;
+&lt;/actions&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can inject the action into the view controller and customize its settings using setter methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("customersDataGrid.excelExport")
+private ExcelExportAction customersDataGridExcelExport;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    customersDataGridExcelExport.setText("Export data grid to Excel");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also override localized data format strings. The default format string settings for Excel export are as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">excelExporter.label=Excel
+excelExporter.true=Yes
+excelExporter.false=No
+excelExporter.empty=[Empty]
+excelExporter.bytes=&lt;bytes&gt;
+excelExporter.timeFormat=h:mm
+excelExporter.dateFormat=m/d/yy
+excelExporter.dateTimeFormat=m/d/yy h:mm
+excelExporter.integerFormat=#,##0
+excelExporter.doubleFormat=#,##0.00##############
+excelExporter.decimalFormat=#,##0.00</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="json-export-action"><a class="anchor" href="#json-export-action"></a>JsonExportAction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>JsonExportAction</code> is an action extending <code>ExportAction</code> and designed to export the data grid content in JSON format.</p>
+</div>
+<div class="paragraph">
+<p>The action is implemented by the <code>io.jmix.gridexportflowui.action.JsonExportAction</code> class and should be defined in XML using <code>type="grdexp_jsonExport"</code> action’s attribute for a list component. Common action parameters can be configured through XML attributes within the <code>action</code> element. For more information, refer to the <a class="xref page" href="../flow-ui/actions/declarative-actions.html">Declarative Actions</a> documentation.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;actions&gt;
+    &lt;action id="jsonExport" type="grdexp_jsonExport"/&gt;
+&lt;/actions&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can inject the action into the view controller and customize its settings using setter methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("customersDataGrid.jsonExport")
+private JsonExportAction customersDataGridJsonExport;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    customersDataGridJsonExport.setText("Export data grid to JSON");
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="limatations"><a class="anchor" href="#limatations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>When exporting <code>TreeDataGrid</code>, the column containing the hierarchy property will not include any padding.</p>
+</li>
+<li>
+<p>Exporting entities with a composite primary key is not supported.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

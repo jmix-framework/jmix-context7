@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Transactions</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The process engine executes processes in a transactional manner.
+A <strong>BPMN transaction</strong> is a logical unit of work that groups a set of activities together,
+ensuring that either all activities succeed or, if any activity fails,
+the effects of the completed activities are undone through compensating actions.</p>
+</div>
+<div class="paragraph">
+<p>It means when you trigger an action such as starting a process, completing a task, or signaling an execution,
+the engine advances through the process until it encounters waiting states on all active execution paths.
+In more concrete terms,
+the engine performs a depth-first search through the process graph
+and will return once it has reached <a href="#waiting-states">waiting states</a> on every branch of execution.
+This is illustrated in the following picture:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="transactions 1" src="../_images/transactions/transactions-1.png" width="500"/>
+</div>
+</div>
+<div class="paragraph">
+<p>We see a segment of a BPMN process with a user task, a service task and a timer event.
+Completing the user task and validating the address is part of the same unit of work,
+so it should succeed or fail atomically.</p>
+</div>
+<div class="paragraph">
+<p>That means that if the service task throws an exception, we have to roll back the current transaction,
+such that the execution tracks back to the user task and the user task is still present in the database.</p>
+</div>
+<div class="paragraph">
+<p>In (1) an application or client thread completes the task.
+In that same thread,
+process engine is now executing the service and advances until it reaches a waiting state,
+in this case, timer event (2).
+Then it returns the control to caller (3),
+committing the transaction.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="waiting-states"><a class="anchor" href="#waiting-states"></a>Waiting States</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In BPMN, a <strong>waiting state</strong> refers to a point in the process where the execution is paused,
+and the process is waiting for an event or a trigger to continue.
+This state can occur due to various reasons, such as waiting for a message, a timer event, or user input.</p>
+</div>
+<div class="paragraph">
+<p>Waiting states in process are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>User task</p>
+</li>
+<li>
+<p>Timer event</p>
+</li>
+<li>
+<p>Message catch event</p>
+</li>
+<li>
+<p>Signal catch event</p>
+</li>
+<li>
+<p>Service task with external worker</p>
+</li>
+<li>
+<p>Event-based gateway</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="asynchronous-continuation"><a class="anchor" href="#asynchronous-continuation"></a>Asynchronous Continuation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Sometimes we need custom control over transaction boundaries in a process,
+in order to be able to scope logical units of work.
+This is where <strong>asynchronous continuations</strong> come into play.
+Consider the following process (fragment):</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="transactions 2" src="../_images/transactions/transactions-2.png" width="800"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the next case, we are completing the user task, generating an invoice and then sending that invoice to the customer.
+This time the generation of the invoice is not part of the same unit of work,
+so we do not want to roll back the completion of the user task if generating an invoice fails.
+What we want process engine to do is complete user task (1),
+commit the transaction and return the control to the calling application.</p>
+</div>
+<div class="paragraph">
+<p>Then we want to generate the invoice asynchronously, in a background thread.
+This background thread is the <a class="xref page" href="../job-executor.html">Job Executor</a> (actually a thread pool)
+that periodically polls the database for jobs.
+Behind the scenes, when we reach the "generate invoice" task, we are creating a job "message" for the process engine
+to continue the process later and persisting it into the database.
+This job is then picked up by the job executor and executed.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To use this feature, set the <strong>Asynchronous</strong> property <code>true</code> for the corresponding element. This property is applicable to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="bpmn-service-task.html">Service Task</a></p>
+</li>
+<li>
+<p><a class="xref page" href="bpmn-script-task.html">Script Task</a></p>
+</li>
+<li>
+<p><a class="xref page" href="bpmn-business-rule-task.html">Business Rule Task</a></p>
+</li>
+<li>
+<p><a class="xref page" href="jmix-email-task.html">Email Sending Task</a></p>
+</li>
+<li>
+<p><a class="xref page" href="bpmn-subprocesses.html#embedded-subprocess">Embedded subprocess</a></p>
+</li>
+<li>
+<p><a class="xref page" href="bpmn-subprocesses.html#call-activity">Call activity</a></p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the XML, it is presented by the attribute <code>flowable:async="true"</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="Activity_0pzv18b" name="Generate invoice"
+ flowable:async="true" /&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fail-retry"><a class="anchor" href="#fail-retry"></a>Fail Retry</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In BPMN, the concept of <strong>fail retry</strong> refers to the mechanisms implemented to handle failures in service tasks.
+When a task fails due to an error,
+the BPMN engine can automatically retry the execution of that task based on predefined configurations.
+There are two parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Number of retries</p>
+</li>
+<li>
+<p>Delay between retries</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the task returns BPMN error, Job Executor waits a specified time and tries to execute the task again.
+If the maximum number of retries is reached and the task still fails, an incident is created,
+allowing for manual intervention or further error handling.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Fail retry is applicable to asynchronous tasks only.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>For synchronous service tasks, retries are not automatically handled by the process engine.
+If a synchronous task fails, it will throw an exception and stop the process instance.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

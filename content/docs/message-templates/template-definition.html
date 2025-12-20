@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2. Template Definition :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">2. Template Definition</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>We’ll design the message for the booking creator to include a subject line and a body section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-subject-template"><a class="anchor" href="#create-subject-template"></a>Creating Subject Template</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s create a template for the <em>subject</em> of the message that will be sent to the creator of a booking. This template will dynamically include the booking title, making the subject line personalized and relevant.</p>
+</div>
+<div class="paragraph">
+<p>Navigate to the <strong>Message Templates</strong> view in your application. Click the <strong>Create</strong> button to start creating a new template.</p>
+</div>
+<div class="paragraph">
+<p>After clicking <strong>Create</strong>, the template designer will open. Here’s how to configure the template:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong>: Enter a human-readable name for the template, such as <code>Booking Email Subject</code>. This name helps you easily identify the template in the list.</p>
+</li>
+<li>
+<p><strong>Code</strong>: Set the template code to <code>booking-email-subject</code>. This code will be used later to reference the template programmatically.</p>
+</li>
+<li>
+<p><strong>Type</strong>: Select <strong>Plain text</strong> as the template type, since the subject line does not require HTML formatting.</p>
+</li>
+<li>
+<p><strong>Content</strong>: Define the content of the template. For the subject line, use the following format:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Booking confirmation for ${booking.title}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here, <code>${booking.title}</code> is an Apache FreeMarker <a class="xref page" href="message-templates.html#placeholders">placeholder</a> that will be replaced with the actual title of the booking when the message is generated.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="template subject" src="_images/template-subject.png" width="888"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Once the template is configured, save it.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-body-template"><a class="anchor" href="#create-body-template"></a>Creating Body Template</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Next, we’ll proceed to create the template that will form the <em>body</em> of our message. Click the <strong>Create</strong> button once more, and then provide the following values for the template’s attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong>: Enter a human-readable name for the template, such as <code>Booking Email Body</code>.</p>
+</li>
+<li>
+<p><strong>Code</strong>: Set the template code to <code>booking-email-body</code>. This code will be used later to reference the template programmatically.</p>
+</li>
+<li>
+<p><strong>Type</strong>: Select <strong>HTML</strong> as the template type. This indicates that the template will contain HTML markup.</p>
+</li>
+<li>
+<p><strong>Content</strong>: Define the content of the template. To do this, simply drag and drop the required elements from the palette located on the right side of the designer directly onto the design canvas.</p>
+<div class="paragraph">
+<p>Create the template by arranging elements from the palette to match the following content:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Hello ${booking.creator.firstName!"Guest"}
+
+Thank you for booking your date and time for ${booking.title}.
+Your time starts at ${booking.startDate?datetime} and ends at ${booking.endDate?datetime}
+
+The booking took place ${today?date}.
+
+Have a nice day,
+Developer team.
+
+Developer
+www.jmix.io</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This template is formatted using the principles of the Apache FreeMarker Template Engine.</p>
+</div>
+<div class="paragraph">
+<p>For example, let’s break down the <code>${booking.startDate?datetime}</code> expression in Apache FreeMarker Template Engine:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>${…​}</code>: This is the interpolation syntax in FreeMarker. It tells FreeMarker to evaluate the expression inside the curly braces and insert the result into the output. Think of it as a placeholder that will be replaced with a dynamic value.</p>
+</li>
+<li>
+<p><code>booking.startDate</code>: This is a variable reference. In this case, it’s assumed that you have a variable named <code>booking</code> that is an object (JPA-entity) and that object has a property called <code>startDate</code>. FreeMarker uses dot notation to access properties of objects.</p>
+</li>
+<li>
+<p><code>?datetime</code>: This is a built-in function in FreeMarker. It’s used to format a value as a date and time. The <code>?</code> symbol is used to apply a built-in to the value to its left.</p>
+<div class="paragraph">
+<p>For more detailed information, please refer to the <a href="https://freemarker.apache.org/" rel="noopener" target="_blank">FreeMarker</a> documentation.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="template body" src="_images/template-body.png" width="1191"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Save the template.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By completing this section, you have learned how to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Navigate the <a class="xref page" href="message-templates.html">Message templates</a> view.</p>
+</li>
+<li>
+<p>Create new templates using the <a class="xref page" href="message-templates.html#template-details">template editor</a>.</p>
+</li>
+<li>
+<p>Define separate templates for the subject and body.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

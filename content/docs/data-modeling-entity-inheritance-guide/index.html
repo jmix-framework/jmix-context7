@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Modeling: Entity Inheritance :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Data Modeling: Entity Inheritance</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Entity inheritance is a key approach for structuring domain models with shared attributes and specialized behavior. In the Petclinic application, for example, pets share common fields like name and birthdate, but specific types such as cats or birds have unique properties. Similarly, visits to the clinic can vary in type, requiring distinct data fields.</p>
+</div>
+<div class="paragraph">
+<p>This guide explores how we can model those specialities using JPA inheritance strategies. Practical examples from the Petclinic domain model will illustrate how to choose the right strategy for different scenarios.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to implement this guide step by step, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup Jmix Studio</a></p>
+</li>
+<li>
+<p>Get the completed sample project, which includes all the examples used in this guide. This allows you to explore the finished implementation and experiment with the functionality right away.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>You can <a href="https://github.com/jmix-framework/jmix-data-modeling-entity-inheritance-sample/archive/refs/heads/release_2_7.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+</li>
+<li>
+<p>Or clone it and switch to the <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-data-modeling-entity-inheritance-sample
+cd jmix-data-modeling-entity-inheritance-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Alternatively, you can start with the base <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> project and follow the step-by-step instructions in this guide to implement the features yourself.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="what-we-are-going-to-build"><a class="anchor" href="#what-we-are-going-to-build"></a>What We are Going to Build</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide enhances the <a href="https://github.com/Jmix-framework/Jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> example by implementing various JPA inheritance strategies:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Mapped Superclass (NamedEntity):</strong> We will look into the base class <code>NamedEntity</code> that centralizes common fields like <code>id</code>, <code>name</code>, and auditing attributes. Entities such as <code>Owner</code>, <code>PetType</code>, and <code>Specialty</code> inherit these fields.</p>
+</li>
+<li>
+<p><strong>Single Table Inheritance (Visit Hierarchy):</strong> The <code>Visit</code> base class encompasses subclasses like <code>RegularCheckup</code>, <code>EmergencyVisit</code>, and <code>FollowUp</code>. All visits are stored in a single table, enabling efficient polymorphic queries and simplifying associations.</p>
+</li>
+<li>
+<p><strong>Joined Table Inheritance (Pet Hierarchy):</strong> The <code>Pet</code> base class includes subclasses like <code>Cat</code> and <code>Bird</code>. Subclass-specific attributes are stored in their own tables, while polymorphic queries allow listing all pets.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These scenarios highlight the strengths and trade-offs of each inheritance strategy within the Petclinic domain.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="introduction"><a class="anchor" href="#introduction"></a>Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Business applications often deal with complex domains that require clear and maintainable representations of shared and specialized data. Entity inheritance allows us to model things that are very similar, but different in certain ways. It provides a way to define common attributes and behavior in a base class while letting subclasses add their own specifics. This not only avoids redundancy but also aligns closely with how you as a developer think about your domain.</p>
+</div>
+<div class="paragraph">
+<p>In the Petclinic application, we could use entity inheritance to structure the domain model based on real use-cases like:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Pets:</strong> All pets share attributes such as <code>name</code> and <code>birthDate</code>, but specific types, such as cats and birds, introduce unique fields like <code>litterBoxTrained</code> or <code>wingspan</code>. Inheritance allows these specialized attributes to coexist with common ones.</p>
+</li>
+<li>
+<p><strong>Visits:</strong> Different types of visits, such as <code>RegularCheckup</code> or <code>EmergencyVisit</code>, require additional fields specific to their type. At the same time, all visits share common properties like <code>visitStart</code> and <code>treatmentStatus</code>, which can be handled in the base class.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="impedance-mismatch"><a class="anchor" href="#impedance-mismatch"></a>Impedance Mismatch</h3>
+<div class="paragraph">
+<p>Object-oriented programming languages like Java naturally support inheritance, allowing you to create hierarchies with shared attributes and specialized behavior. Polymorphism and method overriding make these hierarchies intuitive to design and maintain. In contrast, relational databases are built around flat, tabular structures, where data is stored in rows and columns without inherent support for hierarchical relationships. This fundamental difference is part of the broader "impedance mismatch" between object models and relational databases.</p>
+</div>
+<div class="paragraph">
+<p>In addition to challenges with inheritance, the impedance mismatch includes difficulties in handling associations, identity, and data types. For example, object references in Java must be mapped to foreign keys in a database, object identity differs from database key constraints, and some data types, like enums or complex objects, require special handling to be stored relationally.</p>
+</div>
+<div class="paragraph">
+<p>Inheritance is one of the significant aspects of this mismatch. To resolve it, mapping frameworks like JPA use a combination of techniques to bridge the gap. One common approach is to utilize multiple tables to represent an inheritance hierarchy. For example, a base entity might be stored in a separate table, while subclasses have their own tables containing specific attributes. When retrieving data, an SQL <code>JOIN</code> statement is used to combine data from the base and subclass data into a single result set that can be mapped back to the object model.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="discriminator-column"><a class="anchor" href="#discriminator-column"></a>Discriminator Column</h3>
+<div class="paragraph">
+<p>When working with inheritance in relational databases, it becomes crucial to store the type information for each entity instance. This type information ensures that when data is retrieved from the database, it can be accurately mapped back into the appropriate subclass in the object model. To achieve this, a <strong>discriminator column</strong> is often used. This column stores a value that identifies the specific type of each row in the database.</p>
+</div>
+<div class="paragraph">
+<p>The discriminator column is a key mechanism to handle polymorphism in relational databases, as it enables mapping frameworks to differentiate between subclasses.</p>
+</div>
+<div class="paragraph">
+<p>Later in this guide, we will explore how JPA uses discriminator columns as part of its inheritance strategies.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="polymorphic-queries"><a class="anchor" href="#polymorphic-queries"></a>Polymorphic Queries</h3>
+<div class="paragraph">
+<p>One solution JPA provides to the impedance mismatch of inheritance is polymorphic queries. This feature allows you to query a base class and transparently retrieve instances of all its subclasses.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpaql hljs" data-lang="jpaql">SELECT e FROM petclinic_Visit e</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This query can fetch both <code>RegularCheckup</code> and <code>EmergencyVisit</code> entities without needing separate queries for each subclass.</p>
+</div>
+<div class="paragraph">
+<p>This feature simplifies working with inheritance hierarchies. The "heavy lifting" required to express this on the database level—such as <code>JOIN</code> or <code>UNION</code> operations depending on the inheritance strategy—is hidden by JPA. In this guide, we will explore how these strategies impact polymorphic queries and demonstrate their usage in the Petclinic application.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="mapped-superclass"><a class="anchor" href="#mapped-superclass"></a>Mapped Superclass</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>@MappedSuperclass</code> is the first option to define shared attributes and behavior in a base class without creating a corresponding database table for the superclass. This approach helps for scenarios where entities share common fields, but there is no need for polymorphic querying or explicit relationships between those entities in the database. Strictly speaking it is not an official "inheritance strategy", but still it is quite often used to introduce a hierarchy in the Java domain model.</p>
+</div>
+<div class="sect2">
+<h3 id="mapped-superclass-datamodel"><a class="anchor" href="#mapped-superclass-datamodel"></a>Data Model</h3>
+<div class="paragraph">
+<p>In the Petclinic application, the <code>NamedEntity</code> class illustrates this concept. It defines common system attributes such as <code>id</code>, <code>version</code>, auditing fields (<code>createdBy</code>, <code>createdDate</code>, etc.), and a <code>name</code> field. Subclasses of <code>NamedEntity</code> inherit these attributes, which keeps your entities source code cleaner.</p>
+</div>
+<div class="listingblock">
+<div class="title">NamedEntity.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.core.annotation.DeletedBy;
+import io.jmix.core.annotation.DeletedDate;
+import io.jmix.core.entity.annotation.JmixGeneratedValue;
+import io.jmix.core.metamodel.annotation.InstanceName;
+import io.jmix.core.metamodel.annotation.JmixEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Version;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+@JmixEntity(name = "petclinic_NamedEntity")
+@MappedSuperclass
+public class NamedEntity {
+
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @InstanceName
+    @Column(name = "NAME")
+    private String name;
+
+    @Column(name = "VERSION", nullable = false)
+    @Version
+    private Integer version;
+
+    @CreatedBy
+    @Column(name = "CREATED_BY")
+    private String createdBy;
+
+    @CreatedDate
+    @Column(name = "CREATED_DATE")
+    private OffsetDateTime createdDate;
+
+    @LastModifiedBy
+    @Column(name = "LAST_MODIFIED_BY")
+    private String lastModifiedBy;
+
+    @LastModifiedDate
+    @Column(name = "LAST_MODIFIED_DATE")
+    private OffsetDateTime lastModifiedDate;
+
+    @DeletedBy
+    @Column(name = "DELETED_BY")
+    private String deletedBy;
+
+    @DeletedDate
+    @Column(name = "DELETED_DATE")
+    private OffsetDateTime deletedDate;
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>NamedEntity</code> superclass is inherited by several entities, including <code>Pet</code>, <code>PetType</code>, and <code>Specialty</code>. As you can see in the source code, the <code>NamedEntity</code> does not have a <code>@Table</code> annotation. This means there is no corresponding table for the <code>NamedEntity</code> itself in the database. Instead, only its subclasses, such as <code>Pet</code> and <code>PetType</code>, define their own database tables.</p>
+</div>
+<div class="listingblock">
+<div class="title">PetType.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package io.jmix.petclinic.entity.pet;
+
+import io.jmix.core.metamodel.annotation.JmixEntity;
+import io.jmix.petclinic.entity.NamedEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+
+@JmixEntity
+@Table(name = "PETCLINIC_PET_TYPE")
+@Entity(name = "petclinic_PetType")
+public class PetType extends NamedEntity {
+    @Column(name = "COLOR")
+    private String color;
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>In addition to inheriting shared fields, the <code>NamedEntity</code> class can also centralize shared Java behavior. For instance, the <code>@InstanceName</code> annotation on the <code>name</code> field defines a consistent display name across all subclasses, such as <code>Pet</code> and <code>Specialty</code>, in the Jmix UI. This eliminates redundant annotations and ensures uniform behavior throughout the domain model.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="mapped-superclass-database-schema"><a class="anchor" href="#mapped-superclass-database-schema"></a>Database Schema</h3>
+<div class="paragraph">
+<p>Each subclass has its own dedicated database table, and the shared fields from <code>NamedEntity</code> are incorporated into these tables. Here is an image of the resulting entity-relationship diagram:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="mapped superclass" src="_images/mapped-superclass.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Because <code>NamedEntity</code> does not have a corresponding table in the database, it cannot be queried directly or by using a polymorphic query. For instance, the following query is <strong>not valid</strong>:</p>
+</div>
+<div class="listingblock">
+<div class="title">Invalid query (not supported for <code>@MappedSuperclass</code>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">SELECT n
+FROM petclinic_NamedEntity n
+WHERE n.name = :name</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Instead, queries have to be performed on the specific subclasses. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">Query by the <code>name</code> field in <code>Specialty</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">SELECT s
+FROM petclinic_Specialty s
+WHERE s.name = :name</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These queries operate on the subclass tables but utilize the shared fields defined in <code>NamedEntity</code>. Since the attributes are inherited, they are treated as if they are native to the subclasses in both JPQL queries and in the resulting SQL.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="single-table-inheritance"><a class="anchor" href="#single-table-inheritance"></a>Single Table Inheritance</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Single Table Inheritance is a strategy where all entities in an inheritance hierarchy are stored in a single database table. When a subclass has a new attribute, it is added as an additional column in the table. This way, the table holds a superset of the attributes of all subclasses as well as the attributes of the superclass itself.</p>
+</div>
+<div class="paragraph">
+<p>As we discussed earlier in the <a href="#discriminator-column">Discriminator Column</a> section, JPA provides a mechanism called the discriminator column to determine the specific subclass for each row in the table. In the case of Single Table Inheritance, this mechanism comes into play. The <code>DTYPE</code> column stores a value that identifies the subclass. When JPA reads a row from the <code>VISIT</code> table, it inspects the value in the <code>DTYPE</code> column to instantiate the correct Java object (e.g., <code>RegularCheckup</code> or <code>EmergencyVisit</code>) and populate its attributes with the corresponding column values.</p>
+</div>
+<div class="paragraph">
+<p>This approach offers simplicity in querying and efficient read operations, as all data resides in one table. However, it comes with the trade-off of potentially large tables with many nullable columns for subclass-specific fields.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Required Fields on Subclasses</strong></p>
+</div>
+<div class="paragraph">
+<p>One important limitation of Single Table Inheritance is that it does not allow defining <code>NOT NULL</code> constraints for fields specific to subclasses. Since all entities in the hierarchy share the same table, subclass-specific fields must remain nullable to accommodate rows representing other entity types.</p>
+</div>
+<div class="paragraph">
+<p>This limitation means that enforcing data integrity on subclass-specific fields at the database level is not possible. However, you can still ensure data integrity at the application level using Bean Validation in Jmix. You can use <code>@NotNull</code> on fields in the domain model to validate data before it is persisted to the database.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Let’s look at our example use-case for Single Table Inheritance: modeling visits. Visits can have different types like <code>RegularCheckup</code> and <code>EmergencyVisit</code>. And that’s what we’re going to explore next.</p>
+</div>
+<div class="sect2">
+<h3 id="single-table-inheritance-datamodel"><a class="anchor" href="#single-table-inheritance-datamodel"></a>Data Model</h3>
+<div class="paragraph">
+<p>Let’s look at the JPA entity definition in more detail. The base class contains attributes shared by all entities, while subclass-specific attributes are added as additional columns. Below is the <code>Visit</code> base class and its two subclasses, <code>RegularCheckup</code> and <code>EmergencyVisit</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Visit.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package io.jmix.petclinic.entity.visit;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.InheritanceType;
+
+
+@JmixEntity
+@Table(name = "PETCLINIC_VISIT", indexes = {
+        @Index(name = "IDX_PETCLINIC_VISIT_ASSIGNED_NURSE", columnList = "ASSIGNED_NURSE_ID"),
+        @Index(name = "IDX_PETCLINIC_VISIT_PET", columnList = "PET_ID")
+}) <i class="conum" data-value="1"></i><b>(1)</b>
+@Entity(name = "petclinic_Visit")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)  <i class="conum" data-value="2"></i><b>(2)</b>
+@DiscriminatorColumn(name = "DTYPE", discriminatorType = DiscriminatorType.STRING)  <i class="conum" data-value="3"></i><b>(3)</b>
+@DiscriminatorValue("VISIT")
+public class Visit {
+
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @JoinColumn(name = "PET_ID", nullable = false)
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private Pet pet;
+
+    @Column(name = "TYPE_", nullable = false)
+    @NotNull
+    private String type;
+
+    @Column(name = "VISIT_START")
+    private LocalDateTime visitStart;
+
+    @Column(name = "VISIT_END")
+    private LocalDateTime visitEnd;
+
+    @JoinColumn(name = "ASSIGNED_NURSE_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User assignedNurse;
+
+    @InstanceName
+    @Column(name = "DESCRIPTION", length = 4000)
+    private String description;
+
+    @Column(name = "TREATMENT_STATUS")
+    private String treatmentStatus;
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The existence of the <code>@Table</code> annotation indicates that the Visit entity has a dedicated table (compared to <code>NamedEntity</code>). It defines the database table <code>PETCLINIC_VISIT</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>@Inheritance</code> annotation configures the <code>SINGLE_TABLE</code> strategy, where all entities in the hierarchy are stored in a single table. Subclass attributes are added as additional columns and thus don’t need to configure a <code>@Table</code> annotation on their own.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>@DiscriminatorColumn</code> annotation establishes the <code>DTYPE</code> column, which stores the type of each subclass. This ensures that JPA can map database rows to the correct Java objects based on their type.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">RegularCheckup.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package io.jmix.petclinic.entity.visit;
+
+import io.jmix.core.metamodel.annotation.JmixEntity;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+import java.time.LocalDateTime;
+
+
+@JmixEntity
+@Entity(name = "petclinic_RegularCheckup")
+@DiscriminatorValue("REGULAR_CHECKUP")
+public class RegularCheckup extends Visit {
+
+
+    @Column(name = "NEXT_APPOINTMENT_DATE")
+    private LocalDateTime nextAppointmentDate;
+
+    public LocalDateTime getNextAppointmentDate() {
+        return nextAppointmentDate;
+    }
+
+    public void setNextAppointmentDate(LocalDateTime nextAppointmentDate) {
+        this.nextAppointmentDate = nextAppointmentDate;
+    }
+
+    @PostConstruct
+    public void initVisitType() {
+        setType(VisitType.REGULAR_CHECKUP);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">EmergencyVisit.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package io.jmix.petclinic.entity.visit;
+
+import io.jmix.core.metamodel.annotation.JmixEntity;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+@JmixEntity
+@Entity(name = "petclinic_EmergencyVisit")
+@DiscriminatorValue("EMERGENCY_VISIT")
+public class EmergencyVisit extends Visit {
+    @Column(name = "EMERGENCY_TYPE")
+    private String emergencyType;
+
+    @Column(name = "LIFE_THREATENING")
+    private Boolean lifeThreatening;
+
+    public Boolean getLifeThreatening() {
+        return lifeThreatening;
+    }
+
+    public void setLifeThreatening(Boolean lifeThreatening) {
+        this.lifeThreatening = lifeThreatening;
+    }
+
+    public EmergencyType getEmergencyType() {
+        return emergencyType == null ? null : EmergencyType.fromId(emergencyType);
+    }
+
+    public void setEmergencyType(EmergencyType emergencyType) {
+        this.emergencyType = emergencyType == null ? null : emergencyType.getId();
+    }
+
+    @PostConstruct
+    public void initVisitType() {
+        setType(VisitType.EMERGENCY_VISIT);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The subclasses mainly extend <code>Visit</code> indicating that they inherit all attributes and are stored in the <code>VISIT</code> table as specified for the <code>Visit</code> entity. Additionally, the subclasses define the value of the discriminator column for this specific subclass via the <code>@DiscriminatorValue</code> annotation: <code>REGULAR_CHECKUP</code> or <code>EMERGENCY_VISIT</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="single-table-inheritance-databaseschema"><a class="anchor" href="#single-table-inheritance-databaseschema"></a>Database Schema</h3>
+<div class="paragraph">
+<p>Let’s look at the resulting entity-relationship diagram of the database:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/single-table-inheritance.svg"><img alt="Entity Relationship Diagram for Single Table Inheritance" src="_images/single-table-inheritance.svg"/></a>
+</div>
+<div class="title">Figure 1. Single Table Inheritance ER Diagram</div>
+</div>
+<div class="paragraph">
+<p>The <code>Visit</code> table consolidates all entities in the inheritance hierarchy. Common fields like <code>id</code>, <code>pet_id</code>, and <code>visit_start</code> are shared across all visit types. The <code>dtype</code> column identifies the specific subclass, while subclass-specific attributes like <code>emergency_type</code> and <code>next_appointment_date</code> are simply stored as additional columns in the same table.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="single-table-inheritance-ui"><a class="anchor" href="#single-table-inheritance-ui"></a>UI Representation</h3>
+<div class="paragraph">
+<p>Now, let’s look into how Single Table Inheritance works in the user interface. With Jmix, we can create standard views to handle entities and their subclasses. In this section, we will explore how different visit types (<code>RegularCheckup</code>, <code>EmergencyVisit</code>, and <code>FollowUpVisit</code>) can be managed, from creating new visits to displaying them in polymorphic lists.</p>
+</div>
+<div class="sect3">
+<h4 id="single-table-inheritance-ui-detail-view"><a class="anchor" href="#single-table-inheritance-ui-detail-view"></a>Determining the Visit Type Detail View</h4>
+<div class="paragraph">
+<p>To create a new visit, we implemented a dialog specifically for this example, allowing users to select the appropriate subclass. The dialog presents options for visit types such as <code>RegularCheckup</code>, <code>EmergencyVisit</code>, and <code>FollowUpVisit</code>. Once a type is selected, the corresponding detail view for the chosen subclass is opened, displaying fields relevant to that type.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/input-dialog-new-visit.png"><img alt="Type Selection Dialog for Visits" src="_images/input-dialog-new-visit.png"/></a>
+</div>
+<div class="title">Figure 2. Type Selection Dialog for Visits</div>
+</div>
+<div class="paragraph">
+<p>Here is how this is implemented in the controller when creating a new visit:</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "visits", layout = MainView.class)
+@ViewController("petclinic_Visit.list")
+@ViewDescriptor("visit-list-view.xml")
+@DialogMode(width = "64em")
+public class VisitListView extends StandardListView&lt;Visit&gt; {
+
+    @Subscribe("visitsDataGrid.create")
+    public void onVisitsDataGridCreate(final ActionPerformedEvent event) {
+        dialogs.createInputDialog(this)
+                .withHeader(messageBundle.getMessage("createVisitsDialog.header"))
+                .withParameter(
+                        InputParameter.parameter("type")
+                                .withField(() -&gt; {
+                                    JmixSelect&lt;Class&lt;? extends Visit&gt;&gt; select = createSelectComponent();
+
+                                    Map&lt;Class&lt;? extends Visit&gt;, String&gt; visitTypes = Map.of( <i class="conum" data-value="1"></i><b>(1)</b>
+                                        EmergencyVisit.class, entityCaption(EmergencyVisit.class),
+                                        RegularCheckup.class, entityCaption(RegularCheckup.class),
+                                        FollowUpVisit.class, entityCaption(FollowUpVisit.class)
+                                    );
+
+                                    ComponentUtils.setItemsMap(select, visitTypes);
+                                    return select;
+                                })
+                                .withLabel(messageBundle.getMessage("createVisitsDialog.selectLabel"))
+                )
+                .withActions(DialogActions.OK_CANCEL)
+                .withCloseListener(closeEvent -&gt; {
+
+                    if (closeEvent.closedWith(DialogOutcome.OK)) {
+                        Class&lt;? extends Visit&gt; selectedType = closeEvent.getValue("type"); <i class="conum" data-value="2"></i><b>(2)</b>
+
+                        if (selectedType != null) {
+                            viewNavigators.detailView(this, selectedType) <i class="conum" data-value="3"></i><b>(3)</b>
+                                    .newEntity()
+                                    .navigate();
+                        }
+                    }
+                })
+                .open();
+    }
+
+    private JmixSelect&lt;Class&lt;? extends Visit&gt;&gt; createSelectComponent() {
+        JmixSelect&lt;Class&lt;? extends Visit&gt;&gt; select = uiComponents.create(JmixSelect.class);
+        select.setRequired(true);
+        select.setWidthFull();
+        return select;
+    }
+
+    private String entityCaption(Class&lt;? extends Visit&gt; entityClass) {
+        return messageTools.getEntityCaption(metadata.getClass(entityClass));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>visitTypes</code> map is created and passed as the items for the select component.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>After the user confirms their selection, the selected visit type class is retrieved from the dialog’s result via <code>closeEvent.getValue("type")</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>viewNavigators.detailView</code> method navigates to the detail view for the selected visit type, creating a new instance of the entity and showing its specific fields.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Using the type selection dialog, the application dynamically determines the appropriate subclass for the new <code>Visit</code> entity. After the user confirms their selection, Jmix navigates to the corresponding detail view for the chosen subclass. This is because we pass in the correct type into the <code>detailView</code> method of the <code>ViewNavigators</code> bean. The detail views are simply standard Jmix detail views for each subclass.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/regular-checkup-detail.png"><img alt="Regular Checkup Detail View with Relevant Fields" src="_images/regular-checkup-detail.png"/></a>
+</div>
+<div class="title">Figure 3. Regular Checkup Detail View</div>
+</div>
+<div class="paragraph">
+<p>The <code>RegularCheckup</code> detail view includes the <code>Next Appointment Date</code> field, specific to this visit type. Common fields like <code>Description</code> and <code>Visit Start</code>, inherited from the <code>Visit</code> entity, are also displayed. When we look at the <code>EmergencyVisit</code> detail view, you can see the emergency-specific fields such as <code>Emergency Type</code> and a checkbox for <code>Life Threatening</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/emergency-visit-detail.png"><img alt="Emergency Visit Detail View with Emergency-Specific Fields" src="_images/emergency-visit-detail.png"/></a>
+</div>
+<div class="title">Figure 4. Emergency Visit Detail View</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="single-table-inheritance-ui-list-view"><a class="anchor" href="#single-table-inheritance-ui-list-view"></a>Polymorphic Query in Visit List View</h4>
+<div class="paragraph">
+<p>Let’s focus on how we display visits of all subtypes. As we learned before, all types of visits (<code>RegularCheckup</code>, <code>EmergencyVisit</code>, <code>FollowUpVisit</code>) are stored in a single table. In the view descriptor, we load the data as we would for any regular JPA entity. Below is an excerpt of the XML configuration for the <code>VisitListView</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">visit-list-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;collection id="visitsDc"
+            class="io.jmix.petclinic.entity.visit.Visit"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;fetchPlan extends="_base"&gt;
+        &lt;property name="pet" fetchPlan="_base"/&gt;
+    &lt;/fetchPlan&gt;
+    &lt;loader id="visitsDl"&gt;
+        &lt;query&gt;
+            &lt;![CDATA[select e from petclinic_Visit e]]&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+        &lt;/query&gt;
+    &lt;/loader&gt;
+&lt;/collection&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>collection</code> element defines a <code>CollectionContainer</code> for the base class <code>Visit</code>. This container serves as the binding point for the data grid in the UI and holds all visit entities, regardless of their specific subclass.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>loader</code> element specifies a <code>CollectionDataLoader</code> that uses the JPQL query <code>SELECT e FROM petclinic_Visit e</code>. This query fetches all rows from the <code>Visit</code> table, leveraging the discriminator column (<code>dtype</code>) to ensure JPA loads the correct subclass for each entity.</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/visit-list-view.png"><img alt="Visit List View" src="_images/visit-list-view.png"/></a>
+</div>
+<div class="title">Figure 5. Visit List View</div>
+</div>
+<div class="paragraph">
+<p>When the query is executed, JPA fetches all data from the <code>Visit</code> table and loads visits of all types. While the table displays only common columns shared across all visit types, the data loader transparently handles the polymorphic behavior, ensuring that each record is represented as its appropriate Java object.</p>
+</div>
+<div class="paragraph">
+<p>When we enable SQL logging, we can observe the SQL query executed by JPA. Below is the formatted SQL query that corresponds to what is executed:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">SELECT LIMIT 0 50
+    visit.ID,
+    visit.DTYPE,
+    visit.CREATED_BY,
+    visit.CREATED_DATE,
+    visit.DELETED_BY,
+    visit.DELETED_DATE,
+    visit.DESCRIPTION,
+    visit.LAST_MODIFIED_BY,
+    visit.LAST_MODIFIED_DATE,
+    visit.TREATMENT_STATUS,
+    visit.TYPE_,
+    visit.VERSION,
+    visit.VISIT_END,
+    visit.VISIT_START,
+    visit.ASSIGNED_NURSE_ID,
+    visit.PET_ID
+FROM
+    PETCLINIC_VISIT visit
+WHERE
+    visit.DELETED_DATE IS NULL
+ORDER BY
+    visit.VISIT_START DESC,
+    visit.ID ASC</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="visualize-subclass-type-in-ui"><a class="anchor" href="#visualize-subclass-type-in-ui"></a>Visualize Subclass type in UI</h4>
+<div class="paragraph">
+<p>When integrating entity hierarchies into the UI, the challenge arises of how to display and work with entity types. At first glance, you might consider leveraging the discriminator column (<code>DType</code>) used in the database. However, this column is not a true entity attribute. It lacks getters and setters, cannot be localized or translated, and is generally not intended for direct use in application logic. Additionally, it cannot be used in Jmix UI components such as the Generic Filter for searching, sorting, or filtering.</p>
+</div>
+<div class="paragraph">
+<p>To address this limitation, we introduce a dedicated <code>type</code> field alongside the <code>DType</code> column. Represented as an regular Jmix <code>Enum</code>, this <code>type</code> field is mainly used for the UI and application code. It supports localization, enables filtering and sorting in polymorphic views, and provides a more developer-friendly interface for working with entity types.</p>
+</div>
+<div class="paragraph">
+<p>To ensure that the <code>type</code> field reflects the correct subclass, we assign its value using a <code>@PostConstruct</code> lifecycle callback in each subclass. For instance, the <code>RegularCheckup</code> class assigns the <code>type</code> field as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title">RegularCheckup.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Entity(name = "petclinic_RegularCheckup")
+@DiscriminatorValue("REGULAR_CHECKUP")
+public class RegularCheckup extends Visit {
+
+    @PostConstruct
+    public void initVisitType() {
+        setType(VisitType.REGULAR_CHECKUP);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With this in place for each subclass, we can use the <code>type</code> field is as a column as well as for filtering:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/visit-list-view-type-filter.png"><img alt="Visit List View with Type Filter" src="_images/visit-list-view-type-filter.png"/></a>
+</div>
+<div class="title">Figure 6. Visit List View with Type Filter</div>
+</div>
+<div class="paragraph">
+<p>This wraps up our first entity inheritance approach: Single Table Inheritance. As we have seen, it provides a straightforward way to manage entity hierarchies in a single table. It allows polymorphic queries and avoids the need for multiple joins. However, there are limitations to this approach, particularly when subclass-specific fields are supposed to be required, as we discussed earlier.</p>
+</div>
+<div class="paragraph">
+<p>To overcome this limitation, we can use the Joined inheritance strategy, which we will cover in the next section.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="joined-inheritance"><a class="anchor" href="#joined-inheritance"></a>Joined Table Inheritance</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Joined Table Inheritance maps an inheritance hierarchy into multiple tables. The base class has its own table, while each subclass has a separate table containing only fields specific to that subclass. Foreign keys connect the subclass tables to the base class table. This creates a more normalised database structure, as compared to Single Table Inheritance we don’t end up with a lot of null values in columns. It is also more flexible, making it suitable for scenarios where subclass-specific fields need database-level constraints, such as <code>NOT NULL</code>, or separate indexing.</p>
+</div>
+<div class="paragraph">
+<p>For this guide, we picked the <code>Pet</code> entity as an example for the joined table inheritance. Let’s see at how the data model looks like.</p>
+</div>
+<div class="sect2">
+<h3 id="joined-inheritance-datamodel"><a class="anchor" href="#joined-inheritance-datamodel"></a>Data Model</h3>
+<div class="paragraph">
+<p>The <code>Pet</code> class represents the base entity with shared attributes like <code>identificationNumber</code> and <code>birthdate</code>, while the subclasses <code>Bird</code> and <code>Cat</code> define specific fields.</p>
+</div>
+<div class="paragraph">
+<p>Joined Table Inheritance uses the <code>@DiscriminatorColumn</code> exacly how we have seen it before in the case of Single Table inheritance. The <code>@DiscriminatorValue</code> annotation in each subclass specifies the value used in the discriminator column to identify rows belonging to that entity type. Additionally, the subclasses have a <code>@PrimaryKeyJoinColumn</code> annotation that is required by JPA for performing the <code>JOIN</code> operation.</p>
+</div>
+<div class="listingblock">
+<div class="title">Pet.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Table;
+
+import java.time.LocalDate;
+
+@JmixEntity
+@Table(name = "PETCLINIC_PET")
+@Entity(name = "petclinic_Pet")
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "DTYPE", discriminatorType = DiscriminatorType.STRING)
+public class Pet extends NamedEntity {
+
+    @Column(name = "IDENTIFICATION_NUMBER", nullable = false)
+    @NotNull
+    private String identificationNumber;
+
+    @Column(name = "BIRTHDATE")
+    private LocalDate birthdate;
+
+    @JoinColumn(name = "TYPE_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private PetType type;
+
+    @JoinColumn(name = "OWNER_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Owner owner;
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Pet</code> class contains attributes such as <code>identificationNumber</code>, <code>birthdate</code>, and associations with the <code>Owner</code> and <code>PetType</code> entities.</p>
+</div>
+<div class="listingblock">
+<div class="title">Bird.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_BIRD")
+@Entity(name = "petclinic_Bird")
+@PrimaryKeyJoinColumn(name = "ID")
+public class Bird extends Pet {
+    @Column(name = "WINGSPAN", nullable = false)
+    @NotNull
+    private Double wingspan;
+
+    public Double getWingspan() {
+        return wingspan;
+    }
+
+    public void setWingspan(Double wingspan) {
+        this.wingspan = wingspan;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Bird</code> class adds the <code>wingspan</code> field, which is specific to birds.</p>
+</div>
+<div class="listingblock">
+<div class="title">Cat.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PETCLINIC_CAT")
+@Entity(name = "petclinic_Cat")
+@PrimaryKeyJoinColumn(name = "ID")
+public class Cat extends Pet {
+    @Column(name = "CLAW_LENGTH")
+    private Integer clawLength;
+
+    @Column(name = "LITTER_BOX_TRAINED", nullable = false)
+    @NotNull
+    private Boolean litterBoxTrained = false;
+
+    public Boolean getLitterBoxTrained() {
+        return litterBoxTrained;
+    }
+
+    public void setLitterBoxTrained(Boolean litterBoxTrained) {
+        this.litterBoxTrained = litterBoxTrained;
+    }
+
+    public Integer getClawLength() {
+        return clawLength;
+    }
+
+    public void setClawLength(Integer clawLength) {
+        this.clawLength = clawLength;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Cat</code> class includes fields like <code>clawLength</code> and <code>litterBoxTrained</code>, capturing attributes unique to cats.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="joined-table-inheritance-databaseschema"><a class="anchor" href="#joined-table-inheritance-databaseschema"></a>Database Schema</h3>
+<div class="paragraph">
+<p>In Joined Table Inheritance, the entity hierarchy is split into separate tables for the base class and each subclass. These tables are connected via a foreign key, enabling efficient joins when querying for subclass-specific data.</p>
+</div>
+<div class="paragraph">
+<p>For the <code>Pet</code> hierarchy, the following tables are created:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/joined-table-inheritance.svg"><img alt="Joined Table Inheritance Data Model" src="_images/joined-table-inheritance.svg"/></a>
+</div>
+<div class="title">Figure 7. Joined Table Inheritance Data Model</div>
+</div>
+<div class="paragraph">
+<p>When querying the base class (<code>Pet</code>), a Join is performed between the base table (<code>PETCLINIC_PET</code>) and all appropriate subclass tables (<code>PETCLINIC_BIRD</code>, <code>PETCLINIC_CAT</code>).</p>
+</div>
+<div class="paragraph">
+<p>For example, if querying all pets via the Jmix DataManager API, the resulting SQL looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sql hljs" data-lang="sql">SELECT
+    p.ID,
+    p.IDENTIFICATION_NUMBER,
+    p.BIRTHDATE,
+    p.DTYPE,
+    p.NAME,
+    b.WINGSPAN,
+    c.CLAW_LENGTH,
+    c.LITTER_BOX_TRAINED
+FROM PETCLINIC_PET p
+LEFT JOIN PETCLINIC_BIRD b ON p.ID = b.ID
+LEFT JOIN PETCLINIC_CAT c ON p.ID = c.ID;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>@PrimaryKeyJoinColumn</code> annotation we already mentioned above establishes the relationship between the subclass tables and the base class table. This setup uses the primary key of the base class (<code>ID</code>) as the foreign key in the subclass tables. When executing queries involving joined inheritance, <code>LEFT JOIN</code> operations are performed between the base class table (<code>PETCLINIC_PET</code>) and each of the subclass tables (<code>PETCLINIC_BIRD</code>, <code>PETCLINIC_CAT</code>), ensuring all necessary data is combined for accurate representation of the inheritance hierarchy.</p>
+</div>
+<div class="paragraph">
+<p>The use of <code>LEFT JOIN</code> is necessary because a record in the base class table (<code>PETCLINIC_PET</code>) corresponds to data in at most one of the subclass tables (<code>PETCLINIC_BIRD</code>, <code>PETCLINIC_CAT</code>) or none at all. This means that for a given base class record, there will typically be no data in the other subclass tables. A <code>LEFT JOIN</code> ensures that the query result includes the base class record even when no matching data is found in the subclass tables, preserving the integrity of the polymorphic query.</p>
+</div>
+<div class="paragraph">
+<p>For example, the following result set might be produced by a query fetching all <code>Pet</code> entities:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Result Set Example for Joined Inheritance</caption>
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.667%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">ID</th>
+<th class="tableblock halign-left valign-top">NAME</th>
+<th class="tableblock halign-left valign-top">IDENTIFICATION_NUMBER</th>
+<th class="tableblock halign-left valign-top">DTYPE</th>
+<th class="tableblock halign-left valign-top">WINGSPAN</th>
+<th class="tableblock halign-left valign-top">LITTER_BOX_TRAINED</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rowlet</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">722</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">petclinic_Bird</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.30</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Zubat</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">041</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">petclinic_Bird</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.75</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Crobat</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">169</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">petclinic_Bird</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.50</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Houndour</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">228</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">petclinic_Cat</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rattata</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">019</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">petclinic_Cat</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Meowth</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">052</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">petclinic_Cat</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>DTYPE</code> column indicates the subclass (<code>petclinic_Bird</code> or <code>petclinic_Cat</code>).</p>
+</li>
+<li>
+<p>Fields like <code>WINGSPAN</code> and <code>LITTER_BOX_TRAINED</code> are only populated for rows that belong to their respective subclasses.</p>
+</li>
+<li>
+<p>Null values in subclass-specific fields reflect that the corresponding record does not belong to that subclass.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Considerations for Joined Table Inheritance with Deep Hierarchies</strong></p>
+</div>
+<div class="paragraph">
+<p>When using Joined Table Inheritance, it’s important to understand the performance implications of having a large number of subtypes or multi-level inheritance hierarchies. As the number of subtypes and sub-subtypes increases, the complexity of SQL queries for polymorphic queries grows significantly. Each additional subtype or hierarchy level introduces a new <code>LEFT JOIN</code> operation, increasing the query execution time.</p>
+</div>
+<div class="paragraph">
+<p>This warning is particularly relevant when performing polymorphic JPQL queries, such as <code>SELECT e FROM petclinic_Pet e</code>, which retrieve entities across the entire inheritance hierarchy. While databases are optimized for handling joins, large datasets combined with 10–15 or more subtypes or levels can lead to slow query performance, depending on indexing, amount of data and the database system in use.</p>
+</div>
+<div class="paragraph">
+<p>For most use cases with a reasonable number of subtypes and properly indexed tables, Joined Table Inheritance performs efficiently. However, when working with a high number of subtypes or large datasets, consider alternative strategies like Single Table Inheritance or breaking the hierarchy into smaller structures to maintain acceptable query performance.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="joined-table-inheritance-ui"><a class="anchor" href="#joined-table-inheritance-ui"></a>UI Representation</h3>
+<div class="paragraph">
+<p>Now let’s look at how the <code>Pet</code> hierarchy is displayed in the Petclinic application. One of the key use cases is presenting pets in a list view, such as showing all pets for a specific owner. This list provides a unified view of all pets, regardless of their specific type (<code>Bird</code>, <code>Cat</code>, etc.).</p>
+</div>
+<div class="paragraph">
+<p>The data grid contains, shared fields like <code>Name</code>, <code>Identification Number</code>, and <code>Birthdate</code> are displayed.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/owner-pets-list.png"><img alt="List of Pets for an Owner" src="_images/owner-pets-list.png"/></a>
+</div>
+<div class="title">Figure 8. List of Pets for an Owner</div>
+</div>
+<div class="sect3">
+<h4 id="joined-table-inheritance-ui-dropdown-for-creating-pets"><a class="anchor" href="#joined-table-inheritance-ui-dropdown-for-creating-pets"></a>Dropdown for Creating Pets</h4>
+<div class="paragraph">
+<p>Similar to the Visit example we need to determine which exact subclass should be used, when we create a Pet. This time we use a Dropdown Button for creating new pets in both the <code>Owner Detail View</code> and the <code>Pet List View</code>. Let’s take a look how the button is implemented in the <code>Pet List View</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/pet-list-view-create-dropdown.png"><img alt="Pet List View with Dropdown Button" src="_images/pet-list-view-create-dropdown.png"/></a>
+</div>
+<div class="title">Figure 9. Pet List View with Dropdown Button</div>
+</div>
+<div class="paragraph">
+<p>Below is the relevant portion of the <code>pet-list-view.xml</code>, where the <code>dropdownButton</code> and its actions are defined:</p>
+</div>
+<div class="listingblock">
+<div class="title">pet-list-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+    &lt;dropdownButton id="createBtn" icon="PLUS" text="msg://create" themeNames="icon"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;items&gt;
+        &lt;actionItem id="createPet" ref="petsDataGrid.createPet"/&gt;
+        &lt;actionItem id="createCat" ref="petsDataGrid.createCat"/&gt;
+        &lt;actionItem id="createBird" ref="petsDataGrid.createBird"/&gt;
+    &lt;/items&gt;
+    &lt;/dropdownButton&gt;
+    &lt;button id="editBtn" action="petsDataGrid.edit"/&gt;
+    &lt;button id="removeBtn" action="petsDataGrid.remove"/&gt;
+    &lt;button id="excelExportBtn" action="petsDataGrid.excelExport"/&gt;
+    &lt;simplePagination id="pagination" dataLoader="petsDl"/&gt;
+&lt;/hbox&gt;
+&lt;dataGrid id="petsDataGrid"
+          width="100%"
+          minHeight="20em"
+          dataContainer="petsDc"&gt;
+    &lt;actions&gt;
+        &lt;action id="createPet" text="msg://pet"/&gt;
+        &lt;action id="createCat" text="msg://createCat"/&gt;
+        &lt;action id="createBird" text="msg://createBird"/&gt;
+        &lt;action id="edit" type="list_edit"/&gt;
+        &lt;action id="remove" type="list_remove"/&gt;
+        &lt;action id="excelExport" type="grdexp_excelExport"/&gt;
+    &lt;/actions&gt;
+    &lt;columns&gt;
+        &lt;column property="name"/&gt;
+        &lt;column property="identificationNumber"/&gt;
+        &lt;column property="birthdate"/&gt;
+        &lt;column property="type"/&gt;
+        &lt;column property="owner"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>dropdownButton</code> contains multiple <code>actionItem</code> elements, each linked to a specific pet type creation action. The actions are defined on the <code>dataGrid</code> and have custom implementations in the controller. Each action dynamically determines the correct detail view to open based on the selected pet type. Here is the relevant Java code from the Controller:</p>
+</div>
+<div class="listingblock">
+<div class="title">PetListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("petsDataGrid.createPet")
+public void onPetsDataGridCreatePet(final ActionPerformedEvent event) {
+    viewNavigators.detailView(petsDataGrid)
+            .withViewClass(PetDetailView.class)
+            .newEntity()
+            .navigate();
+}
+
+@Subscribe("petsDataGrid.createCat")
+public void onPetsDataGridCreateCat(final ActionPerformedEvent event) {
+    viewNavigators.detailView(petsDataGrid)
+            .withViewClass(CatDetailView.class)
+            .newEntity()
+            .navigate();
+}
+
+@Subscribe("petsDataGrid.createBird")
+public void onPetsDataGridCreateBird(final ActionPerformedEvent event) {
+    viewNavigators.detailView(petsDataGrid)
+            .withViewClass(BirdDetailView.class)
+            .newEntity()
+            .navigate();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By specifying the <code>viewClass</code> in the <code>ViewNavigators</code> call, we give Jmix the information which concrete subclass of Pet that is supposed to be instantiated.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="joined-table-inheritance-ui-detail-view"><a class="anchor" href="#joined-table-inheritance-ui-detail-view"></a>Subclass-Specific Detail View</h4>
+<div class="paragraph">
+<p>The screenshot above shows the detail view of a <code>Bird</code> entity. Similar to what we saw with Single Table Inheritance, this view displays both the attributes inherited from the base class (<code>Pet</code>) and subclass-specific fields.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/bird-detail-view.png"><img alt="Bird Detail View" src="_images/bird-detail-view.png"/></a>
+</div>
+<div class="title">Figure 10. Bird Detail View</div>
+</div>
+<div class="paragraph">
+<p>One difference is that we are now able to create <code>NOT NULL</code> subclass fields. The <code>wingspan</code> field is marked as required, as indicated by the <code>@NotNull</code> constraint on the <code>Bird</code> entity class.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="table-per-class-inheritance"><a class="anchor" href="#table-per-class-inheritance"></a>Table-Per-Class Inheritance</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Table-Per-Class Inheritance maps each subclass to its own database table without using a shared base table. Each table contains the attributes specific to the subclass, including those inherited from the base class.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>What’s the difference to a mapped superclass?</strong></p>
+</div>
+<div class="paragraph">
+<p>Both <code>@MappedSuperclass</code> and Table-Per-Class Inheritance involve dedicated tables for entities. However, Table-Per-Class Inheritance allows for polymorphic queries, which is not possible with a <code>@MappedSuperclass</code>. Additionally, in Table-Per-Class Inheritance, the superclass itself may also have its own table, depending on its configuration, enabling more flexible data organization.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This strategy can be appealing when queries are predominantly executed on specific subclasses, as it avoids the need for joins between a base table and subclass tables, simplifying queries and potentially improving performance for such cases. However, the trade-offs of this approach are significant. Queries that span multiple subclasses (polymorphic queries) require <code>UNION</code> operations across the subclass tables. These operations are computationally expensive and can lead to poor performance, especially with large datasets.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Limited EclipseLink Support</strong></p>
+</div>
+<div class="paragraph">
+<p>In Jmix, which uses EclipseLink as the JPA implementation, Table-Per-Class Inheritance faces additional limitations. Features like pagination, sorting, and filtering often do not work reliably with polymorphic queries under this strategy. These restrictions make it unsuitable for scenarios where polymorphic behavior or dynamic data retrieval is required.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In most cases, it is better to use other inheritance strategies:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Use <code>@MappedSuperclass</code> if polymorphic behavior is unnecessary, and queries always target specific subclasses. This approach keeps the schema simple and avoids database-level inheritance.</p>
+</li>
+<li>
+<p>Use <code>Joined Table Inheritance</code> when polymorphic queries are needed and the downside of additional joins is acceptable.</p>
+</li>
+<li>
+<p>Use <code>Single Table Inheritance</code> for maximum query performance, as all entities are stored in a single table, though it limits database constraints for subclass-specific fields.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="multilevel-inheritance"><a class="anchor" href="#multilevel-inheritance"></a>Multilevel Inheritance</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Although we only looked at one level-hierarchies, it’s worth mentioning that JPA also support multilevel inheritance. This means you can create deeper hierarchies with multiple levels of subclasses, such as having a <code>Bird</code> subclass of <code>Pet</code>, and further specialized subclasses like <code>Waterbird</code> or <code>Raptor</code>. Each level of the hierarchy can define its own fields and behaviors, and JPA will handle the mapping and querying appropriately based on the selected inheritance strategy.</p>
+</div>
+<div class="paragraph">
+<p>Multilevel inheritance can be useful for highly detailed domain models where entities need to represent increasingly specific types. However, it’s important to carefully evaluate whether the added complexity aligns with the application’s requirements, as deeper hierarchies can lead to more complex queries and maintenance challenges.</p>
+</div>
+<div class="paragraph">
+<p>It is important to note that within a single inheritance hierarchy, you cannot mix different JPA inheritance strategies. The strategy chosen at the top of the hierarchy applies to all levels below it. For instance, if you select the Joined Table inheritance strategy for a base class like <code>Pet</code>, that strategy will automatically extend to all subclasses, including multiple levels of subclasses such as <code>Bird</code> and <code>Parrot</code>.</p>
+</div>
+<div class="paragraph">
+<p>The only exception to this rule is the use of <code>@MappedSuperclass</code>, which is not a true inheritance strategy but a way to define reusable fields and behaviors. If you observed closely, the <code>Pet</code> entity in our example above extends the <code>NamedEntity</code> class, which is annotated with <code>@MappedSuperclass</code>. This allows the <code>Pet</code> class to inherit common attributes like <code>id</code> and <code>name</code> without defining them again, while still defining an inheritance strategy (<code>@Inheritance(strategy = InheritanceType.JOINED)</code>) for its own hierarchy starting from <code>Pet</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide explored how JPA inheritance strategies can model complex domains while bridging the gap between object-oriented programming and relational databases. We reviewed <code>@MappedSuperclass</code> for sharing common fields, Single Table Inheritance for simplicity and polymorphic queries, and Joined Table Inheritance for a more normalised schema as well as enforcing database-level constraints. Each approach was demonstrated with examples from the Petclinic application to showcase its strengths and trade-offs.</p>
+</div>
+<div class="paragraph">
+<p>Inheritance strategies are powerful tools for reducing redundancy and aligning the domain model with business requirements. However, their effectiveness depends on selecting the right approach for the specific use case. Single Table Inheritance offers efficiency but limits constraints, while Joined Table Inheritance ensures data integrity with more complex queries. We also touched on Table-Per-Class Inheritance, noting its rare practicality due to significant limitations in performance and compatibility with frameworks like EclipseLink.</p>
+</div>
+<div class="paragraph">
+<p>By understanding the trade-offs of each inheritance strategy, you can design maintainable, efficient domain models that align with their application’s needs. These techniques enable clear, flexible, and robust representations of hierarchical data, ensuring long-term scalability and maintainability for business applications.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

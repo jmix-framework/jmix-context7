@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>listMenu :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">listMenu</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>listMenu</code> is a component for displaying a vertical menu with a collapsible drop-down sub-menus.</p>
+</div>
+<table class="tableblock frame-all grid-none stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>listMenu</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JmixListMenu</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a href="#loadMenuConfig">loadMenuConfig</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a href="#theme-variants">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Handlers</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>listMenu</code>, together with <code>drawerToggle</code> and <code>drawerLayout</code>, is used in the <code>MainView</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>listMenu</code> allows you to customize the main view, manage menu items, and apply custom styles.</p>
+</div>
+<div class="paragraph">
+<p>It can also be used on any view as any other visual component.</p>
+</div>
+<div class="paragraph">
+<p>To add the component on a view, place it in the view descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;listMenu id="listMenu"/&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="list menu" src="../../_images/visual-components/components/list-menu.png" width="185"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also create and add the component to a view in a Java controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private VerticalLayout navigation;
+@Autowired
+private UiComponents uiComponents;
+@Autowired
+private ApplicationContext applicationContext;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    JmixListMenu listMenu = uiComponents.create(JmixListMenu.class);
+
+    MenuConfigListMenuItemProvider itemProvider =
+            applicationContext.getBean(MenuConfigListMenuItemProvider.class);
+    listMenu.setMenuItemProvider(itemProvider);
+    navigation.add(listMenu);
+
+    itemProvider.load();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_data_binding"><a class="anchor" href="#_data_binding"></a>Data Binding</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a href="#loadMenuConfig">loadMenuConfig</a> attribute controls whether the <code>listMenu</code> component loads its structure from the <a class="xref page" href="../../menu-config.html">MenuConfig</a> class. By default, this attribute is set to <code>true</code>, which means <code>listMenu</code> will load its menu items from the <code>menu.xml</code> file.</p>
+</div>
+<div class="paragraph">
+<p>You can also create menu items programmatically using the <code>JmixListMenu</code> instance, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route("")
+@ViewController("MainView")
+@ViewDescriptor("main-view.xml")
+public class MainView extends StandardMainView {
+
+    @ViewComponent
+    private JmixListMenu menu;
+
+    @Subscribe
+    public void onInit(final InitEvent event) {
+        ListMenu.MenuBarItem rootItem = new ListMenu.MenuBarItem("help")
+                .withTitle("Help")
+                .withPrefixComponent(VaadinIcon.QUESTION.create()); <i class="conum" data-value="1"></i><b>(1)</b>
+        ListMenu.MenuItem subItemNews = new ListMenu.MenuItem("news")
+                .withTitle("News")
+                .withClickHandler(  <i class="conum" data-value="2"></i><b>(2)</b>
+                        item -&gt; {
+                            notifications.create("News menu item clicked")
+                                    .show();
+                        }
+                );
+        rootItem.addChildItem(subItemNews);
+        ListMenu.MenuSeparatorItem sep =
+                new ListMenu.MenuSeparatorItem("separator"); <i class="conum" data-value="3"></i><b>(3)</b>
+        rootItem.addChildItem(sep);
+        ListMenu.MenuItem subItemBlog = new ListMenu.MenuItem("blog")
+                .withTitle("Blog");
+        rootItem.addChildItem(subItemBlog);
+        menu.addMenuItem(rootItem);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Create a new menu item with an icon.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Create a new menu item with the <code>clickHandler</code> consumer.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Create a new separator item.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="badges"><a class="anchor" href="#badges"></a>Badges for Menu Item</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can find an example of setting menu item badges in the <a class="xref page" href="../../ui-events.html#usage-example">UI Events</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute allows you to assign a specific <code>listMenu</code> style from the set of predefined variants.</p>
+</div>
+<div class="paragraph">
+<p><strong>Toggle Reverse</strong></p>
+</div>
+<div class="paragraph">
+<p>With the <code>themeNames="toggle-reverse"</code> setting in the <code>listMenu</code> component, the expand/collapse toggle mark will be moved to the end of the parent menu item component. This means that the icon that indicates whether the child menu items are expanded or collapsed will be positioned on the right side of the parent menu item’s label.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="list menu toggle reverse" src="../../_images/visual-components/components/list-menu-toggle-reverse.png" width="168"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html">Common attributes</a> serve the same purpose for all components.
+The following attributes are specific to <code>listMenu</code>:</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 71.4285%;"/>
+<col style="width: 14.2858%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Default</strong></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="loadMenuConfig"></a>loadMenuConfig</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>loadMenuConfig</code> attribute is used to control the loading of menu structure from <a class="xref page" href="../../menu-config.html">Menu Configuration</a>. The default value is <code>true</code>, which means that the <code>listMenu</code> component loads its menu structure from <code>MenuConfig</code> by default. If you want to use a different item provider, you should set the <code>loadMenuConfig</code> attribute to <code>false</code> first.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+</article>
+</body>
+</html>

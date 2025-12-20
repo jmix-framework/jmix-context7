@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Row-level Roles :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Row-level Roles</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Row-level roles allow you to restrict access to particular rows of data, in other words to entity instances.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+A user without row-level roles has access to all instances of entities permitted by <a class="xref page" href="resource-roles.html">resource roles</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create"><a class="anchor" href="#create"></a>Creating Row-level Roles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can create row-level roles at design time using annotated Java interfaces (see <a class="xref page" href="../studio/role-designer.html#row-level-role-wizard">row-level role wizard</a> in Studio) or at runtime using UI views available at <strong>Security → Row-level roles</strong>.</p>
+</div>
+<div class="paragraph">
+<p>A role has a user-friendly name and a code. The code is used when assigning the role to users, so don’t change if some users already have this role assigned.</p>
+</div>
+<div class="paragraph">
+<p>Example of defining a design-time role:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole( <i class="conum" data-value="1"></i><b>(1)</b>
+        name = "Can see Orders with amount &lt; 1000", <i class="conum" data-value="2"></i><b>(2)</b>
+        code = "limited-amount-orders")             <i class="conum" data-value="3"></i><b>(3)</b>
+public interface LimitedAmountOrdersRole {
+
+    // ...
+    void order(); <i class="conum" data-value="4"></i><b>(4)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@RowLevelRole</code> annotation indicates that the interface defines a row-level role.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>A user-friendly name of the role.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The role’s code.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The interface can have one or more methods to define policy annotations (see below). Different methods are used just to group related policies. Method names can be arbitrary, they are displayed as <strong>Policy group</strong> when the role is shown in UI.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="policies"><a class="anchor" href="#policies"></a>Row-level Policies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Row-level roles define restrictions by specifying <em>row-level policies</em> for particular entities.</p>
+</div>
+<div class="sect2">
+<h3 id="jpql-policy"><a class="anchor" href="#jpql-policy"></a>JPQL Policy</h3>
+<div class="paragraph">
+<p>JPQL policy specifies the <code>where</code> (and optionally <code>join</code>) clause to be used when loading the entity.</p>
+</div>
+<div class="paragraph">
+<p>JPQL policy transforms the JPQL (and hence SQL) operator and filters out restricted instances on the database level, which is very efficient in terms of performance. But keep in mind that it affects only the root entity of a loaded object graph. If an entity can be loaded as a collection in another entity’s object graph, define both JPQL and <a href="#predicate-policy">predicate</a> policies for it.</p>
+</div>
+<div class="paragraph">
+<p>In a design-time role, the JPQL policy is defined using the <code>@JpqlRowLevelPolicy</code> annotation, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(
+        name = "Can see only Orders created by themselves",
+        code = "orders-created-by-themselves")
+public interface CreatedByMeOrdersRole {
+
+    @JpqlRowLevelPolicy(
+            entityClass = Order.class,
+            where = "{E}.createdBy = :current_user_username")
+    void order();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Consider the following rules when writing JPQL policies:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Use <code>{E}</code> placeholder instead of the entity alias in <code>where</code> and <code>join</code> clauses. The framework will replace it with a real alias specified in the query.</p>
+</li>
+<li>
+<p>The <code>where</code> text is added to the <code>where</code> query clause using <code>and</code> condition. Adding the <code>where</code> word is not needed, as it will be added automatically.</p>
+</li>
+<li>
+<p>The <code>join</code> text is added to the <code>from</code> query clause. It should begin with a comma, <code>join</code> or <code>left join</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can use <a class="xref page" href="../data-access/jpql-extensions.html#session-and-user-attributes">session and user attributes</a> in query parameters. For example, the <code>current_user_username</code> parameter gets its value from the <code>username</code> attribute.</p>
+</div>
+<div class="paragraph">
+<p>You can add application-specific attributes to your <code>User</code> entity and use them in JPQL policies. For example, imagine that you have added the <code>region</code> attribute to the <code>User</code> and <code>Customer</code> entities. Then you can restrict access to <code>Customer</code> and <code>Order</code> entities by allowing users to see only entities of their region:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(
+        name = "Can see Customers and Orders of their region",
+        code = "same-region-rows")
+public interface SameRegionRowsRole {
+
+    @JpqlRowLevelPolicy(
+            entityClass = Customer.class,
+            where = "{E}.region = :current_user_region")
+    void customer();
+
+    @JpqlRowLevelPolicy(
+            entityClass = Order.class,
+            where = "{E}.customer.region = :current_user_region")
+    void order();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="predicate-policy"><a class="anchor" href="#predicate-policy"></a>Predicate Policy</h3>
+<div class="paragraph">
+<p>Predicate policy defines a predicate that is tested when performing different actions with the entity. If the predicate returns true, the action is permitted for the entity instance.</p>
+</div>
+<div class="paragraph">
+<p>You can define predicate policies for the following actions: <code>READ</code>, <code>CREATE</code>, <code>UPDATE</code>, <code>DELETE</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>READ</code> predicate is tested when the entity is loaded from the database for the root entity and (unlike <a href="#jpql-policy">JPQL policy</a>) all nested collections down to the loaded object graph. If an entity can be loaded as a collection in another entity’s object graph, define both JPQL and predicate policies for it.</p>
+</div>
+<div class="paragraph">
+<p>The <code>CREATE</code>, <code>UPDATE</code>, <code>DELETE</code> predicates are tested before the entity instance is created, updated or deleted from the database.</p>
+</div>
+<div class="paragraph">
+<p>In a design-time role, the predicate policy is defined using the <code>@PredicateRowLevelPolicy</code> annotation, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(
+        name = "Can see only non-confidential rows",
+        code = "nonconfidential-rows")
+public interface NonConfidentialRowsRole {
+
+    @PredicateRowLevelPolicy(
+            entityClass = CustomerDetail.class,
+            actions = {RowLevelPolicyAction.READ})
+    default RowLevelPredicate&lt;CustomerDetail&gt; customerDetailNotConfidential() {
+        return customerDetail -&gt; !Boolean.TRUE.equals(customerDetail.getConfidential());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates a row-level role that should be used in addition to resource roles of the example from the <a class="xref page" href="resource-roles.html#example">previous section</a> to restrict access to instances of <code>CustomerDetail</code> having <code>confidential = true</code> attribute. You cannot use a JPQL policy to filter out <code>CustomerDetail</code> instances from the <code>Customer.details</code> collection because it can be loaded together with the owning <code>Customer</code> in a single database operation. Predicate policies are executed in memory for root entities and nested collections.</p>
+</div>
+<div class="paragraph">
+<p>In a runtime role, the predicate policy is defined using a Groovy script. In the script, use the <code>{E}</code> placeholder as a variable containing the tested entity instance. For example, the same condition as in the design-time role above can be written as the following Groovy script:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">!{E}.confidential</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="accessing-spring-beans"><a class="anchor" href="#accessing-spring-beans"></a>Accessing Spring Beans</h4>
+<div class="paragraph">
+<p>If you need to access Spring beans in the predicate, return <code>io.jmix.security.model.RowLevelBiPredicate</code> from your method. This functional interface allows you to define lambda accepting two parameters: the examined entity instance and Spring’s <code>ApplicationContext</code>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(
+        name = "Can see Customers of their region",
+        code = "same-region-customers-role")
+public interface SameRegionCustomersRole {
+
+    @PredicateRowLevelPolicy(
+            entityClass = Customer.class,
+            actions = {RowLevelPolicyAction.READ})
+    default RowLevelBiPredicate&lt;Customer, ApplicationContext&gt; customerOfMyRegion() {
+        return (customer, applicationContext) -&gt; {
+            CurrentAuthentication currentAuthentication = applicationContext.getBean(CurrentAuthentication.class);
+            return customer.getRegion() != null
+                    &amp;&amp; customer.getRegion().equals(((User) currentAuthentication.getUser()).getRegion());
+        };
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the Groovy script, you can also use the <code>applicationContext</code> variable to access any Spring bean, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">import io.jmix.core.security.CurrentAuthentication
+
+def authBean = applicationContext.getBean(CurrentAuthentication)
+
+{E}.region != null &amp;&amp; {E}.region == authBean.user.region</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

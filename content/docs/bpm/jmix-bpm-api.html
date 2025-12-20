@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BPM API :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">BPM API</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix BPM uses the <a href="#flowable-api">Flowable API</a>, which facilitates easy interaction between the Spring Boot application and the process engine. The <a href="#flowable-rest-api">REST API</a> of Flowable offers extensive integration capabilities with external applications.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="flowable-api"><a class="anchor" href="#flowable-api"></a>Flowable API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Flowable API allows programmatic interaction with the process engine. This API allows to start process instances, complete tasks, and execute various queries, for example, get a list of tasks for a user or get active instances of a process definition.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="api services" src="_images/jmix-bpm-api/api-services.png" width="600"/>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Jmix BPM does not use Flowable’s <code>FormService</code> and <code>IdentityService</code>. Jmix BPM provides BpmTaskService, which extends Flowable’s TaskService. See the example <a href="#using-bpm-task-service">below</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Flowable services can be accessed in two ways:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Using <code>ProcessEngines</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+
+RuntimeService runtimeService = processEngine.getRuntimeService();
+RepositoryService repositoryService = processEngine.getRepositoryService();
+TaskService taskService = processEngine.getTaskService();</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Injecting services inside your beans as they are registered as Spring beans:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("sample_MyCustomBean")
+public class MyCustomBean {
+
+    @Autowired
+    private RuntimeService runtimeService;</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="flowable-rest-api"><a class="anchor" href="#flowable-rest-api"></a>Flowable REST API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a class="bare" href="https://www.flowable.com/open-source/docs/bpmn/ch14-REST">https://www.flowable.com/open-source/docs/bpmn/ch14-REST</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="flowable-dmn-api"><a class="anchor" href="#flowable-dmn-api"></a>Flowable DMN API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a class="bare" href="https://www.flowable.com/open-source/docs/dmn/ch03-API">https://www.flowable.com/open-source/docs/dmn/ch03-API</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="flowable-dmn-rest-api"><a class="anchor" href="#flowable-dmn-rest-api"></a>Flowable DMN REST API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a class="bare" href="https://www.flowable.com/open-source/docs/dmn/ch07-REST">https://www.flowable.com/open-source/docs/dmn/ch07-REST</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="starting-process-programmatically"><a class="anchor" href="#starting-process-programmatically"></a>Starting Process Programmatically</h3>
+<div class="paragraph">
+<p>In the example below, the process is started programmatically from the regular entity editor using <code>RuntimeService</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private RuntimeService runtimeService;
+
+@Subscribe("commitAndCloseBtn")
+public void onCommitAndCloseBtnClick(Button.ClickEvent event) {
+    Customer customer = getEditedEntity();
+    String name = customer.getName();
+    Map&lt;String, Object&gt; params = new HashMap&lt;&gt;();
+    params.put("customer", customer); <i class="conum" data-value="1"></i><b>(1)</b>
+    params.put("name", name); <i class="conum" data-value="2"></i><b>(2)</b>
+    runtimeService.startProcessInstanceByKey( <i class="conum" data-value="3"></i><b>(3)</b>
+            "new-customer", <i class="conum" data-value="4"></i><b>(4)</b>
+            params); <i class="conum" data-value="5"></i><b>(5)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Puts the edited entity to the process variable with the <code>customer</code> name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The customer’s name is put to the process variable with a String type.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>RuntimeService</code> is used to start the process.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>new-customer</code> is the process definition key.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Puts the process variables map.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="getting-list-of-user-tasks"><a class="anchor" href="#getting-list-of-user-tasks"></a>Getting a List of User Tasks</h3>
+<div class="paragraph">
+<p>Let’s look at the examples that show getting a list of active tasks assigned to the authenticated user:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private TaskService taskService;
+
+@Autowired
+private CurrentAuthentication currentAuthentication;
+
+public List&lt;Task&gt; getCurrentUserTasks() {
+    return taskService.createTaskQuery() <i class="conum" data-value="1"></i><b>(1)</b>
+            .processDefinitionKey("approval") <i class="conum" data-value="2"></i><b>(2)</b>
+            .taskAssignee(currentAuthentication.getUser().getUsername()) <i class="conum" data-value="3"></i><b>(3)</b>
+            .active()
+            .orderByTaskCreateTime()
+            .desc()
+            .list();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Uses <code>TaskService</code> to get a list of tasks.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Searches for the tasks of the <code>approval</code> process.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Searches for the tasks assigned to the current user.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="getting-list-of-process-instances"><a class="anchor" href="#getting-list-of-process-instances"></a>Getting List of Process Instances</h3>
+<div class="paragraph">
+<p>The example below shows getting a list of process instances of the <code>approval</code> definition related to the specified <code>Order</code> entity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private RuntimeService runtimeService;
+
+public List&lt;ProcessInstance&gt; getActiveProcessInstances() {
+    return runtimeService.createProcessInstanceQuery() <i class="conum" data-value="1"></i><b>(1)</b>
+            .processDefinitionKey("approval") <i class="conum" data-value="2"></i><b>(2)</b>
+            .variableValueEquals("orderId", "N-1") <i class="conum" data-value="3"></i><b>(3)</b>
+            .active()
+            .list();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Uses <code>RuntimeService</code> to get a list of tasks.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Searches for the instances of the <code>approval</code> process.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Searches for the process instances with the specified <code>orderId</code> process variable.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-bpm-task-service"><a class="anchor" href="#using-bpm-task-service"></a>Using BpmTaskService</h3>
+<div class="paragraph">
+<p><code>BpmTaskService</code> extends the <code>TaskService</code> and adds a method for completing tasks with an outcome:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void completeTaskWithOutcome(String taskId, String outcomeId, Map&lt;String, Object&gt; processVariables);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can inject the service into your Spring component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private BpmTaskService bpmTaskService;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or use the <code>ProcessEngines</code> class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">BpmTaskService bpmTaskService = (BpmTaskService) ProcessEngines
+        .getDefaultProcessEngine()
+        .getTaskService();</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_working_with_process_definitions_via_the_api"><a class="anchor" href="#_working_with_process_definitions_via_the_api"></a>Working with Process Definitions via the API</h3>
+<div class="paragraph">
+<p>Flowable provides a rich API for interacting with process definitions:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Deployment</strong>: Process definitions are typically deployed as part of a deployment unit, which can include multiple definitions and related resources.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Deployment deployment = repositoryService.createDeployment()
+                        .addClasspathResource("my-process.bpmn20.xml")
+                        .deploy();</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Querying</strong>: The RepositoryService allows querying process definitions based on various criteria:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
+                                     .processDefinitionId("myProcessDefinitionId")
+                                     .singleResult();</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Suspension and Activation</strong>: Process definitions can be suspended or activated, controlling whether new process instances can be started based on the definition:</p>
+<div class="listingblock">
+<div class="title">filename.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">repositoryService.suspendProcessDefinitionById("myProcessDefinitionId");</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Diagram Generation</strong>: Flowable can generate process diagram images for deployed process definitions:</p>
+<div class="listingblock">
+<div class="title">filename.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">InputStream diagramStream = repositoryService.getProcessDiagram(processDefinition.getId());</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="business-key"><a class="anchor" href="#business-key"></a>Setting and Updating a Business Key</h3>
+<div class="paragraph">
+<p>Business key can be updated programmatically via API:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">runtimeService.updateBusinessKey("processInstanceId", "businessKey");</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

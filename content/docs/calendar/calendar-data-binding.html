@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. Calendar Data Binding :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">1. Calendar Data Binding</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will create:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>Meeting</code> JPA entity.</p>
+</li>
+<li>
+<p>The <code>FullCalendar</code> component with a data provider.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="meeting-event"><a class="anchor" href="#meeting-event"></a>Meeting Event</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>Meeting</code> will represent an event within the <code>FullCalendar</code> component. It requires specific properties for correct display:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>name</code> - represents the event title.</p>
+</li>
+<li>
+<p><code>startDate</code> - represents the event’s start date and time. The component will not display events without a <code>startDate</code>.</p>
+</li>
+<li>
+<p><code>endDate</code> - represents the event’s end date. If <code>endDate</code> is not specified, the component will apply a default duration based on the <code>allDay</code> property. This tutorial omits the <code>allDay</code> property; therefore, events are treated as non-all-day events.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="create-meeting-entity"><a class="anchor" href="#create-meeting-entity"></a>Creating Meeting Entity</h3>
+<div class="paragraph">
+<p>Refer to the <a class="xref page" href="../tutorial/simple-crud.html">Simple CRUD</a> section of the Tutorial for detailed instructions on creating JPA entities.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Meeting</code> entity has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>name</code> with <code>String</code> type. Select the <strong>Mandatory</strong> checkbox.</p>
+</li>
+<li>
+<p><code>startDate</code> with <code>LocalDateTime</code>. Select the <strong>Mandatory</strong> checkbox.</p>
+</li>
+<li>
+<p><code>endDate</code> with <code>LocalDateTime</code>.</p>
+</li>
+<li>
+<p><code>user</code> - has the <code>Association</code> attribute type, <code>User</code> entity as a Java type and the many-to-one cardinality. Select the <strong>Mandatory</strong> checkbox.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>Meeting</code> entity does not require standard list and detail views as it will be programmatically generated and displayed within the <code>FullCalendar</code> component.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="generate-meeting"><a class="anchor" href="#generate-meeting"></a>Generating Meeting</h3>
+<div class="paragraph">
+<p>After a user completes all onboarding steps, the application generates a meeting event to review the completed tasks. This event will be displayed in the user’s <strong>MyCalendar</strong> view.</p>
+</div>
+<div class="paragraph">
+<p>The best moment to check whether the user has finished all steps is during the <a class="xref page" href="../flow-ui/data/data-context.html#pre-save-event">PreSaveEvent</a> of <a class="xref page" href="../flow-ui/data/data-context.html">DataContext</a>. This event listener checks for incomplete onboarding steps. If no incomplete steps remain, a new meeting event is created.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(target = Target.DATA_CONTEXT)
+public void onPreSave(final DataContext.PreSaveEvent event) {
+    List&lt;UserStep&gt; userSteps = userStepsDc.getItems().stream()
+            .filter(us -&gt; us.getCompletedDate() == null)
+            .toList();
+    if (userSteps.isEmpty()) {
+        generateOnboardingResultsMeeting();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, we implement the <code>generateOnboardingResultsMeeting()</code> method. This method creates a <code>Meeting</code> event instance scheduled for the next business day.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">protected void generateOnboardingResultsMeeting() {
+    Meeting meeting = dataContext.create(Meeting.class); <i class="conum" data-value="1"></i><b>(1)</b>
+    meeting.setName("Results meeting");
+    meeting.setUser((User) currentAuthentication.getUser());
+
+    int inDays = LocalDate.now().getDayOfWeek() == DayOfWeek.FRIDAY ? 3 : 1; <i class="conum" data-value="2"></i><b>(2)</b>
+    LocalDateTime start = LocalDateTime.of( <i class="conum" data-value="3"></i><b>(3)</b>
+            LocalDate.now().plusDays(inDays),
+            LocalTime.of(9, 30));
+
+    meeting.setStartDate(start);
+    meeting.setEndDate(start.plusMinutes(30));
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Creates and merges a new <code>Meeting</code> instance into the <code>DataContext</code>, automatically persisting the entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Calculates the next business day; if today is Friday, the meeting is scheduled for Monday.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Sets the meeting’s start date and time to 9:30 AM on the calculated next business day.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="add-components"><a class="anchor" href="#add-components"></a>Adding Components to MyCalendar</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First, create a new, empty view named <strong>MyCalendar</strong>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="creating my calendar view" src="_images/creating-my-calendar-view.png" width="776"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Studio will generate and display the empty view in the designer.</p>
+</div>
+<div class="sect2">
+<h3 id="load-data"><a class="anchor" href="#load-data"></a>Loading Data</h3>
+<div class="paragraph">
+<p>Before adding the <code>FullCalendar</code> component, create a <a class="xref page" href="../flow-ui/data/collection-container.html">collection container</a> for the <code>Meeting</code> entity.</p>
+</div>
+<div class="paragraph">
+<p>In the actions panel, click <strong>Add Component</strong>, navigate to the <strong>Data components</strong> section, and double-click <strong>Collection container</strong>. In the dialog that appears, select <code>Meeting</code> in the <strong>Entity</strong> field and click <strong>OK</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;collection id="meetingsDc" class="com.company.onboarding.entity.Meeting"&gt;
+    &lt;loader id="meetingsDl" readOnly="true"&gt;
+        &lt;query&gt;
+            &lt;![CDATA[select e from Meeting e]]&gt;
+        &lt;/query&gt;
+    &lt;/loader&gt;
+    &lt;fetchPlan extends="_base"/&gt;
+&lt;/collection&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The current data loader configuration retrieves all events from all users. However, users should only view their own events. To implement this filtering, modify the JPQL query - either using the editor or manually - to include a condition that restricts results to the currently logged-in user:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;query&gt;
+    &lt;![CDATA[select e from Meeting e where e.user = :user]]&gt;
+&lt;/query&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We obtain the currently logged-in user from the <code>CurrentAuthentication</code> bean and pass this information to the data loader within the <a class="xref page" href="../flow-ui/views/view-events.html#before-show-event">BeforeShowEvent</a>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Subscribe o the <code>BeforeShowEvent</code>.</p>
+</li>
+<li>
+<p>Inject the <code>meetingsDl</code> loader.</p>
+</li>
+<li>
+<p>Inject the <code>CurrentAuthentication</code> bean.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Now we can set a parameter for the loader to fetch events for the current user:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionLoader&lt;Meeting&gt; meetingsDl;
+@Autowired
+private CurrentAuthentication currentAuthentication;
+
+@Subscribe
+public void onBeforeShow(final BeforeShowEvent event) {
+    final User user = (User) currentAuthentication.getUser();
+    meetingsDl.setParameter("user", user);
+    meetingsDl.load();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="add-fullcalendar"><a class="anchor" href="#add-fullcalendar"></a>Adding FullCalendar Component</h3>
+<div class="paragraph">
+<p>In the actions panel, click <strong>Add Component</strong>,  locate the <code>FullCalendar</code> item, and double-click it.</p>
+</div>
+<div class="paragraph">
+<p>Then new <code>calendar</code> element will be generated. Configure the <code>id</code>, <code>height</code> and <code>width</code> attributes as shown below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;calendar:calendar id="calendar"
+                   height="100%"
+                   width="100%"/&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="add-data-provider"><a class="anchor" href="#add-data-provider"></a>Adding Data Provider</h3>
+<div class="paragraph">
+<p>The data provider is a source of events displayed in the <code>FullCalendar</code>. There are different types of data providers, but we will use the data provider based on a <a class="xref page" href="../flow-ui/data/data-containers.html">data container</a>.</p>
+</div>
+<div class="paragraph">
+<p>To add the <strong>ContainerDataProvider</strong> to the <code>FullCalendar</code> component:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select the <code>calendar</code> component in the <strong>Jmix UI</strong> structure panel or the view’s XML descriptor.</p>
+</li>
+<li>
+<p>Click the <strong>Add</strong> button in the inspector panel.</p>
+</li>
+<li>
+<p>From the dropdown menu, select <strong>Data Providers</strong> → <strong>ContainerDataProvider</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add container data provider" src="_images/add-container-data-provider.png" width="416"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the dialog that appears, select <code>meetingsDc</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>containerDataProvider</code> element allows configuration of entity property mappings. The <code>Meeting</code> entity includes the following properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>name</code></p>
+</li>
+<li>
+<p><code>startDate</code></p>
+</li>
+<li>
+<p><code>endDate</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Therefore, the following attributes should be specified:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;calendar:dataProviders&gt;
+    &lt;calendar:containerDataProvider dataContainer="meetingsDc"
+                                    title="name"
+                                    startDateTime="startDate"
+                                    endDateTime="endDate"/&gt;
+&lt;/calendar:dataProviders&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let’s take a look: the complete description of our calendar is as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;calendar:calendar id="calendar"
+                   height="100%"
+                   width="100%"&gt;
+    &lt;calendar:dataProviders&gt;
+        &lt;calendar:containerDataProvider dataContainer="meetingsDc"
+                                        title="name"
+                                        startDateTime="startDate"
+                                        endDateTime="endDate"/&gt;
+    &lt;/calendar:dataProviders&gt;
+&lt;/calendar:calendar&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Launch the application and log in as the <code>admin</code> user. The <code>admin</code> user does not have onboarding steps, so we need to generate them:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Access the <code>User.list</code> view by selecting <strong>Users</strong> from the application menu.</p>
+</li>
+<li>
+<p>Select the <code>admin</code> user in the <strong>DataGrid</strong> and click the <strong>Edit</strong> button. Then, fill <strong>Joining Date</strong> field, generate onboarding steps and save the changes.</p>
+</li>
+<li>
+<p>Access the <code>MyCalendar</code> view by selecting <strong>My Calendar</strong> from the application menu.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="getting started data binding result" src="_images/getting-started-data-binding-result.png" width="1358"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

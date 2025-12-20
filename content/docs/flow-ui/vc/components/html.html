@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>html :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">html</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/html-component" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Jmix includes a set of <a class="xref page" href="../html.html">HTML components</a> for standard HTML elements. If no suitable component is included, or you want to include native HTML directly, use the <code>html</code> component. It can render HTML provided as a string, CDATA, or file.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>XML element: <code>html</code></p>
+</li>
+<li>
+<p>Java class: <code>Html</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This element is designed for embedding HTML within an XML structure. It allows embedding separate HTML elements or blocks of HTML code. The block must consist of a single root element such as <code>&lt;header&gt;</code>, <code>&lt;footer&gt;</code>, <code>&lt;main&gt;</code>, or <code>&lt;div&gt;</code>. Within this root element can be any number of nested <code>&lt;div&gt;</code> elements to structure the content effectively.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Note that it is the developer’s responsibility to sanitize and remove any dangerous parts of the HTML before sending it to the user through this component. Passing raw input data to the user can possibly lead to cross-site scripting attacks.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_message_bundle"><a class="anchor" href="#_message_bundle"></a>Message Bundle</h3>
+<div class="paragraph">
+<p>This example demonstrates how to add HTML content via a string in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="html basic" src="../../_images/visual-components/components/html-basic.png" width="347"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;html content="msg://html.content"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">messages.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.onboarding.view.component.html/html.content=\
+&lt;main&gt;\
+  &lt;h1&gt;Main Content&lt;/h1&gt;\
+  &lt;p&gt;This is the main content area.&lt;/p&gt;\
+    &lt;div&gt;\
+      &lt;h2&gt;Section 1&lt;/h2&gt;\
+      &lt;p&gt;This is the first section of the main content.&lt;/p&gt; \
+    &lt;/div&gt;\
+    &lt;div&gt;\
+      &lt;h2&gt;Section 2&lt;/h2&gt;\
+      &lt;p&gt;This is the second section of the main content.&lt;/p&gt;\
+    &lt;/div&gt;\
+&lt;/main&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_character_data"><a class="anchor" href="#_character_data"></a>Character Data</h3>
+<div class="paragraph">
+<p>The same HTML block can be added within a CDATA (Character Data) section:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;html id="html"&gt;
+    &lt;content&gt;
+        &lt;![CDATA[
+        &lt;main&gt;
+            &lt;h1&gt;Main Content&lt;/h1&gt;
+            &lt;p&gt;This is the main content area.&lt;/p&gt;
+            &lt;div&gt;
+                &lt;h2&gt;Section 1&lt;/h2&gt;
+                &lt;p&gt;This is the first section of the main content.&lt;/p&gt;
+            &lt;/div&gt;
+            &lt;div&gt;
+                &lt;h2&gt;Section 2&lt;/h2&gt;
+            &lt;p&gt;This is the second section of the main content.&lt;/p&gt;
+            &lt;/div&gt;
+        &lt;/main&gt;
+    ]]&gt;
+    &lt;/content&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="file-content"><a class="anchor" href="#file-content"></a>File Content</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The code for HTML block can be also obtained from a file using one of the following methods.</p>
+</div>
+<div class="sect2">
+<h3 id="static-resource"><a class="anchor" href="#static-resource"></a>Static Resource</h3>
+<div class="paragraph">
+<p>The file can be served statically by the application. If your file is located
+at <code>/src/main/resources/META-INF/resources/html/html-file.html</code>, specify it as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;html id="staticHtml" file="META-INF/resources/html/html-file.html"/&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+By default, static content is served from <code>/static</code>, <code>/public</code>, <code>/resources</code>, or <code>/META-INF/resources</code> directories of the classpath. See details in the <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/web.html#web.servlet.spring-mvc.static-content" rel="noopener" target="_blank">Spring Boot documentation</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="stream-resource"><a class="anchor" href="#stream-resource"></a>Stream Resource</h3>
+<div class="paragraph">
+<p>The HTML code can be supplied as a file through the <code>InputStream</code>, and then the component can be initialized by passing it in.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The component cannot be created using the <code>UiComponents</code> bean, as it does not provide a no-arguments constructor.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">protected static final String SRC_PATH = "META-INF/resources/html/html-file.html";
+@Autowired
+private Resources resources;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    InputStream resourceAsStream = resources.getResourceAsStream(SRC_PATH);
+    Html html = new Html(resourceAsStream);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="css-properties"><a class="anchor" href="#css-properties"></a>CSS Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the <a class="xref page" href="../common-attributes.html#css">css</a> attribute to add CSS properties declaratively:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;html file="META-INF/resources/html/html-file.html" css="background-color: grey;"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can add custom CSS styling within the application’s theme.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a href="#content">content</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a href="#file">file</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a></p>
+</div>
+<div class="sect2">
+<h3 id="content"><a class="anchor" href="#content"></a>content</h3>
+<div class="paragraph">
+<p>Specifies the HTML content to be rendered by the component, either as a string in a message bundle or within a CDATA section.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="file"><a class="anchor" href="#file"></a>file</h3>
+<div class="paragraph">
+<p>Specifies the file path to retrieve the HTML code from.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

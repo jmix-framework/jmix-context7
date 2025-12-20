@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Management :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Transaction Management</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix supports both standard ways to control transactions in Spring applications: declarative (with annotations) and programmatic.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="declarative-transactions"><a class="anchor" href="#declarative-transactions"></a>Declarative Transaction Management</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The most straightforward way of transaction management in Jmix applications is to use the <code>@org.springframework.transaction.annotation.Transactional</code> annotation. This annotation indicates a method that should run inside a database transaction. When used on the class level, <code>@Transactional</code> applies to all methods of this class and its subclasses.</p>
+</div>
+<div class="paragraph">
+<p>The <code>@Transactional</code> annotation will automatically create a transaction when the method is called, and the commit or rollback will be managed implicitly by Spring. Thus, the declarative transaction management allows you to reduce the amount of boilerplate code.</p>
+</div>
+<div class="paragraph">
+<p>A number of parameters can be used to refine the <code>@Transactional</code> behavior, for example, the isolation level or propagation: these parameters are described in the <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/annotation/Transactional.html" rel="noopener" target="_blank">Spring documentation</a>.</p>
+</div>
+<div class="paragraph">
+<p>Example of <code>@Transactional</code> usage for updating multiple entities within a single transaction:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Transactional <i class="conum" data-value="1"></i><b>(1)</b>
+public void makeDiscountsForAll() {
+    List&lt;Order&gt; orders = dataManager.load(Order.class)
+            .query("select o from sample_Order o where o.customer is not null")
+            .list();
+    for (Order order : orders) {
+        BigDecimal newTotal = orderService.calculateDiscount(order);
+        order.setAmount(newTotal);
+        dataManager.save(order);
+        Customer customer = customerService.updateCustomerGrade(order.getCustomer());
+        dataManager.save(customer);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>You simply put the annotation, Spring does all the rest: the proxy will be created to inject the transactional logic before (starting transaction) and after (committing or rolling back) the running method.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Keep in mind that declarative markup works only if the method is called on an instance injected to another bean or obtained by <code>ApplicationContext.getBean()</code>, that is through the proxy created by the container. Calling an annotated method from another method of the same object will not start a transaction.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you need to declare a transaction for an <a class="xref page" href="../data-model/data-stores.html#additional">additional data store</a>, specify the name of the data store’s transaction manager bean in the <code>@Transactional</code> annotation. If you created the data store using Studio, its transaction manager’s bean name is <code>&lt;DATA-STORE-NAME&gt;TransactionManager</code>. For example, if the data store name is <code>db1</code>, a transactional method for it is defined as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Transactional("db1TransactionManager")
+public void makeChangesInDb1DataStore() {
+    // ...
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="programmatic-transactions"><a class="anchor" href="#programmatic-transactions"></a>Programmatic Transaction Management</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For programmatic transaction management, Spring offers the <code>org.springframework.transaction.support.TransactionTemplate</code> class.</p>
+</div>
+<div class="sect2">
+<h3 id="creating-transaction-template"><a class="anchor" href="#creating-transaction-template"></a>Creating TransactionTemplate</h3>
+<div class="paragraph">
+<p>To create an instance of <code>TransactionTemplate</code>, you may declare a bean in the main application class (annotated with <code>@SpringBootApplication</code>) and initialize it with a <code>PlatformTransactionManager</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+@Primary
+TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
+    return new TransactionTemplate(transactionManager);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you can inject <code>TransactionTemplate</code> in any bean of your application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private TransactionTemplate transactionTemplate;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Additional data stores, if any, require their own <code>TransactionTemplate</code> instances. If you create an additional data store with Studio, the data store’s Spring configuration class will be created automatically with some beans in it. Add a new one for creating <code>TransactionTemplate</code> with the <code>Qualifier</code> annotation in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+TransactionTemplate db1TransactionTemplate(
+        @Qualifier("db1TransactionManager") <i class="conum" data-value="1"></i><b>(1)</b>
+        PlatformTransactionManager transactionManager) {
+    return new TransactionTemplate(transactionManager);
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@Qualifier</code> annotation is used for injecting a particular bean by its name: in this case, it’s the <code>PlatformTransactionManager</code> defined for the additional data store named <code>db1</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>So, you can inject the required <code>TransactionTemplate</code> with the <code>Qualifier</code> annotation to manage transactions in the additional data store:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+@Qualifier("db1TransactionTemplate") <i class="conum" data-value="1"></i><b>(1)</b>
+private TransactionTemplate db1TransactionTemplate;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Here, the <code>@Qualifier</code> annotation allows Spring to select the bean that we defined above for the <code>db1</code> data store.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you don’t need <code>TransactionTemplate</code> to be available everywhere in the project, you can create it locally in a bean using <code>PlatformTransactionManager</code>. The example below shows creation of two templates with different propagation behavior:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private PlatformTransactionManager transactionManager;
+
+// joins existing transaction
+public TransactionTemplate getTransactionTemplate() {
+    return new TransactionTemplate(transactionManager);
+}
+
+// always creates new transaction
+public TransactionTemplate getRequiresNewTransactionTemplate() {
+    TransactionTemplate tt = new TransactionTemplate(transactionManager);
+    tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    return tt;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-transaction-template"><a class="anchor" href="#using-transaction-template"></a>Using TransactionTemplate</h3>
+<div class="paragraph">
+<p>Use the <code>execute()</code> method to run a block of code inside a transaction. This method handles the transaction lifecycle and possible exceptions, so you don’t need to handle them explicitly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public UUID createOrderAndReturnId() {
+    return transactionTemplate.execute(status -&gt; {
+        Customer customer = dataManager.create(Customer.class);
+        customer.setName("Alice");
+        customer = dataManager.save(customer);
+
+        Order order = dataManager.create(Order.class);
+        order.setCustomer(customer);
+
+        order = dataManager.save(order);
+        return order.getId();
+    });
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you don’t need to return any result from the transactional code block, you can use the <code>executeWithoutResult()</code> method which is derived from <code>execute()</code> but uses the <code>TransactionCallbackWithoutResult</code> callback interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public void createOrder() {
+    transactionTemplate.executeWithoutResult(status -&gt; {
+        Customer customer = dataManager.create(Customer.class);
+        customer.setName("Alice");
+        customer = dataManager.save(customer);
+
+        Order order = dataManager.create(Order.class);
+        order.setCustomer(customer);
+
+        dataManager.save(order);
+    });
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The default <a href="https://docs.spring.io/spring-framework/docs/current/reference/html/data-access.html#tx-prog-template-settings" rel="noopener" target="_blank">transaction settings</a>, such as the propagation mode, the isolation level, the timeout etc., can be customized with the <code>TransactionTemplate</code> setters.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

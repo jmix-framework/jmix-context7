@@ -1,0 +1,66 @@
+<Path>Components > DropdownButton > ComboButton</Path>
+
+ComboButton — a component very similar to the DropdownButton component. The main difference is that an action can be added to the root button.
+
+combo-button.xml
+
+<view xmlns="http://jmix.io/schema/flowui/view">
+    <actions>
+        <action id="save" text="Save" icon="ARCHIVE"/>
+    </actions>
+    <layout>
+        <comboButton id="saveButton" action="save">
+            <items>
+                <textItem id="saveDraftItem" text="Save as draft"/>
+                <textItem id="saveCopyItem" text="Save as copy"/>
+                <textItem id="savePublishItem" text="Save and publish"/>
+            </items>
+        </comboButton>
+    </layout>
+</view>
+
+
+
+
+ComboButtonSample.java
+
+package io.jmix.uisamples.view.flowui.components.dropdownbutton.combobutton;
+
+import io.jmix.flowui.Notifications;
+import io.jmix.flowui.kit.action.ActionPerformedEvent;
+import io.jmix.flowui.kit.component.dropdownbutton.DropdownButtonItem;
+import io.jmix.flowui.view.StandardView;
+import io.jmix.flowui.view.Subscribe;
+import io.jmix.flowui.view.ViewController;
+import io.jmix.flowui.view.ViewDescriptor;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@ViewController("combo-button")
+@ViewDescriptor("combo-button.xml")
+public class ComboButtonSample extends StandardView {
+
+    @Autowired
+    protected Notifications notifications;
+
+    @Subscribe("save")
+    protected void onSaveActionPerformed(ActionPerformedEvent event) {
+        notifications.show("Saved!");
+    }
+
+    @Subscribe("saveButton.saveDraftItem")
+    protected void onSaveDraftItemClick(DropdownButtonItem.ClickEvent event) {
+        notifications.show("Saved as draft!");
+    }
+
+    @Subscribe("saveButton.saveCopyItem")
+    protected void onSaveCopyItemClick(DropdownButtonItem.ClickEvent event) {
+        notifications.show("Saved as copy!");
+    }
+
+    @Subscribe("saveButton.savePublishItem")
+    protected void onSavePublishItemClick(DropdownButtonItem.ClickEvent event) {
+        notifications.show("Saved and published!");
+    }
+}
+
+

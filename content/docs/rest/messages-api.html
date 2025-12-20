@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages API :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Messages API</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>When interacting with a frontend or mobile application, it is often needed to display localized messages of the application. As those translated values are already defined in the Jmix <code>.messages</code> files, the Messages API provides the ability to expose those values to the client application.</p>
+</div>
+<div class="paragraph">
+<p>The Messages API provides the following two endpoints:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#entity-translations">Entity Translations</a> provides translations for Entities and Entity attributes.</p>
+</li>
+<li>
+<p><a href="#enum-translations">Enum Translations</a> provides translations for Enums and its values.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The Messages API by default uses the locale setting of the user obtaining the authorization token and returns the translated values accordingly.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-translations"><a class="anchor" href="#entity-translations"></a>Entity Translations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Entity Translations endpoint allows retrieving information about the entity name, and the translated entity attribute names.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>/messages/entities</code></dt>
+<dd>
+<p>Translation for the entity name and attributes of all entities.</p>
+</dd>
+<dt class="hdlist1"><code>/messages/entities/:entityName</code></dt>
+<dd>
+<p>Translation for the entity name and attributes of the given entity.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>In the following example, you can see how to request translated values for the <code>Order</code> entity through the API:</p>
+</div>
+<div class="listingblock">
+<div class="title">Messages for <code>Order</code> Entity Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /messages
+            /entities
+            /rstex11_Order</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "rstex11_Order": "Order",
+  "rstex11_Order.amount": "Amount",
+  "rstex11_Order.createdBy": "Created by",
+  "rstex11_Order.createdDate": "Created date",
+  "rstex11_Order.customer": "Customer",
+  "rstex11_Order.date": "Date",
+  "rstex11_Order.deletedBy": "Deleted by",
+  "rstex11_Order.deletedDate": "Deleted date",
+  "rstex11_Order.id": "Id",
+  "rstex11_Order.lastModifiedBy": "Last modified by",
+  "rstex11_Order.lastModifiedDate": "Last modified date",
+  "rstex11_Order.lines": "Lines",
+  "rstex11_Order.version": "Version"
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="enum-translations"><a class="anchor" href="#enum-translations"></a>Enum Translations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Enum Translations endpoint allows retrieving information about the enum name, and the translated enum values.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>/messages/enums</code></dt>
+<dd>
+<p>Translation for the enum name and values of all enums.</p>
+</dd>
+<dt class="hdlist1"><code>/messages/enums/:enumClassName</code></dt>
+<dd>
+<p>Translation for the enum name and values of the given enum.</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The parameter <code>enumClassName</code> is the full qualified name of the enum including the package name. So use <code>rest.sample.entity.CustomerType</code> instead of just <code>CustomerType</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the following example, you can see how to request translated values for the <code>CustomerType</code> enum through the API:</p>
+</div>
+<div class="listingblock">
+<div class="title">Messages for <code>CustomerType</code> Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /messages
+            /enums
+            /rest.sample.entity.CustomerType</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "rest.sample.entity.CustomerType": "CustomerType",
+  "rest.sample.entity.CustomerType.BUSINESS": "Business",
+  "rest.sample.entity.CustomerType.PRIVATE": "Private"
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="request-specific-languages"><a class="anchor" href="#request-specific-languages"></a>Request Specific Languages</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It is also possible to explicitly request translated messages for a given locale by setting the <code>Accept-Language</code> header. In the following example, you can see how to request German translations for the <code>CustomerType</code> enum:</p>
+</div>
+<div class="listingblock">
+<div class="title">Language-specific Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /messages
+            /enums
+            /rest.sample.entity.CustomerType
+Accept-Language: de</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "rest.sample.entity.CustomerType": "Kundentyp",
+  "rest.sample.entity.CustomerType.BUSINESS": "Geschäftskunde",
+  "rest.sample.entity.CustomerType.PRIVATE": "Privatkunde"
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

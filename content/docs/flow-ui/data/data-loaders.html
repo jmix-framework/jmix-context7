@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Loaders :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Data Loaders</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Loaders are designed to load data to <a class="xref page" href="data-containers.html">containers</a>.</p>
+</div>
+<div class="paragraph">
+<p>There are slightly different interfaces of loaders depending on containers they work with:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>InstanceLoader</code> loads a single instance to <code>InstanceContainer</code> by an entity id or JPQL query.</p>
+</li>
+<li>
+<p><code>CollectionLoader</code> loads a collection of entities to <code>CollectionContainer</code> by a JPQL query. You can specify paging, sorting and other optional parameters.</p>
+</li>
+<li>
+<p><code>KeyValueCollectionLoader</code> loads a collection of <code>KeyValueEntity</code> instances to <code>KeyValueCollectionContainer</code>. In addition to <code>CollectionLoader</code> parameters, you can specify a data store name.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In view XML descriptors, all loaders are defined by the same <code>&lt;loader&gt;</code> element and the type of a loader is determined by what container it is enclosed in.</p>
+</div>
+<div class="paragraph">
+<p>Loaders are optional because you can just load data using <code>DataManager</code> or your custom service and set it directly to containers, but they simplify this process in declaratively defined views.</p>
+</div>
+<div class="paragraph">
+<p>Usually, a collection loader obtains a JPQL query from the view XML descriptor, creates <code>LoadContext</code> and invokes <code>DataManager</code> to load entities. So the typical XML descriptor looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;collection id="departmentsDc"
+            class="com.company.onboarding.entity.Department"&gt;
+    &lt;fetchPlan extends="_base"&gt;
+        &lt;property name="hrManager" fetchPlan="_base"/&gt;
+    &lt;/fetchPlan&gt;
+        &lt;loader id="departmentsDl" readOnly="true"&gt;
+        &lt;query&gt;
+            &lt;![CDATA[select e from Department e]]&gt;
+        &lt;/query&gt;
+    &lt;/loader&gt;
+&lt;/collection&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In an entity detail view, the loader XML element is usually empty, because the instance loader requires an entity identifier that is specified programmatically by the <code>StandardDetailView</code> base class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;instance id="departmentDc"
+          class="com.company.onboarding.entity.Department"&gt;
+    &lt;fetchPlan extends="_base"&gt;
+        &lt;property name="hrManager" fetchPlan="_base"/&gt;
+    &lt;/fetchPlan&gt;
+    &lt;loader id="departmentDl"/&gt;
+&lt;/instance&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the loader does not have the <code>readOnly="true"</code> attribute in XML or if the <a class="xref page" href="data-context.html">DataContext</a> is set for the loader programmatically, all loaded entities are automatically merged into the data context.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-context-events"><a class="anchor" href="#data-context-events"></a>Events and Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes the data loader lifecycle events that can be handled in view controllers.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, select the element in the view descriptor XML or in the <strong>Jmix UI</strong> structure panel and use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can use the <strong>Generate Handler</strong> button in the top panel of the view controller.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="load-delegate"><a class="anchor" href="#load-delegate"></a>loadDelegate</h3>
+<div class="paragraph">
+<p>Loaders can delegate actual loading to a method of the view controller, where you can call a custom service instead of <code>DataManager</code> used by default. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DepartmentService departmentService;
+
+@Install(to = "departmentsDl", target = Target.DATA_LOADER) <i class="conum" data-value="1"></i><b>(1)</b>
+private List&lt;Department&gt; departmentsDlLoadDelegate(final LoadContext&lt;Department&gt; loadContext) { <i class="conum" data-value="2"></i><b>(2)</b>
+    LoadContext.Query query = loadContext.getQuery();
+    return departmentService.loadDepartments( <i class="conum" data-value="3"></i><b>(3)</b>
+            query.getCondition(),
+            query.getSort(),
+            query.getFirstResult(),
+            query.getMaxResults()
+    );
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>departmentsDlLoadDelegate()</code> method will be used by the <code>departmentsDl</code> loader to load the list of <code>Department</code> entities.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The method accepts <code>LoadContext</code> that will be created by the loader based on its parameters: query, conditions (if any), etc.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The loading is done via <code>DepartmentService.loadDepartments()</code> method which accepts the filtering conditions, sorting and pagination set to the loader by visual components of the view.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Apart from invoking a custom service, the load delegate allows you to perform any post-processing of the loaded entities.</p>
+</div>
+<div class="paragraph">
+<p>If you declare custom data loading with a delegate, and you display the loaded data in the DataGrid with a pagination component, then you may also need to define the custom logic to count total number of rows. Take a look at the <a class="xref page" href="../vc/components/simplePagination.html#totalCountDelegate">totalCountDelegate</a> handler for the pagination component associated with the table.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="load-from-repository-delegate"><a class="anchor" href="#load-from-repository-delegate"></a>loadFromRepositoryDelegate</h3>
+<div class="paragraph">
+<p>If you prefer <a class="xref page" href="../../data-access/data-repositories.html">data repositories</a> for accessing the database, consider using the <code>loadFromRepositoryDelegate</code> instead of <code>loadDelegate</code> described <a href="#load-delegate">above</a>.</p>
+</div>
+<div class="paragraph">
+<p>It accepts arguments suitable for calling a data repository directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "departmentsDl", target = Target.DATA_LOADER, subject = "loadFromRepositoryDelegate")
+private List&lt;Department&gt; departmentsDlLoadDelegate(
+        final Pageable pageable, final JmixDataRepositoryContext context) {
+    return repository.findAll(pageable, context).getContent();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="pre-load-event"><a class="anchor" href="#pre-load-event"></a>PreLoadEvent</h3>
+<div class="paragraph">
+<p>This event is sent before loading entities.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "departmentsDl", target = Target.DATA_LOADER)
+public void onDepartmentsDlPreLoad(final CollectionLoader.PreLoadEvent&lt;Department&gt; event) {
+    // some actions before loading
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can prevent load using the <code>preventLoad()</code> method of the event.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="post-load-event"><a class="anchor" href="#post-load-event"></a>PostLoadEvent</h3>
+<div class="paragraph">
+<p>This event is sent after successful loading of entities, merging them into <code>DataContext</code> and setting to the container.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "departmentsDl", target = Target.DATA_LOADER)
+public void onDepartmentsDlPostLoad(final CollectionLoader.PostLoadEvent&lt;Department&gt; event) {
+    // some actions after loading
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="query-conditions"><a class="anchor" href="#query-conditions"></a>Query Conditions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Sometimes you need to modify a data loader query at runtime to filter the loaded data at the database level. The simplest way to provide filtering based on parameters entered by users is to connect the <a class="xref page" href="../vc/components/propertyFilter.html">propertyFilter</a> or <a class="xref page" href="../vc/components/genericFilter.html">genericFilter</a> visual component to the data loader.</p>
+</div>
+<div class="paragraph">
+<p>Instead of the universal filter or in addition to it, you can create a set of conditions for the loader query. A condition is a set of query fragments with parameters. These fragments are added to the resulting query text only when all parameters used in the fragments are set for the query.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Explore the <a href="https://demo.jmix.io/ui-samples/sample/custom-filter" rel="noopener" target="_blank">Custom filter using declarative conditions</a> online example to see query conditions in action.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Conditions are processed on the data store level, so they can contain fragments of different query languages supported by data stores. The framework provides out-of-the-box handling of conditions for JPQL.</p>
+</div>
+<div class="paragraph">
+<p>Let’s consider creating a set of conditions for filtering the <code>Department</code> entity by its <code>name</code> and <code>hrManager</code> attributes.</p>
+</div>
+<div class="paragraph">
+<p>Loader query conditions can be defined either declaratively in the <code>&lt;condition&gt;</code> XML element, or programmatically using the <code>setCondition()</code> method. Below is an example of configuring the conditions in descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;data readOnly="true"&gt;
+        &lt;collection id="departmentsDc"
+                    class="com.company.onboarding.entity.Department"&gt;
+            &lt;fetchPlan extends="_base"&gt;
+                &lt;property name="hrManager" fetchPlan="_base"/&gt;
+            &lt;/fetchPlan&gt;
+            &lt;loader id="departmentsDl"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from Department e]]&gt;
+                    &lt;condition&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+                        &lt;and&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+                            &lt;c:jpql&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+                                &lt;c:where&gt;e.name like :name&lt;/c:where&gt;
+                            &lt;/c:jpql&gt;
+                            &lt;c:jpql&gt;
+                                &lt;c:where&gt;e.hrManager = :hrManager&lt;/c:where&gt;
+                            &lt;/c:jpql&gt;
+                        &lt;/and&gt;
+                    &lt;/condition&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Adds the JPQL conditions namespace.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Defines the <code>condition</code> element inside the query.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>If you have more than one condition, add <code>and</code> or <code>or</code> element</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Defines a JPQL condition with optional <code>join</code> element and mandatory <code>where</code> element.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Suppose that the view has <code>nameFilterField</code> text field and <code>hrManagerFilterField</code> combo box for entering the condition parameters:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="nameFilterField" label="Name"/&gt;
+&lt;entityComboBox id="hrManagerFilterField" label="HR Manager"
+                metaClass="User" itemsContainer="usersDc"&gt;
+    &lt;actions&gt;
+        &lt;action id="entityClear" type="entity_clear"/&gt;
+    &lt;/actions&gt;
+&lt;/entityComboBox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In order to refresh the data when a user changes their values, add the following event listeners to the view controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionLoader&lt;Department&gt; departmentsDl;
+
+@Subscribe("nameFilterField")
+public void onNameFilterFieldComponentValueChange(final AbstractField.ComponentValueChangeEvent&lt;TextField, String&gt; event) {
+    departmentsDl.setParameter("name", "(?i)%" + event.getValue() + "%");
+    departmentsDl.load();
+}
+
+@Subscribe("hrManagerFilterField")
+public void onHrManagerFilterFieldComponentValueChange(final AbstractField.ComponentValueChangeEvent&lt;EntityComboBox&lt;User&gt;, User&gt; event) {
+    departmentsDl.setParameter("hrManager", event.getValue());
+    departmentsDl.load();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As mentioned above, a condition is included in the query only when its parameters are set. So the resulting query executed on the database will depend on what is entered in the UI components:</p>
+</div>
+<div class="listingblock">
+<div class="title">Only nameFilterField has a value</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select e from Department e where e.name like :name</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Only hrManagerFilterField has a value</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select e from Department e where e.hrManager = :hrManager</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Both nameFilterField and hrManagerFilterField have values</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-jpql hljs" data-lang="jpql">select e from Department e where (e.name like :name) and (e.hrManager = :hrManager)</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indexing Queue :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Indexing Queue</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Once you integrate the Search add-on into your application, it immediately begins <a class="xref page" href="config-options.html#tracking-changes">monitoring changes</a> in your entities. This section details the process of configuring the automatic update of indexes with the latest data.</p>
+</div>
+<div class="paragraph">
+<p>The change tracking mechanism stores a queue of actions that should be done for changed entity instances in the <code>SEARCH_INDEXING_QUEUE</code> database table. The <code>IndexingQueueManager</code> bean contains methods to process the queue and send changed data to Elasticsearch/OpenSearch.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+It’s essential to establish regular processing of the indexing queue to ensure that search results reflect current data.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For scheduling periodic queue processing, you can utilize the Quartz Job Scheduler following the instructions provided.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="default-quartz-configuration"><a class="anchor" href="#default-quartz-configuration"></a>Default Quartz Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Search add-on comes with a pre-configured Quartz job for regularly processing the indexing queue. To enable this feature, follow these steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include the Quartz add-on in your project as described in the <a class="xref page" href="../quartz/index.html#installation">Quartz / Installation</a> section.</p>
+</li>
+<li>
+<p>Modify the CRON expression as needed. The default value is <code>0/5 * * * * ?</code> (every 5 seconds).</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.search.indexing-queue-processing-cron = 0/10 * * * * ?</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The default configuration creates and schedules a job with the <code>IndexingQueueProcessing</code> identity.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-qurtz-configuration"><a class="anchor" href="#custom-qurtz-configuration"></a>Custom Quartz Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you prefer to utilize a custom Quartz configuration, follow these steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include the Quartz add-on in your project as described in the <a class="xref page" href="../quartz/index.html#installation">Quartz / Installation</a> section.</p>
+</li>
+<li>
+<p>Within the <code>application.properties</code> file, include the following property to deactivate the default configuration:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.search.use-default-indexing-queue-processing-quartz-configuration = false</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Develop a custom job class that invokes <code>IndexingQueueManager.processNextBatch()</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class MyCustomQueueProcessingJob implements Job {
+
+    @Autowired
+    private IndexingQueueManager indexingQueueManager;
+
+    @Override
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        indexingQueueManager.processNextBatch();
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>While the application is running, navigate to the <strong>Quartz → Quartz jobs</strong> view to set up a job for the <code>MyCustomQueueProcessingJob</code> class.</p>
+</li>
+<li>
+<p>Alternatively, if you want to configure the job during development, register the following beans in the application:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+JobDetail myCustomIndexingQueueProcessingJob() {
+    return JobBuilder.newJob()
+            .ofType(IndexingQueueProcessingJob.class)
+            .storeDurably()
+            .withIdentity("MyCustomIndexingQueueProcessing")
+            .build();
+}
+
+@Bean
+Trigger myCustomIndexingQueueProcessingTrigger() {
+    return TriggerBuilder.newTrigger()
+            .forJob(myCustomIndexingQueueProcessingJob())
+            .startNow()
+            .withSchedule(CronScheduleBuilder.cronSchedule("0/5 * * * * ?"))
+            .build();
+}</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

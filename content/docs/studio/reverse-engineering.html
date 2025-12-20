@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reverse Engineering :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Reverse Engineering</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Studio allows you to create the <a class="xref page" href="../data-model/index.html">data model</a> and standard UI views for an existing database.</p>
+</div>
+<div class="paragraph">
+<p>First, you should create an <a class="xref page" href="data-stores.html#additional-data-store">additional data store</a> or change your main data store to point to an existing database.</p>
+</div>
+<div class="paragraph">
+<p>Right-click the data store item in the <a class="xref page" href="tool-window.html">Jmix Tool Window</a> and select <strong>Generate Model from Database</strong> in the context menu.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generate data model item" src="_images/generate-data-model-item.png" width="442"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Then Studio opens the <strong>Generate Model from Database</strong> wizard.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="wizard"><a class="anchor" href="#wizard"></a>Generate Model from Database Wizard</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Step 1</dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>This is the first step of the model generation wizard. Click <strong>Refresh List</strong>.</p>
+</div>
+<div class="paragraph">
+<p>The wizard displays the list of tables that have no corresponding entities in the project’s data model. You can use the filter field above to find a table by its name.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generate data model step1" src="_images/generate-data-model-step1.png" width="936"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Select tables that you want to map to the data model. Some tables depend on others through foreign keys, so when you select a table, all tables that it depends on are also become selected. If you deselect a table, all dependent tables become deselected too.</p>
+</div>
+<div class="paragraph">
+<p>You can click on the <span class="image"><img alt="Select All" src="_images/icons/selectall.svg"/></span> and <span class="image"><img alt="Deselect All" src="_images/icons/unselectall.svg"/></span> checkboxes to select or deselect all available tables.</p>
+</div>
+<div class="paragraph">
+<p>Optional step: click <span class="image"><img alt="Settings" src="_images/icons/gear.svg"/></span> to set up a Java package where to create new entities, and default mappings for system attributes.</p>
+</div>
+<div class="paragraph">
+<p>For example, if all or most of the tables in your database contain <code>Modified</code> and <code>ModifiedBy</code> columns, you can map them to <code>lastModifiedDate</code> and <code>lastModifiedBy</code> attributes of created entities. In this case, you don’t need to map them individually for each table. Use the <strong>Exclude columns from mapping</strong> list to not map certain columns automatically for all tables.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong>.</p>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1">Step 2</dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>At this step, you can review and edit automatically generated mappings for the selected tables.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generate data model step2" src="_images/generate-data-model-step2.png" width="936"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Status</strong> column describes the result of the automatic mapping:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>OK</strong> - the automatic mapping was successful, and all columns are mapped to a new entity.</p>
+</li>
+<li>
+<p><strong>Join table</strong> - a link between entities is recognized and mapped as a many-to-many join table.</p>
+</li>
+<li>
+<p><strong>Composite key</strong> - Jmix Studio creates an entity that is a composite key.</p>
+</li>
+<li>
+<p><strong>Composite PK will be replaced</strong> - the table has a composite primary key, but no other tables reference it. The composite PK will be replaced by the primary key of the UUID type.</p>
+</li>
+<li>
+<p><strong>New PK will be created</strong> - the table has no primary key. A new PK of the UUID type will be created.</p>
+</li>
+<li>
+<p><strong>PK is an identity field</strong> - the table has a primary key, which is an identity field. Its values are managed by the server and usually cannot be modified.</p>
+</li>
+<li>
+<p><strong>There are unmapped columns</strong> - some columns cannot be mapped to a new entity.</p>
+</li>
+<li>
+<p><strong>Composite PK referenced by other tables</strong> - the table has a composite primary key, and some tables reference it. Studio cannot map such a table.</p>
+</li>
+<li>
+<p><strong>Choose primary key for DB view</strong> - it’s a database view, and you should select a column or a set of columns suitable for the entity identifier. In this case, click the <strong>Choose PK</strong> button and select columns for the primary key.</p>
+</li>
+<li>
+<p><strong>Unsupported PK type</strong> - the table has a primary key of an unsupported type. Studio cannot map such a table.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <span class="image"><img alt="Refresh mapping button" src="_images/icons/refresh.svg"/></span> button allows you to re-launch automatic mapping for the selected table. For example, you can go to a database SQL tool, make some changes in the database schema, then return to the wizard and launch the mapping procedure again.</p>
+</div>
+<div class="paragraph">
+<p>The <span class="image"><img alt="Edit mapping" src="_images/icons/edit.svg"/></span> button opens a dialog window with the mapping details. There you can change the entity name and the list of system interfaces implemented by the entity class. It will affect the number of system columns being created for compatibility with Jmix entities.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="table mapping editor" src="_images/table-mapping-editor.png" width="767"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Choose PK</strong> button appears instead of <strong>Edit mapping</strong> when a database view is selected, and you need to select columns for the entity identifier.</p>
+</div>
+<div class="paragraph">
+<p>By clicking <strong>Previous</strong>, you can go to the previous step to select or deselect tables.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong> to go to the next step.</p>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1">Step 3</dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>At this step, you can specify what UI views should be created for new entities.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="generate data model step3" src="_images/generate-data-model-step3.png" width="936"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If you deselect the <strong>Create standard views</strong> checkbox, Studio will not generate UI for the new entities.</p>
+</div>
+<div class="paragraph">
+<p>Use the <strong>In module</strong>, <strong>Package</strong>, and <strong>Menu</strong> fields to specify where to place the views source code and where to display them in the main menu.</p>
+</div>
+<div class="paragraph">
+<p>Use the drop-down list in the <strong>Standard views</strong> column to select what types of views to generate.</p>
+</div>
+<div class="paragraph">
+<p>You can safely skip this step and generate UI views for your entities later after finishing the model generation process.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Create</strong>. Studio will generate entities and views.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When Studio creates entities based on their table definitions, it marks entities with <code>@DdlGeneration(value = DdlGeneration.DbScriptGenerationMode.DISABLED)</code> annotation.
+It means that <a class="xref page" href="../data-model/db-migration.html#configuration">Liquibase changelogs</a> won’t be generated for such entities.
+To enable Liquibase script generation for imported entities, you can just remove this annotation (or change the corresponding setting in the entity designer).
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="partial-reverse-engineering"><a class="anchor" href="#partial-reverse-engineering"></a>Partial Reverse Engineering</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This feature enables you to generate entity attributes from the database schema for already mapped entities. This is particularly useful when developers make changes to the database schema first and need to subsequently synchronize the data model and user interface.</p>
+</div>
+<div class="paragraph">
+<p>Jmix Studio can track database changes and assist in propagating these changes to your code, while preserving all existing custom code.</p>
+</div>
+<div class="paragraph">
+<p>After making changes to database tables, you can generate the missing attributes in your JPA entity model. Use either of the following methods:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click <span class="image"><img alt="attr from db" src="_images/icons/attr-from-db.svg"/></span> in the <strong>Attributes</strong> panel within the <strong>Entity Designer</strong>.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add attr from db 2" src="_images/add-attr-from-db-2.png" width="468"/>
+</div>
+</div>
+</li>
+<li>
+<p>Click the <strong>Add attribute from DB</strong> button in the toolbar of the entity’s text editor.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add attr from db" src="_images/add-attr-from-db.png" width="885"/>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Clicking either button will open the <strong>Add Entity Attribute(s) from DB</strong> dialog.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add attr from db dialog" src="_images/add-attr-from-db-dialog.png" width="1136"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>address</code> table is already selected in the <strong>Table/View</strong> dropdown field.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Columns</strong> section, select the new attributes you want to create. The cells in the table are editable, allowing you to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Modify the attribute name.</p>
+</li>
+<li>
+<p>Change the mapping type (for example, specify an enumeration type).</p>
+</li>
+<li>
+<p>Select a different data type if the one suggested by Studio does not meet your requirements.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>. The new attributes will be added to the existing <code>Address</code> entity without modifying any previously written code.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

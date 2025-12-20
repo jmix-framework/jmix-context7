@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entity Events :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Entity Events</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you save and load entities using <code>DataManager</code>, the Jmix data access subsystem sends specific Spring application events. You can create event listeners to perform some additional actions with saved or loaded entity instances.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-changed-event"><a class="anchor" href="#entity-changed-event"></a>Using EntityChangedEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>EntityChangedEvent</code> is sent by the framework when an entity instance is saved to the database. You can handle the event both inside the transaction and after its completion. In both cases, at the time of the event, the database already contains the changed data.</p>
+</div>
+<div class="paragraph">
+<p><code>EntityChangedEvent</code> contains change type (create, update or delete), the identifier of the changed entity, the information on what attributes were changed, and old values of changed attributes. For reference attributes, the old values contain identifiers of the referenced entities.</p>
+</div>
+<div class="sect2">
+<h3 id="before-commit"><a class="anchor" href="#before-commit"></a>Handling Changes Before Commit</h3>
+<div class="paragraph">
+<p>To handle <code>EntityChangedEvent</code> in the current transaction, create a bean method annotated with <code>@EventListener</code>. The method will be called by the framework right after saving the entity to the database but before the transaction commit. In the listener method, you can make any changes to data and they will be committed together with the initial changes. If an exception occurs, everything will be rolled back.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, we create a linked entity to register the change of an attribute. Both the changed <code>Customer</code> and the created <code>CustomerGradeChange</code> instances will be committed in the same transaction:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class CustomerEventListener {
+
+    @Autowired
+    private DataManager dataManager;
+
+    @EventListener
+    void onCustomerChangedBeforeCommit(EntityChangedEvent&lt;Customer&gt; event) {
+        if (event.getType() != EntityChangedEvent.Type.DELETED  <i class="conum" data-value="1"></i><b>(1)</b>
+                &amp;&amp; event.getChanges().isChanged("grade")) {     <i class="conum" data-value="2"></i><b>(2)</b>
+
+            registerGradeChange(
+                    event.getEntityId(),                        <i class="conum" data-value="3"></i><b>(3)</b>
+                    event.getChanges().getOldValue("grade")     <i class="conum" data-value="4"></i><b>(4)</b>
+            );
+        }
+    }
+
+    private void registerGradeChange(Id&lt;Customer&gt; customerId, CustomerGrade oldGrade) {
+        Customer customer = dataManager.load(customerId).one(); <i class="conum" data-value="5"></i><b>(5)</b>
+
+        CustomerGradeChange gradeChange = dataManager.create(CustomerGradeChange.class);
+        gradeChange.setCustomer(customer);
+        gradeChange.setOldGrade(oldGrade);
+        gradeChange.setNewGrade(customer.getGrade());
+        dataManager.save(gradeChange);
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Determining the change type.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Checking if an attribute was actually changed.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Getting the changed entity id.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Obtaining an old value of the changed attribute.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Loading the new state of the changed entity.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Let’s look at another example. Here the <code>amount</code> attribute of the <code>Order</code> entity is updated whenever one of its <code>OrderLine</code> instances is created, updated or deleted:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class OrderLineEventListener {
+
+    @Autowired
+    private DataManager dataManager;
+
+    @EventListener
+    void onOrderLineChangedBeforeCommit(EntityChangedEvent&lt;OrderLine&gt; event) {
+        Order order;
+        if (event.getType() == EntityChangedEvent.Type.DELETED) {               <i class="conum" data-value="1"></i><b>(1)</b>
+            Id&lt;Order&gt; orderId = event.getChanges().getOldReferenceId("order");  <i class="conum" data-value="2"></i><b>(2)</b>
+            order = dataManager.load(orderId).one();
+        } else {
+            OrderLine orderLine = dataManager.load(event.getEntityId()).one();
+            order = orderLine.getOrder();
+        }
+        BigDecimal amount = order.getLines().stream()
+                .map(line -&gt; line.getProduct().getPrice().multiply(
+                        BigDecimal.valueOf(line.getQuantity()))
+                )
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setAmount(amount);
+        dataManager.save(order);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>When the entity is deleted, we cannot load its instance anymore, so we use old values to get the reference to the enclosing <code>Order</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Use <code>getOldReference()</code> and <code>getOldCollection()</code> instead of <code>getOldValue()</code> for to-one and to-many reference attributes.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="after-commit"><a class="anchor" href="#after-commit"></a>Handling Changes After Commit</h3>
+<div class="paragraph">
+<p>To handle <code>EntityChangedEvent</code> after the changes are saved to the database and the transaction is committed, create a bean method annotated with <code>@TransactionalEventListener</code>.</p>
+</div>
+<div class="paragraph">
+<p>Note that exceptions occurred in an "after commit" event listener are not propagated to the calling code and not logged. So it is recommended to wrap your code in the try-catch clause.</p>
+</div>
+<div class="paragraph">
+<p>If you need to load or save any data in an "after commit" event listener, always start a new transaction.</p>
+</div>
+<div class="paragraph">
+<p>The example below demonstrates exception handling and loading an entity with <code>DataManager</code> in a separate transaction:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class CustomerEventListener {
+
+    private static final Logger log = LoggerFactory.getLogger(CustomerEventListener.class);
+
+    @Autowired
+    private DataManager dataManager;
+
+    @TransactionalEventListener
+    @Transactional(propagation = Propagation.REQUIRES_NEW) <i class="conum" data-value="1"></i><b>(1)</b>
+    void onCustomerChangedAfterCommit(EntityChangedEvent&lt;Customer&gt; event) {
+        try {
+            if (event.getType() != EntityChangedEvent.Type.DELETED
+                    &amp;&amp; event.getChanges().isChanged("grade")) {
+
+                Customer customer = dataManager.load(event.getEntityId()).one();
+
+                emailCustomerTheirNewGrade(customer.getEmail(), customer.getGrade());
+            }
+        } catch (Exception e) {
+            log.error("Error handling Customer changes after commit", e);
+        }
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>Propagation.REQUIRES_NEW</code> is necessary here for starting the new transaction.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="saving-loading-events"><a class="anchor" href="#saving-loading-events"></a>Using EntitySavingEvent and EntityLoadingEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>EntitySavingEvent</code> is sent by the framework when an entity instance is about to be saved to the database. As opposed to <a href="#entity-changed-event">EntityChangedEvent</a>, which contains the entity id, <code>EntitySavingEvent</code> contains the entity instance itself. It allows you to change the instance state before it is saved in the database fields.</p>
+</div>
+<div class="paragraph">
+<p>The event has the <code>isNewEntity()</code> method that returns true if the event is sent for a new instance that will be inserted to a database table.</p>
+</div>
+<div class="paragraph">
+<p>An <code>EntitySavingEvent</code> listener can be used to initialize entity attributes before saving to the database. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class OrderEventListener {
+
+    @EventListener
+    void onOrderSaving(EntitySavingEvent&lt;Order&gt; event) {
+        if (event.isNewEntity()) {
+            Order order = event.getEntity();
+            order.setNumber(generateOrderNumber());
+        }
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>EntityLoadingEvent</code> is sent by the framework when an entity instance is loaded from the database. You can use it for initializing non-persistent attributes from the persistent state.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You should access only local attributes of the entity that comes to a <code>EntitySavingEvent</code> or <code>EntityLoadingEvent</code> listener.</p>
+</div>
+<div class="paragraph">
+<p>For references, the framework does not guarantee the presence of the referenced instances in <code>EntitySavingEvent</code> listener and cascading of events when references are loaded from an <code>EntityLoadingEvent</code> listener.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the example below, <code>EntitySavingEvent</code> and <code>EntityLoadingEvent</code> listeners maintain an encrypted attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "CUSTOMER")
+@Entity(name = "sample_Customer")
+public class Customer {
+
+    @Column(name = "ENCRYPTED_DATA")
+    @Lob
+    private String encryptedData;
+
+    @Transient
+    @JmixProperty
+    private String sensitiveData;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the entity is saved, the sensitive content is encrypted and stored in the database. On loading, the content is decrypted and set back to the transient attribute to be accessible by users:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class CustomerEventListener {
+
+    @Autowired
+    private EncryptionService encryptionService;
+
+    @EventListener
+    void onCustomerSaving(EntitySavingEvent&lt;Customer&gt; event) {
+        Customer customer = event.getEntity();
+        String encrypted = encryptionService.encrypt(customer.getSensitiveData());
+        customer.setEncryptedData(encrypted);
+    }
+
+    @EventListener
+    void onCustomerLoading(EntityLoadingEvent&lt;Customer&gt; event) {
+        Customer customer = event.getEntity();
+        String sensitive = encryptionService.decrypt(customer.getEncryptedData());
+        customer.setSensitiveData(sensitive);
+    }</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

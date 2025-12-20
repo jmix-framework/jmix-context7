@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Artifact Repository :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Private Artifact Repository</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes how to set up a private Maven repository and use it instead of the Jmix public repositories for caching the framework artifacts and their transitive dependencies. It is recommended if you have an unstable or slow connection to the internet. Despite the fact that Gradle caches downloaded artifacts on the developer’s machine, you may need to connect to the artifact repository from time to time, for example when you run build for the first time or switch to a newer version of the framework.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installing_repository_manager"><a class="anchor" href="#_installing_repository_manager"></a>Installing Repository Manager</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First, install and run the repository manager on a computer located in your network.</p>
+</div>
+<div class="paragraph">
+<p>The instructions below assume that the computer works under Linux operating system.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Download Nexus OSS repository manager from <a class="bare" href="https://help.sonatype.com/repomanager3/product-information/download/download-archives---repository-manager-3" rel="noopener" target="_blank">https://help.sonatype.com/repomanager3/product-information/download/download-archives---repository-manager-3</a> and unpack it to the <code>~/work/nexus</code> folder.</p>
+</li>
+<li>
+<p>Download JDK 8 (for example from <a class="bare" href="https://adoptium.net/temurin/releases/?version=8" rel="noopener" target="_blank">https://adoptium.net/temurin/releases/?version=8</a>) and unpack it to the <code>~/work/jdk8</code> folder.</p>
+</li>
+<li>
+<p>Open the <code>~/.bashrc</code> file in a text editor and add the following line:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export INSTALL4J_JAVA_HOME=/home/$USER/work/jdk8</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>INSTALL4J_JAVA_HOME</code> variable pointing to the JDK 8 installation folder is needed to run the Nexus repository manager.</p>
+</div>
+</li>
+<li>
+<p>Open the terminal, go to the <code>~/work/nexus/nexus-&lt;version&gt;/bin</code> folder and execute:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./nexus run</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Open <code>http://localhost:8081</code> in your web browser.</p>
+</li>
+<li>
+<p>Click <strong>Sign in</strong> in the top right corner.</p>
+</li>
+<li>
+<p>Enter with <code>admin</code> username and the password stored in the <code>~/work/nexus/sonatype-work/nexus3/admin.password</code> file.</p>
+</li>
+<li>
+<p>Change the password.</p>
+</li>
+<li>
+<p>On the <strong>Configure Anonymous Access</strong> step, enable anonymous access to the repository. It will simplify the project configuration.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-jmix-repositories"><a class="anchor" href="#create-jmix-repositories"></a>Creating Jmix Proxy Repositories</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After the repository manager is up and running, configure proxy repositories using its web interface.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to the administration section ("gear" icon on top) and open the <strong>Repositories</strong> menu.</p>
+</li>
+<li>
+<p>Create proxy for the public Jmix repository:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Click <strong>Create repository</strong> button.</p>
+</li>
+<li>
+<p>Select <code>maven2 (proxy)</code> type.</p>
+</li>
+<li>
+<p>Fill in the fields:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong>: <code>jmix-public-proxy</code></p>
+</li>
+<li>
+<p><strong>Version policy</strong>: <code>Mixed</code></p>
+</li>
+<li>
+<p><strong>Remote storage</strong>: <code>https://global.repo.jmix.io/repository/public</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <strong>Create repository</strong> button at the bottom of the page.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Create proxy for the premium Jmix repository:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Click <strong>Create repository</strong> button.</p>
+</li>
+<li>
+<p>Select <code>maven2 (proxy)</code> type.</p>
+</li>
+<li>
+<p>Fill in the fields:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong>: <code>jmix-premium-proxy</code></p>
+</li>
+<li>
+<p><strong>Version policy</strong>: <code>Mixed</code></p>
+</li>
+<li>
+<p><strong>Remote storage</strong>: <code>https://global.repo.jmix.io/repository/premium</code></p>
+</li>
+<li>
+<p>In the <strong>HTTP</strong> section, enable <strong>Authentication</strong> and enter the first part of your Enterprise subscription license key (before dash) in the <strong>Username</strong> field and the second part of your license key (after dash) in the <strong>Password</strong> field. For example, if the key is <code>111111222222-abcdefabcdef</code>, then the username is <code>111111222222</code> and the password is <code>abcdefabcdef</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <strong>Create repository</strong> button at the bottom of the page.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Create a group to access both proxy repositories using a single URL:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Click <strong>Create repository</strong> button.</p>
+</li>
+<li>
+<p>Select <code>maven2 (group)</code> type.</p>
+</li>
+<li>
+<p>Fill in the fields:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong>: <code>jmix-proxy</code></p>
+</li>
+<li>
+<p><strong>Version policy</strong>: <code>Mixed</code></p>
+</li>
+<li>
+<p>In <strong>Group → Member repositories</strong>, move <code>jmix-public-proxy</code> and <code>jmix-premium-proxy</code> to the <strong>Members</strong> list.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <strong>Create repository</strong> button at the bottom of the page.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuring-jmix-project"><a class="anchor" href="#configuring-jmix-project"></a>Configuring Jmix Project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the <code>build.gradle</code> file of your project, replace the <code>repositories</code> section with the following code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">repositories {
+    mavenCentral()
+    maven {
+        allowInsecureProtocol true
+        url 'http://localhost:8081/repository/jmix-proxy'
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the real name of the host where the artifact repository is running instead of <code>localhost</code>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

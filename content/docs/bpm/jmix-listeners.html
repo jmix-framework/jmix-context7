@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Listeners :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Event Listeners</h1>
+<div class="paragraph">
+<p>There are several approaches to handle process engine events like task creation, activity completion, and so on.</p>
+</div>
+<div class="paragraph">
+<p>First, you can define an execution listener or a task listener for a particular process node. See <a href="https://www.flowable.com/open-source/docs/bpmn/ch07b-BPMN-Constructs#execution-listener" rel="noopener" target="_blank">Flowable documentation</a> for details.</p>
+</div>
+<div class="paragraph">
+<p>Process modeler provides UI for configuring listeners.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In the execution listener editor, the drop-down list contains classes that implement the <code>org.flowable.engine.delegate.ExecutionListener</code> interface.</p>
+</li>
+<li>
+<p>In the task listener editor,  the drop-down list contains classes that implement <code>org.flowable.engine.delegate.TaskListener</code> interface. If the class contains <a href="https://flowable.com/open-source/docs/bpmn/ch07b-BPMN-Constructs/#field-injection-on-execution-listeners" rel="noopener" target="_blank">injected fields</a>, then these fields will be automatically added to the <strong>Fields</strong> section of the listener editor.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The second approach is to declare global event listeners provided by the Flowable framework, see <a href="https://flowable.com/open-source/docs/bpmn/ch03-Configuration/#event-handlers" rel="noopener" target="_blank">Event handlers</a> section. You can define them in the <strong>Event listeners</strong> section in the project properties panel.</p>
+</div>
+<div class="paragraph">
+<p>BPM add-on additionally introduces a set of Spring application events. The following events are published:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>UserTaskAssignedEvent</code></p>
+</li>
+<li>
+<p><code>UserTaskCreatedEvent</code></p>
+</li>
+<li>
+<p><code>UserTaskCompletedEvent</code></p>
+</li>
+<li>
+<p><code>ActivityStartedEvent</code></p>
+</li>
+<li>
+<p><code>ActivityCompletedEvent</code></p>
+</li>
+<li>
+<p><code>ProcessStartedEvent</code></p>
+</li>
+<li>
+<p><code>ProcessCompletedEvent</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Here is an example of an event listener that sends an email notification each time a user task is assigned to a user:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("smpl_TaskAssignedNotificationSender")
+public class TaskAssignedNotificationSender {
+
+    @Autowired
+    private Emailer emailer;
+
+    @Autowired
+    private DataManager dataManager;
+
+    @EventListener <i class="conum" data-value="1"></i><b>(1)</b>
+    public void onTaskAssigned(UserTaskAssignedEvent event) { <i class="conum" data-value="2"></i><b>(2)</b>
+        User user = dataManager.load(User.class) <i class="conum" data-value="3"></i><b>(3)</b>
+                .query("select u from smpl_User u where u.username = :username")
+                .parameter("username", event.getUsername())
+                .one();
+        Task task = event.getTask(); <i class="conum" data-value="4"></i><b>(4)</b>
+        String emailTitle = "New process task " + task.getName();
+        String emailBody = "Hi " + user.getFirstName() + "\n" +
+                "The task " + task.getName() + " has been assigned.";
+        EmailInfo emailInfo = EmailInfoBuilder.create()
+                .setAddresses(user.getEmail())
+                .setSubject(emailTitle)
+                .setFrom(null)
+                .setBody(emailBody)
+                .build();
+        emailer.sendEmailAsync(emailInfo); <i class="conum" data-value="5"></i><b>(5)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declares that the method is an event listener.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The listener is fired each time the <code>UserTaskAssignedEvent</code> is published.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Gets <code>User</code> entity to receive a user’s first name and email address.The <code>UserTaskAssignedEvent</code> contains a <code>username</code> of a user who is the task assigned to.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <code>UserTaskAssignedEvent</code> contains a <code>Task</code> object which holds information about the user task.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Creates and sends email. See the <a class="xref page" href="../email/index.html">Email Sending Guide</a> for details.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you need to get a process variable value in the listener, you can do it this way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private RuntimeService runtimeService;
+
+@EventListener
+public void onOtherProcessTaskAssigned(UserTaskAssignedEvent event) {
+    Order order = (Order) runtimeService.getVariable(event.getTask().getExecutionId(), "order");
+    // ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, a listener is fired when the user task is assigned in any process. If you want to send notifications only for specific process definition, you can check the process definition in the listener method body:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@EventListener
+protected void onOtherProcessTaskAssigned(UserTaskAssignedEvent event) {
+    if ("order-approval".equals(event.getProcessDefinition().getKey())) {
+        // ...
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or you can define a SpEL (Spring Expression Language) expression that should match in order to handle the event:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@EventListener(condition = "#event.processDefinitionData.key == 'order-approval'")
+protected void onOtherProcessTaskAssigned(UserTaskAssignedEvent event) {
+    // ...
+}</code></pre>
+</div>
+</div>
+
+</article>
+</body>
+</html>

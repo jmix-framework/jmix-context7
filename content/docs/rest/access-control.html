@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Control :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Access Control</h1>
+<div class="sect1">
+<h2 id="protecting-api-using-access-tokens"><a class="anchor" href="#protecting-api-using-access-tokens"></a>Protecting API Using Access Tokens</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Access to REST API endpoints may be protected with access tokens. The Authorization Server add-on may be used for obtaining access tokens. See the <a class="xref page" href="../authorization-server/protecting-resources.html#protecting-rest-api-endpoints">Authorization Server</a> add-on documentation for details.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="anonymous-access"><a class="anchor" href="#anonymous-access"></a>Anonymous Access</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It is possible to expose certain parts of the REST API without authentication by using the anonymous access functionality of Jmix. In this case, the API request is performed as the user anonymous, which is configured by default in a Jmix application.</p>
+</div>
+<div class="paragraph">
+<p>For every secured endpoint that is called without the <code>Authentication</code> header, the user will be authenticated with the <code>anonymous</code> user session.</p>
+</div>
+<div class="paragraph">
+<p>See the <a class="xref page" href="../security/custom-endpoints.html#token-based-authentication">Token Based Authentication</a> section for details on how to define access to anonymous resources. The easiest way is to set an application property with a comma-separated list of anonymous URL patterns.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.resource-server.anonymous-url-patterns = \
+  /rest/services/productService/getProductInformation,\
+  /rest/entities/Product/**</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once this setting is in place, it is possible to interact with the <code>ProductService</code> without sending an <code>Authorization</code> header:</p>
+</div>
+<div class="listingblock">
+<div class="title">GetProductInformation Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET {{baseRestUrl}}
+         /services
+         /productService
+         /getProductInformation
+         ?productId=123
+# Authorization: not set</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This request will respond in a successful response of the Service:</p>
+</div>
+<div class="listingblock">
+<div class="title">HTTP/1.1 200</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "name": "Apple iPhone",
+  "productId": "123",
+  "price": 499.99
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to provide anonymous access to some <a class="xref page" href="entities-api.html">entities</a> endpoints, make sure the <code>anonymous</code> user has rights to these entities. You can do it by creating a <a class="xref page" href="../security/resource-roles.html">resource role</a> and assigning it to the <code>anonymous</code> user in the <code>DatabaseUserRepository.initAnonymousUser()</code> method. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ResourceRole(name = "AnonymousRestRole", code = AnonymousRestRole.CODE, scope = "API")
+public interface AnonymousRestRole {
+
+    String CODE = "anonymous-rest-role";
+
+    @EntityAttributePolicy(entityClass = Product.class,
+        attributes = "*",
+        action = EntityAttributePolicyAction.MODIFY)
+    @EntityPolicy(entityClass = Product.class,
+        actions = {EntityPolicyAction.READ, EntityPolicyAction.UPDATE})
+    void product();
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Primary
+@Component("UserRepository")
+public class DatabaseUserRepository extends AbstractDatabaseUserRepository&lt;User&gt; {
+    // ...
+
+    @Override
+    protected void initAnonymousUser(User anonymousUser) {
+        Collection&lt;GrantedAuthority&gt; authorities = getGrantedAuthoritiesBuilder()
+                .addResourceRole(AnonymousRestRole.CODE)
+                .build();
+        anonymousUser.setAuthorities(authorities);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The anonymous access feature <strong>does not</strong> require that <code>anonymous</code> user has the <code>rest-minimal</code> role.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="predefined-roles"><a class="anchor" href="#predefined-roles"></a>Predefined Roles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>REST: minimal access</strong> (<code>rest-minimal</code>): Allows users to interact with the application via the API.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

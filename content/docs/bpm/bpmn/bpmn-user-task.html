@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Task :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">User Task</h1>
+<div class="sect1">
+<h2 id="overview"><a class="anchor" href="#overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <strong>User Task</strong> is a type of task that is assigned to a user or a group for manual completion within a business process.
+User tasks are integral to the workflow, allowing human participants to interact with the process
+by performing specific actions, making decisions, or providing input.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Single performer vs. group</strong></p>
+</div>
+<div class="paragraph">
+<p>In BPMN can be the only performer of the task.
+When we say "the task is assigned to group",
+it means there is a list of <strong>potential performers</strong>, not a <strong>UserGroup</strong> object.
+One of them must become an actual task performer by <a href="#claiming-group-tasks">claiming</a> the task on himself.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph" id="graphical-notation">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>A user task is visualized as a typical task (rounded rectangle), with a small user icon in the left upper corner.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="user task" src="../_images/bpmn-user-task/user-task.png" width="120"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>A user task is defined in XML as follows.
+The <code>id</code> attribute is required, the <code>name</code> attribute is optional.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userTask id="user-task-01" name="User task" /&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="properties"><a class="anchor" href="#properties"></a>Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In addition to general properties, user task has the following specific properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Due Date</strong> to inform the performer when the task must be completed.</p>
+</li>
+<li>
+<p><strong>Assignee</strong>, where you can assign a single task performer or potential performers (candidates);</p>
+</li>
+<li>
+<p><strong>Form</strong>, where you can define a user interface for the task;</p>
+</li>
+<li>
+<p><strong>Task Listeners</strong>, where you can add listeners triggered by task lifecycle events.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="due-date"><a class="anchor" href="#due-date"></a>Due Date</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <strong>due date</strong> parameter in a user task specifies the deadline by which the task must be completed.
+This parameter is crucial for managing time-sensitive activities within a business process.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Setting a due date does not start any automatic actions. It is necessary to manually configure any subsequent actions.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="setting-due-date"><a class="anchor" href="#setting-due-date"></a>Setting Due Date</h3>
+<div class="paragraph">
+<p>The <em>Due date</em> parameter can be set in two variants:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Fixed date</strong>: Some date in the future that means a deadline.
+(The date in the past will be ignored, the task will be shown as overdue.)</p>
+</li>
+<li>
+<p><strong>Duration</strong>: A period of time started from the moment when the task is created.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Actually, due date is a text field that will be interpreted by the process engine at runtime.
+The following variants are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Literal string in <strong>ISO8601</strong> format, representing fixed date or duration.</p>
+</li>
+<li>
+<p>Process variable of the type:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>java.lang.String</code> — must contain a value in <strong>ISO8601</strong> format.</p>
+</li>
+<li>
+<p><code>java.util.Date</code> — must contain date value.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Expression that must be resolved at runtime as one of the above variants, for example <code>$/{someDateVariable/}</code>.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>If variable value is <code>null</code> it doesn’t cause an error. It means the task has no specified deadline.</p>
+</li>
+<li>
+<p><em>Due date</em> parameter isn’t validated during the  process deployment.
+But at runtime wrong value will cause an error.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><strong>ISO 8601 examples</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Fixed date:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>2024-02-01T08:40:37</p>
+</li>
+<li>
+<p>2050-01-01</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Duration:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>PT20M - in 20 minutes</p>
+</li>
+<li>
+<p>PT5H - in 5 hours</p>
+</li>
+<li>
+<p>PT3D - in 3 days</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="accessing-due-date-programmatically"><a class="anchor" href="#accessing-due-date-programmatically"></a>Accessing Due Date Programmatically</h3>
+<div class="paragraph">
+<p>It is possible to manipulate <em>due date</em> parameter using <code>Task</code> class methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Task task = taskService.createTaskQuery()
+                .taskId("taskId").singleResult(); <i class="conum" data-value="1"></i><b>(1)</b>
+task.getDueDate(); <i class="conum" data-value="2"></i><b>(2)</b>
+task.setDueDate(null); <i class="conum" data-value="3"></i><b>(3)</b>
+taskService.saveTask(task); <i class="conum" data-value="4"></i><b>(4)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — get task by id</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — get the current value of due date</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td> — set new due date value equals 'null'</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td> — save task object</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>So, you can change due dates dynamically depending on your business logic.
+For example, the assignee can ask for additional time to complete the task.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-business-calendar"><a class="anchor" href="#using-business-calendar"></a>Using Business Calendar</h3>
+<div class="paragraph">
+<p>When you have a <strong>Business Calendars</strong> add-on installed,
+the corresponding field appears in the <em>General</em> properties section in the <strong>Web BPM Modeler</strong>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="busines calendar" src="../_images/bpmn-user-task/busines-calendar.png" width="400"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Here you can select one of preconfigured business calendars from the pull-down list.
+In this case, the due date can be set only as duration, and the elapsed time will be calculated taking into account the business calendar.</p>
+</div>
+<div class="paragraph">
+<p>For example, the user received the task at 04:00 PM.
+In the business calendar standard working time is set from 10:00 AM till 06:00 PM,
+and a due date parameter is set for 3 hours (<code>PT3H</code>).</p>
+</div>
+<div class="paragraph">
+<p>The deadline will be set not at 07:00 PM right after 3 hours but at 11:00 AM the next working day.
+With business calendar, only working hours are counted.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>With business calendar duration can be set in hours and minutes, not in days.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><strong>XML representation</strong>
+A user task with due date:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userTask id="Activity_0gsy9yk" name="User task"
+    flowable:dueDate="PT3H" <i class="conum" data-value="1"></i><b>(1)</b>
+    flowable:businessCalendarName="test-calendar"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+. . .
+&lt;/userTask&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td> — Due date as duration</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td> — Business calendar attribute</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>See details in <a class="xref page" href="../../business-calendar/index.html">Business Calendars</a> add-on.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="user-assignment"><a class="anchor" href="#user-assignment"></a>User Assignment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order for a task to be ultimately completed, it must be assigned a performer.
+<strong>Only one</strong> user can be assigned as the human performer for the task, this user is called an <strong>assignee</strong>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>assignee</code> attribute can be empty. It means there is no user who sees this task in his task list.
+Such a task usually is considered as a <em>group task</em>, when there is a list of potential performers or <em>candidates</em>.
+As well, you can set the assignee at runtime — by using administrative functions or programmatically.</p>
+</div>
+<div class="sect2">
+<h3 id="assigne-sources"><a class="anchor" href="#assigne-sources"></a>Assignee Sources</h3>
+<div class="paragraph">
+<p>In Jmix BPM, the <em>assignee source</em> refers to the mechanism used to determine which way the user will be selected to be an assignee for a specific user task in a business process.
+There are three options, how to do that:</p>
+</div>
+<div class="hdlist">
+<table>
+<tr>
+<td class="hdlist1">
+Expression
+</td>
+<td class="hdlist2">
+<p>– an expression that result is a String containing username.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Process variable
+</td>
+<td class="hdlist2">
+<p>– a variable that refers to <em>User</em> entity.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+User provider
+</td>
+<td class="hdlist2">
+<p>– a Java class with the method returning a username.</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="assignee sources" src="../_images/bpmn-user-task/assignee-sources.png" width="460"/>
+</div>
+</div>
+<div class="sect3">
+<h4 id="assign-taask-by-expression"><a class="anchor" href="#assign-taask-by-expression"></a>Assigning Task by Expression</h4>
+<div class="paragraph">
+<p>Expression is a default assignee source.
+You will need to write an expression that evaluates a username of an assignee.
+For example, if the <code>User</code> entity is stored in a process variable called <code>manager</code>, then the expression will be <code>${manager.username}</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="assign by expression" src="../_images/bpmn-user-task/assign-by-expression.png" width="460"/>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>XML representation</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userTask id="user-task-01" name="User task"
+    flowable:assignee="${manager.username}"
+    jmix:assigneeSource="expression"
+    jmix:assigneeValue="${manager.username}" /&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to assign a task to a specific user, you can write a username directly:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="assigne by expression direct" src="../_images/bpmn-user-task/assigne-by-expression-direct.png" width="460"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, you can invoke Spring bean method that returns username:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>${smpl_MyBean.evaluateManager(methodParam1, 'methodParam2')}</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="assign-task-by-process-variable"><a class="anchor" href="#assign-task-by-process-variable"></a>Assigning Task by Process Variable</h4>
+<div class="paragraph">
+<p>If you select the <strong>Process variable</strong> assignee source, the <em>ComboBox</em> component will be displayed in the properties panel. This field displays those fields and process variables that are of the <code>Entity</code> type, and their entity class implements the <code>UserDetails</code> interface.</p>
+</div>
+<div class="paragraph">
+<p><strong>Built-in <code>initiator</code> variable</strong></p>
+</div>
+<div class="paragraph">
+<p>The build-in <code>initiator</code> process variable is available for assigning tasks while modeling a process. It contains an entity of the user that started the process:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="assignee initiator" src="../_images/bpmn-user-task/assignee-initiator.png" width="460"/>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>XML representation</strong></p>
+</div>
+<div class="paragraph">
+<p>A user task with the performer assigned by process variable:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userTask id="user-task-01" name="User task"
+    camunda:assignee="${initiator.username}"
+    jmix:assigneeSource="processVariable"
+    jmix:assigneeValue="initiator" /&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If the process was started via API or by message/signal, <code>initiator</code> variable isn’t defined.
+Using it may cause a runtime error.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can disable the <code>initiator</code> process variable using the following property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.bpm.process-initiator-variable-enabled=false</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, you can change the name of the initiator property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.bpm.process-initiator-variable-name=manager</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="assign-task-by-user-provider"><a class="anchor" href="#assign-task-by-user-provider"></a>Assigning Task by User Provider</h4>
+<div class="paragraph">
+<p>If you need to apply a complicated business logic to define a task performer, better to choose a <strong>User provider</strong> option.
+In this case, the system offers to select an existing user provider Java class:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="selecting user provider" src="../_images/bpmn-user-task/selecting-user-provider.png" width="460"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The user provider class needs to implement one or more methods with the <code>String</code> return type.
+A method gets parameter values that are specified in the modeler and returns a username of the user that becomes a task assignee.</p>
+</div>
+<div class="paragraph">
+<p><strong>XML representation</strong></p>
+</div>
+<div class="paragraph">
+<p>A user task with performer assigned by User Provider:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userTask id="user-task" name="User task" jmix:assigneeSource="userProvider" jmix:assigneeValue="smpl_MyUserProvider"&gt;
+  &lt;extensionElements&gt;
+    &lt;jmix:springBean beanName="smpl_MyUserProvider" methodName="getUser" /&gt;
+  &lt;/extensionElements&gt;
+&lt;/userTask&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>User provider class is a common Spring bean, annotated by <code>@UserProvider</code> annotation.
+Here is an example of the user provider that reads a process variable with the user email and finds the user in the database.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@UserProvider(value = "smpl_MyUserProvider", description = "Returns a user with the specified email")
+public class MyUserProvider {
+
+    @Autowired
+    private DataManager dataManager;
+
+    public String getUserByEmail(String parameter) {
+        return dataManager.load(User.class)
+                .query("select u from smpl_User u where u.email = :email")
+                .parameter("email", parameter)
+                .one()
+                .getUsername();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can implement any business rules in <code>UserProvider</code> class.
+For example, select the less busy user from the role or from the department; select next in turn; at least, select a random user from the group.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="assigning-task-programmaticaly"><a class="anchor" href="#assigning-task-programmaticaly"></a>Assigning Task Programmatically</h3>
+<div class="paragraph">
+<p>To set the task <em>assignee</em> programmatically, you can use the <code>setAssignee</code> method on the <code>TaskService</code>. Here’s an example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Task task = taskService.createTaskQuery()
+                       .taskId("taskId")
+                       .singleResult(); <i class="conum" data-value="1"></i><b>(1)</b>
+
+taskService.setAssignee(task.getId(), "jane"); <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>getting task object by Query API</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>setting assignee by username</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Tasks assigned to the certain user can be retrieved through the <code>TaskService</code> as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">List&lt;Task&gt; tasks = taskService.createTaskQuery()
+    .taskAssignee("jane") <i class="conum" data-value="1"></i><b>(1)</b>
+    .list();</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>username</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="task-candidate-users-and-groups"><a class="anchor" href="#task-candidate-users-and-groups"></a>Task Candidate Users and Groups</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>Candidates</strong> refer to users or groups who are eligible to claim and complete a task.
+When a task has multiple candidates assigned to it, the task appears in the task lists of all the candidates.
+The first candidate who claims the task becomes the <em>assignee</em> and can then complete the task.
+After that, the task becomes not visible to other candidates.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The term "groups" here technically means a list of <strong>User group</strong> codes.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="claiming-group-tasks"><a class="anchor" href="#claiming-group-tasks"></a>Claiming Group Tasks</h3>
+<div class="paragraph">
+<p>It often happens that we don’t need it a certain user performs the task.
+For example, it doesn’t matter for a manager who from two accountants make a decision about his order.</p>
+</div>
+<div class="paragraph">
+<p>In this case, Jmix BPM allows assigning the task to  <em>candidates list</em> — and any of its members can become a performer.
+But previously he or she must <em>claim</em> the task.
+Claiming is an action of taking task ownership by user.</p>
+</div>
+<div class="paragraph">
+<p>The task with candidates appears in <a class="xref page" href="multi-instance-activities.html"><strong>My tasks</strong></a> view in the <strong>Group tasks</strong> section for each candidate.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="my tasks claim" src="../_images/bpmn-user-task/my-tasks-claim.png" width="300"/>
+</div>
+</div>
+<div class="paragraph">
+<p>After any of the candidates claims the task, the task moves to the <strong>Assigned tasks</strong> list for this user and disappears from the <strong>Group tasks</strong> list of other candidates.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="claiming form" src="../_images/bpmn-user-task/claiming-form.png" width="450"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To claim the task user must open it and take one of the actions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Claim and resume</strong> — the user becomes a task assignee, the task form will be reopened in normal mode, and he or she can continue to work with it.</p>
+</li>
+<li>
+<p><strong>Claim and close</strong> — the user becomes a task assignee, the task form will be closed; he or she can find it later in the <em>Assigned tasks</em> section of a task list:</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="my tasks claimed task" src="../_images/bpmn-user-task/my-tasks-claimed-task.png" width="300"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="claiming-task-programmatically"><a class="anchor" href="#claiming-task-programmatically"></a>Claiming Task Programmatically</h3>
+<div class="paragraph">
+<p>It’s possible to claim the task on the specified user via API:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">taskService.claim("taskId", "userId");</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="setting-candidates-in-web"><a class="anchor" href="#setting-candidates-in-web"></a>Setting Candidates in Modeler</h3>
+<div class="paragraph">
+<p>For setting candidate groups, click the <strong>Edit</strong> button:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="web modeler candidate groups" src="../_images/bpmn-user-task/web-modeler-candidate-groups.png" width="400"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Then the <em>Candidate groups editor</em> window will be opened where you’d be able to select the candidate groups source:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="candidate groups sources" src="../_images/bpmn-user-task/candidate-groups-sources.png" width="500"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>User groups</strong> — pick user groups from the list.</p>
+</li>
+<li>
+<p><strong>User groups provider</strong> — select a special Java class that returns a list of user groups.</p>
+</li>
+<li>
+<p><strong>Expression</strong> — get a list of user groups from expression, for example, from the process variable defined earlier in the process.</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="candidates-by-user-groups"><a class="anchor" href="#candidates-by-user-groups"></a>Set Candidates by User Groups</h4>
+<div class="paragraph">
+<p>If you have chosen a <em>User groups</em> option as a source, you can select any from existing user groups:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="selecting candidate grouos" src="../_images/bpmn-user-task/selecting-candidate-grouos.png" width="500"/>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="user-groups-provider"><a class="anchor" href="#user-groups-provider"></a>User Groups Provider</h4>
+<div class="paragraph">
+<p>If you need to implement a complicated logic when setting candidate groups, better choose the <em>User groups provider</em> option.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="selecting user group provider" src="../_images/bpmn-user-task/selecting-user-group-provider.png" width="450"/>
+</div>
+</div>
+<div class="paragraph">
+<p>It allows to select one of previously created Java beans provided with the <code>@UserGroupListProvider</code> annotation.
+This bean must implement one or more methods returning <code>List&lt;String&gt;</code> containing user group codes.</p>
+</div>
+<div class="paragraph">
+<p>The <code>@UserGroupListProvider</code> annotation has two attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>value</strong> — a name that will be displayed in the modeler.</p>
+</li>
+<li>
+<p><strong>description</strong> — an explanation of the method’s purpose, optional.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Here is an example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@UserGroupListProvider(value="allGroups",
+                       description = "Returns a list of all groups")
+public class MyGroupListProvider {
+
+    @Autowired
+    private UserGroupService userGroupService;
+
+    public List&lt;String&gt; getAllUserGroups() {
+        List&lt;UserGroup&gt; allUserGroups = userGroupService.getAllUserGroups();
+        if (!allUserGroups.isEmpty()) {
+            return allUserGroups.stream().map(UserGroup::getCode).toList();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See the <a class="xref page" href="../menu-views/user-groups.html">User groups</a> section for more information.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="candidate-groups-by-expression"><a class="anchor" href="#candidate-groups-by-expression"></a>Set Candidate Groups by Expression</h4>
+<div class="paragraph">
+<p>The most general way of setting BPMN parameters is expression.
+For candidate groups, it is also available:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="candidate groups expression" src="../_images/bpmn-user-task/candidate-groups-expression.png" width="350"/>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="candidate-users-options"><a class="anchor" href="#candidate-users-options"></a>Candidate Users Options</h4>
+<div class="paragraph">
+<p>Setting candidate users in the <strong>Web BPM Modeler</strong> is very similar to setting candidate groups.
+Here are sources you can choose from:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="candidate users options" src="../_images/bpmn-user-task/candidate-users-options.png" width="350"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>User groups</strong> — pick usernames from the list.</p>
+</li>
+<li>
+<p><strong>User groups provider</strong> — select a special Java class that returns a list of usernames.</p>
+</li>
+<li>
+<p><strong>Expression</strong> — get a list of usernames from expression.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="user-list-provider"><a class="anchor" href="#user-list-provider"></a>User List Provider</h4>
+<div class="paragraph">
+<p>Similar to <em>User Groups Provider</em>, you can get a list of candidate users programmatically
+via calling a method of the Spring bean annotated by <code>@UserListProvider</code> annotation:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="candidate user list provider" src="../_images/bpmn-user-task/candidate-user-list-provider.png" width="450"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Here is an example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@UserListProvider(value = "smpl_UserListProviderDemo",
+                  description = "Get all users")
+public class UserListProviderDemo {
+
+    @Autowired
+    private DataManager dataManager;
+    @Autowired
+    private SystemAuthenticator authenticator;
+
+    public List&lt;String&gt; getAllUsers() {
+        authenticator.begin();
+        try {
+            List&lt;User&gt; users = dataManager.load(User.class).all().list();
+            return users.stream().map(User::getUsername).toList();
+        } finally {
+            authenticator.end();
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="candidate-users-by-expression"><a class="anchor" href="#candidate-users-by-expression"></a>Set Candidate Users by Expression</h4>
+<div class="paragraph">
+<p>As well, you can use the most common way of setting parameter of the process model — by expression:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="candidate users expression" src="../_images/bpmn-user-task/candidate-users-expression.png" width="330"/>
+</div>
+</div>
+<div class="paragraph">
+<p>For example, this way you can refer to the username of the <em>User</em> entity variable:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>${initiator.username}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>CandidateUsers and candidateGroups can both be defined on the same user task.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="defining-task-forms"><a class="anchor" href="#defining-task-forms"></a>User Task Process Forms</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>User task can be configured with a <a class="xref page" href="../forms.html">process form</a> to assist the performer in entering data required for this task. The collected data can then be passed along in the process.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="multi-instance"><a class="anchor" href="#multi-instance"></a>Multi Instance</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>User tasks can be multi-instanced.
+See details on this mode in the <a class="xref page" href="multi-instance-activities.html">Multi-Instance</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setting-task-listeners"><a class="anchor" href="#setting-task-listeners"></a>Setting Task Listeners</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>User tasks in Jmix BPM support the use of task listeners to execute custom logic in response to specific events.
+Task listeners allow you to define Java classes or expressions
+that will be triggered when certain events occur related to the user task.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="task listeners field" src="../_images/bpmn-user-task/task-listeners-field.png" width="460"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Available events for task listeners on user tasks include:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>create</strong>: Triggered when the user task is created</p>
+</li>
+<li>
+<p><strong>assignment</strong>: Triggered when the user task is assigned to a user or group</p>
+</li>
+<li>
+<p><strong>complete</strong>: Triggered when the user task is completed</p>
+</li>
+<li>
+<p><strong>delete</strong>: Triggered when the user task is deleted</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To configure a task listener for a user task, you can use the <code>flowable:taskListener</code> extension element in the BPMN XML
+or the <code>addTaskListener</code> method in the Java API.</p>
+</div>
+<div class="paragraph">
+<p>Task listeners provide a powerful mechanism to extend the behavior of user tasks
+and integrate custom logic into your processes.
+They allow you to perform actions such as sending notifications, updating external systems,
+or performing additional validations based on the events that occur during the lifecycle of a user task.</p>
+</div>
+<div class="paragraph">
+<p><strong>XML representation</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userTask id="approve-invoice" name="Approve invoice" jmix:assigneeSource="expression"&gt;
+  &lt;extensionElements&gt;
+    . . .
+    &lt;flowable:taskListener class="com.company.demo.listener.ApproverAssignment" <i class="conum" data-value="1"></i><b>(1)</b>
+                           event="assignment" /&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+  &lt;/extensionElements&gt;
+ . . .
+&lt;/userTask&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Task listener class</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Task event</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>See details in  the <a class="xref page" href="../task-listeners.html">Task Listeners</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="task-documentation"><a class="anchor" href="#task-documentation"></a>Documentation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To provide user with additional information, we have parameter <em>documentation</em> like it named in BPMN, or <em>description</em> as it is named in API.
+It can be no more than 4000 characters long.</p>
+</div>
+<div class="paragraph">
+<p>Originally <em>documentation</em> field was intended to document a process model by analytics.
+But in the case of <strong>User task</strong> it can be considered as instruction for user, explaining what to do.</p>
+</div>
+<div class="paragraph">
+<p>You can find this field at the very end of the properties panel.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can update the <em>documentation</em> field every time you change your process.
+Thus, it’s the easiest and effective way to provide users with actual information.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

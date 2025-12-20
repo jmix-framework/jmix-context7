@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Services</h1>
+<div class="sect1">
+<h2 id="webdav-documents-management-service"><a class="anchor" href="#webdav-documents-management-service"></a>WebdavDocumentsManagementService</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The service is intended to be used with <code>WebdavDocument</code>. Its methods enable you to perform the following actions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Retrieve a document using a document version ID, document ID, document URI, or document version.</p>
+</li>
+<li>
+<p>Retrieve a list of documents from a specified document or resource path.</p>
+</li>
+<li>
+<p>Create or remove a lock on a document with a defined timeout period.</p>
+</li>
+<li>
+<p>Create, update, or delete a document.</p>
+</li>
+<li>
+<p>Create, update, or delete versions of a specific document.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="webdav-document-versions-management-service"><a class="anchor" href="#webdav-document-versions-management-service"></a>WebdavDocumentVersionsManagementService</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The service is utilized for managing document versions, providing the following capabilities:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Retrieving the initial version of a document.</p>
+</li>
+<li>
+<p>Obtaining the most recent version of a document.</p>
+</li>
+<li>
+<p>Retrieving a specific version of a document</p>
+</li>
+<li>
+<p>Retrieving all available versions of a document</p>
+</li>
+<li>
+<p>Creating, updating, or deleting document versions</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="webdav-raw-links-management-service"><a class="anchor" href="#webdav-raw-links-management-service"></a>WebdavRawLinksManagementService</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The service is used for managing persistent links. Persistent links are stored in the database as instances of the <code>WebdavLink</code> entity, pointing to instances of <code>WebdavDocument</code> or <code>WebdavDocumentVersion</code> entities. The format of the links is as follows: <code>http://localhost:8080/app/webdav/link/{linkIdentifier}</code>, where the <code>linkIdentifier</code> corresponds to the id of the <code>WebdavLink</code> entity.</p>
+</div>
+<div class="paragraph">
+<p>For example, <code>http://localhost:8080/app/webdav/link/7a53ce0e-1576-ad32-a131-4abcde6b1235</code>.</p>
+</div>
+<div class="paragraph">
+<p>When a link is clicked, a non-persistent link is generated and opened. Each link comes with context, which provides additional information on how to open the file entity that the link references. By default, a link is created with a default (empty) context. This context varies based on the type of entity stored in the link. If the entity type is <code>WebdavDocument</code>, the file will be opened with full access mode. If the entity type is <code>WebdavDocumentVersion</code>, the file will be opened in read-only access mode. The string value of the link is contained within the <code>url</code> field of the <code>WebdavUrl</code>.</p>
+</div>
+<div class="paragraph">
+<p>The service methods provide the capability to establish and delete persistent links to a document with a default, read-only, or custom context.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="webdav-url-management-service"><a class="anchor" href="#webdav-url-management-service"></a>WebdavUrlManagementService</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The service is used for retrieving non-persistent links. These links contain details about the application for opening, access mode, filename, and document version. The link either launches the application for the file stored in the <code>WebdavDocument</code>/<code>WebdavDocumentVersion</code> entity or initiates a download. For instance: <code>ms-word:ofv|u|http://localhost:8080/app/webdav/document/0e68df0e-8395-4d25-a230-3eb89e6b2674/example.docx</code>.</p>
+</div>
+<div class="paragraph">
+<p>The link’s string value is contained within the <code>url</code> field of the <code>WebdavUrl</code> class. These links are not stored in the database but are dynamically generated.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+It is recommended to use persistent links from the <code>WebdavRawLinksManagementService</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The service offers the following functionalities:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Obtaining a link to the most recent document version with full access or in read-only mode.</p>
+</li>
+<li>
+<p>Obtaining a link to a specific document version with full access or in read-only mode.</p>
+</li>
+<li>
+<p>Retrieving details about an external application utilized for opening a document version.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

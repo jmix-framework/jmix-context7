@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opening Views :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Opening Views</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A regular (non-main) view can be opened either by navigating to its URL (specified in the <code>@Route</code> annotation) or on the current page by opening a dialog window.</p>
+</div>
+<div class="paragraph">
+<p>When using navigation, the web browser URL reflects the state of the application UI, which allows for <em>deep linking</em>. A user of the application can copy and share the URL to provide the link to a specific view and its current state, for example, to the details of a particular entity instance.</p>
+</div>
+<div class="paragraph">
+<p>The downside of the navigation is the relative complexity of passing parameters to the opened view. They can be passed only in the URL as the <a href="https://vaadin.com/docs/latest/routing/route-parameters" rel="noopener" target="_blank">route</a> or <a href="https://vaadin.com/docs/latest/routing/additional-guides/query-parameters" rel="noopener" target="_blank">query</a> parameters. Also, it is impossible to return any values from the view, after it is closed, to the calling code.</p>
+</div>
+<div class="paragraph">
+<p>When opening a view in a dialog window, the browser URL is not changed, but the opened view instance is available to the calling code. It enables passing any values directly to the view instance and returning results after the view is closed. This approach is used when opening list views for selecting and returning entity instances in lookup fields.</p>
+</div>
+<div class="paragraph">
+<p>The main menu opens views by navigation. Standard <a class="xref page" href="../actions/list-actions.html#list_create">list_create</a> and <a class="xref page" href="../actions/list-actions.html#list_edit">list_edit</a> actions also open detail views by navigation, but can be configured to use dialogs. The <a class="xref page" href="../actions/entity-picker-actions.html#entity_lookup">entity_lookup</a> standard action always opens a list view in a dialog to be able to get back selected entities.</p>
+</div>
+<div class="paragraph">
+<p>Below we describe how to open views programmatically in your application code.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="navigation"><a class="anchor" href="#navigation"></a>Navigation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To open a view by navigating to its URL, inject the <code>ViewNavigators</code> bean and use its fluent interface to specify the current view and the opened view class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewNavigators viewNavigators;
+
+private void navigateToView() {
+    viewNavigators.view(this, MyOnboardingView.class).navigate();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>navigate()</code> is the terminal method that performs the navigation.</p>
+</div>
+<div class="paragraph">
+<p>If the calling class is not a view, and you cannot pass <code>this</code> as a current view, use <code>UiComponentUtils.getCurrentView()</code> to determine the currently opened view.</p>
+</div>
+<div class="paragraph">
+<p>If you want to return to the calling view after the opened view is closed, invoke the <code>withBackwardNavigation(true)</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewNavigators viewNavigators;
+
+private void navigateToViewThenBack() {
+    viewNavigators.view(this, MyOnboardingView.class)
+            .withBackwardNavigation(true)
+            .navigate();
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Backward Navigation Limitations</strong></p>
+</div>
+<div class="paragraph">
+<p>Backward navigation supports only one level of view nesting. The navigation stack does not store the entire chain of view transitions.</p>
+</div>
+<div class="paragraph">
+<p>Due to this limitation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Views opened from a detail view must use <code>DIALOG</code> open mode.</p>
+</li>
+<li>
+<p>The navigation history is limited to immediate parent-child relationships.</p>
+</li>
+<li>
+<p>Deep navigation links cannot be restored using backward navigation.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To navigate to a list view, use the <code>listView()</code> method accepting the entity class. The list view class will be chosen by <a href="#view-inference-conventions">convention</a>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewNavigators viewNavigators;
+
+private void navigateToListView() {
+    viewNavigators.listView(this, Department.class).navigate();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can specify the list view id or class explicitly, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewNavigators viewNavigators;
+
+private void navigateToListViewWithClass() {
+    viewNavigators.listView(this, Department.class)
+            .withViewClass(DepartmentListView.class)
+            .navigate();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To navigate to a detail view, use the <code>detailView()</code> method, accepting the entity class or a visual component bound to the entity. The detail view class will be chosen by <a href="#view-inference-conventions">convention</a>.</p>
+</div>
+<div class="paragraph">
+<p>To create a new entity instance, invoke <code>newEntity()</code>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewNavigators viewNavigators;
+
+private void navigateToCreateEntity() {
+    viewNavigators.detailView(this, Department.class)
+            .newEntity()
+            .navigate();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To edit an entity instance, invoke <code>editEntity()</code>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewNavigators viewNavigators;
+
+private void navigateToEditEntity(Department entity) {
+    viewNavigators.detailView(this, Department.class)
+            .editEntity(entity)
+            .navigate();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can specify the detail view id or class explicitly using <code>withViewId()</code> and <code>withViewClass()</code> methods.</p>
+</div>
+<div class="sect2">
+<h3 id="passing-parameters"><a class="anchor" href="#passing-parameters"></a>Passing Parameters</h3>
+<div class="paragraph">
+<p>The recommended way to pass parameters to a view opened by navigation is using the <code>withQueryParameters()</code> method of the fluent interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewNavigators viewNavigators;
+
+private void navigateToViewWithQueryParameters() {
+    viewNavigators.view(this, FancyMessageView.class)
+            .withQueryParameters(QueryParameters.of("message", "Hello World!"))
+            .navigate();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, the parameter will be added to the URL, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">http://localhost:8080/FancyMessageView?message=Hello%20World!</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the opened view, use <code>QueryParametersChangeEvent</code> handler
+ to get the parameter value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private H1 messageLabel;
+
+public void setMessage(String message) {
+    messageLabel.setText(message);
+}
+
+@Subscribe
+public void onQueryParametersChange(final QueryParametersChangeEvent event) {
+    List&lt;String&gt; messageParams = event.getQueryParameters().getParameters().get("message");
+    if (messageParams != null &amp;&amp; !messageParams.isEmpty())
+        setMessage(messageParams.get(0));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Another option is to use the <code>withAfterNavigationHandler()</code> method of the fluent interface and pass the parameter to the opened view object directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewNavigators viewNavigators;
+
+private void navigateToViewWithAfterNavigationHandler() {
+    viewNavigators.view(this, FancyMessageView.class)
+            .withAfterNavigationHandler(afterViewNavigationEvent -&gt; {
+                FancyMessageView view = afterViewNavigationEvent.getView();
+                view.setMessage("Hello World!");
+            })
+            .navigate();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, the URL will not contain the parameter:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">http://localhost:8080/FancyMessageView</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This approach is simpler and allows you to pass complex types, but the downside is the same as with opening views in dialog windows: it doesn’t provide a deep link and the view state will be lost if the user refreshes the web page.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dialog-windows"><a class="anchor" href="#dialog-windows"></a>Opening Dialog Windows</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>DialogWindows</code> bean provides a fluent interface for opening views in dialog windows. Its terminal methods give access to the opened view instance. It allows you to pass input parameters directly to the view instance and add listeners for getting results back from the opened view after it is closed.</p>
+</div>
+<div class="paragraph">
+<p>To open a view as a dialog, inject the <code>DialogWindows</code> bean and invoke the <code>view()</code> method passing the current view and the opened view class to it. Then invoke the <code>open()</code> terminal method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+
+private void openView() {
+    dialogWindows.view(this, MyOnboardingView.class).open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need to pass parameters to the opened view, invoke the <code>build()</code> terminal method, set parameters to the view, then open the window:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+
+private void openViewWithParams(String username) {
+    DialogWindow&lt;MyOnboardingView&gt; window =
+            dialogWindows.view(this, MyOnboardingView.class).build();
+    window.getView().setUsername(username);
+    window.open();
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When you invoke the <code>build()</code> method, the <a class="xref page" href="view-events.html#init-event">InitEvent</a> is fired. If you open a dialog window to create a new entity, the <a class="xref page" href="view-events.html#init-entity-event">InitEntityEvent</a> will also be fired when you call the <code>build()</code> method. The rest of the <a class="xref page" href="view-events.html">lifecycle events</a> for the view are triggered when you call the <code>open()</code> method.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To get a result from the opened view after it is closed, add <code>AfterCloseEvent</code> listener to the dialog window:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+
+private void openViewWithParamsAndResults(String username) {
+    DialogWindow&lt;MyOnboardingView&gt; window =
+            dialogWindows.view(this, MyOnboardingView.class).build();
+    window.getView().setUsername(username);
+    window.addAfterCloseListener(afterCloseEvent -&gt; {
+        if (afterCloseEvent.closedWith(StandardOutcome.SAVE)) {
+            // ...
+        }
+    });
+    window.open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>AfterCloseEvent</code> object contains <code>CloseAction</code> passed to the view’s <code>close()</code> method. For example, when a standard entity detail view is closed with <strong>OK</strong> button, the close action is <code>save</code>. You can analyze the close action using the <code>getCloseAction()</code> or <code>closedWith()</code> methods of the event object.</p>
+</div>
+<div class="paragraph">
+<p>You can also add <code>AfterCloseEvent</code> listener using the fluent interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+
+private void openViewWithResults() {
+    dialogWindows.view(this, MyOnboardingView.class)
+            .withAfterCloseListener(afterCloseEvent -&gt; {
+                if (afterCloseEvent.closedWith(StandardOutcome.SAVE)) {
+                    // ...
+                }
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To select entities from a list view, open the view using the <code>lookup()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+
+private void openLookupView() {
+    dialogWindows.lookup(this, Department.class)
+            .withSelectHandler(departments -&gt; {
+                // ...
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the <code>withSelectHandler()</code> method to provide a lambda which accepts the collection of entity instances selected in the opened view.</p>
+</div>
+<div class="paragraph">
+<p>To create a new entity instance in a detail view, specify the view class and invoke <code>newEntity()</code>. Use <code>AfterCloseEvent</code> listener to get the created entity. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+
+private void openDetailViewToCreateEntity() {
+    dialogWindows.detail(this, Department.class)
+            .withViewClass(DepartmentDetailView.class)
+            .newEntity()
+            .withAfterCloseListener(afterCloseEvent -&gt; {
+                if (afterCloseEvent.closedWith(StandardOutcome.SAVE)) {
+                    Department department = afterCloseEvent.getView().getEditedEntity();
+                    // ...
+                }
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To edit an existing entity in a detail view, provide the instance to edit using the <code>editEntity()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+
+private void openDetailViewToEditEntity(Department department) {
+    dialogWindows.detail(this, Department.class)
+            .withViewClass(DepartmentDetailView.class)
+            .editEntity(department)
+            .withAfterCloseListener(afterCloseEvent -&gt; {
+                if (afterCloseEvent.closedWith(StandardOutcome.SAVE)) {
+                    Department editedDepartment = afterCloseEvent.getView().getEditedEntity();
+                    // ...
+                }
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can provide input parameters to list and detail views in the same way as described for the simple view in the beginning of this section: invoke the <code>build()</code> terminal method, set parameters to the view, then open the window.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="view-inference-conventions"><a class="anchor" href="#view-inference-conventions"></a>View Inference Conventions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A list or detail view can be inferred from the entity class.</p>
+</div>
+<div class="paragraph">
+<p>When navigating to a list view using <code>viewNavigators.listView(this, SomeEntity.class)</code>, the framework selects a view in the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A view annotated with <code>@PrimaryListView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with <code>SomeEntity.list</code> id.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>When opening a list view for lookup using <code>dialogWindows.lookup(this, SomeEntity.class)</code>, the framework selects a view in the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A view annotated with <code>@PrimaryLookupView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with <code>SomeEntity.lookup</code> id.</p>
+</li>
+<li>
+<p>A view annotated with <code>@PrimaryListView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with <code>SomeEntity.list</code> id.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>When navigating to a detail view or opening it in a dialog window, the framework selects a view in the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A view annotated with <code>@PrimaryDetailView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with <code>SomeEntity.detail</code> id.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

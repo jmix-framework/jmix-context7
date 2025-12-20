@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating Add-ons :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Creating Add-ons</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, we describe how to create custom add-ons and manage dependencies between them.</p>
+</div>
+<div class="paragraph">
+<p>An add-on can be easily created using the <strong>Add-On</strong> template of the Studio project creation wizard. The resulting project will contain two source code modules: a functional module and a starter module.</p>
+</div>
+<div class="paragraph">
+<p>By default, the functional module will contain dependencies on the Jmix data access and UI subsystems. You should create all functionality in this module.</p>
+</div>
+<div class="paragraph">
+<p>The starter module contains Spring Boot auto-configuration for your add-on. To use the add-on in an application or in another add-on, you will add dependency on the starter module artifact to the <code>build.gradle</code> file of the target project, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">dependencies {
+    implementation 'com.company.sample:sample-starter:0.0.1'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The functional module will be included transitively through the starter.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+See the <a class="xref page" href="../studio/composite-projects.html">Composite Projects</a> section for how to develop multiple add-ons and applications in a single IDE project.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="hierarchy"><a class="anchor" href="#hierarchy"></a>Hierarchy of Add-ons</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In any Jmix application, all included <a class="xref page" href="index.html#subsystems">core subsystems and add-ons</a> form a hierarchy of dependencies. The hierarchy is very important for some framework features.</p>
+</div>
+<div class="paragraph">
+<p>For example, when the application starts, it can execute Liquibase changelogs for creating or updating the database. The changelogs from different subsystems must be executed in a certain order, because if entities of add-on A are referenced from add-on B, then tables of add-on A must be created before tables of add-on B.</p>
+</div>
+<div class="paragraph">
+<p>If some base feature supports override, the hierarchy enables predictable end result of the overriding. For example, if add-ons A, B and C define a value of the same application property, and C depends on B which depends on A, then you can be sure that the application which uses all these add-ons will get the value from add-on C.</p>
+</div>
+<div class="paragraph">
+<p>The application itself always depends on all included subsystems. Therefore, Liquibase changelogs of the application project are always executed last, and a property value defined in the application overrides values coming from any add-ons.</p>
+</div>
+<div class="paragraph">
+<p>The application is placed at the bottom of the hierarchy automatically, because it  can be uniquely identified by the presence of a class annotated with <code>@SpringBootApplication</code>. Dependencies between add-ons need an explicit declaration which is described below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix-module"><a class="anchor" href="#jmix-module"></a>@JmixModule</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In an add-on project, the functional module contains the main configuration class annotated with <code>@Configuration</code>, <code>@ComponentScan</code> and <code>@JmixModule</code>. The latter annotation indicates that the module should be included in the hierarchy of Jmix modules.</p>
+</div>
+<div class="paragraph">
+<p><code>@JmixModule</code> attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>id</code> - optional id of the module. Each module in the hierarchy must have a unique id. If this attribute is not set, the package name of the configuration class is used as the module id.</p>
+<div class="paragraph">
+<p>Usually, base packages of add-ons are unique, so the <code>id</code> attribute is not needed. But if your add-on contains tests, the test configuration class is located in the same base package as the main configuration. So you should provide a unique id for the test module, for example by adding the <code>.test</code> suffix to the package name:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.sample.base;
+// ...
+@JmixModule(id = "com.company.sample.base.test", dependsOn = BaseConfiguration.class)
+public class BaseTestConfiguration {</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>dependsOn</code> - declares modules on which this module depends on. The attribute should contain an array of configuration classes of the modules.</p>
+<div class="paragraph">
+<p>For example, if an add-on depends on Core, Data Access and UI subsystems, that is contains the following dependencies in <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">dependencies {
+    implementation 'io.jmix.core:jmix-core-starter'
+    implementation 'io.jmix.data:jmix-eclipselink-starter'
+    implementation 'io.jmix.flowui:jmix-flowui-starter'
+    implementation 'io.jmix.flowui:jmix-flowui-themes'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>then its <code>@JmixModule</code> annotation should declare dependencies to <code>EclipselinkConfiguration</code> and <code>FlowuiConfiguration</code> classes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixModule(dependsOn = {EclipselinkConfiguration.class, FlowuiConfiguration.class})
+public class BaseConfiguration {</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The dependency on the Core subsystem is brought transitively, you can check it if you look at the definition of the <code>EclipselinkConfiguration</code> or the <code>FlowuiConfiguration</code> class.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When a Jmix application starts, it outputs to the log an INFO message from the <code>io.jmix.core.JmixModulesProcessor</code> logger with the result of topological sort of the hierarchy of modules. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Using Jmix modules: [io.jmix.core, io.jmix.security, io.jmix.flowui,
+    io.jmix.securityflowui, io.jmix.data, io.jmix.eclipselink,
+    com.company.users, com.company.customers, com.company.products,
+    io.jmix.datatools, io.jmix.gridexportflowui, io.jmix.datatoolsflowui,
+    io.jmix.flowuidata, io.jmix.localfs, io.jmix.securitydata,
+    com.company.sales]</pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Make sure that the application module is the last in the list, after all add-ons. If it’s not, most probably the dependencies between your add-ons are defined incorrectly, so check their <code>@JmixModule(dependsOn)</code> contents.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="properties"><a class="anchor" href="#properties"></a>Module Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An add-on can provide application properties in a property file. To do this, define properties in a file located in the base package of the module, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/com/company/sample/base/module.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.ui.menu-config = com/company/sample/base/menu.xml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then specify the path to the file in the <code>@PropertySource</code> annotation of the main configuration class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.sample.base;
+// ...
+@PropertySource(name = "com.company.sample.base", value = "classpath:/com/company/sample/base/module.properties")
+public class BaseConfiguration {</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The <code>@PropertySource</code> annotation must have the <code>name</code> attribute set to the module id (which is normally equal to the base package name).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You may notice that in the example above the add-on defines the <code>jmix.ui.menu-config</code>, which is usually also defined in the application. So why the application value does not just override the value of the add-on? In fact it does: if you get the value of <code>jmix.ui.menu-config</code> from Spring’s <code>Environment</code> in the application, you’ll get only the value defined in the application. But using the <a class="xref page" href="extension.html#modules-api">JmixModules</a> bean, you can get values of a particular property from all modules used in the application. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+Environment environment;
+@Autowired
+JmixModules jmixModules;
+
+void checkProperties() {
+    String envProp = environment.getProperty("jmix.ui.menu-config");
+    // com/company/sample/ext/menu.xml
+
+    List&lt;String&gt; moduleProps = jmixModules.getPropertyValues("jmix.ui.menu-config");
+    // [io/jmix/flowui/menu.xml, com/company/sample/base/menu.xml, com/company/sample/ext/menu.xml]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This approach is widely used in the framework for aggregating configuration defined in add-ons, like <a class="xref page" href="../flow-ui/menu-config.html">UI menu</a>, shared <a class="xref page" href="../data-access/fetching.html#fetch-plan">fetch plans</a>, and others.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

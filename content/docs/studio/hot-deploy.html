@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hot Deploy :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Hot Deploy</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix supports Hot Deploy technology that helps to apply project changes to the running application immediately without restarting the application server.</p>
+</div>
+<div class="paragraph">
+<p>The following classes and resources are hot deployed:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>View descriptors and controllers;</p>
+</li>
+<li>
+<p>Classes used by view controllers by instantiating them or via static methods;</p>
+</li>
+<li>
+<p>Localized messages;</p>
+</li>
+<li>
+<p>Menu;</p>
+</li>
+<li>
+<p>Fetch plans;</p>
+</li>
+<li>
+<p>Resource roles;</p>
+</li>
+<li>
+<p>Row-level roles.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Entity classes and Spring beans are not hot deployed.</p>
+</div>
+<div class="paragraph">
+<p>The hot deploy works as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Studio detects changed source files and</p>
+<div class="ulist">
+<ul>
+<li>
+<p>if it’s a resource file, Studio copies it to the <code>.jmix/conf</code> directory;</p>
+</li>
+<li>
+<p>if it’s a Java or Kotlin file, Studio compiles it and copies to the <code>build/classes</code> project directory.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>When the application opens a view, it loads new classes and resources from the above directories.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The location of the directory for hot deploying resources is determined by the <a class="xref page" href="../app-properties.html#jmix.core.conf-dir">jmix.core.conf-dir</a> application property. This directory is cleaned on the application start by the <strong>Before launch</strong> task configured in <a class="xref page" href="project.html#run-debug-configuration-settings">Run/Debug Configuration Settings</a>.</p>
+</div>
+<div class="paragraph">
+<p>Additionally, to ensure that the cleanup is more reliable and not dependent on Studio, there is a Gradle task called <code>cleanConf</code>. This task runs every time before launching the application using the <code>bootRun</code> task.</p>
+</div>
+<div class="paragraph">
+<p>If you encounter any issues with this feature, you can disable the <code>cleanConf</code> task in your project by adding the following property to your <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-gradle hljs" data-lang="gradle">jmix {
+    // ...
+    confDirCleanupEnabled = false
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Studio also sends signals to the application to clear appropriate caches to make it load the changed resources. These are messages cache and the configurations of fetch plans, registered views and menu. Signals are implemented as trigger files created in the <code>.jmix/temp/triggers</code> directory (its location can be changed by the <a class="xref page" href="../app-properties.html#jmix.core.temp-dir">jmix.core.temp-dir</a> property).</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The application may require 2-3 seconds to reload classes and resources after saving them in Studio. If you don’t see expected changes after opening a view, try to refresh the web page again.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="indicator"><a class="anchor" href="#indicator"></a>Hot Deploy Indicator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Studio displays a status indicator icon in the top-right corner of hot-deployable files. This icon, which appears on files such as view controllers, view descriptors, message bundles, roles, and other similar resources, provides at-a-glance feedback on the current hot deployment status for that specific file.</p>
+</div>
+<div class="paragraph">
+<p>The primary purpose of this indicator is to continuously inform developers about the propagation of their latest source code changes to the running application. The icon’s appearance changes to reflect whether the changes have been successfully deployed, are in the process of being deployed, or if any errors occurred during the deployment process, providing immediate visual feedback on the state of hot deployment.</p>
+</div>
+<div class="paragraph">
+<p>Let’s examine the different states of the hot deploy indicator.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Application not running</strong>:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="hot deploy ind 1" src="_images/hot-deploy-ind-1.png" width="760"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The indicator displays with a gray outline. Clicking the indicator will trigger a pop-up message with an option to start the application.</p>
+</div>
+</li>
+<li>
+<p><strong>Application running, no file changes</strong>:</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="hot deploy ind 2" src="_images/hot-deploy-ind-2.png" width="760"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The indicator displays with a green outline. Clicking the indicator will trigger a pop-up message indicating that the file has not yet been hot-deployed.</p>
+</div>
+</li>
+<li>
+<p><strong>File modified, hot deployment available</strong>: The indicator turns solid green. Clicking the indicator will trigger a pop-up message with an option to initiate hot deployment.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="hot deploy ind 3" src="_images/hot-deploy-ind-3.png" width="760"/>
+</div>
+</div>
+<div class="paragraph">
+<p>After hot deployment is initiated, the indicator remains solid green, and the pop-up message displays the time of the last hot deployment:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="hot deploy ind 4" src="_images/hot-deploy-ind-4.png" width="333"/>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Hot deployment failed</strong>: The indicator turns red, indicating that hot deployment was unsuccessful due to a compilation error or other issue.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="hot deploy ind 5" src="_images/hot-deploy-ind-5.png" width="760"/>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

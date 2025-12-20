@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started with Testing :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Getting Started with Testing</h1>
+<div class="paragraph">
+<p>By default, every Jmix project already contains the directory structure for automated tests and two test classes in the <code>src/test/java/&lt;base-package&gt;/user</code> directory:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>UserTest.java</code> - an integration test for the <code>User</code> entity.</p>
+</li>
+<li>
+<p><code>UserUiTest.java</code> - a UI integration test for the user management views.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The <code>UserTest</code> saves a <code>User</code> entity through the Jmix <a class="xref page" href="../data-access/data-manager.html">DataManager</a> API.
+Then the test verifies that when loading the user by its username, the user is found and matches the originally saved user.</p>
+</div>
+<div class="listingblock">
+<div class="title">UserTest.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.demo.user;
+
+import com.company.demo.entity.User;
+import com.company.demo.test_support.AuthenticatedAsAdmin;
+import io.jmix.core.DataManager;
+import io.jmix.core.security.UserRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Sample integration test for the User entity.
+ */
+@SpringBootTest <i class="conum" data-value="1"></i><b>(1)</b>
+@ExtendWith(AuthenticatedAsAdmin.class) <i class="conum" data-value="2"></i><b>(2)</b>
+public class UserTest {
+
+    @Autowired <i class="conum" data-value="3"></i><b>(3)</b>
+    DataManager dataManager;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @Autowired
+    UserRepository userRepository;
+
+    User savedUser;
+
+    @Test <i class="conum" data-value="4"></i><b>(4)</b>
+    void test_saveAndLoad() {
+        // Create and save a new User
+        User user = dataManager.create(User.class);
+        user.setUsername("test-user-" + System.currentTimeMillis());
+        user.setPassword(passwordEncoder.encode("test-passwd"));
+        savedUser = dataManager.save(user);
+
+        // Check the new user can be loaded
+        User loadedUser = dataManager.load(User.class).id(user.getId()).one();
+        assertThat(loadedUser).isEqualTo(user);
+
+        // Check the new user is available through UserRepository
+        UserDetails userDetails = userRepository.loadUserByUsername(user.getUsername());
+        assertThat(userDetails).isEqualTo(user); <i class="conum" data-value="5"></i><b>(5)</b>
+    }
+
+    @AfterEach <i class="conum" data-value="6"></i><b>(6)</b>
+    void tearDown() {
+        if (savedUser != null)
+            dataManager.remove(savedUser);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@SpringBootTest</code> annotation indicates that the Spring context is started during the test execution.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>AuthenticatedAsAdmin</code> allows the test to interact with the system and the database as the <code>admin</code> user.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Dependencies are injected into the test code using the <code>@Autowired</code> Spring dependency injection annotation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Each test case is marked with the JUnit’s <code>@Test</code> annotation.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>To perform verifications, the assertion library <a href="https://assertj.github.io/doc/" rel="noopener" target="_blank">AssertJ</a> is automatically available in Jmix projects.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Operations like database cleanup are performed in tear down methods annotated with JUnit’s <code>@AfterEach</code> annotation.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The test itself is a regular Spring Boot integration test. It starts the complete Spring context and interacts with a real database.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+By default, the tests use the same database as the application when running locally.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Jmix Studio uses IntelliJ IDEA’s capabilities to execute tests. When you open the <code>UserTest.java</code> class in Jmix Studio, you can run the test cases by clicking the play button on the line of the test class. The IDE will show the result of the test execution and if the test was successful or not.</p>
+</div>
+<div class="paragraph">
+<p>See more information on how to run tests in the <a href="https://www.jetbrains.com/help/idea/performing-tests.html" rel="noopener" target="_blank">IntelliJ documentation</a>.</p>
+</div>
+<div class="paragraph">
+<p>The following sections will explain different types of tests in more detail.</p>
+</div>
+
+</article>
+</body>
+</html>

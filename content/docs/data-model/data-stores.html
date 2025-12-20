@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Stores :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Data Stores</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A data store represents a database or any other source of data in your application.</p>
+</div>
+<div class="paragraph">
+<p>Jmix core subsystem provides <code>JpaDataStore</code> which stores <a class="xref page" href="entities.html#jpa">JPA entities</a> in a relational database. This is the main persistence mechanism in Jmix applications, and when we mention a data store in this manual, we mean the JPA data store if not explicitly stated otherwise.</p>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../rest-ds/index.html">REST DataStore</a> add-on provides <code>RestDataStore</code> which works with <a class="xref page" href="entities.html#jpa">DTO entities</a> mapped to the <a class="xref page" href="../rest/index.html">REST API</a> exposed by a remote Jmix application. The REST data store has some limitations compared to the JPA data store.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="supported-databases"><a class="anchor" href="#supported-databases"></a>Supported Databases</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following databases are supported in Jmix out-of-the-box:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>HSQLDB (Java in-memory database)</p>
+</li>
+<li>
+<p>PostgreSQL</p>
+</li>
+<li>
+<p>MySQL 5.1+</p>
+</li>
+<li>
+<p>MariaDB</p>
+</li>
+<li>
+<p>Microsoft SQL Server 2008+</p>
+</li>
+<li>
+<p>Oracle</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../studio/data-stores.html">data store editor</a> in Studio automatically configures connection properties and adds an appropriate JDBC driver to the list of dependencies in <code>build.gradle</code>.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When using MariaDB with Jmix 2.4 - 2.6, downgrade Liquibase by adding the following code to your <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'org.liquibase:liquibase-core:4.25.0!!'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See issue <a href="https://github.com/jmix-framework/jmix/issues/3888" rel="noopener" target="_blank">#3888</a> for more information.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you need to connect a relational database not supported in Jmix out-of-the-box, follow instructions in the <a class="xref page" href="../studio/data-stores.html#unsupported-database">Studio: Connecting to Unsupported Databases</a> section.</p>
+</div>
+<div class="paragraph">
+<p>A non-relational database can be used by creating a <a href="#custom">custom data store</a> or directly as described in the <a class="xref page" href="../mongodb-integration-guide/index.html">MongoDB Integration in Jmix</a> guide.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="main"><a class="anchor" href="#main"></a>Main Store</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you create a new Jmix project in Studio, it has a single data store called <em>main</em> that connects to a relational database. The connection parameters are specified in the following application properties:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">main.datasource.url = jdbc:hsqldb:file:.jmix/hsqldb/demo
+main.datasource.username = sa
+main.datasource.password =
+
+main.liquibase.change-log = com/company/demo/liquibase/changelog.xml</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use Studio <a class="xref page" href="../studio/data-stores.html">data store management features</a> to define database connection properties for a data store.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The main application class contains a corresponding JDBC <code>DataSource</code> bean declaration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+@Primary
+@ConfigurationProperties("main.datasource")
+DataSourceProperties dataSourceProperties() {
+    return new DataSourceProperties();
+}
+
+@Bean
+@Primary
+@ConfigurationProperties("main.datasource.hikari")
+DataSource dataSource(final DataSourceProperties dataSourceProperties) {
+    return dataSourceProperties.initializeDataSourceBuilder().build();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All JPA entities by default are associated with the main data store.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="additional"><a class="anchor" href="#additional"></a>Additional Stores</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to work with multiple databases, you need additional data stores.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use Studio <a class="xref page" href="../studio/data-stores.html">data store management features</a> to define additional data stores.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Each additional store has a unique name, which is specified in the comma-separated list of the <code>jmix.core.additional-stores</code> application property. Parameters of the database connection have the store name as a prefix. In the examples below, the <code>locations</code> additional store is configured:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.additional-stores = locations,inmem
+
+locations.datasource.url = jdbc:hsqldb:file:.jmix/hsqldb/locations
+locations.datasource.username = sa
+locations.datasource.password =
+
+locations.liquibase.change-log = com/company/demo/liquibase/locations-changelog.xml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For each additional store, Studio creates a Spring configuration class and defines the JDBC <code>DataSource</code> and other related beans in it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Configuration
+public class LocationsStoreConfiguration {
+
+    @Bean
+    @ConfigurationProperties("locations.datasource")
+    DataSourceProperties locationsDataSourceProperties() {
+        return new DataSourceProperties();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "locations.datasource.hikari")
+    DataSource locationsDataSource(@Qualifier("locationsDataSourceProperties") DataSourceProperties properties) {
+        return properties.initializeDataSourceBuilder().build();
+    }
+
+    @Bean
+    LocalContainerEntityManagerFactoryBean locationsEntityManagerFactory(
+            @Qualifier("locationsDataSource") DataSource dataSource,
+            JpaVendorAdapter jpaVendorAdapter,
+            DbmsSpecifics dbmsSpecifics,
+            JmixModules jmixModules,
+            Resources resources
+    ) {
+        return new JmixEntityManagerFactoryBean("locations", dataSource, jpaVendorAdapter, dbmsSpecifics, jmixModules, resources);
+    }
+
+    @Bean
+    JpaTransactionManager locationsTransactionManager(@Qualifier("locationsEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
+        return new JmixTransactionManager("locations", entityManagerFactory);
+    }
+
+    @Bean("locationsLiquibaseProperties")
+    @ConfigurationProperties(prefix = "locations.liquibase")
+    public LiquibaseProperties locationsLiquibaseProperties() {
+        return new LiquibaseProperties();
+    }
+
+    @Bean("locationsLiquibase")
+    public SpringLiquibase locationsLiquibase(@Qualifier("locationsDataSource") DataSource dataSource,
+                                              @Qualifier("locationsLiquibaseProperties") LiquibaseProperties liquibaseProperties) {
+        return JmixLiquibaseCreator.create(dataSource, liquibaseProperties);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To associate an entity with an additional data store, use the <code>@Store</code> annotation on the entity class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Store(name = "locations")
+@JmixEntity
+@Table(name = "COUNTRY")
+@Entity
+public class Country {</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Studio adds <code>@Store</code> annotation when you select an additional data store for the entity in the entity designer.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the example above, the <code>Country</code> entity will be stored in the database connected as the <code>locations</code> data store.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom"><a class="anchor" href="#custom"></a>Custom Data Store</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A custom data store may help you to work with some DTO entities in the same way as with JPA entities - by using <code>DataManager</code>. If your DTO entity is associated with a custom store, <code>DataManager</code> will delegate its CRUD operations to your data store and use it when resolving references to your DTOs from other entities.</p>
+</div>
+<div class="paragraph">
+<p>Let’s consider the process of creating a custom data store. Imagine a transient <code>Metric</code> entity and an in-memory store for it.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a class that implements the <code>DataStore</code> interface. The class must be a Spring prototype bean. The example below contains a primitive implementation that is capable of storing entities of different types in memory.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
+public class InMemoryStore implements DataStore {
+    // ...
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a class that implements the <code>StoreDescriptor</code> interface. It must be a Spring singleton bean, and its <code>getBeanName()</code> method must return the name of the data store implementation bean created on the previous step:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class InMemoryStoreDescriptor implements StoreDescriptor {
+
+    @Override
+    public String getBeanName() {
+        return "inMemoryStore";
+    }
+
+    @Override
+    public boolean isJpa() {
+        return false;
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add the data store name (<code>inmem</code> in this case) to the <code>jmix.core.additionalStores</code> property:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.additional-stores = locations,inmem</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Set the <code>StoreDescriptor</code> bean name in the <code>jmix.core.store-descriptor-&lt;store_name&gt;</code> property:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.store-descriptor-inmem = inMemoryStoreDescriptor</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add <code>@Store</code> annotation to the entity:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Store(name = "inmem") <i class="conum" data-value="1"></i><b>(1)</b>
+@JmixEntity(annotatedPropertiesOnly = true) <i class="conum" data-value="2"></i><b>(2)</b>
+public class Metric {</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@Store</code> annotation specifies a custom data store.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>See <a class="xref page" href="entities.html#jmix-entity">@JmixEntity</a> description for more details.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Now you can save and load the entity using <code>DataManager</code> and it will delegate the CRUD operations to your custom data store:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Metric metric = dataManager.create(Metric.class);
+metric.setName("test");
+metric.setValue(10.0);
+dataManager.save(metric);
+
+Metric metric1 = dataManager.load(Id.of(metric)).one();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, if another entity has a reference to <code>Metric</code>, the <code>Metric</code> instance will be loaded automatically when accessing the reference attribute.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

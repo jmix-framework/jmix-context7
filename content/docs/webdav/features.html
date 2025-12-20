@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Features</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on provides the <code>WebdavDocument</code> entity that should be used in your data model to reference files exposed via WebDAV.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="webdav-support-annotation"><a class="anchor" href="#webdav-support-annotation"></a>WebdavSupport Annotation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>@WebdavSupport</code> annotation can be applied to fields of the <code>WebdavDocument</code> type. By using this annotation, you have the ability to disable versioning for a specific field, as versioning is enabled by default.</p>
+</div>
+<div class="paragraph">
+<p>For instance, consider the following example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Entity
+public class WebdavDocumentWrapper {
+
+    @JoinColumn(name = "WEBDAV_DOCUMENT_ID")
+    @OneToOne(fetch = FetchType.LAZY)
+    private WebdavDocument webdavDocument;
+
+    @JoinColumn(name = "DOC_WITHOUT_VERSION_ID")
+    @WebdavSupport(versioning = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    private WebdavDocument docWithoutVersion;
+
+    // getters and setters
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, <code>docWithoutVersion</code> has versioning disabled, while <code>webdavDocument</code> will have versioning enabled by default.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="links"><a class="anchor" href="#links"></a>Document Links</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on generates links to documents, which can be posted on a website or shared with third parties. The link has the format: <code>https://&lt;host&gt;:&lt;port&gt;/webdav/link/82b62377-7fd1-b75e-47fc-9ef4b8d67360</code>. When accessing the link, the user’s browser will prompt for credentials to access the document. Upon successful authentication, the document will open in an appropriate desktop application if it is installed on the user’s computer.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

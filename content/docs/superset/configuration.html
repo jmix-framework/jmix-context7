@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Configuration</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Install and configure Apache Superset to make it available in Jmix applications.</p>
+</li>
+<li>
+<p>Configure the Jmix application to connect to Apache Superset.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="superset-installation"><a class="anchor" href="#superset-installation"></a>Apache Superset Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>According to the Apache Superset <a href="https://superset.apache.org/docs/intro" rel="noopener" target="_blank">documentation</a>, there are different ways to install it.</p>
+</div>
+<div class="paragraph">
+<p>The simplest way to get acquainted with Apache Superset is <a href="https://superset.apache.org/docs/installation/docker-compose" rel="noopener" target="_blank">using Docker Compose</a>. This way provides demonstration data with already created dashboards and enables custom configuration of the Superset.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Apache Superset does not recommend using Docker Compose for production, since it is primarily designed to run a set of containers on a single host and can’t support requirements for high availability.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Firstly, clone the Superset repository with a release tag, for example 4.0.1:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">git clone --depth 1 --branch 4.0.1 https://github.com/apache/superset.git</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Secondly, specify the same version for the Apache Superset docker image in the <code>docker-compose-non-dev.yml</code> file located in the root directory of cloned repository. Open the <code>docker-compose-non-dev.yml</code> file and set the following value to the <code>x-superset-image</code> property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">x-superset-image: &amp;superset-image apache/superset:4.0.1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And finally, to simplify the integration of Superset with the Jmix application, configure a database service that will be accessible to both Superset and the application.</p>
+</div>
+<div class="paragraph">
+<p>Add the PostgreSQL service to the <code>docker-compose-non-dev.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">  superset-worker-beat:
+  # ...
+
+  jmix_database:
+    image: postgres:16.3
+    container_name: jmix_database
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: onboarding
+      POSTGRES_USER: jmix
+      POSTGRES_PASSWORD: jmix
+
+volumes:
+# ...</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you already have local PostgreSQL using the standard port 5432, expose another port to avoid conflicts. For example, 5433:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">    ports:
+      - 5433:5432</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now Apache Superset is ready to launch. Run the following command in the root directory of the cloned repository:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker compose -f docker-compose-non-dev.yml up</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Superset web UI will be available at <a class="bare" href="http://localhost:8088" rel="noopener" target="_blank">http://localhost:8088</a>. The user credentials are <code>admin</code> / <code>admin</code>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="superset login" src="_images/superset-login.png" width="598"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="superset-configuration"><a class="anchor" href="#superset-configuration"></a>Apache Superset Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Superset has a lot of configuration parameters. You can find the whole list in the <a href="https://github.com/apache/superset/blob/master/superset/config.py" rel="noopener" target="_blank">superset/config.py</a> file. To make Superset accessible from Jmix applications you need to configure <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP" rel="noopener" target="_blank">Content Security Policy (CSP)</a> and
+enable default role with feature flags.</p>
+</div>
+<div class="paragraph">
+<p>Apache Superset supports custom configuration definition in:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>docker/pythonpath_dev/superset_config.py</code> file</p>
+</li>
+<li>
+<p><code>docker/pythonpath_dev/superset_config_docker.py</code> file that is ignored by git.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In this guide, you will use the second option. Create the <code>superset_config_docker.py</code> file in the <code>/apache-superset/superset/docker/pythonpath_dev/</code> directory.</p>
+</div>
+<div class="sect2">
+<h3 id="guest-token"><a class="anchor" href="#guest-token"></a>Guest Token</h3>
+<div class="paragraph">
+<p>The Jmix Superset add-on uses a <em>guest token</em> to access embedded dashboards. Using this token, Apache Superset creates an anonymous user object that has a role from the <code>GUEST_ROLE_NAME</code> property set to <code>Public</code> by default. To enable anonymous users to see the dashboards you should use the <a href="https://superset.apache.org/docs/security/#gamma">Gamma</a> role.</p>
+</div>
+<div class="paragraph">
+<p>Add the following property to the <code>superset_config_docker.py</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">GUEST_ROLE_NAME = 'Gamma'</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="enable-embedding-dashboards"><a class="anchor" href="#enable-embedding-dashboards"></a>Embedded Dashboards</h3>
+<div class="paragraph">
+<p>By default, Superset does not enable embedding dashboards into <code>iframe</code>. You can enable it using the <code>FEATURE_FLAGS</code> property.</p>
+</div>
+<div class="paragraph">
+<p>Add the following property to the <code>superset_config_docker.py</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">FEATURE_FLAGS = {
+    "EMBEDDED_SUPERSET": True,
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="content-security-policy"><a class="anchor" href="#content-security-policy"></a>Content Security Policy (CSP)</h3>
+<div class="paragraph">
+<p>In order to embed dashboards into <code>iframe</code> you also need to configure Content Security Policy. Apache Superset uses Talisman (an extension for Flask web framework) that enables integrating additional security layers such as CSP, HTTPS, etc.</p>
+</div>
+<div class="paragraph">
+<p>Content Security Policy has the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-ancestors" rel="noopener" target="_blank">frame-ancestors</a> directive that specifies valid parents that may embed a page. The Superset has already defined the <code>TALISMAN_CONFIG</code> property with default values in <code>superset/config.py</code>.</p>
+</div>
+<div class="paragraph">
+<p>Copy the <code>TALISMAN_CONFIG</code> property to <code>superset_config_docker.py</code> and add the <code>frame-ancestors</code> value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">TALISMAN_CONFIG = {
+    "content_security_policy": {
+        # ...
+        "frame-ancestors": ["http://localhost:8080"]
+    },
+    # ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The resulting configuration in <code>superset_config_docker.py</code> file is the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">GUEST_ROLE_NAME = 'Gamma'
+FEATURE_FLAGS = {
+    "EMBEDDED_SUPERSET": True,
+}
+TALISMAN_CONFIG = {
+    "content_security_policy": {
+        "base-uri": ["'self'"],
+        "default-src": ["'self'"],
+        "img-src": [
+            "'self'",
+            "blob:",
+            "data:",
+            "https://apachesuperset.gateway.scarf.sh",
+            "https://static.scarf.sh/",
+        ],
+        "worker-src": ["'self'", "blob:"],
+        "connect-src": [
+            "'self'",
+            "https://api.mapbox.com",
+            "https://events.mapbox.com",
+        ],
+        "object-src": "'none'",
+        "style-src": [
+            "'self'",
+            "'unsafe-inline'",
+        ],
+        "script-src": ["'self'", "'strict-dynamic'"],
+        "frame-ancestors": ["http://localhost:8080"]
+    },
+    "content_security_policy_nonce_in": ["script-src"],
+    "force_https": False,
+    "session_cookie_secure": False,
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+This configuration is used only for demonstration purposes and is not production ready. For a production environment you should provide a more precise configuration with enabled CORS, HTTPS, etc.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now the Superset is configured and can be restarted. Stop the running containers and start again:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker compose -f docker-compose-non-dev.yml up</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix-configuration"><a class="anchor" href="#jmix-configuration"></a>Jmix Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix Superset add-on requires you to define the following properties:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.superset.url = http://localhost:8088
+jmix.superset.username = admin
+jmix.superset.password = admin</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Since you have started the application database as a <code>PostgreSQL</code> service in Docker Compose, change the <a href="https://docs.jmix.io/jmix/data-model/data-stores.html">Main Data Store</a> from <code>HSQLDB</code> to <code>PostgreSQL</code>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If the <code>jmix_database</code> in the container configuration defines a port other than <code>5432</code>, specify it in the database URL. For example, set <code>localhost:5433</code> in the field for the database host.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now the application is ready to communicate with Superset. Since the database is empty, the application will run the schema migration scripts and fill the database with demonstration data. Start the application and open the <strong>Users</strong> view:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="users list" src="_images/users-list.png" width="1318"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

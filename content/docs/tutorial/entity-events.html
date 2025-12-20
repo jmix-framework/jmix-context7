@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8. Using Entity Events :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">8. Using Entity Events</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>At this stage, you have completed the data model and UI of the application. But there is a flaw in the application logic: employees can see and complete their onboarding steps in <code>My onboarding</code> screen, but the <code>Onboarding status</code> attribute of the <code>User</code> entity is not updated accordingly.</p>
+</div>
+<div class="paragraph">
+<p>In this chapter, you will implement the missing part: the <code>Onboarding status</code> attribute of the <code>User</code> entity will be updated whenever the state of the corresponding <code>UserStep</code> instances changes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-entity-changed-event-listener"><a class="anchor" href="#create-entity-changed-event-listener"></a>Creating EntityChangedEvent Listener</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If your application is running, stop it using the <strong>Stop</strong> button (<span class="image"><img alt="suspend" src="_images/common/suspend.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Jmix</strong> tool window, click <strong>New</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) → <strong>Event Listener</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="listener 1" src="_images/entity-events/listener-1.png" width="345"/>
+</div>
+</div>
+<div class="paragraph">
+<p>On the first step of the <strong>Subscribe to Event</strong> wizard, select <strong>Entity Event</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="listener 2" src="_images/entity-events/listener-2.png" width="432"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>On the next step of the wizard, select <code>UserStep</code> in the <strong>Entity</strong> field and select the <strong>Entity Changed (before commit)</strong> checkbox:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="listener 3" src="_images/entity-events/listener-3.png" width="487"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Create</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will create a Spring bean with a method annotated with <code>@EventListener</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class UserStepEventListener {
+
+    @EventListener
+    public void onUserStepChangedBeforeCommit(EntityChangedEvent&lt;UserStep&gt; event) {
+
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The framework will invoke this method each time after saving a changed <code>UserStep</code> instance to the database, but before committing the database transaction. If the method throws an exception, the transaction will be rolled back.</p>
+</div>
+<div class="paragraph">
+<p>The method accepts the <code>EntityChangedEvent</code> object which contains the changed entity id, type of the change (create/update/delete) and information about changed attributes.</p>
+</div>
+<div class="paragraph">
+<p>Implement the listener as below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.listener;
+
+import com.company.onboarding.entity.OnboardingStatus;
+import com.company.onboarding.entity.User;
+import com.company.onboarding.entity.UserStep;
+import io.jmix.core.DataManager;
+import io.jmix.core.Id;
+import io.jmix.core.event.EntityChangedEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
+@Component
+public class UserStepEventListener {
+
+    @Autowired
+    private DataManager dataManager;
+
+    @EventListener
+    public void onUserStepChangedBeforeCommit(EntityChangedEvent&lt;UserStep&gt; event) {
+        User user;
+        if (event.getType() != EntityChangedEvent.Type.DELETED) {
+            Id&lt;UserStep&gt; userStepId = event.getEntityId(); <i class="conum" data-value="1"></i><b>(1)</b>
+            UserStep userStep = dataManager.load(userStepId).one();
+            user = userStep.getUser();
+        } else {
+            Id&lt;User&gt; userId = event.getChanges().getOldReferenceId("user"); <i class="conum" data-value="2"></i><b>(2)</b>
+            if (userId == null) {
+                throw new IllegalStateException("Cannot get User from deleted UserStep");
+            }
+            user = dataManager.load(userId).one();
+        }
+
+        long completedCount = user.getSteps().stream()
+                .filter(us -&gt; us.getCompletedDate() != null)
+                .count();
+        if (completedCount == 0) {
+            user.setOnboardingStatus(OnboardingStatus.NOT_STARTED); <i class="conum" data-value="3"></i><b>(3)</b>
+        } else if (completedCount == user.getSteps().size()) {
+            user.setOnboardingStatus(OnboardingStatus.COMPLETED);
+        } else {
+            user.setOnboardingStatus(OnboardingStatus.IN_PROGRESS);
+        }
+
+        dataManager.save(user); <i class="conum" data-value="4"></i><b>(4)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>If the <code>UserStep</code> instance has been created or updated, get its id from using the <code>getEntityId()</code> method of the event. Then load the instance and get the related <code>User</code> instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>If <code>UserStep</code> has been deleted, it cannot be loaded from the database anymore. But in this case <code>event.getChanges()</code> provides values of all attributes of the deleted entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Set <code>onboardingStatus</code> attribute of the related <code>User</code> to a value depending on the state of all its <code>UserStep</code> items.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Save the updated <code>User</code> instance to the database.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>With this listener in place, the consistency between the collection of <code>UserStep</code> instances and the <code>onboardingStatus</code> attribute of the <code>User</code> entity will be maintained regardless of what process modifies <code>UserStep</code> instances. For example, you can change a <code>UserStep</code> directly through <strong>Data Tools</strong> → <strong>Entity Inspector</strong>, and still see the corresponding change of <code>User.onboardingStatus</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You can rely on <code>EntityChangedEvent</code> listeners while you work with data through <code>DataManager</code>. If you save changes using <code>EntityManager</code> or JDBC statements, the listeners are not invoked.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../data-access/entity-events.html#entity-changed-event">EntityChangedEvent</a> listeners can be used to maintain data consistency and execute business logic in the current <a class="xref page" href="../data-access/transactions.html">transaction</a> or after its completion.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

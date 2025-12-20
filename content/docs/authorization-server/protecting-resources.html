@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protecting Resources :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Protecting Resources</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-11#section-1.1" rel="noopener" target="_blank">resource server</a> security is defined in the auto-configuration of the Authorization Server add-on. This configuration provides extension points that can be used to define any URL pattern as protected. See the <a class="xref page" href="../security/custom-endpoints.html#token-based-authentication">Token Based Authentication</a> section for details on how to configure protected resources.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="sendiong-access-token"><a class="anchor" href="#sendiong-access-token"></a>Sending Access Token</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After the above configuration is defined, all requests to <code>/greeting/**</code> endpoints will need an access token in the <code>Authorization</code> header. The header value must contain the word <code>Bearer</code> followed by the access token value. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">GET /greeting/hello HTTP/1.1
+Host: server.example.com
+Authorization: Bearer &lt;ACCESS_TOKEN&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="protecting-rest-api-endpoints"><a class="anchor" href="#protecting-rest-api-endpoints"></a>Protecting Generic REST API Endpoints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you simply add the <a class="xref page" href="../rest/index.html">REST API</a> add-on to your application, REST endpoints will not be protected by default.</p>
+</div>
+<div class="paragraph">
+<p>To configure token-based authentication you need to define the following application property (see its description <a class="xref page" href="../security/custom-endpoints.html#application-properties">here</a>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.resource-server.authenticated-url-patterns = /rest/**</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To access REST endpoints you need to obtain an access token and pass it in the <code>Authorization</code> header of the HTTP request. The header value must contain the word <code>Bearer</code> followed by the access token value. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">GET /rest/entities/User HTTP/1.1
+Host: server.example.com
+Authorization: Bearer &lt;ACCESS_TOKEN&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

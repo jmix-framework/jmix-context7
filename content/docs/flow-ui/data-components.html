@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Components :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Data Components</h1>
+<div class="paragraph">
+<p>Data components are non-visual elements of views that provide loading of data, binding it to data-aware visual components and saving changed data back to the data store.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="data/data-containers.html">Containers</a> provide the thin layer between entities and data-aware visual components. Different types of containers hold either single instances or collections of entities.</p>
+</li>
+<li>
+<p><a class="xref page" href="data/data-loaders.html">Loaders</a> load data to containers.</p>
+</li>
+<li>
+<p><a class="xref page" href="data/data-context.html">DataContext</a> tracks changes in entities and saves changed instances upon request.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usually, data components are defined in the view XML descriptor in the <code>&lt;data&gt;</code> element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data readOnly="true"&gt;
+    &lt;collection id="departmentsDc"
+                class="com.company.onboarding.entity.Department"&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="hrManager" fetchPlan="_base"/&gt;
+        &lt;/fetchPlan&gt;
+            &lt;loader id="departmentsDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Department e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Data components can be injected into the controller in the same way as visual components:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionContainer&lt;Department&gt; departmentsDc;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Data components of a particular view are registered in the <code>ViewData</code> object which is associated with the controller and available through its <code>getViewData()</code> method. This object is useful when you need to load all data for the view, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onReady(final ReadyEvent event) {
+    getViewData().loadAll();
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use <a class="xref page" href="facets/dataLoadCoordinator.html">DataLoadCoordinator</a> facet for declarative linking of data loaders to data containers, visual components and view events.
+</td>
+</tr>
+</table>
+</div>
+
+</article>
+</body>
+</html>

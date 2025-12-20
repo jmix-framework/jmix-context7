@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uploading Files :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Uploading Files</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section explains how upload files from the user’s computer using UI components. For information on how to upload files through REST API, see the <a class="xref page" href="../rest/files-api.html">Files API</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="file-upload-components"><a class="anchor" href="#file-upload-components"></a>File Upload Components</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix provides a set of UI components for uploading files. All of them contain a button that, when clicked, opens a file system dialog for choosing files. Here’s a quick rundown of the differences between the components. For complete details on each component, refer to their respective sections.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../flow-ui/vc/components/fileUploadField.html">fileUploadField</a> lets users select a single file and save it as a byte array to an entity attribute. Users can also access the file’s content directly from the component’s value without associating it with an entity.</p>
+</li>
+<li>
+<p><a class="xref page" href="../flow-ui/vc/components/fileStorageUploadField.html">fileStorageUploadField</a> allows users to select a single file and save it to the <a class="xref page" href="file-storage.html">file storage</a>. The component’s value is a <code>FileRef</code> object. Users can link the component to an entity attribute of <code>FileRef</code> type to automatically save the file reference to the database.</p>
+</li>
+<li>
+<p><a class="xref page" href="../flow-ui/vc/components/upload.html">upload</a> lets users upload one or multiple files at once. It provides a base for handling file uploads but doesn’t directly interact with entities or storage systems.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-temporary-storage"><a class="anchor" href="#using-temporary-storage"></a>Using TemporaryStorage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>FileStorageUploadField</code> component has the <a class="xref page" href="../flow-ui/vc/components/fileStorageUploadField.html#fileStoragePutMode">fileStoragePutMode</a> attribute with the default value <code>IMMEDIATE</code>. If you set it to <code>MANUAL</code>, the component uploads the file to the temporary storage in the file system of the application, and gives you full control over the uploaded file: you can transfer the file to the file storage as is, pre-process it, or do whatever you need with the file without saving it to the file storage at all.</p>
+</div>
+<div class="paragraph">
+<p>The <code>TemporaryStorage</code> interface provides an API to create temporary files, save them to the file storage, or remove them.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of using <code>fileStorageUploadField</code> in manual mode to transfer the uploaded file from temporary storage to the file storage.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fileStorageUploadField id="fileField" fileStoragePutMode="MANUAL"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private FileStorageUploadField fileField;
+
+@Autowired
+private TemporaryStorage temporaryStorage;
+
+@Subscribe("fileField")
+public void onFileFieldFileUploadSucceeded(final FileUploadSucceededEvent&lt;FileStorageUploadField&gt; event) {
+    if (event.getReceiver() instanceof FileTemporaryStorageBuffer buffer) {
+        UUID fileId = buffer.getFileData().getFileInfo().getId();
+        File file = temporaryStorage.getFile(fileId); <i class="conum" data-value="1"></i><b>(1)</b>
+        if (file != null) {
+            FileRef fileRef = temporaryStorage.putFileIntoStorage(fileId, event.getFileName()); <i class="conum" data-value="2"></i><b>(2)</b>
+            fileField.setValue(fileRef);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Get local file from the temporary storage using identifier provided by the upload event.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Transfer local file to the file storage.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>putFileIntoStorage()</code> method also removes the temporary local file.</p>
+</div>
+<div class="paragraph">
+<p>If you only need to process the file locally without saving it to file storage, use the <code>deleteFile()</code> method of <code>TemporaryStorage</code> after working with the file, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">File file = temporaryStorage.getFile(fileId);
+if (file != null) {
+    processFile(file);
+    temporaryStorage.deleteFile(fileId);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The temporary storage tends to accumulate files that were not deleted for various reasons. So it provides a JMX interface for removing such old unused files.</p>
+</div>
+<div class="paragraph">
+<p>The MBean has the <code>clearTempDirectory()</code> method that removes all files from the temporary directory of the application (<code>.jmix/temp</code> by default) which are older than 2 days. You can call this method manually, or use a <a class="xref page" href="../quartz/index.html">Quartz</a> job to do it periodically. In a job, you should inject the <code>TemporaryStorageManagementFacade</code> bean and call its <code>clearTempDirectory()</code> method.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Composite Component :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Composite Component</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/composite-component" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>A composite component is a component consisting of other components. Like <a class="xref page" href="../../fragments/fragments.html">fragments</a>, composite components allow you to reuse some presentation layout and logic.</p>
+</div>
+<div class="paragraph">
+<p>We recommend using composite components in the following cases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The functionality of a component can be implemented as a combination of existing visual components.<br/>
+If you need some non-standard features, <a class="xref page" href="js-component.html">integrate a JavaScript library</a> or <a class="xref page" href="creating-web-component.html">create a Web Component</a> from scratch.</p>
+</li>
+<li>
+<p>The component is relatively simple and does not load or save data itself. Otherwise, consider creating a fragment.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="composite"><a class="anchor" href="#composite"></a>Using Composite</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the example below, the <code>ColorComponent</code> component is created by combining the <code>ColorPicker</code> component, created in the <a class="xref page" href="using-element-api.html">Using the Element API</a> section and a <a class="xref page" href="../html-components/span.html">span</a> that displays its value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+
+public class ColorComponent extends Composite&lt;HorizontalLayout&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+
+    private final ColorPicker colorPicker;
+
+    public ColorComponent() {
+        colorPicker = new ColorPicker();
+        Span valueLabel = new Span(colorPicker.getValue());
+
+        colorPicker.addValueChangeListener(event -&gt;
+                valueLabel.setText(event.getValue()));
+
+        getContent().add(colorPicker, valueLabel); <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+
+    @Override
+    protected HorizontalLayout initContent() { <i class="conum" data-value="3"></i><b>(3)</b>
+        HorizontalLayout content = super.initContent();
+        content.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        return content;
+    }
+
+    public String getValue() { <i class="conum" data-value="4"></i><b>(4)</b>
+        return colorPicker.getValue();
+    }
+
+    public void setValue(String value) {
+        colorPicker.setValue(value);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>Composite</code> base class is parameterized by the type of the root component.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>You can access the root component using the <code>getContent()</code> method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>initContent()</code> method is called when the content of this composite is requested for the first time. This method should initialize the component structure for the composite and return the root component. By default, this method uses reflection to instantiate the component based on the generic type of the subclass.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The public API of the composite component that delegates to the <code>colorPicker</code> component.</td>
+</tr>
+</table>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="composite component" src="../../_images/visual-components/creating-components/composite-component.png" width="150"/>
+</div>
+<div class="title">Figure 1. Composite component added to a view layout</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-field"><a class="anchor" href="#custom-field"></a>Using CustomField</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://vaadin.com/docs/latest/components/custom-field" rel="noopener" target="_blank">CustomField</a> is a base class for wrapping multiple components into a single field. It provides standard input field features such as label, helper, and validation. Use it to create custom input components.</p>
+</div>
+<div class="paragraph">
+<p>The previous example can be rewritten as <code>CustomField</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.customfield.CustomField;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.dom.Style;
+
+public class ColorField extends CustomField&lt;String&gt; {
+
+    private final ColorPicker colorPicker;
+
+    public ColorField() {
+        colorPicker = new ColorPicker();
+        Span valueLabel = new Span(colorPicker.getValue());
+        valueLabel.getStyle().setMarginInlineStart("var(--lumo-space-s)");
+
+        colorPicker.addValueChangeListener(event -&gt; {
+            valueLabel.setText(event.getValue());
+        });
+
+        add(colorPicker, valueLabel);
+    }
+
+    @Override
+    protected String generateModelValue() {
+        return colorPicker.getValue();
+    }
+
+    @Override
+    protected void setPresentationValue(String presentationValue) {
+        colorPicker.setValue(presentationValue);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After a component is implemented it can be used in views, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onInit(final InitEvent event) {
+    ColorField customField = new ColorField();
+    customField.setLabel("Color Field");
+    customField.setHelperText("Helper text");
+    getContent().add(customField);
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="custom field" src="../../_images/visual-components/creating-components/custom-field.png" width="150"/>
+</div>
+<div class="title">Figure 2. Custom field added to a view layout</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

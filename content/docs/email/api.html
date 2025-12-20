@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Sending API :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Email Sending API</h1>
+<div class="sect1">
+<h2 id="sending-methods"><a class="anchor" href="#sending-methods"></a>Sending Methods</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To send emails, use the following methods of the <code>Emailer</code> bean:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>sendEmail()</code> – synchronous message sending. The calling code is blocked while sending the message to the SMTP server. You can specify the message either by a set of parameters – the comma-separated list of recipients, subject, content, an array of attachments; or as a special <code>EmailInfo</code> object which encapsulates all this information and allows you to explicitly set the sender’s address.</p>
+<div class="paragraph">
+<p>Here is an example of sending email using <code>EmailInfo</code> object:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Emailer emailer;
+
+private void sendByEmailInfo() throws EmailException {
+    EmailInfo emailInfo = EmailInfoBuilder.create("john.doe@company.com",
+                    "Email subject", "Email body")
+            .build();
+    emailer.sendEmail(emailInfo);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>During synchronous sending, the framework can throw <code>EmailException</code> with the information about failed recipient addresses and corresponding error messages.</p>
+</div>
+<div class="paragraph">
+<p>One <code>SendingMessage</code> instance is created in the database for all recipients during the execution of the method. It has the initial <code>SendingStatus.SENDING</code> status, and <code>SendingStatus.SENT</code> after successful sending. In case of a message sending error, the message status changes to <code>SendingStatus.NOT_SENT</code>.</p>
+</div>
+</li>
+<li>
+<p><code>sendEmailAsync()</code> – asynchronous message sending. This method returns <code>SendingMessage</code> instance in <code>SendingStatus.QUEUE</code> status, which was created in the database. The actual sending is performed later by the <code>Emailer.processQueuedEmails()</code> method which should be called by a <a class="xref page" href="configuration.html#email-sending-scheduler">scheduler</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="email-attachments"><a class="anchor" href="#email-attachments"></a>Email Attachments</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>EmailAttachment</code> object is a wrapper that holds the attachment as a byte array, a file name, and, if necessary, an attachment identifier which is unique for this message.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">EmailAttachment emailAttachment = new EmailAttachment(bytes, "logo.png", "logoId");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The attachment identifier is an optional but useful field when you want to insert images in the message body. For this, specify a unique <code>contentId</code> when creating <code>EmailAttachment</code>, as <code>logoId</code> in the example above. To insert the image in the message body, use an expression like <code>cid:logoId</code> as a path to attachment, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-html hljs" data-lang="html">&lt;img src="cid:logoId"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, you can create a text attachment from the string and specify an encoding and the name of the attachment file. In the example, an attachment is created and sent with email:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String attachment = "&lt;html&gt;&lt;body&gt;&lt;h1&gt;Content of attachment&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;";
+EmailAttachment emailAttachment = EmailAttachment.createTextAttachment(attachment, StandardCharsets.UTF_8.name(), "attachment.html");</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

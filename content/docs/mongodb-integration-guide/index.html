@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB Integration in Jmix :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">MongoDB Integration in Jmix</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide demonstrates how to integrate MongoDB as an additional database within a Jmix application. MongoDB, a popular NoSQL database, allows for flexible and scalable data storage. In this guide, we’ll store <code>VisitLog</code> entries associated with Jmix <code>Visit</code> entities. We’ll leverage Spring Data MongoDB within Jmix to handle CRUD operations for <code>VisitLog</code> entries, creating a logbook structure while keeping the data model and UI logic separate.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="requirements"><a class="anchor" href="#requirements"></a>Requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to implement this guide step by step, you will need the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup Jmix Studio</a></p>
+</li>
+<li>
+<p>Get the completed sample project, which includes all the examples used in this guide. This allows you to explore the finished implementation and experiment with the functionality right away.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>You can <a href="https://github.com/jmix-framework/jmix-mongodb-integration-sample/archive/refs/heads/release_2_7.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+</li>
+<li>
+<p>Or clone it and switch to the <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-mongodb-integration-sample
+cd jmix-mongodb-integration-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Alternatively, you can start with the base <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> project and follow the step-by-step instructions in this guide to implement the features yourself.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="what-we-are-going-to-build"><a class="anchor" href="#what-we-are-going-to-build"></a>What We are Going to Build</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, we enhance the <a href="https://github.com/jmix-framework/jmix-petclinic-2" rel="noopener" target="_blank">Jmix Petclinic</a> by integrating MongoDB to store <code>VisitLog</code> entries that detail specific interactions within the application. This MongoDB setup allows us to manage visit logs independently of the Jmix persistence context, ensuring a separation between core Jmix entities and log data.</p>
+</div>
+<div class="paragraph">
+<p>The final application includes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>MongoDB Running and Connected</strong>: MongoDB is set up via Docker and configured to connect with the Jmix application.</p>
+</li>
+<li>
+<p><strong>Data Access Layer</strong>: A Spring Data repository and entity representation that facilitates interaction with <code>VisitLog</code> entries in the MongoDB database.</p>
+</li>
+<li>
+<p><strong>Service and UI Integration</strong>: MongoDB is integrated with the Jmix UI through a service layer, where Jmix’s UI delegation mechanisms are used to bridge data operations via <code>VisitLogService</code>.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="why-add-a-non-relational-database"><a class="anchor" href="#why-add-a-non-relational-database"></a>Why Add a Non-Relational Database?</h3>
+<div class="paragraph">
+<p>In Jmix applications, the relational database is required as the primary data store. However, there are situations where integrating a secondary, non-relational database like MongoDB is beneficial. This might be due to existing data storage requirements, such as an external MongoDB database managed by another application, or because specific use cases call for flexible data handling outside the constraints of a structured schema.</p>
+</div>
+<div class="paragraph">
+<p>For instance, storing high-volume, log-like data — such as visit logs — can be more efficient in a NoSQL database. MongoDB’s document-based structure provides a natural fit for this type of data, allowing for quick storage and retrieval without the overhead of complex relational mappings.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="integration-approaches"><a class="anchor" href="#integration-approaches"></a>Integration Approaches</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In Jmix applications, MongoDB can be integrated as an additional database using one of two main approaches:</p>
+</div>
+<div class="sect2">
+<h3 id="ui-data-components-with-custom-delegates"><a class="anchor" href="#ui-data-components-with-custom-delegates"></a>UI Data Components With Custom Delegates</h3>
+<div class="paragraph">
+<p>In this approach, MongoDB access is managed independently through standard UI Data Components configured with custom <a class="xref page" href="../flow-ui/data/data-loaders.html#load-delegate">load delegate</a> and <a class="xref page" href="../flow-ui/data/data-context.html#save-delegate">save delegate</a> methods. These delegates override the default behavior by bypassing the Data Manager API, instead pointing CRUD operations to custom service calls that handle data retrieval and persistence directly.</p>
+</div>
+<div class="paragraph">
+<p>This setup is also the default recommendation in Jmix Studio when working with DTO entities and is generally preferred for cases that require a distinct data access layer. However, since this approach functions independently of the default storage and retrieval APIs of Jmix, some built-in features, such as security constraints, may require custom implementation.</p>
+</div>
+<div class="paragraph">
+<p>For other features, such as the <a class="xref page" href="../flow-ui/vc/components/genericFilter.html">genericFilter</a> component, full support may be challenging because it requires translation of filter conditions to the form applicable to MongoDB.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="providing-a-custom-datastore-for-mongodb"><a class="anchor" href="#providing-a-custom-datastore-for-mongodb"></a>Providing a Custom DataStore for MongoDB</h3>
+<div class="paragraph">
+<p>Jmix allows you to provide a custom implementation of the <code>DataStore</code> interface, enabling the <code>DataManager</code> to work seamlessly with both relational and non-relational data sources.</p>
+</div>
+<div class="paragraph">
+<p>This approach supports high-level Jmix features, including the security system and the <code>genericFilter</code> component. However, to fully leverage these features, the custom data store implementation must be built to handle specific conditions and constraints. For example, filter conditions need to be mapped to MongoDB-compatible queries, and security constraints must be respected within the MongoDB queries. While this approach allows for tight integration with Jmix’s built-in features, it requires significant implementation effort to ensure compatibility with these higher-level Jmix functionalities, which makes it potentially very time-consuming. Therefore, this approach is beyond the scope of this guide.</p>
+</div>
+<div class="paragraph">
+<p>If you want to learn more about the <code>DataStore</code> API, see <a class="xref page" href="../data-model/data-stores.html">Data Model: Data Stores</a> and in particular the section on <a class="xref page" href="../data-model/data-stores.html#custom">Custom Data Store</a> implementations.</p>
+</div>
+<div class="paragraph">
+<p>In this guide, we focus on using the first approach with UI Data Components with custom delegates and handling the MongoDB interaction on a custom service layer.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="mongodb-setup"><a class="anchor" href="#mongodb-setup"></a>MongoDB Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before configuring the Jmix application, we need to set up MongoDB first. In this example, we use Docker Compose to simplify the setup, which is quite common for local development environments and allow you to not have to install Mongo manually on your computer. Besides the database itself we include Mongo Express as an optional, web-based interface for a visual interface to MongoDB data.</p>
+</div>
+<div class="paragraph">
+<p>Here is the <code>docker-compose.yml</code> file defining the two containers:</p>
+</div>
+<div class="listingblock">
+<div class="title">docker-compose.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yml hljs" data-lang="yml">services:
+  # MongoDB database
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: petclinic
+
+
+  # Mongo Express Service - Web-based MongoDB admin interface
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: petclinic
+      ME_CONFIG_MONGODB_URL: mongodb://root:petclinic@mongo:27017/
+      ME_CONFIG_BASICAUTH: false  # Disables basic authentication for Mongo Express
+
+    # Note: The ME_CONFIG_MONGODB_URL uses the internal Docker network to connect to the `mongo` service by name.
+    # The Mongo Express interface is accessible at http://localhost:8081 on the host machine.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To start up the containers, you can use the following docker command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ docker compose up</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Mongo Express can be accessed at <code><a class="bare" href="http://localhost:8081">http://localhost:8081</a></code>, where you can view and manage MongoDB collections and data directly. This is meant as an optional mechanism to introspect what the Jmix application does when it interacts with the database.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>With MongoDB running, we can proceed to configure the Jmix application to connect to the database.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-dependencies"><a class="anchor" href="#adding-dependencies"></a>Adding Dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To integrate MongoDB with Jmix, add the <code>spring-boot-starter-data-mongodb</code> dependency to your <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">dependencies {
+
+    // ...
+
+    // MongoDB Starter for Spring Data
+    implementation('org.springframework.boot:spring-boot-starter-data-mongodb') {
+        // TODO remove the exclusion and explicit dependencies after upgrading to Spring Boot 3.5.1+ (see https://github.com/spring-projects/spring-boot/issues/45660)
+        exclude group: 'org.mongodb'
+    }
+    implementation 'org.mongodb:mongodb-driver-sync:5.4.0'
+    implementation 'org.mongodb:mongodb-driver-core:5.4.0'
+    implementation 'org.mongodb:mongodb-driver-sync:5.4.0'
+    implementation 'org.mongodb:bson:5.4.0'
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>spring-boot-starter-data-mongodb</code> is part of the Spring Data project, managed and supported directly by the Spring team. It is the standard solution for integrating MongoDB within Spring applications, providing Spring Data repositories, MongoDB-specific annotations, and utilities. This starter simplifies interactions with MongoDB and is fully compatible with Spring Boot.</p>
+</div>
+<div class="paragraph">
+<p>The version of <code>spring-boot-starter-data-mongodb</code> aligns automatically with the compatible Spring Boot version, as defined by the Jmix BOM (Bill of Materials). This setup ensures compatibility and minimizes manual dependency management.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="mongodb-configuration"><a class="anchor" href="#mongodb-configuration"></a>MongoDB Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In your Jmix application, configure the MongoDB connection URI in <code>application.properties</code>. Use the credentials defined in the Docker Compose setup:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.data.mongodb.uri=mongodb://root:petclinic@localhost:27017/visitlogs?authSource=admin
+spring.data.mongodb.auto-index-creation=true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This configuration directs Jmix to connect to MongoDB for managing <code>VisitLog</code> entities or other collections. The URI specifies the username and password (<code>root:petclinic</code>) to connect to the database as well as the database where the visit log entries should be stored: <code>visitlogs</code>.</p>
+</div>
+<div class="paragraph">
+<p>In MongoDB connection URIs, the <code>authSource</code> parameter specifies the database against which MongoDB should authenticate the provided credentials. Setting <code>authSource=admin</code> means that MongoDB will validate the user credentials (like <code>root:petclinic</code>) against the admin database, instead of the specific application database (petclinic in this case). For further information, you can refer to the official MongoDB documentation on <a href="https://www.mongodb.com/docs/drivers/java/sync/v4.6/fundamentals/auth/" rel="noopener" target="_blank">authentication sources and user management</a>.</p>
+</div>
+<div class="paragraph">
+<p>We will now examine each layer in detail, from database access and the service layer to the UI views.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-visitlog-entity"><a class="anchor" href="#creating-visitlog-entity"></a>Creating a VisitLog Entity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this application, the persistence and UI representation of a visit log are separated by using two distinct classes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>VisitLog</strong>: A Jmix DTO entity used in the UI for managing and displaying visit log data.</p>
+</li>
+<li>
+<p><strong>VisitLogDocument</strong>: A dedicated persistence entity mapped to MongoDB for storing and retrieving visit logs.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This separation enhances the application structure by isolating persistence details from the UI layer, ensuring a clear division of responsibilities.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When using MongoDB to persist data, avoid serializing Jmix DTO entities directly to MongoDB, as this may cause serialization issues. Jmix uses <a class="xref page" href="../concepts/features.html#entity-enhancement">entity enhancement</a> for JPA and DTO entities resulting in additional system fields that Jmix uses internally. MongoDB attempts to serialize those system fields, leading to errors or unexpected behavior.</p>
+</div>
+<div class="paragraph">
+<p>By defining a dedicated Java class annotated with <code>@Document</code>, without the interference of Jmix entity enhancement you can ensure that MongoDB serialization functions as expected.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="dto-entity"><a class="anchor" href="#dto-entity"></a>DTO Entity</h3>
+<div class="paragraph">
+<p>The <code>VisitLog</code> entity is used in the Jmix UI for displaying and managing visit log data. As a <a class="xref page" href="../data-model/entities.html#dto">DTO entity</a>, it does not interact directly with MongoDB but serves as a data model tailored for UI components.</p>
+</div>
+<div class="paragraph">
+<p>In this UI representation, <code>VisitLog</code> includes a direct reference to the <code>Visit</code> entity from the relational database. This is possible because <code>VisitLog</code> is only used in the UI layer. When data is converted to its persistent form for MongoDB, we store only the UUID of the associated <code>Visit</code>. Since a true foreign key relationship cannot exist between multiple databases, we store the identifier as a simple reference.</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitLog.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.core.entity.annotation.JmixId;
+import io.jmix.core.metamodel.annotation.JmixEntity;
+import io.jmix.core.metamodel.annotation.JmixProperty;
+
+@JmixEntity(name = "petclinic_VisitLog")
+public class VisitLog {
+
+    @JmixId
+    private String id;
+
+    @JmixProperty(mandatory = true)
+    @NotNull
+    private Visit visit;
+
+    private String title;
+
+    @InstanceName
+    private String description;
+
+    // ...
+
+
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="mongodb-document"><a class="anchor" href="#mongodb-document"></a>MongoDB Document</h3>
+<div class="paragraph">
+<p>The <code>VisitLogDocument</code> class is annotated with <code>@Document</code>, mapping it to a MongoDB collection. This class is the persistent representation of <code>VisitLog</code>, and it is used exclusively in the service layer to interact with MongoDB.</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitLogDocument.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.HashIndexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document <i class="conum" data-value="1"></i><b>(1)</b>
+public class VisitLogDocument {
+
+    @Id <i class="conum" data-value="2"></i><b>(2)</b>
+    private String id;
+
+    @HashIndexed <i class="conum" data-value="4"></i><b>(4)</b>
+    private String visitId; <i class="conum" data-value="3"></i><b>(3)</b>
+    private String title;
+    private String description;
+
+    // ...
+
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>@Document</code> - Marks this class as a MongoDB document, treating <code>VisitLogDocument</code> as a collection in MongoDB. This annotation is specific to non-relational databases and is JPA equivalent of <code>@Entity</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>@Id</code> - Defines the unique identifier field for each document in the MongoDB collection, functioning similarly to a primary key.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>visitId</code> - Stores the UUID of the associated <code>Visit</code> entry as a String, creating a link between <code>VisitLogDocument</code> and its related <code>Visit</code> record.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>@HashIndexed</code> - Annotates the <code>visitId</code> with a hashed index, optimizing MongoDB for fast querying by this field.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>VisitLogService</code> class manages data conversions between <code>VisitLog</code> and <code>VisitLogDocument</code>, maintaining a clean separation of concerns between persistence and UI layers.</p>
+</div>
+<div class="paragraph">
+<p>For more details on indexes, see the documentation on indexing: <a href="https://docs.spring.io/spring-data/mongodb/reference/mongodb/mapping/mapping-index-management.html" rel="noopener" target="_blank">Index Management in Spring Data MongoDB</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="spring-data-repository"><a class="anchor" href="#spring-data-repository"></a>Spring Data Repository</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Next, let’s take a look at how to access the database. We define a Spring Data repository interface (leveraging the above dependency <code>spring-boot-starter-data-mongodb</code>). Spring Data provides an abstraction layer specifically designed for data access, taking care of standard CRUD operations and making data interactions simpler and more efficient.</p>
+</div>
+<div class="paragraph">
+<p>Using Spring Data is an alternative to the <code>DataManager</code> API commonly used in Jmix. The idea is to define an interface that automatically includes standard CRUD methods. Additionally, it allows you to declare custom methods within the interface.</p>
+</div>
+<div class="paragraph">
+<p>The implementation of this interface is automatically derived and implemented by Spring Data. This means you don’t have to write the code that performs the exact interaction with the database. Instead, you simply declare in the interface what data access methods you need and the implementation is automatically derived from the method name, the return type and the parameters that go into the method.</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitLogDocumentRepository.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.springframework.data.mongodb.repository.MongoRepository;
+
+
+public interface VisitLogDocumentRepository extends MongoRepository&lt;VisitLogDocument, String&gt; {
+
+    /**
+     * Finds all {@link VisitLogDocument} entries associated with the specified visit ID.
+     *
+     * @param visitId The ID of the visit associated with the logs to retrieve.
+     * @return A list of {@link VisitLogDocument} instances matching the specified visit ID.
+     */
+    List&lt;VisitLogDocument&gt; findByVisitId(String visitId);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This repository interface inherits CRUD operations like <code>save</code>, <code>findById</code>, <code>findAll</code>, and <code>deleteById</code> from <code>MongoRepository</code>, allowing standard data access without requiring additional implementation. It also includes one custom query method that we need to load all <code>VisitLogDocuments</code> for a given <code>Visit</code>: <code>findByVisitId(String visitId)</code>. Spring Data MongoDB automatically generates the query for this method based on its naming convention, making it easy to add custom finder methods.</p>
+</div>
+<div class="paragraph">
+<p>For more details on MongoDB repositories and custom query methods, refer to the <a href="https://docs.spring.io/spring-data/mongodb/reference/mongodb/repositories/repositories.html" rel="noopener" target="_blank">Spring Data MongoDB repository documentation</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+By the way, Spring Data repositories aren’t just limited to MongoDB or other non-relational databases; you can also use them for regular relational database interactions in Jmix. This provides an alternative to the <code>DataManager</code> API and can be a convenient option in business logic code when Spring Data’s approach feels like a better fit. For more details on using Spring Data repositories in Jmix, see
+<a class="xref page" href="../data-access/data-repositories.html">Jmix Data Repositories</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To enable repository scanning, we need to inform Spring Data to search the application’s classpath for MongoDB repository interfaces. This is done through a configuration class located in the base package of our project, annotated with <code>@EnableMongoRepositories</code>. By placing this annotation on a configuration class, we instruct Spring Data to register any interfaces extending <code>MongoRepository</code> within the specified package as beans in the Spring application context, making them available for use in the application.</p>
+</div>
+<div class="listingblock">
+<div class="title">MongoDbConfiguration.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Configuration
+@EnableMongoRepositories
+public class MongoDbConfiguration {
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This setup ensures that all custom MongoDB repository interfaces are discovered and registered automatically. With this in place, we are ready to use it in our <code>VisitLogService</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="visit-log-service"><a class="anchor" href="#visit-log-service"></a>Service Layer for Visit Logs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>While the repository handles only database access, the service layer takes on additional responsibilities, in particular data transformations and providing a UI-friendly API.</p>
+</div>
+<div class="paragraph">
+<p>In our example, we will create a <code>VisitLogService</code> that links the UI and MongoDB by converting <code>VisitLog</code> entries between their UI format (<code>VisitLog</code>) and persistent structure (<code>VisitLogDocument</code>). This setup lets the UI interact with an easy-to-use DTO while ensuring data is correctly stored and retrieved in MongoDB.</p>
+</div>
+<div class="paragraph">
+<p>Let’s take a look at how the conversion from the Document to the DTO entity works, by reviewing the method to find all <code>VisitLog</code> entities for a given <code>Visit</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitLogService.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("petclinic_VisitLogService")
+public class VisitLogService {
+
+    private final EntityStates entityStates;
+    private final VisitLogDocumentRepository visitLogDocumentRepository;
+    private final DataManager dataManager;
+
+    public VisitLogService(EntityStates entityStates, VisitLogDocumentRepository visitLogDocumentRepository, DataManager dataManager) {
+        this.entityStates = entityStates;
+        this.visitLogDocumentRepository = visitLogDocumentRepository;
+        this.dataManager = dataManager;
+    }
+
+    /**
+     * Retrieves a list of {@link VisitLog} entries associated with a specific {@link Visit}.
+     * &lt;p&gt;
+     * This method queries MongoDB for {@link VisitLogDocument} records matching the provided visit ID.
+     * Each result is converted to a {@link VisitLog} DTO entity for UI representation. During conversion,
+     * the `visit` reference is re-resolved to ensure it is correctly associated for display and interaction in Jmix.
+     * &lt;/p&gt;
+     *
+     * @param visit The {@link Visit} entity to retrieve visit logs for.
+     * @return A list of {@link VisitLog} entries linked to the specified visit.
+     */
+    public List&lt;VisitLog&gt; findByVisit(Visit visit) {
+        return visitLogDocumentRepository.findByVisitId(visit.getId().toString()).stream()
+                .map(this::toVisitLog)
+                .toList();
+    }
+
+    private VisitLog toVisitLog(VisitLogDocument visitLogDocument) {
+        VisitLog visitLog = dataManager.create(VisitLog.class);
+        entityStates.setNew(visitLog, false);
+
+        visitLog.setId(visitLogDocument.getId());
+        visitLog.setVisit(dataManager.getReference(Visit.class, UUID.fromString(visitLogDocument.getVisitId())));
+        visitLog.setTitle(visitLogDocument.getTitle());
+        visitLog.setDescription(visitLogDocument.getDescription());
+
+        return visitLog;
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>findByVisit()</code> method fetches entries associated with a given <code>Visit</code> and converts them into <code>VisitLog</code> DTOs through <code>toVisitLog()</code>. During this conversion, we use <code>DataManager</code> to resolve the <code>Visit</code> reference. This operation is not actually loading the <code>Visit</code> entity from the database, but instead just creates an in-memory reference to the entity object so that the calling code could use the <code>VisitLog::getVisit</code> and gets back the object of the correct type. Additionally, the resulting <code>VisitLog</code> object is marked as non-new via the corresponding <code>EntityStates</code> method.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ui-integration-with-jmix"><a class="anchor" href="#ui-integration-with-jmix"></a>UI Integration with Jmix</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now that we have <code>VisitLogService</code> set up, we can use it in the UI to load and store <code>VisitLog</code> data associated with specific visits.</p>
+</div>
+<div class="paragraph">
+<p>In both the list and detail views, we use load and save delegates to customize how Jmix accesses data. Where Jmix would normally interact with a relational database, we use custom implementations with calls to <code>VisitLogService</code> instead.</p>
+</div>
+<div class="sect2">
+<h3 id="visit-log-list-view"><a class="anchor" href="#visit-log-list-view"></a>Visit Log List View</h3>
+<div class="paragraph">
+<p>The <code>VisitLogListView</code> provides a dedicated view for managing <code>VisitLog</code> entries associated with specific <code>Visit</code> entities. This view allows users to:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>View a list of <code>VisitLog</code> entries related to a specific <code>Visit</code>.</p>
+</li>
+<li>
+<p>Create new <code>VisitLog</code> entries, automatically associating them with the selected <code>Visit</code>.</p>
+</li>
+<li>
+<p>Remove selected <code>VisitLog</code> entries.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Let’s first look at how <code>VisitLogListView</code> receives information about which <code>Visit</code> it should display logs for and how the UI triggers this data loading.</p>
+</div>
+<div class="sect3">
+<h4 id="opening-visit-log-list-view"><a class="anchor" href="#opening-visit-log-list-view"></a>Opening Visit Log List View</h4>
+<div class="paragraph">
+<p>In <code>VisitListView</code>, a button allows users to open <code>VisitLogListView</code> for the currently selected <code>Visit</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/1-visit-log-button.png"><img alt="Visit Log Button" src="_images/1-visit-log-button.png"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>When the button is clicked, the <code>onVisitsDataGridVisitLog</code> method is triggered:</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "visits", layout = MainView.class)
+@ViewController("petclinic_Visit.list")
+@ViewDescriptor("visit-list-view.xml")
+@DialogMode(width = "64em")
+public class VisitListView extends StandardListView&lt;Visit&gt; {
+
+    @Autowired
+    private DialogWindows dialogWindows;
+
+    @ViewComponent
+    private DataGrid&lt;Visit&gt; visitsDataGrid;
+
+    @Subscribe("visitsDataGrid.visitLog")
+    public void onVisitsDataGridVisitLog(final ActionPerformedEvent event) {
+        DialogWindow&lt;VisitLogListView&gt; dialog = dialogWindows.view(this, VisitLogListView.class).build();
+
+        VisitLogListView visitLogListView = dialog.getView(); <i class="conum" data-value="1"></i><b>(1)</b>
+
+        visitLogListView.setVisit(visitsDataGrid.getSingleSelectedItem()); <i class="conum" data-value="2"></i><b>(2)</b>
+
+        dialog.open(); <i class="conum" data-value="3"></i><b>(3)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This method performs two main actions:</p>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>First, after calling the <code>DialogWindows.lookup</code> API to build the dialog, we use <code>dialog.getView()</code> to retrieve an instance of <code>VisitLogListView</code>. This enables calling custom methods on <code>VisitLogListView</code> before displaying the dialog (like <code>setVisit</code>).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The selected <code>Visit</code> is then passed to the <code>VisitLogListView</code> instance through the <code>setVisit</code> method, setting up the <code>Visit</code> context that will later be used when <code>VisitLogListView</code> loads and displays data.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Finally, <code>dialog.open()</code> is called to display <code>VisitLogListView</code> and initiate its lifecycle. Because <code>setVisit</code> is called before <code>open</code>, the <code>visit</code> instance variable is already populated when Jmix UI lifecycle methods execute, ensuring it is available when the data is supposed to be loaded.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="loading-visit-logs-in-visitloglistview"><a class="anchor" href="#loading-visit-logs-in-visitloglistview"></a>Loading Visit Logs in VisitLogListView</h4>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/2-visit-logs.png"><img alt="List Visit Logs for Visit" src="_images/2-visit-logs.png"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>Within <code>VisitLogListView</code>, the <code>setVisit</code> method sets the current <code>Visit</code> for which logs will be displayed:</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitLogListView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "visitLogs", layout = MainView.class)
+@ViewController("petclinic_VisitLog.list")
+@ViewDescriptor("visit-log-list-view.xml")
+@LookupComponent("visitLogsDataGrid")
+@DialogMode(width = "50em")
+public class VisitLogListView extends StandardListView&lt;VisitLog&gt; {
+
+    private Visit visit;
+
+    @Autowired
+    private VisitLogService visitLogService;
+    @Autowired
+    private DialogWindows dialogWindows;
+
+
+    /**
+     * Sets the {@link Visit} reference for this view.
+     * &lt;p&gt;
+     * This method provides the visit context for the current `VisitLogListView`, ensuring that
+     * only `VisitLog` entries related to this `Visit` are loaded and displayed.
+     * &lt;/p&gt;
+     *
+     * @param visit The {@link Visit} entity associated with the `VisitLog` entries displayed in this view.
+     */
+    public void setVisit(Visit visit) {
+        this.visit = visit; <i class="conum" data-value="1"></i><b>(1)</b>
+    }
+
+    /**
+     * Loads `VisitLog` entries associated with the specified {@link Visit}.
+     * &lt;p&gt;
+     * This method delegates the data loading to {@link VisitLogService#findByVisit}, ensuring that
+     * only the logs associated with the current `visit` are retrieved and displayed.
+     * &lt;/p&gt;
+     *
+     * @param loadContext The load context provided by Jmix.
+     * @return A list of `VisitLog` entries associated with the current visit.
+     */
+    @Install(to = "visitLogsDl", target = Target.DATA_LOADER) <i class="conum" data-value="2"></i><b>(2)</b>
+    protected List&lt;VisitLog&gt; visitLogsDlLoadDelegate(LoadContext&lt;VisitLog&gt; loadContext) {
+        return visitLogService.findByVisit(visit); <i class="conum" data-value="3"></i><b>(3)</b>
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>setVisit</code> method stores the <code>Visit</code> instance, making it available for use within the load delegate later in the UI controller lifecycle.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Declares this method as the load delegate for <code>visitLogsDl</code>, specifying that data loading for this data loader will be handled by the custom delegate method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Uses <code>VisitLogService</code> to execute the data loading with the previously stored <code>visit</code> instance, retrieving only the relevant <code>VisitLog</code> entries.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The pattern we used to transfer the <code>Visit</code> object to the <code>VisitLogListView</code> applies similarly when working with the <code>VisitLogDetailView</code>. This way, when creating a visit log entry, the <code>Visit</code> reference is already available in the detail view and can be passed directly to the service, ensuring the <code>VisitLog</code> is saved in association with the appropriate <code>Visit</code>.</p>
+</div>
+<div class="paragraph">
+<p>Next, we’ll take a closer look at how this setup functions within the <code>VisitLogDetailView</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="visit-log-detail-view"><a class="anchor" href="#visit-log-detail-view"></a>Visit Log Detail View</h3>
+<div class="paragraph">
+<p>The <code>VisitLogDetailView</code> enables users to view and edit details for a selected <code>VisitLog</code> entry associated with a specific <code>Visit</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="_images/3-create-visit-log.png"><img alt="Creating a Visit Log" src="_images/3-create-visit-log.png"/></a>
+</div>
+</div>
+<div class="paragraph">
+<p>To save changes to <code>VisitLog</code> entries, this view overrides the default save mechanism by implementing a custom save delegate in the <code>DataContext</code>.</p>
+</div>
+<div class="paragraph">
+<p>In the <code>saveDelegate</code> method, we leverage <code>VisitLogService</code> to handle persistence. Here’s how it works:</p>
+</div>
+<div class="listingblock">
+<div class="title">VisitLogDetailView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "visitLogs/:id", layout = MainView.class)
+@ViewController("petclinic_VisitLog.detail")
+@ViewDescriptor("visit-log-detail-view.xml")
+@EditedEntityContainer("visitLogDc")
+public class VisitLogDetailView extends StandardDetailView&lt;VisitLog&gt; {
+
+    private Visit visit;
+    @Autowired
+    private VisitLogService visitLogService;
+
+    /**
+     * Sets the {@link Visit} reference for this view.
+     * &lt;p&gt;
+     * This method sets the visit context for the current `VisitLog` view. The provided `Visit` reference
+     * is later injected into the `VisitLog` entity before saving, establishing the correct association.
+     * &lt;/p&gt;
+     *
+     * @param visit The {@link Visit} entity associated with this `VisitLog`.
+     */
+    public void setVisit(Visit visit) {
+        this.visit = visit;
+    }
+
+    /**
+     * Saves the {@link VisitLog} entity using {@link VisitLogService}.
+     * &lt;p&gt;
+     * Before saving, this method sets the associated {@link Visit} reference on the `VisitLog` entity to ensure
+     * completeness. The `VisitLogService` then handles the persistence, and the saved `VisitLog` instance
+     * is returned in a singleton set as required by the Jmix framework.
+     * &lt;/p&gt;
+     *
+     * @param saveContext The save context provided by Jmix.
+     * @return A set containing the saved {@link VisitLog} entity.
+     */
+    @Install(target = Target.DATA_CONTEXT) <i class="conum" data-value="1"></i><b>(1)</b>
+    private Set&lt;Object&gt; saveDelegate(final SaveContext saveContext) {
+        VisitLog visitLog = getEditedEntity();
+
+        if (visitLog.getVisit() == null &amp;&amp; visit != null) {
+            visitLog.setVisit(visit); <i class="conum" data-value="2"></i><b>(2)</b>
+        }
+
+        VisitLog savedVisitLog = visitLogService.saveVisitLog(visitLog); <i class="conum" data-value="3"></i><b>(3)</b>
+
+        return Set.of(savedVisitLog);
+    }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Configures this method as the save delegate for the <code>DataContext</code>, meaning it will intercept and handle the save process for <code>VisitLog</code> entities.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Checks if the <code>VisitLog</code> entry has no <code>Visit</code> reference and, if so, assigns the current <code>Visit</code> to ensure it’s linked correctly.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Saves the <code>VisitLog</code> entity by calling <code>visitLogService.saveVisitLog</code>, which ensures that the entity is persisted to MongoDB through the service layer.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>By defining this custom save delegate, we maintain control over how <code>VisitLog</code> entries are saved, ensuring any missing <code>Visit</code> reference is populated before persistence. This method also simplifies saving logic in the UI, as it seamlessly integrates the service call within the view.</p>
+</div>
+<div class="paragraph">
+<p>For more information see <a class="xref page" href="../flow-ui/data/data-context.html#save-delegate">Data Context: Save Delegate</a> in the reference documentation.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, we integrated MongoDB as an additional datastore to manage visit log entries in our application. By using MongoDB alongside the main relational database, we demonstrated how Jmix can effectively support log data storage and retrieval, making it possible to handle large, flexible datasets outside the primary persistence context.</p>
+</div>
+<div class="paragraph">
+<p>We combined the use of <code>loadDelegate</code> and <code>saveDelegate</code> methods with DTO entities to enable  data loading and storage via a custom service layer.  Jmix’s UI framework seamlessly integrates with both types of entities, making it possible to use features like data binding and UI interaction without worrying about the underlying persistence mechanism.</p>
+</div>
+<div class="paragraph">
+<p>Jmix supports polyglot persistence - making it easy to integrate existing non-relational data sources or use different databases on a per-use-case basis. This flexibility allows you to easily connect to various data sources and choose the best technology depending on the specific needs, whether it involves integrating an existing MongoDB data store or combining different types of databases within the same architecture to optimize for each use case.</p>
+</div>
+<div class="sect2">
+<h3 id="further-information"><a class="anchor" href="#further-information"></a>Further Information</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://docs.spring.io/spring-data/mongodb/reference/mongodb/repositories/repositories.html" rel="noopener" target="_blank">Spring Data: MongoDB Repositories</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../data-model/entities.html#dto">Jmix: DTO Entity</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../flow-ui/data-components.html">Jmix UI: Data Components</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

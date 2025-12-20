@@ -1,0 +1,300 @@
+<Path>Layouts > Scroller</Path>
+
+Scroller - a container that can scroll its content if it does not fit the size of the container. The components direction can be defined by scrollBarsDirection attribute: VERTICAL HORIZONTAL BOTH NONE scrollBarsDirection attribute allows configuring scroll bars. It can be horizontal, vertical - for horizontal and vertical scrolling respectively, both - for scrolling in any direction. Setting the value to none forbids scrolling in any direction.
+
+scroller.xml
+
+<view xmlns="http://jmix.io/schema/flowui/view">
+    <layout classNames="flex-row">
+        <scroller width="25%" height="20em" scrollBarsDirection="VERTICAL">
+            <vbox>
+                <h4 text="Vertical scrollbar"/>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+            </vbox>
+        </scroller>
+        <scroller width="25%" height="20em" scrollBarsDirection="HORIZONTAL">
+            <vbox>
+                <h4 text="Horizontal scrollbar"/>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+            </vbox>
+        </scroller>
+        <scroller width="25%" height="20em" scrollBarsDirection="BOTH">
+            <vbox>
+                <h4 text="Both scrollbar"/>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+            </vbox>
+        </scroller>
+        <scroller width="25%" height="20em" scrollBarsDirection="NONE">
+            <vbox>
+                <h4 text="None scrollbar"/>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+                <hbox>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                    <textField/>
+                </hbox>
+            </vbox>
+        </scroller>
+    </layout>
+</view>
+
+
+
+
+ScrollerSample.java
+
+package io.jmix.uisamples.view.flowui.containers.scroller;
+
+import io.jmix.flowui.view.StandardView;
+import io.jmix.flowui.view.ViewController;
+import io.jmix.flowui.view.ViewDescriptor;
+
+@ViewController("scroller")
+@ViewDescriptor("scroller.xml")
+public class ScrollerSample extends StandardView {
+}
+
+

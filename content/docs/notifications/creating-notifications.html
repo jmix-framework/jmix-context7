@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating Notifications :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Creating Notifications</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can create notifications via administration UI or programmatically in code.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="administration-ui"><a class="anchor" href="#administration-ui"></a>Administration UI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After the add-on is added to your application, the main menu contains the <strong>Notifications</strong> item. The <strong>Notifications browser</strong> provides a list of created notifications and buttons for managing them.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="ntf list" src="_images/ntf-list.png" width="1270"/>
+</div>
+</div>
+<div class="paragraph" id="ntf-editor">
+<p>The notification editor appears after clicking the <strong>Create new notification</strong> button.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="ntf editor" src="_images/ntf-editor.png" width="480"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The dialog provides the following fields to fill in:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Subject</strong> – a subject of the notification.</p>
+</li>
+<li>
+<p><strong>Type</strong> – a type of notification. There are no default notification types. See the <a class="xref page" href="configuration.html#notification-types">configuration</a> section to create types.</p>
+</li>
+<li>
+<p><strong>Recipients</strong> – list of recipients of the notification. Start typing a username in the field, and select the appropriate users from the list.</p>
+</li>
+<li>
+<p><strong>Channels</strong> – a channel used for notification.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>In-app channel</strong> – a user will receive the notification in the application UI.</p>
+</li>
+<li>
+<p><strong>Email channel</strong> – a user will receive an email with the notification. (available with <a class="xref page" href="../email/index.html">Email</a> add-on.)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Body</strong> – body of the notification.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="programmatic-creation"><a class="anchor" href="#programmatic-creation"></a>Programmatic Creation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <strong>NotificationManager</strong> service provides methods to send notifications to users.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, a notification is sent to the user every time a new order is created.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="ntf programmatic" src="_images/ntf-programmatic.png" width="1270"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private boolean justCreated;
+
+@ViewComponent
+private TypedTextField&lt;Integer&gt; numberField;
+
+@Autowired
+protected NotificationManager notificationManager;
+
+@Subscribe
+public void onInitEntity(InitEntityEvent&lt;Order&gt; event) {
+    justCreated = true;
+}
+
+@Subscribe(target = Target.DATA_CONTEXT)
+public void onPostSave(final DataContext.PostSaveEvent event) { <i class="conum" data-value="1"></i><b>(1)</b>
+    if (justCreated) { <i class="conum" data-value="2"></i><b>(2)</b>
+        notificationManager.createNotification() <i class="conum" data-value="3"></i><b>(3)</b>
+                .withSubject("New order")<i class="conum" data-value="4"></i><b>(4)</b>
+                .withRecipientUsernames("admin") <i class="conum" data-value="5"></i><b>(5)</b>
+                .toChannelsByNames("in-app") <i class="conum" data-value="6"></i><b>(6)</b>
+                .withContentType(ContentType.PLAIN) <i class="conum" data-value="7"></i><b>(7)</b>
+                .withBody("A new order with number " + numberField.getValue()+ " is created.") <i class="conum" data-value="8"></i><b>(8)</b>
+                .send(); <i class="conum" data-value="9"></i><b>(9)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>This method is invoked after saving changes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Checks if this entity is newly created.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Initiates <code>NotificationRequestBuilder</code> that creates a new <code>NotificationRequest</code> object.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Defines the subject of the notification.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Sets the recipient by the provided username.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Sets notification channels by provided names. The <code>in-app</code> and <code>email</code> are available.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Set notification body content type.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>Sets notification body.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="9"></i><b>9</b></td>
+<td>Creates and sends the notification request.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Click <strong>Code Snippets</strong> in the actions panel to <a class="xref page" href="../studio/code-snippets.html">generate code</a> for sending notifications.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-instance Activities :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Multi-instance Activities</h1>
+<div class="sect1">
+<h2 id="overview"><a class="anchor" href="#overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <strong>multi-instance activity</strong> is a way of defining repetition for a certain step in a business process.
+In programming concepts, a multi-instance is equivalent to the <code>for each</code> construct: it allows you to execute a certain step,
+or even a complete subprocess, for each item in a given collection, <strong>sequentially</strong> or in <strong>parallel</strong>.</p>
+</div>
+<div class="paragraph">
+<p>A multi-instance is a regular activity that has extra properties defined (named '<em>multi-instance characteristics</em>')
+that will cause the activity to be executed multiple times at runtime.
+The following activities can become a <em>multi-instance activity</em>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>User Task</p>
+</li>
+<li>
+<p>Script Task</p>
+</li>
+<li>
+<p>Service Task</p>
+</li>
+<li>
+<p>Embedded Subprocess</p>
+</li>
+<li>
+<p>Call Activity</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Graphical Notation</strong></div>
+<p>Multi-instance activities are visually represented as regular activities
+provided with <strong>parallel</strong> or <strong>sequential</strong> <a class="xref page" href="bpmn-elements.html#markers">marker</a> in the center-bottom of the task or subprocess element.
+Three vertical lines indicate that the instances will be executed in parallel, while three horizontal lines indicate sequential execution.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="multi instance" src="../_images/multi-instance/multi-instance.png" width="350"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>To make an activity multi-instance, the activity XML element must have a <code>multiInstanceLoopCharacteristics</code> child element.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;multiInstanceLoopCharacteristics isSequential="false|true"&gt;
+...
+&lt;/multiInstanceLoopCharacteristics&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>isSequential</strong> attribute indicates if the instances of that activity are executed sequentially or in parallel.
+By default, this attribute is omitted and its value is considered <code>false</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="special-variables"><a class="anchor" href="#special-variables"></a>Special Variables</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As required by the BPMN 2.0 specification, each parent execution of the created executions for each instance will have the following variables:</p>
+</div>
+<div class="hdlist">
+<table>
+<tr>
+<td class="hdlist1">
+nrOfInstances
+</td>
+<td class="hdlist2">
+<p>The total number of instances.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+nrOfActiveInstances
+</td>
+<td class="hdlist2">
+<p>The number of currently active (not yet finished) instances.
+For a sequential multi-instance, this will always be 1.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+nrOfCompletedInstances
+</td>
+<td class="hdlist2">
+<p>The number of already completed instances.</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>These values can be retrieved by calling the <em>execution.getVariable(x)</em> method.</p>
+</div>
+<div class="paragraph">
+<p>Additionally, each of the created executions will have an execution-local variable
+(not visible for the other executions, and not stored on process instance level):</p>
+</div>
+<div class="hdlist">
+<table>
+<tr>
+<td class="hdlist1">
+loopCounter
+</td>
+<td class="hdlist2">
+<p>It indicates the index in the for-each loop of that particular instance.</p>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setting-multi-instance-peoperties"><a class="anchor" href="#setting-multi-instance-peoperties"></a>Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To make an activity multi-instance, select it on the canvas and go to the <strong>BPMN Navigator</strong> panel.
+Choose a desired instance type:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="multi instance types" src="../_images/multi-instance/multi-instance-types.png" width="463"/>
+</div>
+</div>
+<div class="sect2">
+<h3 id="defining-number-of-instan"><a class="anchor" href="#defining-number-of-instan"></a>Number of Instances</h3>
+<div class="paragraph">
+<p>The number of instances can be defined by two ways:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Directly</strong> — by setting a <em>Cardinality</em> parameter.</p>
+</li>
+<li>
+<p><strong>By collection</strong> — it’d be equal a collection size.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When setting <em>cardinality</em>, you can use expressions that resolve to a positive number, like this:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>${nrOfOrders-nrOfCancellations}</pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Set collection source and collection</dt>
+<dd>
+<p> — there are various sources available — expression,
+process variable, and user provider. In this case, process engine creates as many activities as collection size is.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="collection source user task" src="../_images/multi-instance/collection-source-user-task.png" width="463"/>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Set Collection from Expression</strong></div>
+<p>Also, you can use expression to pass a collection in multi-instance activity.
+The expression may contain a call of a bean method returning a list of objects:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>${smpl_OrderService.getOrders()}</pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Set Collection from Process Variable</strong></div>
+<p>The simplest way is to use process variable as a collection source.
+It can be a list of entities, strings, numbers or any objects you need.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>For user tasks, it must be a list of usernames (<code>String</code>) or a list of users
+(objects of the <code>User</code> class or class implementing <code>UserDetails</code> interface).</p>
+</div>
+<div class="paragraph">
+<p>Besides, the only <em>Assignee source</em> is available in this case — <strong>Expression</strong>.
+If the collection named <code>usernames</code> with items having the type of <code>String</code>, the expression would be like this:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>${usernames_item}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And if the collection named <code>users</code> with items of the <code>User</code> class or <code>UserDetails</code>, the expression would be</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>${users_items.username}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can edit the expression manually but do this with care.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<div class="title"><strong>Set collection from UserProvider</strong></div>
+<p>In the third variant, you can implement a <strong>UserListProvider</strong> and use a list of usernames in multi-instance activity.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="bpmn-user-task.html#user-list-provider">User List Provider</a> in the <strong>User Task</strong> section.</p>
+</div>
+<div class="paragraph">
+<p>When the <em>collection</em> is set, the system automatically creates an <em>Element variable</em>.
+It plays the role of the iteration variable in the <code>for each</code> construct.
+You can rename the element variable as you wish.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="completion-conditions"><a class="anchor" href="#completion-conditions"></a>Completion Conditions</h3>
+<div class="paragraph">
+<p>As a common, multi-instance activity ends when all instances are completed. However,
+it is possible to specify an expression evaluated every time an instance ends.</p>
+</div>
+<div class="paragraph">
+<p>When this expression evaluates to true, all remaining instances are destroyed and the multi-instance activity ends,
+continuing the process. Such an expression must be defined in the <strong>completionCondition</strong> child element.</p>
+</div>
+<div class="paragraph">
+<p>For example,</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>${nrOfCompletedInstances &gt; nrOfActiveInstances}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It means when the number of completed tasks becomes greater than the number of active instances,
+all remaining tasks would be dropped.</p>
+</div>
+<div class="paragraph">
+<p>Also, it is possible to call Spring bean methods in condition expression:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>${smpl_ErrorService.failure()}</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-local-variables"><a class="anchor" href="#using-local-variables"></a>Using Local Variables</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Suppose, we want to build a process in which multiple performers will write a value of the variable.
+For example, several teachers set score to the student’s work. Or it can be a service task, writing some value.</p>
+</div>
+<div class="paragraph">
+<p>In this case, you should use local variables in the multi-instance activity.
+Otherwise, each instance will override the value of the outer scope variable.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="local variables multi" src="../_images/local-variables-multi.png" width="700"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="outcomes-based-conditions"><a class="anchor" href="#outcomes-based-conditions"></a>Outcomes-based Conditions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When a multi-instance is a user task having outcomes, it is possible to arrange some kind of "voting".</p>
+</div>
+<div class="paragraph">
+<p>In this case, the system stores the decision made by each user in the so-called <em>outcomes container</em> — a  process variable of the type <code>OutcomesContainer</code>.
+After completion of all instances, you can see all results in this container.</p>
+</div>
+<div class="paragraph">
+<p>Then, you can use completion conditions of those types on the sequence flows outgoing from exclusive or inclusive gateway:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Anyone completed with the outcome</p>
+</li>
+<li>
+<p>Everyone completed with the outcome</p>
+</li>
+<li>
+<p>No one completed with the outcome</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example, we have a process with multi-instance user task having two outcomes, <code>Yes</code> and <code>No</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="process example multi user task" src="../_images/process-example-multi-user-task.png" width="400"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, we can use outcome-based like
+"Everyone said <em>Yes</em>":</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="sequence flow with outcome based condition" src="../_images/sequence-flow-with-outcome-based-condition.png" width="463"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="boundary-events"><a class="anchor" href="#boundary-events"></a>Boundary Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Since a multi-instance is a regular activity, it is possible to define a boundary event on its boundary.
+In the case of an interrupting boundary event, when the event is caught,
+all instances that are still active will be destroyed.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="multi instance error" src="../_images/multi-instance-error.png" width="900"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="compensation"><a class="anchor" href="#compensation"></a>Compensation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It may happen that the multi-instance task requires compensation.
+Your first idea would be like this:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="multi instance compensation bad" src="../_images/multi-instance-compensation-bad.png" width="420"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Yes, this can work, but not in all cases.
+It’s OK for sequential synchronous tasks but can cause errors in other cases.</p>
+</div>
+<div class="paragraph">
+<p>Better wrap your task with compensation with embedded subprocess, this pattern works in any case.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="multi instance compensation good" src="../_images/multi-instance-compensation-good.png" width="800"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="execution-listeners"><a class="anchor" href="#execution-listeners"></a>Execution Listeners</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There is an issue when using execution listeners in combination with multi-instance.</p>
+</div>
+<div class="paragraph">
+<p>See the <a class="xref page" href="../listeners.html#execution-listeners">Execution Listeners</a> section.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

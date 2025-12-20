@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2. Simple CRUD :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">2. Simple CRUD</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s start from implementing the simplest feature of your Onboarding application: management of onboarding Steps.</p>
+</div>
+<div class="paragraph">
+<p>Essentially, an onboarding Step is an action that needs to be done within certain period of time by a new hire. The application stores the name of the action and its maximum duration. A user with admin access rights will manage the list, create new Steps, edit or remove them using dedicated views.  Once created, a Step can be assigned to  employees (User) by HR manager.</p>
+</div>
+<div class="paragraph">
+<p>The feature will include the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>Step</code> entity.</p>
+</li>
+<li>
+<p>A database table for the entity.</p>
+</li>
+<li>
+<p>CRUD views for working with the entity.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-entity"><a class="anchor" href="#create-entity"></a>Creating Step Entity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The entity has just a few simple attributes:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="step diagram" src="_images/simple-crud/step-diagram.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If your application is running, stop it using the <strong>Stop</strong> button (<span class="image"><img alt="suspend" src="_images/common/suspend.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Jmix</strong> tool window, click <strong>New</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) → <strong>JPA Entity</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 1" src="_images/simple-crud/create-entity-1.png" width="391"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>New JPA Entity</strong> dialog appears. Enter <code>Step</code> into the <strong>Class</strong> field and select the <strong>Traits</strong> → <strong>Versioned</strong> checkbox:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 2" src="_images/simple-crud/create-entity-2.png" width="492"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will create the entity class and open the entity designer:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 3" src="_images/simple-crud/create-entity-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, the new entity has two attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>id</code> is the identifier required for any entity. It is mapped to the <code>ID</code> column, which is the primary key of the database table.</p>
+</li>
+<li>
+<p><code>version</code> attribute is added because you have selected the <strong>Versioned</strong> trait for the entity. With the help of this attribute, the framework provides optimistic locking of entity instances. We recommend always using optimistic locking for entities unless you have a good reason not to do it.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Let’s add the <code>name</code> attribute to the entity.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) in the <strong>Attributes</strong> toolbar.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>New Attribute</strong> dialog appears. Enter <code>name</code> into the <strong>Name</strong> field and select the <strong>Mandatory</strong> checkbox:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 4" src="_images/simple-crud/create-entity-4.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Take a look at the most important parameters of the attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Attribute type</strong> - the <code>DATATYPE</code> value means that the attribute is of a simple type like String, Integer, etc.</p>
+</li>
+<li>
+<p><strong>Type</strong> defines the Java type of the attribute.</p>
+</li>
+<li>
+<p><strong>Length</strong> specifies the length of the database column and, in the case of String attributes, the maximum number of characters a user can enter to a corresponding text field in UI.</p>
+</li>
+<li>
+<p>When <strong>Mandatory</strong> checkbox is selected, the database column will be created with a non-null constraint and a UI field will require a value.</p>
+</li>
+<li>
+<p><strong>Column</strong> defines a name for the mapped database column.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>. The <code>name</code> attribute will be added to the attributes list.</p>
+</div>
+<div class="paragraph">
+<p>Now let’s add the <code>duration</code> attribute which represents the maximum number of days to complete the step.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) in the <strong>Attributes</strong> toolbar. In the <strong>New Attribute</strong> dialog, enter <code>duration</code> into the <strong>Name</strong> field, select <code>Integer</code> in the <strong>Type</strong> field and select the <strong>Mandatory</strong> checkbox:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 5" src="_images/simple-crud/create-entity-5.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>. The <code>duration</code> attribute will appear in the attributes list.</p>
+</div>
+<div class="paragraph">
+<p>Finally, add the <code>sortValue</code> attribute which will be used for ordering steps. Select <code>Integer</code> in the <strong>Type</strong> field and select the <strong>Mandatory</strong> checkbox:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 6" src="_images/simple-crud/create-entity-6.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The final state of the entity should look like this:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 7" src="_images/simple-crud/create-entity-7.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You can use the <strong>Up</strong> (<span class="image"><img alt="move up" src="_images/common/move-up.svg"/></span>) / <strong>Down</strong> (<span class="image"><img alt="move down" src="_images/common/move-down.svg"/></span>) buttons in the <strong>Attributes</strong> toolbar to reorder the attributes.</p>
+</div>
+<div class="paragraph">
+<p>Let’s look at the resulting entity class generated by the designer. Switch to the <strong>Text</strong> tab at the bottom:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create entity 8" src="_images/simple-crud/create-entity-8.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>If you have an experience with JPA, you will see familiar annotations: <code>@Entity</code>, <code>@Table</code>, <code>@Column</code>, etc. There are also a few annotations specific to Jmix. The most important one is <code>@JmixEntity</code> on the class header. In general, any POJO can be an entity in Jmix if it is annotated with <code>@JmixEntity</code>.</p>
+</div>
+<div class="paragraph">
+<p>The entity class can be edited manually, and when you switch back to the <strong>Designer</strong> tab, it will reflect the changes. For example, if you remove the <code>nullable = false</code> and <code>@NotNull</code> from an attribute, the designer will unselect the <strong>Mandatory</strong> checkbox for it.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="create-views"><a class="anchor" href="#create-views"></a>Creating CRUD Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When the entity class is ready, you can generate CRUD views for it.</p>
+</div>
+<div class="paragraph">
+<p>In the actions panel at the top of the entity designer, click <strong>Views</strong> → <strong>Create view</strong>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screens 1" src="_images/simple-crud/create-screens-1.png" width="457"/>
+</div>
+</div>
+<div class="paragraph">
+<p>On the first step of the view creation wizard, select the <code>Entity list and detail views</code> template:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="screen wizard 1" src="_images/common/screen-wizard-1.png" width="776"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>On the second step, the wizard lets you select the package and names for the generated views:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screens 3" src="_images/simple-crud/create-screens-3.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Accept the suggested values and click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>On the next step, you can set some options for the views:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screens 4" src="_images/simple-crud/create-screens-4.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>All these options can be modified later in the created views, so just accept the suggested values and click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>On the next step, the wizard lets you set up the <em>fetch plan</em> for the entity list view:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screens 5" src="_images/simple-crud/create-screens-5.png"/>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+In short, a fetch plan determines what attributes and referenced entities must be loaded for the view.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>Step</code> entity is very simple, so there is no need to adjust the fetch plan for it. We will take a closer look at fetch plans later when we deal with more complex entities and views.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Now the wizard lets you set up the fetch plan for the entity detail view:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screens 6" src="_images/simple-crud/create-screens-6.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Again, there is no point in changing the suggested fetch plan - it just includes all attributes.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong>.</p>
+</div>
+<div class="paragraph">
+<p>At the final step of the wizard, it lets you set titles for the views:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screens 7" src="_images/simple-crud/create-screens-7.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Accept the suggested values and click <strong>Create</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will generate two views: <code>Step.list</code> and <code>Step.detail</code> and open their source code.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Each view consists of two parts: descriptor and controller. The descriptor is an XML file defining view components and layout. Controller is a Java class that can contain event handlers and other logic.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The XML descriptor of the generated <code>Step.list</code> view will be displayed in the Studio view designer:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="create screens 8" src="_images/simple-crud/create-screens-8.png" width="1110"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The main parts of the designer are highlighted on the picture above. You will take a closer look at them later in this guide.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="run-app"><a class="anchor" href="#run-app"></a>Running the Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After creating the entity and CRUD views for it, you can run the application to see the new feature in action.</p>
+</div>
+<div class="paragraph">
+<p>Click the <strong>Debug</strong> button (<span class="image"><img alt="start debugger" src="_images/common/start-debugger.svg"/></span>) in the main toolbar as you did in the <a class="xref page" href="project-setup.html#run-app">previous section</a>.</p>
+</div>
+<div class="paragraph">
+<p>Before running the application, Studio checks the difference between the project data model and the database schema. As long as you have created a new entity, Studio generates a Liquibase changelog for the corresponding changes in the database (creating the <code>STEP</code> table):</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 1" src="_images/simple-crud/run-app-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Save and run</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will execute the changelog against your database:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 2" src="_images/simple-crud/run-app-2.png" width="1075"/>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, Studio builds and runs the application:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 3" src="_images/simple-crud/run-app-3.png" width="1075"/>
+</div>
+</div>
+<div class="paragraph">
+<p>When the application is ready, open <code>http://localhost:8080</code> in your web browser and log in to the application with <code>admin</code> / <code>admin</code> credentials.</p>
+</div>
+<div class="paragraph">
+<p>Click on the <code>Steps</code> item in the <code>Application</code> menu. You will see the <code>Step.list</code> view:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 4" src="_images/simple-crud/run-app-4.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Create</strong>. The <code>Step.detail</code> view will open:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 5" src="_images/simple-crud/run-app-5.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Using the list and detail views, create a few onboarding steps with the following parameters:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;"/>
+<col style="width: 33.3333%;"/>
+<col style="width: 33.3334%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Duration</th>
+<th class="tableblock halign-left valign-top">Sort value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Safety briefing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fill in profile</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">20</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Check all functions</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Information security training</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Internal procedures studying</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you have created the simplest feature of the application: onboarding steps management.</p>
+</div>
+<div class="paragraph">
+<p>You have learned that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Studio has a visual designer for creating and editing <a class="xref page" href="../data-model/entities.html">entity</a> classes and attributes.</p>
+</li>
+<li>
+<p>Optimistic locking is recommended for most entities. It is used if you select the <strong>Versioned</strong> <a class="xref page" href="../data-model/entities.html#traits">trait</a> for the entity.</p>
+</li>
+<li>
+<p>Studio can generate CRUD views for an entity by templates.</p>
+</li>
+<li>
+<p>An entity list view is added to the main menu of the application.</p>
+</li>
+<li>
+<p>Before running the application, Studio compares the data model and the database schema. If there is a difference, it generates and executes a <a class="xref page" href="../data-model/db-migration.html">Liquibase changelog</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

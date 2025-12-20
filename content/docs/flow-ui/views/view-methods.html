@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Methods :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">View Methods</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, we describe some methods of view controller base classes that can be invoked or overridden in the application code.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="methods-of-all-views"><a class="anchor" href="#methods-of-all-views"></a>Methods of All Views</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>close()</code> - requests closing the view with the passed <code>StandardOutcome</code> enum value or a <code>CloseAction</code> object.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("discardButton")
+public void onDiscardButtonClick(ClickEvent&lt;Button&gt; event) {
+    close(StandardOutcome.DISCARD);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The parameter value is propagated to the <a class="xref page" href="view-events.html#before-close-event">BeforeCloseEvent</a> and <a class="xref page" href="view-events.html#after-close-event">AfterCloseEvent</a>, so the information about the reason why the view was closed can be obtained in the listeners.</p>
+</div>
+</li>
+<li>
+<p><code>closeWithDefaultAction()</code> - requests closing the view with <code>StandardOutcome.CLOSE</code>.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="prevent-browser-tab-closing">
+<ul>
+<li>
+<p><code>setPreventBrowserTabClosing()</code> - sets whether this view should prevent the browser tab from closing accidentally if the <a class="xref page" href="../ui-properties.html#jmix.ui.view.prevent-browser-tab-closing">jmix.ui.view.prevent-browser-tab-closing</a> property is set to <code>true</code> (which is <code>false</code> by default). Enabled by default for <a class="xref page" href="view-classes.html#standard-detail-view">detail views</a>.</p>
+</li>
+<li>
+<p><code>getViewData()</code> - returns the <code>ViewData</code> object that serves as a registry for all <a class="xref page" href="../data-components.html">data components</a> defined in the view XML descriptor. You can use its <code>loadAll()</code> method to trigger all data loaders of the view:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onReady(final ReadyEvent event) {
+    getViewData().loadAll();
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>getViewAttributes()</code> - returns the <code>ViewAttributes</code> object that serves as a storage of named values. Uses <code>VaadinSession</code> as a store. For example, a detail view uses <code>ViewAttributes</code> to store the <em>read-only state</em> and <em>locked status</em> and revert these settings if a view is refreshed.</p>
+</li>
+<li>
+<p><code>getPageTitle()</code> - a callback that returns the title of a view. By default, returns localized value defined in a view descriptor. You can override it to provide the title using your own rules, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
+public String getPageTitle() {
+    User user = getEditedEntity();
+    return entityStates.isNew(user)
+            ? messageBundle.getMessage("newUserTitle")
+            : messageBundle.formatMessage("editUserTitle", metadataTools.getInstanceName(user));
+
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>setPageTitle()</code> method allows you to set the view title dynamically at any moment of the view lifecycle. For example, you can invoke it from the <code>ReadyEvent</code> handler or from a data container event handler.</p>
+<div class="paragraph">
+<p>For consistency, we recommend using either <code>getPageTitle()</code> or <code>setPageTitle()</code> within a single view.</p>
+</div>
+</li>
+<li>
+<p><code>beforeLeave()</code> - a callback that is executed before the navigation to another view is performed. Part of Vaadin’s <a href="https://vaadin.com/docs/latest/flow/routing/lifecycle/" rel="noopener" target="_blank">navigation lifecycle</a>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The event allows the navigation to be <em>postponed</em>, <em>canceled</em>, or <em>changed</em> to a different destination.</p>
+</li>
+<li>
+<p>Is not executed when a view is opened in a dialog mode.</p>
+</li>
+<li>
+<p>Must not be overridden without calling <code>super()</code> method as it executes framework related code.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>beforeEnter()</code> - a callback that is executed before navigating to a view. Part of Vaadin’s navigation lifecycle.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Can be used to obtain the <code>Location</code> object and enables changing the navigation target to go to a different destination from the original one.</p>
+</li>
+<li>
+<p>Is not executed when a view is opened in a dialog mode.</p>
+</li>
+<li>
+<p>Must not be overridden without calling <code>super()</code> method as it executes framework related code.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>afterNavigation()</code> - a callback that is executed after navigation has been completed. Part of Vaadin’s navigation lifecycle.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Can be used to obtain the <code>Location</code> object.</p>
+</li>
+<li>
+<p>Is not executed when a view is opened in a dialog mode.</p>
+</li>
+<li>
+<p>Must not be overridden without calling <code>super()</code> method as it executes framework related code.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Two callbacks allow you to customize the header and footer of views displayed in a dialog window. To utilize these callbacks, you must override them within your view class.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>configureDialogWindowHeader()</code> - this callback configures the <a class="xref page" href="opening-views.html#dialog-windows">DialogWindow</a> header when the view is opened in <code>OpenMode.DIALOG</code>. It provides access to the header component, enabling you to add custom components, titles, or styling elements.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
+protected void configureDialogWindowHeader(DialogWindowHeader header) {
+    H3 title = uiComponents.create(H3.class);
+    title.setText("- Opened in Dialog Mode!");
+    header.add(title);
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>configureDialogWindowFooter()</code> - this callback configures the <a class="xref page" href="opening-views.html#dialog-windows">DialogWindow</a> footer when the view is opened in <code>OpenMode.DIALOG</code>. It provides access to the footer component, enabling you to add custom buttons, actions, or informational elements.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
+protected void configureDialogWindowFooter(DialogWindowFooter footer) {
+    JmixButton saveButton = uiComponents.create(JmixButton.class);
+    saveButton.setText("Save");
+    footer.add(saveButton);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The screenshot below illustrates an example of a dialog window with customized header and footer.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="dialog header footer" src="../_images/views/dialog-header-footer.png" width="802"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="methods-of-standard-list"><a class="anchor" href="#methods-of-standard-list"></a>Methods of StandardListView</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>closeWithDiscard()</code> - requests closing the view with <code>StandardOutcome.DISCARD</code>.</p>
+</li>
+<li>
+<p><code>getLookupComponent() / findLookupComponent()</code> - returns a component to be used for getting a value returned from this <a class="xref page" href="view-classes.html#standard-list-view">lookup view</a>. By default, returns a component with an <code>id</code> specified by the <a class="xref page" href="view-annotations.html#lookup-component">@LookupComponent</a> annotation.</p>
+</li>
+<li>
+<p><code>setSelectionValidator()</code> - sets a predicate that tests if selected items can be processed by <code>SelectionHandler</code>.</p>
+</li>
+<li>
+<p><code>setSelectionHandler()</code> - sets a callback that handles selected items. By default, adds items to a <a class="xref page" href="../data/collection-container.html">collection container</a> if a lookup view is opened for a <a class="xref page" href="../vc/components/dataGrid.html">dataGrid</a> component or sets a single value if a lookup view is opened for a field, for example <a class="xref page" href="../vc/components/entityPicker.html">entityPicker</a>.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">DialogWindow&lt;View&lt;?&gt;&gt; dialog = dialogWindows.lookup(ProjectDetailView.this, User.class) <i class="conum" data-value="1"></i><b>(1)</b>
+        .withSelectHandler(users -&gt; { <i class="conum" data-value="2"></i><b>(2)</b>
+            for (User user : users) {
+                ProjectParticipant projectParticipant = dataManager.create(ProjectParticipant.class);
+                projectParticipant.setUser(user);
+                projectParticipant.setProject(getEditedEntity());
+                projectParticipant.setRole(projectRole);
+                participantsDc.getMutableItems().add(projectParticipant);
+            }
+        })
+        .build();
+
+View&lt;?&gt; view = dialog.getView();
+if (view instanceof MultiSelectLookupView multiSelectLookupView) { <i class="conum" data-value="3"></i><b>(3)</b>
+    multiSelectLookupView.setLookupComponentMultiSelect(true);
+}
+
+dialog.open();</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Create a lookup view builder not bound to any UI component.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Define selection handler for the lookup view.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Check if actual lookup view supports multiple selection.</td>
+</tr>
+</table>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="methods-of-standard-detail"><a class="anchor" href="#methods-of-standard-detail"></a>Methods of StandardDetailView</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>getEditedEntity()</code> - when the view is shown, returns an instance of the entity being edited. It’s the instance that is set in the data container specified in the <a class="xref page" href="view-annotations.html#edited-entity-container">@EditedEntityContainer</a> annotation.</p>
+<div class="paragraph">
+<p>In the <a class="xref page" href="view-events.html#init-event">InitEvent</a> listener, this method returns <code>null</code>. In the <a class="xref page" href="view-events.html#before-show-event">BeforeShowEvent</a> listener, this method returns the instance passed to the view for editing (later in the view opening process the entity is reloaded and a different instance is set to the data container).</p>
+</div>
+</li>
+<li>
+<p>The following methods can be used to close the detail screen:</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist" id="close-with-save-method">
+<ul>
+<li>
+<p><code>closeWithSave()</code> - validates and saves changes, then closes the view with <code>StandardOutcome.SAVE</code>. You can call this method from a custom event listener or add the built-in <code>detail_saveClose</code> action to the view.</p>
+</li>
+<li>
+<p><code>closeWithDiscard()</code> - ignores any unsaved changes and closes the view with <code>StandardOutcome.DISCARD</code>. You can call this method from a custom event listener or add the built-in <code>detail_discard</code> action to the view.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the view is closed using <code>close(StandardOutcome.CLOSE)</code> or <code>closeWithDefaultAction()</code> and has unsaved changes in its <a class="xref page" href="../data/data-context.html">DataContext</a>, a dialog with a corresponding message will be displayed before the view is closed. You can adjust the notification type using the <a class="xref page" href="../ui-properties.html#jmix.ui.view.use-save-confirmation">jmix.ui.view.use-save-confirmation</a> application property. If you use the <code>closeWithDiscard()</code> or <code>close(StandardOutcome.DISCARD)</code> methods, unsaved changes are ignored without any message.</p>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p><code>hasUnsavedChanges()</code> - returns <code>true</code> if the view has unsaved changes. The default implementations checks if there are removed or modified entities in the <code>DataContext</code>. If only new entities have been registered as modified in the <code>DataContext</code>, checks whether they have been modified since the view was opened. You can override this method to provide additional checks or skip checking altogether and just return <code>false</code>.</p>
+</li>
+<li>
+<p><code>save()</code> - validates and saves changes without closing the view. You can call this method from a custom event listener or add the built-in <code>detail_save</code> action to the view. Also, you can override the <code>save()</code> method to perform some operations after the data has been saved, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
+public OperationResult save() {
+    return super.save()     <i class="conum" data-value="1"></i><b>(1)</b>
+            .then(() -&gt; {
+                // ...      <i class="conum" data-value="2"></i><b>(2)</b>
+            });
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Call super method to execute the default logic.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>You can perform actions after the data has been saved.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><code>setReloadSaved(boolean)</code> - sets whether edited entity should be reloaded after the <a href="#close-with-save-method">closeWithSave()</a> method is invoked. The default value is <code>false</code>.</p>
+<div class="paragraph">
+<p>This method is invoked by the framework with <code>true</code> value when the view is opened in the dialog mode, to return the saved entity instance from the opened view. If you don’t need to reload the saved entity in dialog mode, invoke <code>setReloadSaved(false)</code> in a <a class="xref page" href="view-events.html#ready-event">ReadyEvent</a> listener.</p>
+</div>
+</li>
+<li>
+<p><code>setShowSaveNotification(boolean)</code> - sets whether a notification should be shown in case of a successful save. The default value is <code>true</code>.</p>
+</li>
+<li>
+<p><code>getSaveNotificationText()</code> - returns the save notification text. The default implementation generates the text based on the entity and instance names. You can override this method to return your own text.</p>
+</li>
+<li>
+<p><code>setShowValidationErrors(boolean)</code> - sets whether to indicate about errors after components validation using the <a class="xref page" href="view-validation.html#showValidationErrors">showValidationErrors()</a> method. The default value is <code>true</code>.</p>
+</li>
+<li>
+<p><code>setCrossFieldValidationEnabled(boolean)</code> - sets whether cross-field validation should be performed before saving changes. It uses <code>UiCrossFieldChecks</code> <a class="xref page" href="../../data-model/bean-validation.html#constraint-groups">constraint group</a> to validate the entity instance. The default value is <code>true</code>.</p>
+</li>
+<li>
+<p><code>getLockStatus()</code> - returns the <a class="xref page" href="../../pessimistic-lock/index.html">pessimistic lock</a> status of the currently edited entity instance. Possible variants:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>LockStatus.NOT_SUPPORTED</code> - if the entity does not support pessimistic locking.</p>
+</li>
+<li>
+<p><code>LockStatus.LOCKED</code> - if the entity instance is successfully locked.</p>
+</li>
+<li>
+<p><code>LockStatus.FAILED</code> - if the lock failed because the entity is already locked by someone else.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

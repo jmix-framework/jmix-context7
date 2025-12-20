@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entity and Query Cache :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Entity and Query Cache</h1>
+<div class="sect1">
+<h2 id="entity-cache"><a class="anchor" href="#entity-cache"></a>Entity Cache</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Entity cache is provided by EclipseLink ORM framework. It stores recently read or written entity instances in memory, which minimizes database access and improves the application performance.</p>
+</div>
+<div class="paragraph">
+<p>Entity cache is used only when you retrieve entities by id, so queries by other attributes still run against the database. However, these queries can be simpler and faster if related entities are cached. For example, if you query for Orders together with related Customers and do not use cache, the SQL query will contain a JOIN for Customers table. If the Customer entities are cached, the SQL query will select only Orders, and related Customers will be retrieved from the cache.</p>
+</div>
+<div class="paragraph">
+<p>To turn on the entity cache for an entity, set the <code>eclipselink.cache.shared.&lt;entity_name&gt;</code> and <code>eclipselink.cache.size.&lt;entity_name&gt;</code> application properties. In the example below, the entity cache is set for the <code>User</code> entity to the maximum size of 500 instances:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">eclipselink.cache.shared.User = true
+eclipselink.cache.size.User = 500</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The entity name is the simple class name by default.</p>
+</div>
+<div class="paragraph">
+<p>But it can also be set explicitly in the <code>@Entity(name = "&lt;entity_name&gt;")</code> annotation.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The default cache size for an entity is 100 instances.</p>
+</div>
+<div class="paragraph">
+<p>When using <a class="xref page" href="fetching.html#fetch-plan">fetch plans</a>, the fact of whether an entity is cached affects the fetch mode chosen by the framework for loading references. If a reference attribute is a cacheable entity, the fetch mode is always <code>UNDEFINED</code>, which allows ORM to retrieve the reference from the cache instead of executing queries with JOINs or separate batch queries.</p>
+</div>
+<div class="paragraph">
+<p>When working in a <a class="xref page" href="../deployment/k8s.html">distributed configuration</a>, Jmix provides synchronization of the entity cache between cluster nodes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="query-cache"><a class="anchor" href="#query-cache"></a>Query Cache</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Query cache stores identifiers of entity instances returned by JPQL queries, so it naturally complements the entity cache.</p>
+</div>
+<div class="paragraph">
+<p>For example, if entity cache is enabled for an entity (say, <code>Customer</code>), and you execute the query <code>select c from Customer c where c.grade = :grade</code> for the first time, the following happens:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ORM runs the query on the database.</p>
+</li>
+<li>
+<p>Loaded <code>Customer</code> instances are placed to the entity cache.</p>
+</li>
+<li>
+<p>A mapping of the query text and parameters to the list of identifiers of the returned instances is placed to the query cache.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When you execute the same query with the same parameters the second time, the framework finds the query in the query cache and loads entity instances from the entity cache by identifiers. No database operations are performed.</p>
+</div>
+<div class="paragraph">
+<p>Queries are not cached by default. You can specify that a query should be cached on different layers of the application:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Using <code>cacheable = "true"</code> XML attribute or <code>setCacheable(true)</code> method of the <code>CollectionLoader</code> interface when working with <a class="xref page" href="../flow-ui/data/data-loaders.html">data loaders</a>.</p>
+</li>
+<li>
+<p>Using <code>cacheable(true)</code> method of the fluent loader interface when working with <a class="xref page" href="data-manager.html">DataManager</a>.</p>
+</li>
+<li>
+<p>Using <code>@QueryHints(@QueryHint(name = PersistenceHints.CACHEABLE, value = "true"))</code> annotation on a repository method when working with <a class="xref page" href="data-repositories.html">data repositories</a>.</p>
+</li>
+<li>
+<p>Using <code>setHint(PersistenceHints.CACHEABLE, true)</code> method of the <code>jakarta.persistence.Query</code> interface when working with <a class="xref page" href="entity-manager.html">EntityManager</a>.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use cacheable queries only if entity cache is enabled for the returned entity. Otherwise, on every query entity instances will be fetched from the database by their identifiers one by one.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Query cache is invalidated automatically when the ORM creates, updates or deletes instances of the corresponding entities. The invalidation works across the cluster.</p>
+</div>
+<div class="paragraph">
+<p>The <code>jmix.eclipselink:type=QueryCache</code> JMX bean can be used to monitor the cache state and to evict cached queries manually. For example, if you have modified an instance of the <code>Customer</code> entity directly in the database, you should evict all cached queries for this entity using the <code>evict()</code> operation providing <code>Customer</code> as an argument.</p>
+</div>
+<div class="paragraph">
+<p>If you want to disable the query cache for all entities regardless of the API calls described above, set the <a class="xref page" href="data-properties.html#jmix.eclipselink.query-cache-enabled">jmix.eclipselink.query-cache-enabled</a> application property to <code>false</code>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

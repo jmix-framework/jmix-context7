@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opening Views :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Opening Views</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can open views from the main view through <a class="xref page" href="../flow-ui/actions/standard-actions.html">standard actions</a> when working with list and detail entity views, or programmatically from another view.</p>
+</div>
+<div class="paragraph">
+<p>The following section describes how to open views programmatically in your application code.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-viewbuilders-bean"><a class="anchor" href="#using-viewbuilders-bean"></a>Using ViewBuilders Bean</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>ViewBuilders</code> bean provides a fluent interface for opening views. Its terminal methods give access to the opened view instance. It allows you to pass input parameters directly to the view instance and add listeners for getting results back from the opened view after it is closed.</p>
+</div>
+<div class="paragraph">
+<p>To open a view, inject the <code>ViewBuilders</code> bean and invoke the <code>view()</code> method, passing the current view and either the opened view’s class or ID to it. Then, invoke the <code>open()</code> terminal method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+private void openView() {
+    viewBuilders.view(this, OtherView.class).open();
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="opening-detail-views"><a class="anchor" href="#opening-detail-views"></a>Opening Detail Views</h3>
+<div class="paragraph">
+<p>In most cases, you can open detail views using standard actions such as <a class="xref page" href="../flow-ui/actions/list-actions.html#list_create">list_create</a>. Let’s look at the examples when you can use the <code>ViewBuilders</code> API directly to open a detail view from an <a class="xref page" href="../flow-ui/actions.html">action</a> or <a class="xref page" href="../flow-ui/vc/components/button.html#ClickEvent">button</a> handler.</p>
+</div>
+<div class="paragraph">
+<p>To create a new entity instance in a detail view, invoke the <code>newEntity()</code> method. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+private void openDetailViewToCreate() {
+    viewBuilders.detail(this, User.class)
+            .newEntity()
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To edit an existing entity in a detail view, use the <code>editEntity()</code> method, providing the entity instance to edit:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+private void openDetailViewToEdit(User user) {
+    viewBuilders.detail(this, User.class)
+            .editEntity(user)
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the examples above, the detail view will create or update the entity, but the caller view will not receive the updated instance.</p>
+</div>
+<div class="paragraph">
+<p>If you need to edit an entity displayed by a list data view component (for example, a <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a>), use the following invocation method. It’s more concise and automatically updates the <code>dataGrid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataGrid&lt;User&gt; usersDataGrid;
+
+@Autowired
+private ViewBuilders viewBuilders;
+
+private void openDetailViewDataGridToEdit() {
+    viewBuilders.detail(usersDataGrid)
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To create a new entity instance and open its detail view, just call the <code>newEntity()</code> method on the builder:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataGrid&lt;User&gt; usersDataGrid;
+
+@Autowired
+private ViewBuilders viewBuilders;
+
+private void openDetailViewDataGridToCreate() {
+    viewBuilders.detail(usersDataGrid)
+            .newEntity()
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the same concise form if you want to create or edit an entity set to a field:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private EntityPicker&lt;User&gt; userPicker;
+
+@Autowired
+private ViewBuilders viewBuilders;
+
+private void openDetailViewFieldToEdit() {
+    viewBuilders.detail(userPicker)
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>ViewBuilders</code> offers many methods for setting optional parameters of the opened view. For example, the following code creates a new entity, initializes it, and then edits it in a detail view that’s opened as a dialog:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+private void openDetailViewDialog() {
+    viewBuilders.detail(this, User.class)
+            .newEntity()
+            .withInitializer(user -&gt; {
+                user.setTimeZoneId(getDefaultTimeZone());
+            })
+            .withOpenMode(ViewOpenMode.DIALOG)
+            .open();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="opening-lookup-views"><a class="anchor" href="#opening-lookup-views"></a>Opening Lookup Views</h3>
+<div class="paragraph">
+<p>Let’s look at some examples of working with lookup views. As with detail views, you typically open them using standard actions like <a class="xref page" href="../flow-ui/actions/entity-picker-actions.html#entity_lookup">entity_lookup</a>. The examples below demonstrate using the ViewBuilders API, which can be helpful if you don’t use standard actions.</p>
+</div>
+<div class="paragraph">
+<p>To select entities from a list view, open the view using the <code>lookup()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+private void openLookupView() {
+    viewBuilders.lookup(this, User.class)
+            .withSelectHandler(users -&gt; {
+                User user = users.iterator().next();
+                // ...
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need to set the looked up entity to a field, use the more concise form:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private EntityPicker&lt;User&gt; userPicker;
+
+@Autowired
+private ViewBuilders viewBuilders;
+
+private void openLookupViewToSelect() {
+    viewBuilders.lookup(userPicker)
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the same concise form if you want to add the looked-up entity to a list data component, such as a <code>dataGrid</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataGrid&lt;User&gt; usersDataGrid;
+
+@Autowired
+private ViewBuilders viewBuilders;
+
+private void openLookupViewDataGrid() {
+    viewBuilders.lookup(usersDataGrid)
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Similar to detail views, use builder methods to set optional parameters for the opened view. For example, the following code demonstrates how to look up a <code>User</code> entity using a particular lookup view opened as a dialog:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+private void openLookupViewDialog() {
+    viewBuilders.lookup(this, User.class, UserLookupView.class)
+            .withOpenMode(ViewOpenMode.DIALOG)
+            .withSelectHandler(users -&gt; {
+                User user = users.iterator().next();
+                // ...
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="passing-parameters-to-views"><a class="anchor" href="#passing-parameters-to-views"></a>Passing Parameters to Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you need to pass parameters to the opened view, add a view configurer handler using the <code>withViewConfigurer</code> method.</p>
+</div>
+<div class="paragraph">
+<p>Consider the following view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "fancy-message-view", layout = DefaultMainViewParent.class)
+@ViewController(id = "FancyMessageView")
+@ViewDescriptor(path = "fancy-message-view.xml")
+public class FancyMessageView extends StandardView {
+
+    @ViewComponent
+    private H1 fancyMessage;
+
+    public void setMessage(String message) {
+        fancyMessage.setText(message);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <code>ViewConfigurer</code> handler, you can invoke public setters of the opened view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+private void openViewWithParameters(String message) {
+    viewBuilders.view(this, FancyMessageView.class)
+            .withViewConfigurer(fancyMessageView -&gt; {
+                fancyMessageView.setMessage(message);
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="executing-code-after-close"><a class="anchor" href="#executing-code-after-close"></a>Executing Code after Close and Returning Values</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Each view sends <a class="xref page" href="../flow-ui/views/view-events.html#after-close-event">AfterCloseEvent</a> upon closing. When using <code>ViewBuilders</code>, you can provide a listener using the <code>withAfterCloseListener()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+@Autowired
+private Notifications notifications;
+
+private void openViewWithCloseListener() {
+    viewBuilders.view(this, OtherView.class)
+            .withAfterCloseListener(afterCloseEvent -&gt; {
+                notifications.show("Closed: " + afterCloseEvent.getSource());
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The event object provides information about how the view was closed. This information can be accessed in two ways:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>By testing whether the view was closed with one of the standard outcomes defined by the <code>StandardOutcome</code> enum.</p>
+</li>
+<li>
+<p>By retrieving the <code>CloseAction</code> object.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The former approach is simpler, while the latter offers greater flexibility.</p>
+</div>
+<div class="paragraph">
+<p>Let’s examine the first approach: closing a view with a standard outcome and testing it in the calling code. Here is the view we will invoke:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "other-view", layout = DefaultMainViewParent.class)
+@ViewController(id = "OtherView")
+@ViewDescriptor(path = "other-view.xml")
+public class OtherView extends StandardView {
+
+    private String result;
+
+    public String getResult() {
+        return result;
+    }
+
+    @Subscribe(id = "saveBtn", subject = "clickListener")
+    public void onSaveBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+        result = "Save";
+        close(StandardOutcome.SAVE);    <i class="conum" data-value="1"></i><b>(1)</b>
+    }
+
+    @Subscribe(id = "closeBtn", subject = "clickListener")
+    public void onCloseBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+        result = "Close";
+        close(StandardOutcome.CLOSE);   <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Clicking the <strong>Save</strong> button sets a result state and closes the view with the <code>StandardOutcome.SAVE</code> enum value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Clicking the <strong>Close</strong> button closes the view with <code>StandardOutcome.SAVE</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the <code>AfterCloseEvent</code> listener, you can use the <code>closedWith()</code> method of the event to check how the view was closed. If needed, you can also read the result value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+@Autowired
+private Notifications notifications;
+
+private void openViewWithResult() {
+    viewBuilders.view(this, OtherView.class)
+            .withAfterCloseListener(afterCloseEvent -&gt; {
+                if (afterCloseEvent.closedWith(StandardOutcome.SAVE)) {
+                    OtherView otherView = afterCloseEvent.getSource();
+                    notifications.show("Result: " + otherView.getResult());
+                }
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-custom-close-action"><a class="anchor" href="#using-custom-close-action"></a>Using Custom CloseAction</h3>
+<div class="paragraph">
+<p>Another way to return values from views is by using custom <code>CloseAction</code> implementations. Let’s rewrite the previous example to use the following action class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class MyCloseAction extends StandardCloseAction {
+
+    private final String result;
+
+    public MyCloseAction(String result) {
+        super("myCloseAction");
+
+        this.result = result;
+    }
+
+    public String getResult() {
+        return result;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can then use this action when closing the view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "other-view", layout = DefaultMainViewParent.class)
+@ViewController(id = "OtherView")
+@ViewDescriptor(path = "other-view.xml")
+public class OtherView extends StandardView {
+
+    @Subscribe(id = "okBtn", subject = "clickListener")
+    public void onOkBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+        close(new MyCloseAction("Done"));   <i class="conum" data-value="1"></i><b>(1)</b>
+    }
+
+    @Subscribe(id = "cancelBtn", subject = "clickListener")
+    public void onCancelBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+        closeWithDefaultAction();   <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Clicking the <strong>Ok</strong> button creates a custom close action and sets the result value within it.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Clicking the <strong>Close</strong> button closes the view with a default action provided by the framework.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the <code>AfterCloseEvent</code> listener, you can retrieve the <code>CloseAction</code> from the event and read the result value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+@Autowired
+private Notifications notifications;
+
+private void openViewWithCloseAction() {
+    viewBuilders.view(this, "OtherView")
+            .withAfterCloseListener(afterCloseEvent -&gt; {
+                CloseAction closeAction = afterCloseEvent.getCloseAction();
+                if (closeAction instanceof MyCloseAction myCloseAction) {
+                    notifications.show("Result: " + myCloseAction.getResult());
+                }
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, when values are returned through a custom <code>CloseAction</code>, the caller doesn’t have to know the opened view class because it doesn’t invoke methods of the specific view controller. So the view can be created by its string id.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="view-inference-conventions"><a class="anchor" href="#view-inference-conventions"></a>View Inference Conventions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A lookup view or a detail view can be inferred from the entity class.</p>
+</div>
+<div class="paragraph">
+<p>When opening a list view for lookup using <code>viewBuilders.lookup(this, SomeEntity.class)</code>, the framework selects a view according the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A view annotated with <code>@PrimaryLookupView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with the <code>SomeEntity.lookup</code> id.</p>
+</li>
+<li>
+<p>A view annotated with <code>@PrimaryListView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with the <code>SomeEntity.list</code> id.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>When opening a detail view using <code>viewBuilders.detail(this, SomeEntity.class)</code>, the framework selects a view according the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A view annotated with <code>@PrimaryDetailView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with the <code>SomeEntity.detail</code> id.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

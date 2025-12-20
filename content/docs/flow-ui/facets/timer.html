@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>timer :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">timer</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/timer-facet" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>timer</code> facet is designed to run UI code at specified time intervals.</p>
+</div>
+<div class="paragraph">
+<p>The timer action is initiated from the browser as a user request and its handler can update <a class="xref page" href="../vc/components.html">UI components</a>. The timer stops working when the view it was created for is closed.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basic-usage"><a class="anchor" href="#basic-usage"></a>Basic Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Add <code>timer</code> to the <code>facets</code> element of the view XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;facets&gt;
+    &lt;timer id="timer" delay="3000" autostart="true" repeating="true"/&gt;
+&lt;/facets&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create <code>TimerActionEvent</code> handler:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("timer")
+public void onTimerTimerAction(final Timer.TimerActionEvent event) {
+    notifications.show("Timer action");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The handler will be invoked every 3 seconds after the view is opened.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>timer</code> is defined in the <code>facets</code> element of the view XML descriptor and has the following attributes:</p>
+</div>
+<div class="paragraph">
+<p><a href="#autostart">autostart</a> -
+<a href="#delay">delay</a> -
+<a class="xref page" href="../vc/common-attributes.html#id">id</a> -
+<a href="#repeating">repeating</a></p>
+</div>
+<div class="sect2">
+<h3 id="delay"><a class="anchor" href="#delay"></a>delay</h3>
+<div class="paragraph">
+<p>Required attribute. Defines timer interval in milliseconds.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="autostart"><a class="anchor" href="#autostart"></a>autostart</h3>
+<div class="paragraph">
+<p>Optional attribute. The default value is <code>false</code>, which means that the timer will start only when its <code>start()</code> method is invoked. When it is set to <code>true</code>, the timer starts immediately after the view opening.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="repeating"><a class="anchor" href="#repeating"></a>repeating</h3>
+<div class="paragraph">
+<p>Optional attribute. Turns on repeated executions of the timer. If the attribute is set to <code>true</code>, the timer runs in cycles at equal intervals defined in the <code>delay</code> attribute. Otherwise, the timer runs only once after the timeout specified in the <code>delay</code> attribute after the timer start.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="timer-action-event"><a class="anchor" href="#timer-action-event"></a>TimerActionEvent</h3>
+<div class="paragraph">
+<p><code>TimerActionEvent</code> is triggered after the specified time interval in the <code>delay</code> attribute has passed since the timer started. If the <code>repeating</code> attribute is set to <code>true</code>, this event is sent periodically, until the timer is stopped.</p>
+</div>
+<div class="paragraph">
+<p>To register the event handler programmatically, use the <code>addTimerActionListener()</code> method of the facet.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="timer-stop-event"><a class="anchor" href="#timer-stop-event"></a>TimerStopEvent</h3>
+<div class="paragraph">
+<p><code>TimerStopEvent</code> is sent when the timer is stopped by invoking the <code>stop()</code> method of the facet.</p>
+</div>
+<div class="paragraph">
+<p>To register the event handler programmatically, use the <code>addTimerStopListener()</code> method of the facet.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="see-also"><a class="anchor" href="#see-also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a href="https://demo.jmix.io/ui-samples/sample/delayed-data-load" rel="noopener" target="_blank">Delayed data loading</a> online example shows how to use the <code>timer</code> facet to delay a costly data loading operation.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

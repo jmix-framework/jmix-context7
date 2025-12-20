@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generic Component XML :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Generic Component XML</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/generic-component-xml" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>The <code>component</code> XML element enables you to create any UI component by specifying its fully qualified class name (FQN). Component properties are defined using nested <code>property</code> elements, similar to action configuration.</p>
+</div>
+<div class="paragraph">
+<p>For example, you can define a <code>Button</code> component this way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;component id="button" class="com.vaadin.flow.component.button.Button"&gt;
+    &lt;properties&gt;
+        &lt;property name="text" value="Button"/&gt;
+        &lt;property name="icon" value="PLUS" type="ICON"/&gt;
+    &lt;/properties&gt;
+&lt;/component&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here is an example of defining a custom component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;component id="testComponent" class="com.company.onboarding.component.TestComponent"&gt;
+    &lt;properties&gt;
+        &lt;property name="text" value="Button"/&gt;
+        &lt;property name="stringsList" value="a b ,c"/&gt;
+        &lt;property name="stringsSet" value="a b ,c"/&gt;
+        &lt;property name="stringsArray" value="a b ,c"/&gt;
+        &lt;property name="strings" value="a b ,c"/&gt;
+        &lt;property name="dataContainer" value="productsDc" type="CONTAINER_REF"/&gt;
+    &lt;/properties&gt;
+&lt;/component&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="property-configuration"><a class="anchor" href="#property-configuration"></a>Property Configuration</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>name</code> attribute value is converted to a setter method name, for example:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>text</code> → <code>setText()</code></p>
+</li>
+<li>
+<p><code>dataLoader</code> → <code>setDataLoader()</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The framework searches for the first method with the matching <code>name</code> and a single input parameter to set the value.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If multiple methods share the same name, there is no guarantee that the intended one will be used to set the value.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>The found method’s input parameter type is used to convert the string value from the <code>value</code> attribute into the actual value.</p>
+</li>
+<li>
+<p>The <code>type</code> attribute indicates that string value must be converted by one of the pluggable <code>PropertyParser</code> beans:</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;"/>
+<col style="width: 20%;"/>
+<col style="width: 60%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Parser</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ICON</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>IconPropertyParser</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Converts a string to an <code>Icon</code> instance</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CONTAINER_REF</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DataContainerPropertyParser</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resolves a data container by <code>ID</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LOADER_REF</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DataLoaderPropertyParser</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resolves a data loader by <code>ID</code></p></td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="property-parsers"><a class="anchor" href="#property-parsers"></a>Property Parsers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When string values cannot be directly converted using the parameter type, pluggable <code>PropertyParser</code> beans handle the transformation.</p>
+</div>
+<div class="paragraph">
+<p>Currently, there are three implementations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>IconPropertyParser</strong>. Converts strings to <code>Icon</code> instances.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the passed string contains <code>:</code> delimiter, a new <code>Icon</code> is created using the <strong>icon collection</strong> and <strong>icon name</strong> values.</p>
+</li>
+<li>
+<p>Otherwise, the string is treated as a <code>VaadinIcon</code> constant name.</p>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+</li>
+<li>
+<p><code>"PLUS"</code> → <code>VaadinIcon.PLUS</code> icon.</p>
+</li>
+<li>
+<p><code>"myicons:custom"</code> → Icon from the custom collection <code>"myicons"</code> with the name <code>"custom"</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>DataContainerPropertyParser</strong>. Returns a <a class="xref page" href="../../data/data-containers.html">data container</a> with the given <code>ID</code> from the corresponding view’s <code>ViewData</code> object.</p>
+</li>
+<li>
+<p><strong>DataLoaderPropertyParser</strong>. Returns a <a class="xref page" href="../../data/data-loaders.html">data loader</a> with the given <code>ID</code> from the corresponding view’s <code>ViewData</code> object.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

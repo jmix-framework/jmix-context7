@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Web Services :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Amazon Web Services</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will learn how to build a Jmix application as executable JAR and deploy it to the <a href="https://aws.amazon.com/elasticbeanstalk/" rel="noopener" target="_blank">AWS Elastic Beanstalk</a> service.</p>
+</div>
+<div class="paragraph">
+<p>Before starting the guide, create an account and ensure that you have access to the <a href="https://console.aws.amazon.com/console/home" rel="noopener" target="_blank">AWS Console</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+We will use PostgreSQL as a database for this guide.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you need to deploy your application just for test or demo purposes, consider using <a class="xref page" href="../studio/quick-cloud-deployment.html">Quick Cloud Deployment</a>. It will deploy and run your application together with the database on a newly created EC2 instance.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="executable-jar"><a class="anchor" href="#executable-jar"></a>Deploying Executable JAR</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="prepare-app"><a class="anchor" href="#prepare-app"></a>Preparing The Application</h3>
+<div class="paragraph">
+<p>Since we have more than one database connection now (local development and AWS), we need to configure additional properties file that will contain connection properties for AWS environment.</p>
+</div>
+<div class="paragraph">
+<p>To switch between different configurations, we will use <a href="https://docs.spring.io/spring-boot/reference/features/profiles.html" rel="noopener" target="_blank">Runtime Profiles</a>. For our case, we will use <code>aws</code> profile name.</p>
+</div>
+<div class="paragraph">
+<p>Let’s create <code>application-aws.properties</code> file according to naming rules described in <a href="https://docs.spring.io/spring-boot/reference/features/external-config.html#features.external-config.files.profile-specific">Profile Specific Files</a>.</p>
+</div>
+<div class="paragraph">
+<p>In this file, we will specify database connection properties using AWS Elastic Beanstalk environment variables:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>RDS_HOSTNAME</code> - internal Beanstalk-specific database host name</p>
+</li>
+<li>
+<p><code>RDS_PORT</code> - database port allocated by Beanstalk</p>
+</li>
+<li>
+<p><code>RDS_DB_NAME</code> - database name</p>
+</li>
+<li>
+<p><code>RDS_USERNAME</code> - database username</p>
+</li>
+<li>
+<p><code>RDS_PASSWORD</code> - database password</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Note that these variables should be specified if you create a database using Beanstalk. If you created the database separately using RDS or another AWS service, you may not need these variables
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In addition to the datasource coordinates, we may want to specify the following properties before the deployment:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>server.port</code> - should be set to 5000 by default. You can specify Beanstalk environment property <code>SERVER_PORT</code> instead if you like. We will show how to set Beanstalk environment later.</p>
+</li>
+<li>
+<p><code>main.liquibase.enabled</code> - if set to <code>true</code> (default value) - enables automatic execution of Liquibase database migration scripts on application start.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>So, the <code>application-aws.properties</code> file content may look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">main.datasource.url = jdbc:postgresql://${RDS_HOSTNAME}:${RDS_PORT}/${RDS_DB_NAME}
+main.datasource.username = ${RDS_USERNAME}
+main.datasource.password = ${RDS_PASSWORD}
+server.port=5000</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The application is ready, you can create an executable JAR and move to the next step.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="create-aws-env"><a class="anchor" href="#create-aws-env"></a>Creating The AWS environment</h3>
+<div class="paragraph">
+<p>Log in to the AWS Console and select <strong>Elastic Beanstalk</strong> service from the list of services.</p>
+</div>
+<div class="paragraph">
+<p>After that, create the application by clicking on a corresponding link on the Beanstalk main page. Enter application information:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Application name - any name you prefer.</p>
+</li>
+<li>
+<p>Platform - Java. Select platform branch according to your preferences.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the <strong>Application code</strong> section select <strong>Upload your code</strong> option. In the <strong>Source code origin</strong> section for the <strong>Local file</strong> option click on <strong>Choose file</strong> button and upload your application’s JAR. It is usually located in <code>/build/libs</code> folder.</p>
+</div>
+<div class="paragraph">
+<p>Add a database to the environment by clicking on <strong>Configure more options</strong> button. In the configuration page, edit the database parameters:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="aws ebs add database" src="_images/aws-ebs-add-database.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Set database parameters similar to those on the picture:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="aws rds parameters" src="_images/aws-rds-parameters.png"/>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Setting <strong>Retention</strong> to <code>Delete</code> is recommended for test environments. For production environments set it to <code>Create snapshot</code> to avoid data loss in case of the application is deleted accidentally.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After creating the database, we have one more step specifying runtime profile to enable proper application configuration - <code>aws</code>. In order to do this, edit <strong>Software</strong> settings in the environment configuration page:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="aws ebs environment settings" src="_images/aws-ebs-environment-settings.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>Environment properties</strong> section add the <code>SPRING_PROFILES_ACTIVE</code> property and set its value to <code>aws</code>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="aws ebs environment values" src="_images/aws-ebs-environment-values.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Save all settings and create the application. The creation and startup usually takes 5-10 minutes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="test"><a class="anchor" href="#test"></a>Testing The Deploy</h3>
+<div class="paragraph">
+<p>When the application is created and deployed, open the environments list and click on the corresponding environment:</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img alt="aws ebs app env list" src="_images/aws-ebs-app-env-list.png"/></span></p>
+</div>
+<div class="paragraph">
+<p>In the environment page, click on the <strong>Go to environment</strong> link to open the deployed application page.</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img alt="aws ebs app env page" src="_images/aws-ebs-app-env-page.png"/></span></p>
+</div>
+<div class="paragraph">
+<p>The application page should open.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_more_information"><a class="anchor" href="#_more_information"></a>More Information</h3>
+<div class="paragraph">
+<p>The guide is based on the <a href="https://aws.amazon.com/blogs/devops/deploying-a-spring-boot-application-on-aws-using-aws-elastic-beanstalk/" rel="noopener" target="_blank">AWS guide</a>, so you can refer to it for further details.</p>
+</div>
+<div class="paragraph">
+<p>Also, you may find the <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_Java.html" rel="noopener" target="_blank">guide on deploying Java applications</a>  useful.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

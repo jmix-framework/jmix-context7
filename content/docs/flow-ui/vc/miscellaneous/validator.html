@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validator :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Validator</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>Validator</code> is designed to check values entered into visual components.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Validation and input type checking are different mechanisms. Suppose a given component (for example, <a class="xref page" href="../components/textField.html">textField</a>) data type is set to something different from string (this can happen when binding to an entity attribute or setting <a class="xref page" href="../common-attributes.html#datatype">datatype</a>). Then without any validator, the component will not allow the user to enter a value that does not comply with this data type. When the component loses focus or when the user presses Enter, the error notification will be shown.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The framework contains a set of validators that can be used in your project.</p>
+</div>
+<div class="paragraph">
+<p>Usually, validators are added to components in view XML descriptors using the <code>validators</code> element nested in the component element.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To add a validator to a component in Jmix Studio, select the component in the view  XML descriptor or in the <strong>Jmix UI</strong> structure panel and click on the <strong>Add</strong> button in the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+<div class="paragraph">
+<p>Below is an example of adding a validator to the <a class="xref page" href="../components/textField.html">textField</a> component:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add validator" src="../../_images/visual-components/add-validator.png" width="632"/>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Error messages can be specified when adding a validator to a component. If the message is not set, the default message is used. Below for each validator we describe message keys used by the framework to get default messages. You can override them in your project by defining messages with the same keys.</p>
+</div>
+<div class="paragraph">
+<p>Some validators can have parameters in the error message (for example, <code>${value}</code>). The parameter values are formatted according to the current user locale.</p>
+</div>
+<div class="paragraph">
+<p>Standard validators are defined by prototype beans, so if you need to create them in Java, use <code>ApplicationContext</code> or <code>ObjectProvider</code>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">DecimalMaxValidator maxValidator = applicationContext
+        .getBean(DecimalMaxValidator.class, new BigDecimal(1000));
+numberField.addValidator(maxValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="DecimalMaxValidator"><a class="anchor" href="#DecimalMaxValidator"></a>DecimalMaxValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is less than or equal to the specified maximum. Supported types: <code>BigDecimal</code>, <code>BigInteger</code>, <code>Long</code>, <code>Integer</code>, and <code>String</code> that represents <code>BigDecimal</code> value with the current locale.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>value</code> - maximum value (required);</p>
+</li>
+<li>
+<p><code>inclusive</code> - when set to <code>true</code>, the value should be less than or equal to the specified maximum value. When set to <code>false</code>, the value should be less than the specified maximum value. The default value is <code>true</code>;</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain <code>$value</code> and <code>$max</code> parameters.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message keys:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.decimalMaxInclusive</code>;</p>
+</li>
+<li>
+<p><code>validation.constraints.decimalMax</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="numberField" datatype="decimal"&gt;
+    &lt;validators&gt;
+        &lt;decimalMax value="1000"
+                    inclusive="true"
+                    message="Value ${value} cannot be greater than ${max}"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">DecimalMaxValidator maxValidator = applicationContext
+        .getBean(DecimalMaxValidator.class, new BigDecimal(1000));
+numberField.addValidator(maxValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="DecimalMinValidator"><a class="anchor" href="#DecimalMinValidator"></a>DecimalMinValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is greater than or equal to the specified minimum. Supported types: <code>BigDecimal</code>, <code>BigInteger</code>, <code>Long</code>, <code>Integer</code>, and <code>String</code> that represents <code>BigDecimal</code> value with the current locale.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>value</code> - minimum value (required);</p>
+</li>
+<li>
+<p><code>inclusive</code> - when set to <code>true</code>, the value should be greater than or equal to the specified minimum value. When set to <code>false</code>, the value should be greater than the specified minimum value. The default value is <code>true</code>;</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain <code>$value</code> and <code>$max</code> parameters.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message keys:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.decimalMinInclusive</code>;</p>
+</li>
+<li>
+<p><code>validation.constraints.decimalMin</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="decimalField" datatype="decimal"&gt;
+    &lt;validators&gt;
+        &lt;decimalMin value="100"
+                    inclusive="false"
+                    message="Value ${value} cannot be less than ${min}"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">DecimalMinValidator minValidator = applicationContext
+        .getBean(DecimalMinValidator.class, new BigDecimal(100));
+decimalField.addValidator(minValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="DigitsValidator"><a class="anchor" href="#DigitsValidator"></a>DigitsValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that the numeric value has specified number of digits in its integer and fractional parts. Supported types: <code>BigDecimal</code>, <code>BigInteger</code>, <code>Long</code>, <code>Integer</code>, and <code>String</code> that represents <code>BigDecimal</code> value with the current locale.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>integer</code> - number of digits in the integer part (required);</p>
+</li>
+<li>
+<p><code>fraction</code> - number of digits in the fraction part (required);</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain <code>$value</code>, <code>$integer</code>, and <code>$fraction</code> parameters.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.digits</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="digitsField"&gt;
+    &lt;validators&gt;
+        &lt;digits fraction="2"
+                integer="3"
+                message="Value ${value} is out of bounds (${integer}
+                digits are expected in integer part and ${fraction}
+                in fractional part)"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">DigitsValidator digitsValidator = applicationContext
+        .getBean(DigitsValidator.class, 3, 2);
+digitsField.addValidator(digitsValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="DoubleMaxValidator"><a class="anchor" href="#DoubleMaxValidator"></a>DoubleMaxValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is less than or equal to the specified maximum. Supported types: <code>Double</code>, and <code>String</code> that represents <code>Double</code> value with the current locale.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>value</code> - maximum value (required);</p>
+</li>
+<li>
+<p><code>inclusive</code> - when set to <code>true</code>, the value should be less than or equal to the specified maximum value. When set to <code>false</code>, the value should be less than the specified maximum value. The default value is <code>true</code>;</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain <code>$value</code> and <code>$max</code> parameters.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message keys:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.decimalMaxInclusive</code>;</p>
+</li>
+<li>
+<p><code>validation.constraints.decimalMax</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="doubleMaxField" datatype="double"&gt;
+    &lt;validators&gt;
+        &lt;doubleMax value="1000"
+                   inclusive="false"
+                   message="Value ${value} cannot be greater than ${max}"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">DoubleMaxValidator maxValidator = applicationContext
+        .getBean(DoubleMaxValidator.class, 1000.0);
+doubleMaxField.addValidator(maxValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="DoubleMinValidator"><a class="anchor" href="#DoubleMinValidator"></a>DoubleMinValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is greater than or equal to the specified minimum. Supported types: <code>Double</code>, and <code>String</code> that represents <code>Double</code> value with the current locale.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>value</code> - minimum value (required);</p>
+</li>
+<li>
+<p><code>inclusive</code> - when set to <code>true</code>, the value should be greater than or equal to the specified minimum value. When set to <code>false</code>, the value should be greater than the specified minimum value. The default value is <code>true</code>;</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain <code>$value</code> and <code>$min</code> keys for formatted output.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message keys:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.decimalMinInclusive</code>;</p>
+</li>
+<li>
+<p><code>validation.constraints.decimalMin</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="doubleMinField" datatype="double"&gt;
+    &lt;validators&gt;
+        &lt;doubleMin value="100"
+                   inclusive="false"
+                   message="Value ${value} cannot be less than ${min}"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">DoubleMinValidator minValidator = applicationContext
+        .getBean(DoubleMinValidator.class, 100.0);
+doubleMinField.addValidator(minValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="EmailValidator"><a class="anchor" href="#EmailValidator"></a>EmailValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Email validator checks that <code>String</code> value is email or contains multiple emails separated by a semicolon or a comma. Supported type: <code>String</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.invalidEmail</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="emailField" datatype="string"&gt;
+    &lt;validators&gt;
+        &lt;email message="Invalid email address"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">EmailValidator emailValidator = applicationContext
+        .getBean(EmailValidator.class);
+emailField.addValidator(emailValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="FutureOrPresentValidator"><a class="anchor" href="#FutureOrPresentValidator"></a>FutureOrPresentValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that the date and time is in the future or present. Supported types: <code>java.util.Date</code>, <code>LocalDate</code>, <code>LocalDateTime</code>, <code>LocalTime</code>, <code>OffsetDateTime</code>, <code>OffsetTime</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>checkSeconds</code> - when set to <code>true</code>, the validator compares date and time with seconds and milliseconds. The default value is <code>false</code>;</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.futureOrPresent</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;timePicker datatype="localTime" id="futureField"&gt;
+    &lt;validators&gt;
+        &lt;futureOrPresent checkSeconds="true"/&gt;
+    &lt;/validators&gt;
+&lt;/timePicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">FutureOrPresentValidator futureOrPresentValidator = applicationContext
+        .getBean(FutureOrPresentValidator.class);
+futureField.addValidator(futureOrPresentValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="FutureValidator"><a class="anchor" href="#FutureValidator"></a>FutureValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that the date and time is in the future. Supported types: <code>java.util.Date</code>, <code>LocalDate</code>, <code>LocalDateTime</code>, <code>LocalTime</code>, <code>OffsetDateTime</code>, <code>OffsetTime</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>checkSeconds</code> - when set to <code>true</code>, the validator compares date and time with seconds and milliseconds. The default value is <code>false</code>;</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.future</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;timePicker datatype="localTime" id="timeField"&gt;
+    &lt;validators&gt;
+        &lt;future checkSeconds="true"/&gt;
+    &lt;/validators&gt;
+&lt;/timePicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">FutureValidator futureValidator = applicationContext
+        .getBean(FutureValidator.class);
+timeField.addValidator(futureValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="MaxValidator"><a class="anchor" href="#MaxValidator"></a>MaxValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is less than or equal to the specified maximum. Supported types: <code>BigDecimal</code>, <code>BigInteger</code>, <code>Long</code>, <code>Integer</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>value</code> - maximum value (required);</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain the <code>$value</code> and <code>$max</code> parameters.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.max</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="maxField" datatype="int"&gt;
+    &lt;validators&gt;
+        &lt;max value="20500"
+             message="Value ${value} must be less than or equal to ${max}"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">MaxValidator maxValidator = applicationContext
+        .getBean(MaxValidator.class, 20500);
+maxField.addValidator(maxValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="MinValidator"><a class="anchor" href="#MinValidator"></a>MinValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is greater than or equal to the specified minimum. Supported types: <code>BigDecimal</code>, <code>BigInteger</code>, <code>Long</code>, <code>Integer</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>value</code> - minimum value (required);</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain the <code>$value</code>, and <code>$min</code> parameters.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.min</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="minField" datatype="int"&gt;
+    &lt;validators&gt;
+        &lt;min value="30"
+             message="Value ${value} must be greater than or equal to ${min}"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">MinValidator minValidator = applicationContext
+        .getBean(MinValidator.class, 30);
+minField.addValidator(minValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="NegativeOrZeroValidator"><a class="anchor" href="#NegativeOrZeroValidator"></a>NegativeOrZeroValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is less than or equal 0. Supported types: <code>BigDecimal</code>, <code>BigInteger</code>, <code>Long</code>, <code>Integer</code>, <code>Double</code>, <code>Float</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. The message can contain the <code>$value</code> parameter.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.negativeOrZero</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="negativeOrZeroField" datatype="int"&gt;
+    &lt;validators&gt;
+        &lt;negativeOrZero message="Value ${value} must be less than or equal to 0"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">NegativeOrZeroValidator negativeOrZeroValidator = applicationContext
+        .getBean(NegativeOrZeroValidator.class);
+negativeOrZeroField.addValidator(negativeOrZeroValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="NegativeValidator"><a class="anchor" href="#NegativeValidator"></a>NegativeValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is strictly less than 0. Supported types: <code>BigDecimal</code>, <code>BigInteger</code>, <code>Long</code>, <code>Integer</code>, <code>Double</code>, <code>Float</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. The message can contain the <code>$value</code> parameter.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.negative</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="negativeField" datatype="int"&gt;
+    &lt;validators&gt;
+        &lt;negative message="Value ${value} must be less than 0"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">NegativeValidator negativeValidator = applicationContext
+        .getBean(NegativeValidator.class);
+negativeField.addValidator(negativeValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="NotBlankValidator"><a class="anchor" href="#NotBlankValidator"></a>NotBlankValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value contains at least one non-whitespace character. Supported type: <code>String</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.notBlank</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="notBlankField"&gt;
+    &lt;validators&gt;
+        &lt;notBlank message="Value must contain at least one non-whitespace character"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">NotBlankValidator notBlankValidator = applicationContext
+        .getBean(NotBlankValidator.class);
+notBlankField.addValidator(notBlankValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="NotEmptyValidator"><a class="anchor" href="#NotEmptyValidator"></a>NotEmptyValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is not null and not empty. Supported types: <code>Collection</code> and <code>String</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain the <code>$value</code> parameter if the value is of <code>String</code> type.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.notEmpty</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="notEmptyField"&gt;
+    &lt;validators&gt;
+        &lt;notEmpty/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">NotEmptyValidator notEmptyValidator = applicationContext
+        .getBean(NotEmptyValidator.class);
+notEmptyField.addValidator(notEmptyValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="NotNullValidator"><a class="anchor" href="#NotNullValidator"></a>NotNullValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is not null.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.notNull</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="notNullField"&gt;
+    &lt;validators&gt;
+        &lt;notNull/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">NotNullValidator notNullValidator = applicationContext
+        .getBean(NotNullValidator.class);
+notNullField.addValidator(notNullValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="PastOrPresentValidator"><a class="anchor" href="#PastOrPresentValidator"></a>PastOrPresentValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that the date and time is in the past or present. Supported types: <code>java.util.Date</code>, <code>LocalDate</code>, <code>LocalDateTime</code>, <code>LocalTime</code>, <code>OffsetDateTime</code>, <code>OffsetTime</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>checkSeconds</code> - when setting to <code>true</code>, the validator compares date and time with seconds and milliseconds. The default value is <code>false</code>;</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.pastOrPresent</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;datePicker id="pastOrPresentField"&gt;
+    &lt;validators&gt;
+        &lt;pastOrPresent checkSeconds="true"/&gt;
+    &lt;/validators&gt;
+&lt;/datePicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">PastOrPresentValidator pastOrPresentValidator = applicationContext
+        .getBean(PastOrPresentValidator.class);
+pastOrPresentField.addValidator(pastOrPresentValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="PastValidator"><a class="anchor" href="#PastValidator"></a>PastValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that the date and time is in the past. Supported types: <code>java.util.Date</code>, <code>LocalDate</code>, <code>LocalDateTime</code>, <code>LocalTime</code>, <code>OffsetDateTime</code>, <code>OffsetTime</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>checkSeconds</code> - when set to <code>true</code>, the validator compares date and time with seconds and milliseconds. The default value is <code>false</code>;</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.past</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;datePicker id="pastField"&gt;
+    &lt;validators&gt;
+        &lt;past/&gt;
+    &lt;/validators&gt;
+&lt;/datePicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">PastValidator pastValidator = applicationContext
+        .getBean(PastValidator.class);
+pastField.addValidator(pastValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="PositiveOrZeroValidator"><a class="anchor" href="#PositiveOrZeroValidator"></a>PositiveOrZeroValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is greater than or equal to 0. Supported types: <code>BigDecimal</code>, <code>BigInteger</code>, <code>Long</code>, <code>Integer</code>, <code>Double</code>, <code>Float</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. The message can contain the <code>$value</code> parameter.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.positiveOrZero</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="positiveOrZeroField" datatype="int"&gt;
+    &lt;validators&gt;
+        &lt;positiveOrZero message="Value ${value} should be greater than or equal to '0'"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">PositiveOrZeroValidator positiveOrZeroValidator = applicationContext
+        .getBean(PositiveOrZeroValidator.class);
+positiveOrZeroField.addValidator(positiveOrZeroValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="PositiveValidator"><a class="anchor" href="#PositiveValidator"></a>PositiveValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that value is strictly greater than 0. Supported types: <code>BigDecimal</code>, <code>BigInteger</code>, <code>Long</code>, <code>Integer</code>, <code>Double</code>, <code>Float</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain the <code>$value</code> parameter.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.positive</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="positiveField" datatype="int"&gt;
+    &lt;validators&gt;
+        &lt;positive message="Value ${value} should be greater than '0'"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">PositiveValidator positiveValidator = applicationContext
+        .getBean(PositiveValidator.class);
+positiveField.addValidator(positiveValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="RegexpValidator"><a class="anchor" href="#RegexpValidator"></a>RegexpValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that the <code>String</code> value matches the specified regular expression. Supported type: <code>String</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>regexp</code> - a regular expression to match (required);</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain the <code>$value</code> parameter.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message key:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.regexp</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="regexpField"&gt;
+    &lt;validators&gt;
+        &lt;regexp regexp="[a-z]*"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">RegexpValidator regexpValidator = applicationContext
+        .getBean(RegexpValidator.class,"[a-z]*");
+regexpField.addValidator(regexpValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="SizeValidator"><a class="anchor" href="#SizeValidator"></a>SizeValidator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Checks that string length or collection size is in the specified range. Supported types: <code>Collection</code> and <code>String</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>min</code> - a minimum value (with inclusive), cannot be less than <code>0</code>. The default value is <code>0</code>;</p>
+</li>
+<li>
+<p><code>max</code> - a maximum value (with inclusive), cannot be less than <code>0</code>. The default value is <code>Integer.MAX_VALUE</code>;</p>
+</li>
+<li>
+<p><code>message</code> - a custom message displayed to a user when validation fails. This message can contain the <code>$value</code> (only for the String type), <code>$min</code>, <code>$max</code> parameters.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default message keys:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>validation.constraints.collectionSizeRange</code>;</p>
+</li>
+<li>
+<p><code>validation.constraints.sizeRange</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Usage in XML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="sizeField"&gt;
+    &lt;validators&gt;
+        &lt;size max="10"
+              min="2"
+              message="Value ${value} should be between ${min} and ${max}"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;
+&lt;multiSelectComboBox id="sizeComboBox"
+                     itemsEnum="com.company.onboarding.entity.OnboardingStatus"&gt;
+    &lt;validators&gt;
+        &lt;size max="4"
+              min="2"
+              message="Collection size must be between ${min} and ${max}"/&gt;
+    &lt;/validators&gt;
+&lt;/multiSelectComboBox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usage in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">SizeValidator sizeValidator = applicationContext
+        .getBean(SizeValidator.class);
+sizeField.addValidator(sizeValidator);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-validator"><a class="anchor" href="#custom-validator"></a>Creating Custom Validators</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A custom validator can be defined by a Spring bean implementing the <code>Validator</code> interface. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class ZipValidator implements Validator&lt;String&gt; {
+    @Override
+    public void accept(String value) throws ValidationException {
+        if (value != null &amp;&amp; value.length() != 5)
+            throw new ValidationException("Zip code must consist of 5 characters");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In a view XML descriptor, the custom validator should be defined in the nested <code>custom</code> element. The <code>bean</code> attribute should specify the validator bean name. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="zipField" datatype="string"&gt;
+    &lt;validators&gt;
+        &lt;custom bean="zipValidator"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can extend a validator from the <code>AbstractValidator</code> base class. Then you can provide a message in XML and use the <code>getTemplateErrorMessage()</code> method to create an error message. In this case the bean will have a state (the message from XML), so it must be a prototype. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
+public class PostcodeValidator extends AbstractValidator&lt;String&gt; {
+
+    private static final String POSTCODE_REGEX =
+            "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$";
+
+    @Override
+    public void accept(String value) throws ValidationException {
+        if (value != null &amp;&amp; !value.matches(POSTCODE_REGEX)) {
+            String errorMessage = getTemplateErrorMessage(message, Map.of("value", value));
+            throw new ValidationException(errorMessage);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="postcodeField" datatype="string"&gt;
+    &lt;validators&gt;
+        &lt;custom bean="postcodeValidator"
+                message="${value} is not a valid UK postcode"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A validator can also be defined by a lambda and added programmatically, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">zipField.addValidator(value -&gt; {
+    if (value != null &amp;&amp; value.length() != 5)
+        throw new ValidationException("Zip code must consist of 5 characters");
+});</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

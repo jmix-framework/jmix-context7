@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST DataStore with External Authentication :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">REST DataStore with External Authentication</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide shows how to use the <a class="xref page" href="../rest-ds/index.html">Jmix REST DataStore</a> together with external authentication, using Keycloak as an <a class="xref page" href="../oidc/index.html">OpenID Connect (OIDC)</a> identity provider.</p>
+</div>
+<div class="paragraph">
+<p>In distributed systems, it’s common for applications to authenticate users centrally but share data and logic between services. With Jmix, you can build secure applications where user data and access control are managed externally, while services communicate through REST APIs and forward user tokens for authentication.</p>
+</div>
+<div class="paragraph">
+<p>You’ll learn how to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Set up a Keycloak server for managing users, roles, and tokens.</p>
+</li>
+<li>
+<p>Configure Jmix applications to authenticate users via Keycloak.</p>
+</li>
+<li>
+<p>Implement user synchronization between Keycloak and Jmix.</p>
+</li>
+<li>
+<p>Use the REST DataStore to access data from another application on behalf of the logged-in user.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The guide covers two architectural patterns:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Integrated Applications</strong>: Both the Client and Service applications have UIs and run independently, communicating through REST with token-based authentication.</p>
+</li>
+<li>
+<p><strong>Separate Tiers</strong>: The UI-only Frontend application retrieves data from a Backend service via REST, with all authentication handled through Keycloak.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By the end of this guide, you’ll have a working example of both scenarios and understand the key concepts behind integrating REST DataStore with external authentication in a secure and maintainable way.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="prerequisites"><a class="anchor" href="#prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="get-sample-project"><a class="anchor" href="#get-sample-project"></a>Get Sample Project</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="../setup.html">Setup</a> the development environment.</p>
+</li>
+<li>
+<p>Clone the <a href="https://github.com/jmix-framework/jmix-restds-oidc-sample" rel="noopener" target="_blank">sample project</a> and switch to <code>release_2_7</code> branch:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-restds-oidc-sample
+cd jmix-restds-oidc-sample
+git checkout release_2_7</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="keycloak-setup"><a class="anchor" href="#keycloak-setup"></a>Set Up Keycloak</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Run Keycloak in a Docker container:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">docker run -p 8180:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin --name=keycloak quay.io/keycloak/keycloak:26.1 start-dev</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Log in to the Keycloak admin console and create a new realm called <code>jmix-restds-oidc-sample</code>.</p>
+</li>
+<li>
+<p>Create the following clients in this realm:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>integrated-apps-client</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Capability config</strong> tab:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Client authentication</strong>: On</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Login settings</strong> tab:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Valid redirect URIs</strong>:  <code>http://localhost:8080/*</code>, <code>http://localhost:8081/*</code></p>
+</li>
+<li>
+<p><strong>Web origins</strong>:  <code>+</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>integrated-apps-service</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Capability config</strong> tab:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Client authentication</strong>: On</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Login settings</strong> tab:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Valid redirect URIs</strong>:  <code>http://localhost:8080/*</code>, <code>http://localhost:8081/*</code></p>
+</li>
+<li>
+<p><strong>Web origins</strong>:  <code>+</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>separate-tiers-frontend</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Capability config</strong> tab:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Client authentication</strong>: On</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Login settings</strong> tab:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Valid redirect URIs</strong>:  <code>http://localhost:8080/*</code></p>
+</li>
+<li>
+<p><strong>Web origins</strong>:  <code>+</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>For each client, switch to the <strong>Client scopes</strong> tab and open the <code>[client-name]-dedicated</code> scope. Add predefined mapper for <code>realm roles</code>. Open the created <code>realm roles</code> mapper and set the following values:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Token Claim Name</strong>: <code>roles</code></p>
+</li>
+<li>
+<p><strong>Add to userinfo</strong>: On</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Create two realm roles: <code>system-full-access</code> and <code>employee</code>.</p>
+</li>
+<li>
+<p>Create two users: <code>alice</code> and <code>bob</code>. Fill in the <strong>Email</strong>, <strong>First name</strong> and <strong>Last name</strong> attributes. Set user passwords on the <strong>Credentials</strong> tab.</p>
+</li>
+<li>
+<p>On the <strong>Role mapping</strong> tab, assign <code>system-full-access</code> role to <code>alice</code> and <code>employee</code> role to <code>bob</code>. Use <strong>Filter by realm roles</strong> to find the roles.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="integrated-applications-example"><a class="anchor" href="#integrated-applications-example"></a>Integrated Applications Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this example, the distributed system consists of two applications: Client and Service.</p>
+</div>
+<div class="paragraph">
+<p>Both applications have their own databases and UI, and use the Jmix <a class="xref page" href="../oidc/index.html">OpenID Connect</a> add-on to enable user authentication through Keycloak. The Client application accesses customer data through the <a class="xref page" href="../rest-ds/index.html">REST DataStore</a>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="integrated apps 1" src="_images/integrated-apps-1.svg"/>
+</div>
+<div class="title">Figure 1. Integrated Applications Overview</div>
+</div>
+<div class="paragraph">
+<p>The Service application includes the <code>Customer</code> JPA entity and customer management views. The Client application has a corresponding <code>Customer</code> DTO entity and related views.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="integrated apps 3" src="_images/integrated-apps-3.svg"/>
+</div>
+<div class="title">Figure 2. Data Models of the Applications</div>
+</div>
+<div class="paragraph">
+<p>When the Client’s REST DataStore makes a request to the Service’s REST API, it includes the authorization token of the current user obtained from Keycloak during login. Thus, when executing REST requests, the Service code acts on behalf of the user who is logged into the Client.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="integrated apps 2" src="_images/integrated-apps-2.svg"/>
+</div>
+<div class="title">Figure 3. Client/Service Integration Flow</div>
+</div>
+<div class="paragraph">
+<p>Each application has two roles: <code>system-full-access</code> and <code>employee</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>employee</code> role in Service application provides access only to the <code>Customer</code> entity and related views. In the Client application, this role also enables managing the <code>Order</code> entity.</p>
+</div>
+<div class="paragraph">
+<p>According to the <a href="#keycloak-setup">Keycloak setup</a>, <code>alice</code> will be granted the <code>system-full-access</code> role and <code>bob</code> will be granted the <code>employee</code> role.</p>
+</div>
+<div class="sect2">
+<h3 id="integrated-applications-example-in-action"><a class="anchor" href="#integrated-applications-example-in-action"></a>Example in Action</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the root project in IntelliJ IDEA with the Jmix Studio plugin installed.</p>
+<div class="paragraph">
+<p>Launch the <code>integrated-apps-client</code> and <code>integrated-apps-service</code> applications using their run/debug configurations.</p>
+</div>
+<div class="paragraph">
+<p>The applications are configured to run on different ports: Client on 8080, Service on 8081.</p>
+</div>
+</li>
+<li>
+<p>Open the Client application by navigating to <a class="bare" href="http://localhost:8080" rel="noopener" target="_blank">http://localhost:8080</a> in your web browser. You will be redirected to the Keycloak login page.</p>
+<div class="paragraph">
+<p>Log in as <code>bob</code> with the password that you have set in Keycloak. You will be able to manage customers in <code>Customer (DTO)</code> views.</p>
+</div>
+<div class="paragraph">
+<p>Log in as <code>alice</code>. Open the list of users and make sure it contains both <code>bob</code> and <code>alice</code> users with data replicated from Keycloak.</p>
+</div>
+</li>
+<li>
+<p>Open the Service application by navigating to <a class="bare" href="http://localhost:8081" rel="noopener" target="_blank">http://localhost:8081</a> in your web browser. You will be redirected to the Keycloak login page.</p>
+<div class="paragraph">
+<p>Log in as <code>alice</code>. You will be able to manage customers and see the list of users with data replicated from Keycloak.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="service-application-details"><a class="anchor" href="#service-application-details"></a>Service Application Details</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The Service application includes the <a class="xref page" href="../rest/index.html">REST API</a> and <a class="xref page" href="../oidc/index.html">OpenID Connect</a> add-ons:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/service-app/build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.rest:jmix-rest-starter'
+implementation 'io.jmix.oidc:jmix-oidc-starter'</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>To run on a specific port and prevent cookie conflicts, the Service application requires the following properties:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/service-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">server.port=8081
+server.servlet.session.cookie.name=SERVICEAPP_JSESSIONID</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Spring Security OAuth2 properties provide integration with Keycloak for authenticating users in the UI and validating tokens sent by the Client in REST API requests:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/service-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.oauth2.client.registration.keycloak.client-id=integrated-apps-service
+spring.security.oauth2.client.registration.keycloak.client-secret=uZXD0xfHn594ncTKQR5SHhTBFTKGmR8T
+spring.security.oauth2.client.registration.keycloak.scope=openid,profile,email,offline_access
+spring.security.oauth2.client.provider.keycloak.issuer-uri=http://localhost:8180/realms/jmix-restds-oidc-sample
+
+spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realms/jmix-restds-oidc-sample</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The REST API endpoints are secured by specifying the following property:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/service-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.resource-server.authenticated-url-patterns=/rest/**</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>In order to bypass the Spring Boot’s default login page and go directly to Keycloak on login, the application includes the following property and customized security configuration:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/service-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.oidc.use-default-ui-configuration=false</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">integrated-apps/service-app/src/main/java/com/company/serviceapp/security/AppSecurityConfiguration.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.serviceapp.security;
+
+import io.jmix.oidc.OidcVaadinWebSecurity;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+@Configuration
+public class AppSecurityConfiguration extends OidcVaadinWebSecurity {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        super.configure(http);
+
+        http.oauth2Login(oauth2Login -&gt; oauth2Login
+                .loginPage("/oauth2/authorization/keycloak")
+                .defaultSuccessUrl("/", true));
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>For compatibility with Jmix OIDC add-on, the <code>User</code> entity extends the <code>JmixOidcUserEntity</code> class:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/service-app/src/main/java/com/company/serviceapp/entity/User.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Entity
+@Table(name = "USER_", indexes = {
+        @Index(name = "IDX_USER__ON_USERNAME", columnList = "USERNAME", unique = true)
+})
+public class User extends JmixOidcUserEntity implements HasTimeZone {</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>AppUserMapper</code> bean performs synchronization of <code>User</code> entity instances with the user information from Keycloak:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/service-app/src/main/java/com/company/serviceapp/security/AppUserMapper.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.serviceapp.security;
+
+import com.company.serviceapp.entity.User;
+import io.jmix.core.UnconstrainedDataManager;
+import io.jmix.core.security.UserRepository;
+import io.jmix.oidc.claimsmapper.ClaimsRolesMapper;
+import io.jmix.oidc.usermapper.SynchronizingOidcUserMapper;
+import io.jmix.security.role.RoleGrantedAuthorityUtils;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.stereotype.Component;
+
+@Component
+public class AppUserMapper extends SynchronizingOidcUserMapper&lt;User&gt; {
+
+    public AppUserMapper(UnconstrainedDataManager dataManager, UserRepository userRepository, ClaimsRolesMapper claimsRolesMapper, RoleGrantedAuthorityUtils roleGrantedAuthorityUtils) {
+        super(dataManager, userRepository, claimsRolesMapper, roleGrantedAuthorityUtils);
+    }
+
+    @Override
+    protected Class&lt;User&gt; getApplicationUserClass() {
+        return User.class;
+    }
+
+    @Override
+    protected void populateUserAttributes(OidcUser oidcUser, User jmixUser) {
+        jmixUser.setUsername(getOidcUserUsername(oidcUser));
+        jmixUser.setFirstName(oidcUser.getGivenName());
+        jmixUser.setLastName(oidcUser.getFamilyName());
+        jmixUser.setEmail(oidcUser.getEmail());
+    }
+
+    @Override
+    protected String getOidcUserUsername(OidcUser oidcUser) {
+        return oidcUser.getPreferredUsername();
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="client-application-details"><a class="anchor" href="#client-application-details"></a>Client Application Details</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The Client application includes the <a class="xref page" href="../rest-ds/index.html">REST DataStore</a> and <a class="xref page" href="../oidc/index.html">OpenID Connect</a> add-ons:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/client-app/build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.restds:jmix-restds-starter'
+implementation 'io.jmix.oidc:jmix-oidc-starter'</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Spring Security OAuth2 properties provide integration with Keycloak for authenticating users in the UI:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/client-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.oauth2.client.registration.keycloak.client-id=integrated-apps-client
+spring.security.oauth2.client.registration.keycloak.client-secret=DmkKz9syYW5OAptnYCdXKnGTD5kDoMRm
+spring.security.oauth2.client.registration.keycloak.scope=openid,profile,email,offline_access
+spring.security.oauth2.client.provider.keycloak.issuer-uri=http://localhost:8180/realms/jmix-restds-oidc-sample
+
+spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realms/jmix-restds-oidc-sample</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The Client application includes the same configuration as that of the Service application described in items 5, 6, and 7 of the previous section:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>jmix.oidc.use-default-ui-configuration=false</code> property and <code>AppSecurityConfiguration</code> class that configures OAuth2 login page.</p>
+</li>
+<li>
+<p><code>User</code> entity extends <code>JmixOidcUserEntity</code> for compatibility with OIDC add-on.</p>
+</li>
+<li>
+<p><code>AppUserMapper</code> class that performs synchronization of <code>User</code> entity instances with the user information from Keycloak.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The <code>serviceapp</code> REST DataStore is configured as follows:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/client-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.additional-stores=serviceapp
+jmix.core.store-descriptor-serviceapp=restds_RestDataStoreDescriptor
+
+serviceapp.baseUrl=http://localhost:8081</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>To use the OAuth2 token of the current user when making requests to the Service’s REST API, the Client application defines the following properties for the <code>serviceapp</code> REST DataStore:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/client-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">serviceapp.authenticator=restds_RestOAuth2ClientAuthenticator
+serviceapp.oauth2-client-registration=keycloak</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="separate-tiers-example"><a class="anchor" href="#separate-tiers-example"></a>Separate Tiers Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this example, the distributed system comprises the Backend and Frontend applications.</p>
+</div>
+<div class="paragraph">
+<p>The Backend application connects to the database and provides the REST API. The Frontend application features a user interface and retrieves data from the Backend via the <a class="xref page" href="../rest-ds/index.html">REST DataStore</a>.</p>
+</div>
+<div class="paragraph">
+<p>Both applications use the Jmix <a class="xref page" href="../oidc/index.html">OpenID Connect</a> add-on for integration with Keycloak: the Frontend authenticates users in UI, the Backend validates tokens sent by the Client with REST requests.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="separate tiers 1" src="_images/separate-tiers-1.svg"/>
+</div>
+<div class="title">Figure 4. Separate Tiers Overview</div>
+</div>
+<div class="paragraph">
+<p>The data models of the applications have the same structure; however, the Backend includes JPA entities, while the Frontend includes their corresponding DTO entities.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="separate tiers 2" src="_images/separate-tiers-2.svg"/>
+</div>
+<div class="title">Figure 5. Data Models of the Applications</div>
+</div>
+<div class="paragraph">
+<p>When the Frontend REST DataStore makes a request to the Backend REST API, it includes the authorization token of the current user obtained from Keycloak during login. Thus, when executing REST requests, the Backend code acts on behalf of the user who is logged into the Frontend.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="separate tiers 3" src="_images/separate-tiers-3.svg"/>
+</div>
+<div class="title">Figure 6. Frontend/Backend Integration Flow</div>
+</div>
+<div class="paragraph">
+<p>Each application has two roles: <code>system-full-access</code> and <code>employee</code>. The <code>employee</code> role provides access only to the <code>Customer</code> entity and, in the Frontend application, to the corresponding views.</p>
+</div>
+<div class="paragraph">
+<p>According to the <a href="#keycloak-setup">Keycloak setup</a>, <code>alice</code> will be granted the <code>system-full-access</code> role and <code>bob</code> will be granted the <code>employee</code> role.</p>
+</div>
+<div class="sect2">
+<h3 id="separate-tiers-example-in-action"><a class="anchor" href="#separate-tiers-example-in-action"></a>Example in Action</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the root project in IntelliJ IDEA with the Jmix Studio plugin installed.</p>
+<div class="paragraph">
+<p>Launch the <code>separate-tiers-backend</code> and <code>separate-tiers-frontend</code> applications using their run/debug configurations.</p>
+</div>
+<div class="paragraph">
+<p>The applications are configured to run on different ports: Frontend on 8080, Backend on 8081.</p>
+</div>
+</li>
+<li>
+<p>Open the Frontend application by navigating to <a class="bare" href="http://localhost:8080" rel="noopener" target="_blank">http://localhost:8080</a> in your web browser. You will be redirected to the Keycloak login page.</p>
+<div class="paragraph">
+<p>Log in as <code>bob</code> with the password that you have set in Keycloak. You will be able to manage customers in <code>Customer</code> views.</p>
+</div>
+<div class="paragraph">
+<p>Log in as <code>alice</code>. Open the list of users and make sure it contains both <code>bob</code> and <code>alice</code> users with data replicated from Keycloak.</p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="backend-application-details"><a class="anchor" href="#backend-application-details"></a>Backend Application Details</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The Backend application includes the <a class="xref page" href="../rest/index.html">REST API</a> and <a class="xref page" href="../oidc/index.html">OpenID Connect</a> add-ons:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/backend-app/build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.rest:jmix-rest-starter'
+implementation 'io.jmix.oidc:jmix-oidc-starter'</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The Backend application runs on a non-standard port:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/backend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">server.port=8081</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The following Spring Security OAuth2 property provides validation of tokens sent by the Client in REST API requests:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/backend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realms/jmix-restds-oidc-sample</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The REST API endpoints are secured by specifying the following property:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/backend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.resource-server.authenticated-url-patterns=/rest/**</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>For compatibility with Jmix OIDC add-on, the <code>User</code> entity extends the <code>JmixOidcUserEntity</code> class:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/backend-app/src/main/java/com/company/backendapp/entity/User.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Entity
+@Table(name = "USER_", indexes = {
+        @Index(name = "IDX_USER__ON_USERNAME", columnList = "USERNAME", unique = true)
+})
+public class User extends JmixOidcUserEntity implements HasTimeZone {</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>BackendUserMapper</code> bean performs synchronization of <code>User</code> entity instances with the user information from Keycloak:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/backend-app/src/main/java/com/company/backendapp/security/AppUserMapper.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.backendapp.security;
+
+import com.company.backendapp.entity.User;
+import io.jmix.core.UnconstrainedDataManager;
+import io.jmix.core.security.UserRepository;
+import io.jmix.oidc.claimsmapper.ClaimsRolesMapper;
+import io.jmix.oidc.usermapper.SynchronizingOidcUserMapper;
+import io.jmix.security.role.RoleGrantedAuthorityUtils;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.stereotype.Component;
+
+@Component
+public class BackendUserMapper extends SynchronizingOidcUserMapper&lt;User&gt; {
+
+    public BackendUserMapper(UnconstrainedDataManager dataManager, UserRepository userRepository, ClaimsRolesMapper claimsRolesMapper, RoleGrantedAuthorityUtils roleGrantedAuthorityUtils) {
+        super(dataManager, userRepository, claimsRolesMapper, roleGrantedAuthorityUtils);
+    }
+
+    @Override
+    protected Class&lt;User&gt; getApplicationUserClass() {
+        return User.class;
+    }
+
+    @Override
+    protected void populateUserAttributes(OidcUser oidcUser, User jmixUser) {
+        jmixUser.setUsername(getOidcUserUsername(oidcUser));
+        jmixUser.setFirstName(oidcUser.getGivenName());
+        jmixUser.setLastName(oidcUser.getFamilyName());
+        jmixUser.setEmail(oidcUser.getEmail());
+    }
+
+    @Override
+    protected String getOidcUserUsername(OidcUser oidcUser) {
+        return oidcUser.getPreferredUsername();
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>To provide the database persistence for UI filter configurations and user settings, the following two entities are copied from the framework’s <code>jmix-flowui-data</code> module:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/backend-app/src/main/java/com/company/backendapp/entity/uidata/FilterConfiguration.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Entity(name = "flowui_FilterConfiguration")
+@Table(name = "FLOWUI_FILTER_CONFIGURATION")
+@SystemLevel
+public class FilterConfiguration implements Serializable {
+
+    @Id
+    @Column(name = "ID", nullable = false)
+    @JmixGeneratedValue
+    protected UUID id;
+
+    @Column(name = "COMPONENT_ID", nullable = false)
+    protected String componentId;
+
+    @Column(name = "CONFIGURATION_ID", nullable = false)
+    protected String configurationId;
+
+    @InstanceName
+    @Column(name = "NAME")
+    protected String name;
+
+    @Column(name = "USERNAME")
+    protected String username;
+
+    @Column(name = "DEFAULT_FOR_ALL")
+    protected Boolean defaultForAll = false;
+
+    @Column(name = "ROOT_CONDITION")
+    @Lob
+    protected String rootCondition;
+
+    @TenantId
+    @Column(name = "SYS_TENANT_ID")
+    protected String sysTenantId;
+
+    @JmixProperty
+    @Transient
+    protected Boolean defaultForMe = false;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">separate-tiers/backend-app/src/main/java/com/company/backendapp/entity/uidata/UserSettingsItem.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Entity(name = "flowui_UserSettingsItem")
+@JmixEntity
+@Table(name = "FLOWUI_USER_SETTINGS")
+@SystemLevel
+public class UserSettingsItem implements Serializable {
+    private static final long serialVersionUID = -5262191502816639662L;
+
+    @Id
+    @Column(name = "ID")
+    @JmixGeneratedValue
+    protected UUID id;
+
+    @CreatedDate
+    @Column(name = "CREATE_TS")
+    private Date createTs;
+
+    @CreatedBy
+    @Column(name = "CREATED_BY")
+    private String createdBy;
+
+    @Column(name = "USERNAME")
+    private String username;
+
+    @Column(name = "KEY_")
+    private String key;
+
+    @Lob
+    @Column(name = "VALUE_")
+    private String value;
+
+    // getters and setters</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="frontend-application-details"><a class="anchor" href="#frontend-application-details"></a>Frontend Application Details</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The Client application includes the <a class="xref page" href="../rest-ds/index.html">REST DataStore</a> and <a class="xref page" href="../oidc/index.html">OpenID Connect</a> add-ons:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/frontend-app/build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.restds:jmix-restds-starter'
+implementation 'io.jmix.oidc:jmix-oidc-starter'
+
+implementation 'io.jmix.flowui:jmix-flowui-restds-starter'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>jmix-flowui-restds-starter</code> dependency provides implementation of UI filter configuration and user settings persistence based on REST DataStore.</p>
+</div>
+</li>
+<li>
+<p>Spring Security OAuth2 properties provide integration with Keycloak for authenticating users in the UI:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/frontend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.oauth2.client.registration.keycloak.client-id=separate-tiers-frontend
+spring.security.oauth2.client.registration.keycloak.client-secret=vVDzrbhOzbbzlgx3TDhZvNcuauMemhVR
+spring.security.oauth2.client.registration.keycloak.scope=openid,profile,address,email,offline_access
+spring.security.oauth2.client.provider.keycloak.issuer-uri=http://localhost:8180/realms/jmix-restds-oidc-sample
+
+spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realms/jmix-restds-oidc-sample</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>In order to bypass the Spring Boot’s default login page and go directly to Keycloak on login, the application includes the following property and customized security configuration:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/frontend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.oidc.use-default-ui-configuration=false</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">separate-tiers/frontend-app/src/main/java/com/company/frontendapp/security/AppSecurityConfiguration.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.frontendapp.security;
+
+import io.jmix.oidc.OidcVaadinWebSecurity;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+@Configuration
+public class AppSecurityConfiguration extends OidcVaadinWebSecurity {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        super.configure(http);
+
+        http.oauth2Login(oauth2Login -&gt; oauth2Login
+                .loginPage("/oauth2/authorization/keycloak")
+                .defaultSuccessUrl("/", true));
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>For compatibility with Jmix OIDC add-on, the <code>User</code> DTO entity extends the <code>DefaultJmixOidcUser</code> class:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/frontend-app/src/main/java/com/company/frontendapp/entity/User.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Store(name = "backend")
+@JmixEntity(annotatedPropertiesOnly = true)
+public class User extends DefaultJmixOidcUser implements HasTimeZone {</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>FrontendUserMapper</code> bean maps the user information from Keycloak to the <code>User</code> DTO entity:</p>
+<div class="listingblock">
+<div class="title">integrated-apps/service-app/src/main/java/com/company/serviceapp/security/AppUserMapper.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.frontendapp.security;
+
+import com.company.frontendapp.entity.User;
+import io.jmix.core.Metadata;
+import io.jmix.oidc.claimsmapper.ClaimsRolesMapper;
+import io.jmix.oidc.usermapper.BaseOidcUserMapper;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+
+@Component
+public class FrontendUserMapper extends BaseOidcUserMapper&lt;User&gt; {
+
+    private final Metadata metadata;
+    private final ClaimsRolesMapper claimsRolesMapper;
+
+    public FrontendUserMapper(Metadata metadata, ClaimsRolesMapper claimsRolesMapper) {
+        this.metadata = metadata;
+        this.claimsRolesMapper = claimsRolesMapper;
+    }
+
+    @Override
+    protected String getOidcUserUsername(OidcUser oidcUser) {
+        return oidcUser.getPreferredUsername();
+    }
+
+    @Override
+    protected User initJmixUser(OidcUser oidcUser) {
+        return metadata.create(User.class);
+    }
+
+    @Override
+    protected void populateUserAttributes(OidcUser oidcUser, User jmixUser) {
+        jmixUser.setUsername(getOidcUserUsername(oidcUser));
+        jmixUser.setFirstName(oidcUser.getGivenName());
+        jmixUser.setLastName(oidcUser.getFamilyName());
+        jmixUser.setEmail(oidcUser.getEmail());
+    }
+
+    @Override
+    protected void populateUserAuthorities(OidcUser oidcUser, User jmixUser) {
+        Collection&lt;? extends GrantedAuthority&gt; authorities = claimsRolesMapper.toGrantedAuthorities(oidcUser.getClaims());
+        jmixUser.setAuthorities(authorities);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that this mapper extends <code>BaseOidcUserMapper</code> and does not persist the user data to any storage. Instead, the Frontend relies on synchronization of users by the <code>BackendUserMapper</code> of the Backend application.</p>
+</div>
+</li>
+<li>
+<p>The <code>backend</code> REST DataStore is configured as follows:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/frontend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.additional-stores=backend
+jmix.core.store-descriptor-backend=restds_RestDataStoreDescriptor
+
+backend.baseUrl=http://localhost:8081
+
+jmix.restds.ui-config-store=backend</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>jmix.restds.ui-config-store property</code> defines the REST data store that will be used for UI filter configuration and user settings and persistence.</p>
+</div>
+</li>
+<li>
+<p>To use the OAuth2 token of the current user when making requests to the Backend REST API, the Frontend application defines the following properties for the <code>backend</code> REST DataStore:</p>
+<div class="listingblock">
+<div class="title">separate-tiers/frontend-app/src/main/resources/application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">backend.authenticator=restds_RestOAuth2ClientAuthenticator
+backend.oauth2-client-registration=keycloak</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide demonstrates how to use REST DataStore with external authentication in Jmix applications, leveraging Keycloak as the OpenID Connect provider. Two architectural patterns are covered:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Integrated Applications Example</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Client and Service applications run independently, each with their own UI and database.</p>
+</li>
+<li>
+<p>The Client accesses the Service’s REST API using REST DataStore, forwarding the user’s OAuth2 token for authentication.</p>
+</li>
+<li>
+<p>Both applications use Jmix OIDC add-on for Keycloak integration, with role-based access control.</p>
+</li>
+<li>
+<p>The Service validates incoming OAuth2 tokens and applies the authentication of the user logged into the Client when executing code.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Separate Tiers Example</p>
+<div class="ulist">
+<ul>
+<li>
+<p>A Frontend application (UI-only) retrieves data from a Backend (REST API + database) via REST DataStore.</p>
+</li>
+<li>
+<p>The Frontend authenticates users via Keycloak and includes their token in REST requests.</p>
+</li>
+<li>
+<p>The Backend validates OAuth2 tokens and applies the authentication of the user logged into the Client when executing code.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Key implementation details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The REST DataStore configuration includes a custom <code>RestAuthenticator</code> to forward OAuth2 tokens.</p>
+</li>
+<li>
+<p>The security customization includes custom mappers based on classes from Jmix OIDC add-on for synchronizing user data from Keycloak.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By following this guide, developers can implement secure, distributed Jmix applications with external authentication and REST-based data access.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

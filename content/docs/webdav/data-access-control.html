@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5. Data Access Control :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">5. Data Access Control</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In our application, we already have roles <em>Employees</em> and <em>HR Managers</em>. In this chapter, we will demonstrate how to modify them by adding new restrictions.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="employees-resource-role"><a class="anchor" href="#employees-resource-role"></a>Resource Role for Employees</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An employee needs to read the <code>WebdavDocumentWrapper</code> entity instances to view them in UI.</p>
+</div>
+<div class="paragraph">
+<p>Double-click on <strong>Security → EmployeeRole</strong> <a class="xref page" href="../security/resource-roles.html">resource role</a> in <strong>Jmix tool</strong> window.</p>
+</div>
+<div class="paragraph">
+<p>Switch to the <strong>User Interface</strong> tab to define permissions to views. Select <code>WebdavDocumentWrapper.list</code> and <code>WebdavDocumentWrapper.detail</code> in the menu tree and select <strong>Allow</strong> checkboxes on the right:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="employee role" src="_images/employee-role.png" width="959"/>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, switch to the <strong>Entities</strong> tab and select the following permissions:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="employee role 2" src="_images/employee-role-2.png" width="1083"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="managers-resource-role"><a class="anchor" href="#managers-resource-role"></a>Resource Role for HR Managers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>HR managers need to upload documents, delete documents, and edit the content of documents.</p>
+</div>
+<div class="paragraph">
+<p>Double-click on <strong>Security → HRManagerRole</strong> <a class="xref page" href="../security/resource-roles.html">resource role</a> in <strong>Jmix tool</strong> window.</p>
+</div>
+<div class="paragraph">
+<p>Switch to the <strong>User Interface</strong> tab and allow <code>WebdavDocumentWrapper.list</code>, and <code>WebdavDocumentWrapper.detail</code>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="hr manager role" src="_images/hr-manager-role.png" width="946"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Switch to the <strong>Entities</strong> tab.</p>
+</div>
+<div class="paragraph">
+<p>Give all permissions to the <code>WebdavDocumentWrapper</code> entity.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="hr manager role 2" src="_images/hr-manager-role-2.png" width="946"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="webdav-document-restrictions-role"><a class="anchor" href="#webdav-document-restrictions-role"></a>Row-level WebDavDocumentsDepartmentRole</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will introduce a row-level role which restricts access to WebDAV documents for an employee.</p>
+</div>
+<div class="paragraph">
+<p>If the employee has the role of <em>HR Manager</em> or <em>Administrator</em>, then display all WebDAV documents.</p>
+</div>
+<div class="paragraph">
+<p>If the employee has the role of <em>Employee</em>, display only WebDAV documents related to the employee’s department.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Jmix</strong> tool window, click <strong>New</strong> (<span class="image"><img alt="add" src="_images/add.svg"/></span>) → <strong>Row-level Role</strong>. In the <strong>New Row-level Role</strong> dialog, enter:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Role name</strong>: <code>WebDav documents department</code></p>
+</li>
+<li>
+<p><strong>Role code</strong>: <code>web-dav-documents-department</code></p>
+</li>
+<li>
+<p><strong>Class</strong>: <code>com.company.onboarding.security.WebDavDocumentsDepartmentRole</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will create and open an annotated interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(name = "WebDav documents department", code = WebDavDocumentsDepartmentRole.CODE)
+public interface WebDavDocumentsDepartmentRole {
+    String CODE = "web-dav-documents-department";
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add Policy → JPQL Policy</strong> in the top actions panel:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add jpql policy" src="_images/add-jpql-policy.png" width="833"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>Add JPQL Policy</strong> dialog, enter:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Entity</strong>: <code>WebdavDocumentWrapper</code></p>
+</li>
+<li>
+<p><strong>Where clause</strong>: <code>{E}.department = :current_user_department</code></p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add jpql policy 2" src="_images/add-jpql-policy-2.png" width="636"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="assigning-roles"><a class="anchor" href="#assigning-roles"></a>Assigning Roles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now let’s assign roles to users.</p>
+</div>
+<div class="paragraph">
+<p>Launch the application and open the <strong>Users</strong> list view. Select the user <code>alice</code> and click the <strong>Role assignments</strong> button:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="role assign 1" src="_images/role-assign-1.png" width="1451"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>Role assignments</strong> view, click the <strong>Add</strong> button in the <strong>Resource roles</strong> panel.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Select resource roles</strong> dialog, select <code>WebDAV: minimal access</code> role. Click <strong>Select</strong>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The <code>WebDAV: minimal access</code> role is required for all users who require WebDAV functionality. It grants basic access to all WebDAV-related entities within the system.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Ensure that the user <code>alice</code> has the following resource and row-level roles:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="role assign 2" src="_images/role-assign-2.png" width="1451"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Add <code>WebDAV: minimal access</code> resource role for the user <code>bob</code>.</p>
+</div>
+<div class="paragraph">
+<p>Click the <strong>Add</strong> button in the <strong>Row-level roles</strong> panel.</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Select row-level roles</strong> dialog, select <code>web-dav-documents-department</code> role. Click <strong>Select</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Ensure that the user <code>bob</code> has the following resource and row-level roles:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="role assign 3" src="_images/role-assign-3.png" width="1451"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Log in as <code>alice</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>alice</code> is HR Manager. So this user can view all WebDAV documents uploaded to the system, upload new documents, delete documents, and edit the content of documents.</p>
+</div>
+<div class="paragraph">
+<p>Ensure this by accessing the <strong>Knowledge base</strong> view.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="view by alice" src="_images/view-by-alice.png" width="1432"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Log in as <code>bob</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>bob</code> is Employee. So this user can view only WebDAV documents related to the employee’s department. Such a user can only download Web DAV documents using the <strong>Download</strong> button, but cannot create or delete them.</p>
+</div>
+<div class="paragraph">
+<p>Ensure this by accessing the <strong>Knowledge base</strong> view.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="view by bob" src="_images/view-by-bob.png" width="1432"/>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, the <strong>Create</strong> and <strong>Remove</strong> buttons are unavailable for this user.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you have modified HR Managers and Employees roles to restrict access to the application for different groups of users.</p>
+</div>
+<div class="paragraph">
+<p>You have learned that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A <a class="xref page" href="../security/resource-roles.html">resource role</a> grants users the ability to access views and interact with specific entities.</p>
+</li>
+<li>
+<p>A <a class="xref page" href="../security/row-level-roles.html">row-level role</a>, in contrast, is used to restrict a user’s ability to read specific rows of data.</p>
+</li>
+<li>
+<p>Roles are assigned to users at runtime using the <strong>Role assignment</strong> view available from the <code>User.detail</code> view.</p>
+</li>
+<li>
+<p>The <code>WebDAV: minimal access</code> role is required for all users who require WebDAV functionality.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>textField :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">textField</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/text-field-simple" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>An input field for editing text or values of arbitrary data types.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>XML element: <code>textField</code></p>
+</li>
+<li>
+<p>Java class: <code>TypedTextField</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>textField</code> component is a typed component, which means it enables you to work with input of different data types. You can set its type by <a href="#data-binding">binding the component</a> to an entity attribute of certain type or by setting type explicitly using the <a class="xref page" href="../common-attributes.html#datatype">datatype</a> attribute.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="nameField"
+           label="Name"
+           datatype="string"
+           clearButtonVisible="true"
+           themeNames="always-float-label"
+           helperText="msg://textField.helper" placeholder="Test placeholder"/&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="text field basic" src="../../_images/visual-components/components/text-field-basic.png" width="211"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Additional methods to work with typed values include <code>setTypedValue()</code> and <code>getTypedValue()</code>. These methods are useful when you need to set or retrieve values of specific type, such as <code>Integer</code> or <code>Long</code>.</p>
+</div>
+<div class="paragraph">
+<p>When processing changes to the component’s values, it is recommended to use <a class="xref page" href="../common-handlers.html#TypedValueChangeEvent">TypedValueChangeEvent</a> instead of <a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a>. This approach ensures that the value is of the correct type and avoids the need for additional type conversions or checks.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To create <code>textField</code> connected to data, use <a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> and <a class="xref page" href="../common-attributes.html#property">property</a> attributes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance class="com.company.onboarding.entity.Department"
+              id="departmentDc"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader id="departmentDl"/&gt;
+    &lt;/instance&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;textField dataContainer="departmentDc"
+               property="name"/&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the example above, the view describes the <code>departmentDc</code> data container for the <code>Department</code> entity, which has the <code>name</code> attribute. The <code>textField</code> component has a link to the container specified in the <code>dataContainer</code> attribute; the <code>property</code> attribute contains the name of the entity attribute that is displayed in <code>textField</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="themeVariants"><a class="anchor" href="#themeVariants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to adjust text alignment, helper text placement, and component size.</p>
+</div>
+<div class="sect2">
+<h3 id="_alignment"><a class="anchor" href="#_alignment"></a>Alignment</h3>
+<div class="paragraph">
+<p>Choose among three alignment options: <code>align-left</code> (default), <code>align-right</code>, <code>align-center</code>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="text field alignment" src="../../_images/visual-components/components/text-field-alignment.png" width="625"/>
+</div>
+</div>
+<details>
+<summary class="title">XML code</summary>
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField themeNames="align-left"/&gt;
+&lt;textField themeNames="align-center"/&gt;
+&lt;textField themeNames="align-right"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_helper_text_position"><a class="anchor" href="#_helper_text_position"></a>Helper Text Position</h3>
+<div class="paragraph">
+<p>Setting <code>helper-above-field</code> will move the helper text from its default position below the field to above it.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="text field helper text position" src="../../_images/visual-components/components/text-field-helper-text-position.png" width="420"/>
+</div>
+</div>
+<details>
+<summary class="title">XML code</summary>
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField label="Text field label" helperText="Helper text"/&gt;
+&lt;textField themeNames="helper-above-field" label="Text field label" helperText="Helper text"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</details>
+</div>
+<div class="sect2">
+<h3 id="_size"><a class="anchor" href="#_size"></a>Size</h3>
+<div class="paragraph">
+<p>Two size options are available: the default size and <code>small</code>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="text field size" src="../../_images/visual-components/components/text-field-size.png" width="390"/>
+</div>
+</div>
+<details>
+<summary class="title">XML code</summary>
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField/&gt;
+&lt;textField themeNames="small"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</details>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#allowedCharPattern">allowedCharPattern</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
+<a class="xref page" href="../common-attributes.html#autocapitalize">autocapitalize</a> -
+<a class="xref page" href="../common-attributes.html#autocomplete">autocomplete</a> -
+<a class="xref page" href="../common-attributes.html#autocorrect">autocorrect</a> -
+<a class="xref page" href="../common-attributes.html#autofocus">autofocus</a> -
+<a href="#autoselect">autoselect</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a href="#clearButtonVisible">clearButtonVisible</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> -
+<a class="xref page" href="../common-attributes.html#datatype">datatype</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#errorMessage">errorMessage</a> -
+<a class="xref page" href="../common-attributes.html#focusShortcut">focusShortcut</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
+<a class="xref page" href="../common-attributes.html#label">label</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxLength">maxLength</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minLength">minLength</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#pattern">pattern</a> -
+<a class="xref page" href="../common-attributes.html#placeholder">placeholder</a> -
+<a class="xref page" href="../common-attributes.html#property">property</a> -
+<a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
+<a class="xref page" href="../common-attributes.html#required">required</a> -
+<a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
+<a href="#trimEnabled">trimEnabled</a> -
+<a class="xref page" href="../common-attributes.html#title">title</a> -
+<a href="#value">value</a> -
+<a class="xref page" href="../common-attributes.html#valueChangeMode">valueChangeMode</a> -
+<a class="xref page" href="../common-attributes.html#valueChangeTimeout">valueChangeTimeout</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+<div class="sect2">
+<h3 id="autoselect"><a class="anchor" href="#autoselect"></a>autoselect</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/components/text-field/#autoselect" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>Set to <code>true</code> to always have the field value automatically selected when the field gains focus, <code>false</code> otherwise.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="clearButtonVisible"><a class="anchor" href="#clearButtonVisible"></a>clearButtonVisible</h3>
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/components/text-field/#clear-button" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>Sets the visibility of the button which clears the field.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="trimEnabled"><a class="anchor" href="#trimEnabled"></a>trimEnabled</h3>
+<div class="paragraph">
+<p>If <code>true</code>, the component trims spaces at the beginning and at the end of the entered string. For example, if user enters " aaa bbb ", the value of the field saved to the linked entity attribute will be "aaa bbb".</p>
+</div>
+<div class="paragraph">
+<p>You can disable trimming of spaces by setting <code>trimEnabled</code> to false.</p>
+</div>
+<div class="paragraph">
+<p>The default value of this attribute for the whole application can be set using the <a class="xref page" href="../../ui-properties.html#jmix.ui.component.default-trim-enabled">jmix.ui.component.default-trim-enabled</a> application property.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="value"><a class="anchor" href="#value"></a>value</h3>
+<div class="paragraph">
+<p>Defines the value of <code>textField</code>.</p>
+</div>
+<div class="paragraph">
+<p>If the value cannot be parsed to a required <a class="xref page" href="../common-attributes.html#datatype">data type</a>, the default conversion error message appears.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
+<a class="xref page" href="../common-handlers.html#ClientValidatedEvent">ClientValidatedEvent</a> -
+<a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
+<a class="xref page" href="../common-handlers.html#CompositionEndEvent">CompositionEndEvent</a> -
+<a class="xref page" href="../common-handlers.html#CompositionStartEvent">CompositionStartEvent</a> -
+<a class="xref page" href="../common-handlers.html#CompositionUpdateEvent">CompositionUpdateEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a> -
+<a class="xref page" href="../common-handlers.html#InputEvent">InputEvent</a> -
+<a class="xref page" href="../common-handlers.html#KeyDownEvent">KeyDownEvent</a> -
+<a class="xref page" href="../common-handlers.html#KeyPressEvent">KeyPressEvent</a> -
+<a class="xref page" href="../common-handlers.html#KeyUpEvent">KeyUpEvent</a> -
+<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a> -
+<a class="xref page" href="../common-handlers.html#TypedValueChangeEvent">TypedValueChangeEvent</a> -
+<a href="#validator">validator</a></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="validator"><a class="anchor" href="#validator"></a>validator</h3>
+<div class="paragraph">
+<p>Adds a <a class="xref page" href="../miscellaneous/validator.html">validator</a> instance to the component. The validator must throw <code>ValidationException</code> if the value is not valid.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "zipField", subject = "validator")
+protected void zipFieldValidator(Integer value) {
+    if (value != null &amp;&amp; String.valueOf(value).length() != 6)
+        throw new ValidationException("Zip must be of 6 digits length");
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="tooltip.html">tooltip</a> -
+<a class="xref page" href="../miscellaneous/validator.html">validator</a> -
+<a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a> -
+<a class="xref page" href="../miscellaneous/prefix-suffix.html">suffix</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See the <a href="https://vaadin.com/docs/latest/components/text-field" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

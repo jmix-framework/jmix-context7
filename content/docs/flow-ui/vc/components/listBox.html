@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>listBox :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">listBox</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/list-box-simple" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>listBox</code> allows users to select a single value from a scrollable list of items.</p>
+</div>
+<table class="tableblock frame-all grid-none stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>listBox</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JmixListBox</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="entityComboBox.html#itemsContainer">itemsContainer</a> -
+<a class="xref page" href="comboBox.html#itemsEnum">itemsEnum</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Handlers</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a href="#disabled-items">itemEnabledProvider</a> -
+<a class="xref page" href="comboBox.html#itemLabelGenerator">itemsLabelGenerator</a> -
+<a href="#renderer">renderer</a></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#fragment-renderer">fragmentRenderer</a> - <a class="xref page" href="tooltip.html">tooltip</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>listbox</code> can be populated with items from either an enumeration or collection of entities.</p>
+</div>
+<div class="paragraph">
+<p>Use the <a class="xref page" href="comboBox.html#items-enum">itemsEnum</a> attribute to directly specify the name of the enumeration class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;listBox itemsEnum="com.company.onboarding.entity.OnboardingStatus"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In case of entities, first define a collection container and then pass its name to the <a class="xref page" href="entityComboBox.html#itemsContainer">itemsContainer</a> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection class="com.company.onboarding.entity.City" id="citiesDc"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader id="citiesDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from City e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;listBox itemsContainer="citiesDc"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>CollectionContainer</code> for the <code>City</code> entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>citiesDc</code> is set as an items container for the component.</td>
+</tr>
+</table>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="list box basics" src="../../_images/visual-components/components/list-box-basics.png" width="125"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="disabled-items"><a class="anchor" href="#disabled-items"></a>Disabled Items</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/list-box-custom-disabled" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>itemEnabledProvider</code> is applied to each item of this <code>listBox</code> to determine whether the item should be enabled (<code>true</code>) or disabled (<code>false</code>). Disabled items are displayed as grayed out and the user cannot select them. All the items are enabled by default.</p>
+</div>
+<div class="paragraph">
+<p>Imagine <code>listBox</code> displaying a list of users. You want to display only users that have the "Completed" onboarding status as enabled, while users with "In progress" or "Not started" status should be disabled.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "listBox", subject = "itemEnabledProvider")
+private boolean listBoxItemEnabledProvider(final User user) {
+    if (user == null) {
+        return true;
+    }
+    return user.getOnboardingStatus() == OnboardingStatus.COMPLETED;
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, <code>itemEnabledProvider</code> checks the status of each user. Only users with <code>OnboardingStatus.COMPLETED</code> will be displayed as enabled in <code>listBox</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="renderer"><a class="anchor" href="#renderer"></a>Rendering Items</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/list-box-custom-renderer" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>The framework provides flexibility in customizing the rendering of items. You can use either the <code>setRenderer()</code> method or the <code>@Supply</code> annotation to achieve this.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;listBox id="listBox" itemsContainer="usersDc"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+@Autowired
+private FileStorage fileStorage;
+
+@Supply(to = "listBox", subject = "renderer")
+private ComponentRenderer&lt;HorizontalLayout, User&gt; listBoxRenderer() {
+    return new ComponentRenderer&lt;&gt;(user -&gt; {
+        FileRef fileRef = user.getPicture();
+        HorizontalLayout row = uiComponents.create(HorizontalLayout.class);
+        row.setAlignItems(FlexComponent.Alignment.END);
+        if (fileRef != null) {
+            Image image = uiComponents.create(Image.class);
+            image.setWidth("30px");
+            image.setHeight("30px");
+            image.setClassName("user-picture");
+            StreamResource streamResource = new StreamResource(
+                    fileRef.getFileName(),
+                    () -&gt; fileStorage.openStream(fileRef));
+            image.setSrc(streamResource);
+            row.add(image);
+        }
+        row.add(new Span(user.getFirstName() + ", " + user.getLastName()));
+        return row;
+    });
+}</code></pre>
+</div>
+</div>
+<div class="paragraph" id="fragment-renderer">
+<p>Alternatively, you can render items using a nested <code>fragmentRenderer</code> element. Refer to the <a class="xref page" href="../miscellaneous/renderers.html#fragment-renderer">Fragment Renderer</a> section for more information.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See the <a href="https://vaadin.com/docs/latest/components/list-box" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

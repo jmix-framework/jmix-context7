@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parameters :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Parameters</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>External parameters are passed from the outside when running a report and can be used as conditions in datasets. All external parameters become fields for each report band, so you can use them directly in the template as dataset fields. If any dataset contains field with the same name, it overrides the external parameter in the corresponding band and the report uses the dataset field value.</p>
+</div>
+<div class="paragraph">
+<p>External parameters can be passed by the invoking code when running a report through <a class="xref page" href="../run-report.html#reports-api">API</a>. Also, the report generator can show a dialog to enter parameters when a user runs the report. In the latter case you should describe the external parameters in the <strong>Parameters</strong> tab of the report detail view.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="parameters" src="../_images/parameters.png" width="1073"/>
+</div>
+</div>
+<div class="paragraph">
+<p>After you click on the <strong>Create</strong> button the <strong>Report parameter</strong> dialog is displayed.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="report parameter" src="../_images/report-parameter.png" width="642"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="properties"><a class="anchor" href="#properties"></a>Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the <strong>Properties</strong> tab, you can define parameter properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name</strong> - parameter name, as it will appear in the parameter input form when running the report.</p>
+</li>
+<li>
+<p><strong>Alias</strong> - parameter alias used to access it in datasets.</p>
+</li>
+<li>
+<p><strong>Type</strong> - parameter type.</p>
+</li>
+<li>
+<p><strong>Hidden</strong> - flag that defines whether the request for parameter should be hidden from users.</p>
+</li>
+<li>
+<p><strong>Required?</strong> - flag determining if the parameter is mandatory.</p>
+</li>
+<li>
+<p><strong>Default value</strong> - defines the parameter value that will be used by default if no other value is selected by the user.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The parameter type can be primitive types of <strong>String</strong>, <strong>Number</strong>, <strong>Boolean</strong> or temporal types, besides, you can choose <strong>Enumeration</strong>, <strong>Entity</strong> or <strong>List of entities</strong> as a parameter type. Based on different type selected, additional fields are required:</p>
+</div>
+<div class="paragraph">
+<p>If the <strong>Entity</strong> or <strong>List of entities</strong> parameter type is selected:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Entity</strong> - entity to use as parameter.</p>
+</li>
+<li>
+<p><strong>Entity selection view</strong> - optional view identifier, which will be used to select entity instances. If the view is not specified, selection will be made from a special view generic for all entities.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the <strong>Enumeration</strong> parameter type is selected:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Enumeration</strong> - enumeration to use as parameter.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the temporal parameter type is selected (<strong>Date</strong>, <strong>Time</strong> or <strong>Date and time</strong>):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Default date(time) is current</strong> - flag defines whether the current timestamp will be used as the default parameter value.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="localization"><a class="anchor" href="#localization"></a>Localization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the <strong>Localization</strong> tab, you can define the parameter name for different locales. In order to do this, you should enter the <code>locale_name = parameter_name</code> pairs, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">de = das Buch</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="transformation"><a class="anchor" href="#transformation"></a>Transformation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the <strong>Transformation</strong> tab, you can apply a Groovy script to the parameter before using it in the report.</p>
+</div>
+<div class="paragraph">
+<p>A Groovy script should return a new parameter value. The following variables are passed into the script:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>params</code> - parameters map is available by alias <code>params</code>.</p>
+</li>
+<li>
+<p><code>paramValue</code> - current parameter value is available in the script by the <code>paramValue</code>.</p>
+</li>
+<li>
+<p><code>dataManager</code> - an object of the <code>DataManager</code> type that provides CRUD functionality.</p>
+</li>
+<li>
+<p><code>metadata</code> - an object of the <code>Metadata</code> type that provides access to the application metadata.</p>
+</li>
+<li>
+<p><code>applicationContext</code> - an object of the <code>org.springframework.context.ApplicationContext</code> type that provides access to managed beans.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">return "%" + paramValue + "%"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also use predefined transformations that add wildcards for text (String) parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Starts with</code>,</p>
+</li>
+<li>
+<p><code>Ends with</code>,</p>
+</li>
+<li>
+<p><code>Contains</code>.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="transformation" src="../_images/transformation.png" width="642"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <strong>Validation</strong> tab, you can define a Groovy script with some conditions for the parameter validation, see the details below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="validation"><a class="anchor" href="#validation"></a>Validation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can validate an input parameter and/or define the cross-parameter validation.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>You can enable validation of each parameter in the <strong>Validation</strong> tab by checking the <strong>Validate</strong> checkbox. The validation logic is specified by a Groovy script. The script should check the parameter value and call the <code>showErrorMessage()</code> method if the value is not valid. This method will show the user an alert with the given message about the report validation errors.</p>
+<div class="paragraph">
+<p>The script receives the following parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>value</code> - the parameter value entered by the user.</p>
+</li>
+<li>
+<p><code>applicationContext</code> - an object of the <code>org.springframework.context.ApplicationContext</code> type, providing access to managed beans.</p>
+</li>
+<li>
+<p><code>currentAuthentication</code> - an object of the <code>io.jmix.core.security.CurrentAuthentication</code> type associated with the currently authenticated user.</p>
+</li>
+<li>
+<p><code>dataManager</code> - a <code>DataManager</code> object for performing CRUD operations.</p>
+</li>
+<li>
+<p><code>metadata</code> - a <code>Metadata</code> object providing access to application metadata.</p>
+</li>
+<li>
+<p><code>showErrorMessage</code> - a method that triggers validation failure if called within the script.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="validation" src="../_images/validation.png" width="642"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Cross-parameter validation can be enabled by checking the <strong>Validate</strong> checkbox in the <strong>Cross parameters validation</strong> section of the <strong>Parameters</strong> tab. Validation logic is defined using a Groovy script. This script should verify the consistency of parameter values and call <code>showErrorMessage()</code> if inconsistencies are found. This method displays an alert to the user, indicating report validation errors.</p>
+<div class="paragraph">
+<p>In addition to the parameters listed previously, the script also receives the <code>params</code> variable, a map containing the external report parameters.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="cross parameter validation" src="../_images/cross-parameter-validation.png" width="834"/>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

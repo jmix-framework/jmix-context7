@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Entities :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Load Entities</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Entities API allows you to load entities through the API in various ways:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#load-by-id">Load Entity by ID</a> loads a single entity by its unique identifier (ID).</p>
+</li>
+<li>
+<p><a href="#load-list">Load List of Entities</a> load all entities with pagination and sorting.</p>
+</li>
+<li>
+<p><a href="#load-list-search-filter">Load Entities via Search Filter</a> allows you to filter for entities by filter criteria in the Request.</p>
+</li>
+<li>
+<p><a href="#load-list-jpql">Load Entities via JPQL</a> loads entities via pre-configuring named JPQL queries.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="load-by-id"><a class="anchor" href="#load-by-id"></a>Load Entity by ID</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The first way of loading an entity via the Entities API is by loading it via its ID. The corresponding endpoint for this is the Load Entity endpoint <code>/entities/:entityName/:entityId</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>:entityName</code> path parameter defines which entity type it is. The value is defined in the entity definition:</p>
+</div>
+<div class="listingblock">
+<div class="title">Order.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "SAMPLE_ORDER")
+@Entity(name = "sample_Order") <i class="conum" data-value="1"></i><b>(1)</b>
+public class Order {
+    // ...
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The name attribute value <code>sample_Order</code> of the <code>@Entity</code> JPA annotation indicates the <code>entityName</code> parameter in the Entities API.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The Load Entity endpoint returns a single instance in case it is found by its identifier. Otherwise, HTTP status code <code>404 - Not Found</code> is returned.</p>
+</div>
+<div class="listingblock">
+<div class="title">Load Order Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /entities
+            /sample_Order
+            /21021f78-edac-224b-e6f8-6e71e02a0f0d</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "_entityName": "sample_Order", <i class="conum" data-value="1"></i><b>(1)</b>
+  "_instanceName": "rest.sample.entity.Order-21021f78-edac-224b-e6f8-6e71e02a0f0d [detached]",
+  "id": "21021f78-edac-224b-e6f8-6e71e02a0f0d",
+  "date": "2020-12-13", <i class="conum" data-value="2"></i><b>(2)</b>
+  "amount": 49.99,
+  "createdDate": "2021-02-06T12:03:38.049",
+  "createdBy": "admin",
+  "lastModifiedDate": "2021-02-06T12:03:38.049",
+  "version": 1
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Some metadata about the entity instance is returned as JSON keys (<code>entityName</code>, <code>_instanceName</code> and <code>id</code>).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The JSON Object contains each business attribute as a key.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If the entity has a composite ID, pass it to the REST endpoint as Base64-encoded JSON.</p>
+</div>
+<div class="paragraph">
+<p>For example, if the ID class contains two fields <code>code1</code> and <code>code2</code>, the identifier value in JSON will be like <code>{"code1": "val1","code2": "val2"}</code> and the whole URL with encoded ID will be like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /entities
+            /MyEntity
+            /eyJjb2RlMSI6ICJ2YWwxIiwiY29kZTIiOiAidmFsMiJ9</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Some attributes of the <code>Order</code> entity are missing in the JSON, as by default only local and persistent attributes of the entity are loaded. In case of reference attributes should also be included in the response you need to use <a href="#fetch-plans">Fetch Plans</a> as described below.</p>
+</div>
+<div class="paragraph">
+<p>In case you want to include <a class="xref page" href="../../dyn-attr/index.html">dynamic attributes</a> in the response, use the <code>dynamicAttributes</code> parameter to add a special hint to the query:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /entities
+            /sample_Order
+            /21021f78-edac-224b-e6f8-6e71e02a0f0d
+            ?dynamicAttributes=true</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="load-list"><a class="anchor" href="#load-list"></a>Load List of Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can load a list of entities of any type using the Load Entity List API endpoint: <code>/entities/:entityName</code>. This API includes pagination, sorting, and fetch plans.</p>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest/entities/sample_Customer</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: HTTP 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    "id": "0826806e-6074-90fa-f241-564b5c94d018",
+    "name": "Sidney Chandler"
+  },
+  {
+    "id": "22efc597-69a9-aeef-4e4a-7afccd8e5767",
+    "name": "Randall Bishop"
+  },
+  {
+    "id": "bd1c8e90-3d35-cbe2-9efd-167202c758d2",
+    "name": "Shelby Robinson"
+  }
+]</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Every entity in the response has a <code>_entityName</code> attribute with the name of the entity, and an <code>_instanceName</code> attribute with the <a class="xref page" href="../../data-model/entities.html#instance-name">Instance Name</a> of the entity.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>It is also possible to further control the behavior of the API by using the following URL query parameters:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">dynamicAttributes</dt>
+<dd>
+<p>whether <a class="xref page" href="../../dyn-attr/index.html">dynamic attributes</a> should be loaded for an entity <code>(Boolean)</code>.</p>
+</dd>
+<dt class="hdlist1">fetchPlan</dt>
+<dd>
+<p>name or URL-encoded JSON object of an entity’s <a href="#fetch-plans">fetch plan</a> <code>(String)</code>.</p>
+</dd>
+<dt class="hdlist1">limit</dt>
+<dd>
+<p>the number of entities to be returned by the API <code>(int)</code>.</p>
+</dd>
+<dt class="hdlist1">offset</dt>
+<dd>
+<p>the position of the first returned entity <code>(int)</code>.</p>
+</dd>
+<dt class="hdlist1">sort</dt>
+<dd>
+<p>an entity attribute that will be used for sorting <code>(String)</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>+attribute</code> or simply <code>attribute</code> for ascending order</p>
+</li>
+<li>
+<p><code>-attribute</code> for descending order.</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="sect2">
+<h3 id="load-list-sorting"><a class="anchor" href="#load-list-sorting"></a>Using Sorting</h3>
+<div class="paragraph">
+<p>The Load Entities API supports the sorting of the result by entity attributes. You can use the <code>sort</code> URL parameter for controlling the order of entities.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When the <code>sort</code> parameter is not specified, the default sort order depends on the database implementation. Normally databases sort by the timestamp of record creation, but this behavior is not guaranteed and can vary in different situations.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Jmix has a special syntax to define the sort order. Ascending order is expressed through a <code>+</code> before the attribute name. This is optional though, as it is the default behavior sorting order. For descending order, you need to prefix the entity attribute with a <code>-</code> character.</p>
+</div>
+<div class="paragraph">
+<p>The following example shows how you can sort Customers by their <code>name</code> attribute ascending.</p>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /entities
+            /sample_Customer
+            ?sort=name</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: HTTP 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    "id": "d83c9d66-cb23-075a-8d3c-d4035d338705",
+    "name": "Klaudia Kleinert"
+  },
+  {
+    "id": "8985ba1e-1cc8-eb5c-f9e0-738aee9d2ef1",
+    "name": "Randall Bishop"
+  }
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also sort by multiple attributes. In this case, the sort order takes a comma-separated list of attributes to sort by.</p>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /entities
+            /sample_Order?sort=+date,-amount</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: HTTP 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    "id": "41aae331-b46b-85ee-b0bc-2de8cbf1ab86",
+    "date": "2021-02-02", <i class="conum" data-value="1"></i><b>(1)</b>
+    "amount": 283.55
+  },
+  {
+    "id": "288a5d75-f06f-d150-9b70-efee1272b96c",
+    "date": "2021-03-01",
+    "amount": 249.99, <i class="conum" data-value="2"></i><b>(2)</b>
+    "lastModifiedBy": "admin"
+  },
+  {
+    "id": "1068c217-5868-faf4-16aa-23655e9492da",
+    "date": "2021-03-01",
+    "amount": 130.08
+  }
+]</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The result with the oldest date is returned first.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>When the <code>date</code> attribute is the same, the <code>amount</code> is used to sort the results.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="load-list-pagination"><a class="anchor" href="#load-list-pagination"></a>Using Pagination</h3>
+<div class="paragraph">
+<p>The Entities API supports Pagination to respect the data processing limitation that might be present on the server or client-side. In case you want to load only a particular subset of the entities, you can provide the <code>offset</code> and <code>limit</code> URL parameters.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Pagination is active by default, even if it is not explicitly requested by the client. In case no <code>limit</code> value is present in the request, the Load APIs will return only the first <code>10,000</code> entities.</p>
+</div>
+<div class="paragraph">
+<p>This default value is configurable globally via <a class="xref page" href="../app-properties.html#jmix.rest.default-max-fetch-size">jmix.rest.default-max-fetch-size</a> or on an entity-by-entity basis via <a class="xref page" href="../app-properties.html#jmix.rest.entity-max-fetch-size">jmix.rest.entityMaxFetchSize</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following example demonstrates how to load the third Page containing two <code>Customer</code> entities (5. &amp; 6. entity):</p>
+</div>
+<div class="listingblock">
+<div class="title">Load Customer Request with Pagination</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /entities
+            /sample_Customer
+            ?limit=2
+            &amp;offset=4
+            &amp;sort=createdDate</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: HTTP 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    "id": "2d620164-1e80-0696-c3aa-45b7b5c81f2c",
+    "name": "Maria Mitchell"
+  },
+  {
+    "id": "3c7ec69d-9b85-c6e9-387b-42a5bccb79de",
+    "name": "Anthony Knutson"
+  }
+]</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="load-list-search-filter"><a class="anchor" href="#load-list-search-filter"></a>Load Entities via Search Filter</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can specify filter criteria when loading entities using the Entity Search Endpoint: <code>/entities/:entityName/search</code>.</p>
+</div>
+<div class="paragraph">
+<p>Both HTTP methods <code>GET</code> and <code>POST</code> are possible when interacting with the search endpoint. In both cases, the filter criterion has to be provided as part of the request.</p>
+</div>
+<div class="paragraph">
+<p>The filter definition is a JSON structure that contains a set of conditions. A condition consists of the following attributes:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">property</dt>
+<dd>
+<p>the entity attribute that is being filtered on (like <code>amount</code> on the Order entity).</p>
+<div class="paragraph">
+<p>In case the attribute is a reference to another entity, it can also be a property path like <code>customer.name</code></p>
+</div>
+</dd>
+<dt class="hdlist1">operator</dt>
+<dd>
+<p>the filter operator. An operator describes how to filter for a particular attribute. There are multiple operators that can be used independently of the datatype:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Standard Operators: <code>=</code>, <code>&lt;&gt;</code>, <code>notEmpty</code>, <code>isNull</code></p>
+</li>
+<li>
+<p>List Operators: <code>in</code>, <code>notIn</code></p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Additionally, some operators are only possible for particular datatypes:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Datatype</th>
+<th class="tableblock halign-left valign-top">Specific Operators</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String, UUID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>startsWith</code>, <code>endsWith</code>, <code>contains</code>, <code>doesNotContain</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integer, Long, Double, BigDecimal, Date, DateTime, Time, LocalDate, LocalDateTime,  LocalTime, OffsetDateTime, OffsetTime</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>=</code>, <code>&lt;&gt;</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">value</dt>
+<dd>
+<p>the value to search for. Value is not required for the <code>notEmpty</code> and <code>isNull</code> operators.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Additionally, conditions can be combined via <code>AND</code>, <code>OR</code> group conditions to define a more complex filter criterion. The JSON structure of the filter definitions looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="title">Filter Criterion JSON structure</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "conditions": [
+    {
+      "group": "OR",
+      "conditions": [
+        {
+          "property": "stringField",
+          "operator": "=",
+          "value": "stringValue"
+        },
+        {
+          "property": "intField",
+          "operator": "&gt;",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "property": "booleanField",
+      "operator": "=",
+      "value": true
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a representation of the Filter criterion: <code>((stringField = stringValue) OR (intField &gt; 100) AND (booleanField = true))</code>.</p>
+</div>
+<div class="paragraph">
+<p>When using the HTTP POST method, the filter is part of the request body.</p>
+</div>
+<div class="listingblock">
+<div class="title">Filter POST Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/entities/sample_Order/search
+
+{
+  "filter": {
+    "conditions": [
+      {
+        "property": "customer.name",
+        "operator": "=",
+        "value": "Shelby Robinson"
+      }
+    ]
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When using the <code>GET</code> method, the JSON filter criterion needs to be transferred via the URL Query parameter <code>filter</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Filter GET Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /entities
+            /sample_Order
+            /search
+            ?filter={"conditions":[{"property":"customer.name","operator":"contains","value":"Shelby"}]}</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">URI Encoding</div>
+<div class="paragraph">
+<p>The HTTP URI standard only allows ASCII characters as part of the URI / URL. When using URL Query parameters for the filter definition, the JSON definition has to be URL encoded to match this requirement. This is also true for the <code>value</code> data that normally contains user input.</p>
+</div>
+<div class="paragraph">
+<p>As there is also a practical limit of the URI length that can cause problems for big filter definitions, the <code>POST</code> method for filtering entities should be preferred as those restrictions do not apply.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="load-list-jpql"><a class="anchor" href="#load-list-jpql"></a>Load Entities via JPQL</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Another alternative to loading entities from the application is to use predefined JPQL queries. The Entity Query Endpoint <code>/queries/:entityName/:queryName</code> is responsible for providing this capability. Queries can contain a list of parameters, that need to be provided by the client. Additionally, the endpoint contains the same general parameters for pagination, fetch plans, etc.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">When to use JPQL vs. Search Filter?</div>
+<div class="paragraph">
+<p>Jmix provides various ways to load entity data generically. Use pre-defined JPQL queries when the search filter is not advanced enough to express the filter criterion. Also in case, the parameter should be pre-defined and not be adjustable by the API client.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="jpql-query-config"><a class="anchor" href="#jpql-query-config"></a>JPQL Query Configuration</h3>
+<div class="paragraph">
+<p>To use the Entity Query endpoint you need to define the accessible queries. This happens via an XML configuration file, normally called <code>rest-queries.xml</code>. You need to create this new file in your Jmix application under <code>src/main/resources</code>. It lists all published queries with information about their parameters.</p>
+</div>
+<div class="listingblock">
+<div class="title">rest-queries.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0"?&gt;
+&lt;queries xmlns="http://jmix.io/schema/rest/queries"&gt;
+    &lt;query name="ordersByDate" entity="sample_Order" fetchPlan="order-with-details"&gt;
+        &lt;jpql&gt;&lt;![CDATA[select e from sample_Order e where e.date = :orderDate]]&gt;&lt;/jpql&gt;
+        &lt;params&gt;
+            &lt;param name="orderDate" type="java.time.LocalDate"/&gt;
+        &lt;/params&gt;
+    &lt;/query&gt;
+    &lt;query name="ordersByCustomerName" entity="sample_Order" fetchPlan="order-with-details"&gt;
+        &lt;jpql&gt;&lt;![CDATA[select e from sample_Order e where e.customer.name = :customerName]]&gt;&lt;/jpql&gt;
+        &lt;params&gt;
+            &lt;param name="customerName" type="java.lang.String"/&gt;
+        &lt;/params&gt;
+    &lt;/query&gt;
+&lt;/queries&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A query needs to have a unique <code>name</code> value as well as an <code>entity</code> reference. The combination of <code>name</code> and <code>entity</code> needs to be unique. Also, a <code>fetchPlan</code> needs to be referenced to indicate which entity attributes are returned.</p>
+</div>
+<div class="paragraph">
+<p>In the <code>&lt;jpql&gt;</code> tag the actual query is configured. The parameters need to be listed within the <code>params</code> tag defining their name and Java type. In the query parameters, you can reference via their name prefixed with a colon like <code>:customerName</code>.</p>
+</div>
+<div class="paragraph">
+<p>After the file has been created, and the queries have been defined, you need to register the <code>rest-queries.xml</code> configuration in the <code>application.properties</code> of your Jmix application:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.rest.queries-config = rest/sample/rest-queries.xml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can invoke the Entity Query endpoint either by the <code>GET</code> or <code>POST</code> HTTP method. In the case of <code>GET</code>, the parameters are appended as URL query parameters.</p>
+</div>
+<div class="listingblock">
+<div class="title">Query API GET Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+        /queries
+        /sample_Order
+        /ordersByDate
+        ?orderDate=2020-02-02</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="title">URI Encoding</div>
+<div class="paragraph">
+<p>The URL should only contain ASCII characters. This means the values of the parameters need to be URL encoded, as those values normally represent direct user input and therefore it cannot be ensured that non-ASCII characters are used.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the case of using <code>POST</code>, the query parameters are transferred in the JSON body containing each parameter as a key.</p>
+</div>
+<div class="listingblock">
+<div class="title">Query API POST Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/queries/sample_Order/ordersByCustomerName
+
+{
+  "customerName": "Shelby Robinson"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_collection_parameters"><a class="anchor" href="#_collection_parameters"></a>Collection Parameters</h3>
+<div class="paragraph">
+<p>It is also possible to define a parameter as a collection type. In this case, the query definition should contain an <code>[]</code> indicator after the Java type.</p>
+</div>
+<div class="listingblock">
+<div class="title">rest-queries.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0"?&gt;
+&lt;queries xmlns="http://jmix.io/schema/rest/queries"&gt;
+    &lt;query name="ordersByIds" entity="sample_Order" fetchPlan="order-with-details"&gt;
+        &lt;jpql&gt;&lt;![CDATA[select e from sample_Order e where e.id in :ids]]&gt;&lt;/jpql&gt;
+        &lt;params&gt;
+            &lt;param name="ids" type="java.util.UUID[]"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;/params&gt;
+    &lt;/query&gt;
+&lt;/queries&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>ids</code> parameter is marked as collection of <code>UUID</code> type.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>When this parameter is used in a query, the corresponding  IDs have to be provided as a JSON array.</p>
+</div>
+<div class="listingblock">
+<div class="title">Query API Collection Parameters Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/queries/sample_Order/ordersByIds
+
+{
+  "ids": [
+    "41aae331-b46b-85ee-b0bc-2de8cbf1ab86",
+    "21021f78-edac-224b-e6f8-6e71e02a0f0d"
+  ]
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="empty-values-json"><a class="anchor" href="#empty-values-json"></a>Return Empty Values in JSON</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, Jmix will remove empty values (<code>null</code>) from the JSON response, so that the attribute keys are not present in the JSON document.</p>
+</div>
+<div class="paragraph">
+<p>You can control this behavior by using the URL query parameter <code>returnNulls</code> and set its value to <code>true</code>. With that, Jmix will always add the attribute keys to the response, independent if the value is empty or not.</p>
+</div>
+<div class="paragraph">
+<p>In the following example, a Customer is loaded by its ID and also requesting to contain all empty values:</p>
+</div>
+<div class="listingblock">
+<div class="title">Load Customer with empty values</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /entities
+            /sample_Customer
+            /1eab4973-25f9-70d9-5356-6990dd8f79e2
+            ?returnNulls=true</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "_entityName": "sample_Customer",
+  "_instanceName": "Sidney Chandler",
+  "id": "0826806e-6074-90fa-f241-564b5c94d018",
+  "createdDate": "2021-06-09T08:42:39.291",
+  "createdBy": "admin",
+  "lastModifiedDate": "2021-06-09T08:42:39.291",
+  "deletedDate": null,
+  "lastModifiedBy": null,
+  "name": "Sidney Chandler",
+  "type": null, <i class="conum" data-value="1"></i><b>(1)</b>
+  "version": 1,
+  "deletedBy": null
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The response contains the key <code>type</code> although it is empty</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The Parameter <code>returnNulls</code> is present in all Entity Load APIs: Load by ID, Load List, Search and Load by Query.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fetch-plans"><a class="anchor" href="#fetch-plans"></a>Using Fetch Plans</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The required attributes for an entity typically depend on the client’s use case, UI, or integration scenario. Loading only the direct attributes of an entity is often insufficient.</p>
+</div>
+<div class="paragraph">
+<p>Without the ability to load referenced entities in a single request, additional requests would be needed to fetch related data, leading to N+1 query issues. This can cause significant overhead, especially in HTTP-based interactions.</p>
+</div>
+<div class="paragraph">
+<p>To address this, the Load Entities API supports <a class="xref page" href="../../data-access/fetching.html">Fetch Plans</a>. Fetch plans allow you to define a hierarchy of attributes to be loaded in a single batch from the database and delivered to the client, optimizing performance and reducing overhead.</p>
+</div>
+<div class="sect2">
+<h3 id="named-fetch-plans"><a class="anchor" href="#named-fetch-plans"></a>Named Fetch Plans</h3>
+<div class="paragraph">
+<p>Named fetch plans are registered in the shared fetch plans repository of the application (see <a class="xref page" href="../../data-access/fetching.html#creating-fetch-plans">Creating Fetch Plans</a>). They can be used in REST requests by specifying their names.</p>
+</div>
+<div class="paragraph">
+<p>The following example demonstrates how to load a list of Orders with additional information about the corresponding customer, the linked order lines, and the product of each order line.</p>
+</div>
+<div class="paragraph">
+<p>First, you need to register the fetch plan <code>order-with-details</code> in the <code>fetch-plans.xml</code> configuration file:</p>
+</div>
+<div class="listingblock">
+<div class="title">fetch-plans.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fetchPlans xmlns="http://jmix.io/schema/core/fetch-plans"&gt;
+    &lt;fetchPlan class="rest.sample.entity.Order"
+               extends="_base"
+               name="order-with-details"&gt;
+        &lt;property name="customer"/&gt;
+        &lt;property name="lines" fetchPlan="_base"&gt;
+            &lt;property name="product" fetchPlan="_instance_name" /&gt;
+        &lt;/property&gt;
+    &lt;/fetchPlan&gt;
+&lt;/fetchPlans&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With that fetch plan configuration in place, you can perform a GET request and reference the fetch plan using the <code>fetchPlan</code> URL parameter.</p>
+</div>
+<div class="paragraph">
+<p>In the example below the Order with the ID <code>21021f78-edac-224b-e6f8-6e71e02a0f0d</code> is loaded with the fetch plan <code>order-with-details</code> in order to additionally load <code>customer</code> and <code>lines</code> data:</p>
+</div>
+<div class="listingblock">
+<div class="title">Load Order with fetch plan request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /entities
+            /sample_Order
+            /21021f78-edac-224b-e6f8-6e71e02a0f0d
+            ?fetchPlan=order-with-details</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response: 200 - OK</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "id": "21021f78-edac-224b-e6f8-6e71e02a0f0d",
+  "date": "2020-12-13",
+  "amount": 49.99,
+  "lines": [ <i class="conum" data-value="1"></i><b>(1)</b>
+    {
+      "id": "64e4fbb0-7fd6-818b-984e-a8769c4fbe88",
+      "product": {
+        "id": "7750adbe-6c30-cede-31a6-577a1a96aa83",
+        "name": "Outback Power Remote Power System"
+      },
+      "quantity": 1.0
+    }
+  ],
+  "version": 1,
+  "customer": {
+    "id": "0826806e-6074-90fa-f241-564b5c94d018",
+    "name": "Sidney Chandler",
+  }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The fetch plan <code>order-with-details</code> ensures that additional attributes like <code>lines</code> and <code>customer</code> are also included.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>When using a POST request to load data, for example in the <a href="#load-list-search-filter">search</a> endpoint, pass the fetch plan name in the <code>fetchPlan</code> property of the request body JSON:</p>
+</div>
+<div class="listingblock">
+<div class="title">Filter POST request with named fetch plan</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/entities/sample_Order/search
+
+{
+  "filter": {
+    "conditions": [
+      {
+        "property": "customer.name",
+        "operator": "=",
+        "value": "Shelby Robinson"
+      }
+    ]
+  },
+  "fetchPlan": "order-with-details"
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="inline-fetch-plans"><a class="anchor" href="#inline-fetch-plans"></a>Inline Fetch Plans</h3>
+<div class="paragraph">
+<p>Since Jmix 2.5, the Entities API supports also inline fetch plans.</p>
+</div>
+<div class="paragraph">
+<p>Inline fetch plans are passed with REST requests as JSON objects, representing the fetch plan structure. Local attributes of entities are specified by their names, references are specified by nested JSON objects consisting of the attribute name and its nested fetch plan. The <code>entity</code> property on the top level must specify the root entity name.</p>
+</div>
+<div class="paragraph">
+<p>If you make requests to generic REST from another Jmix application, you can use the <code>FetchPlanSerialization</code> bean for converting fetch plans to JSON strings.</p>
+</div>
+<div class="paragraph">
+<p>Inline fetch plan can be used in all endpoints accepting fetch plans. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">Filter POST request with inline fetch plan</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">POST http://localhost:8080/rest/entities/sample_Order/search
+
+{
+  "filter": {
+    "conditions": [
+      {
+        "property": "customer.name",
+        "operator": "=",
+        "value": "Shelby Robinson"
+      }
+    ]
+  },
+  "fetchPlan": {
+    "entity": "sample_Order",
+    "properties": [
+      "id",
+      "number",
+      "date",
+      "amount",
+      {
+        "name": "customer",
+        "fetchPlan": {
+          "properties": [
+            "id",
+            "name",
+            "status"
+          ]
+        }
+      }
+    ]
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When using inline fetch plans in GET requests as a URL parameter, the JSON must be URL-encoded. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">Load Order with inline fetch plan</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http request hljs" data-lang="http request">GET http://localhost:8080/rest
+            /entities
+            /sample_Order
+            /21021f78-edac-224b-e6f8-6e71e02a0f0d
+            ?fetchPlan=%7B%22entity%22%3A%22sample_Order%22%2C%22properties%22%3A%5B%22id%22%2C%22number%22%2C%22date%22%2C%22amount%22%2C%7B%22name%22%3A%22customer%22%2C%22fetchPlan%22%3A%7B%22properties%22%3A%5B%22id%22%2C%22name%22%2C%22status%22%5D%7D%7D%5D%7D</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inline fetch plans can be disabled using the <a class="xref page" href="../app-properties.html#jmix.rest.inline-fetch-plan-enabled">jmix.rest.inline-fetch-plan-enabled</a> application property.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

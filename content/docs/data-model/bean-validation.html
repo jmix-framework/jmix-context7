@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bean Validation :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Bean Validation</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Java Bean Validation is a specification for validating data in Java applications. You can read the current version 2.0 of the specification <a href="https://beanvalidation.org/2.0/spec/">here</a>. The reference implementation of Bean Validation is <a href="https://docs.jboss.org/hibernate/stable/validator/reference/en-US/html_single/?v=5.3" rel="noopener" target="_blank">Hibernate Validator</a>.</p>
+</div>
+<div class="paragraph">
+<p>Using Bean Validation brings the following benefits to your project:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Validation logic is located next to your domain model: defining value, method, bean constraint is done naturally.</p>
+</li>
+<li>
+<p>Bean Validation standard gives you tens of <a href="https://docs.jboss.org/hibernate/stable/validator/reference/en-US/html_single/#validator-defineconstraints-spec" rel="noopener" target="_blank">validation annotations</a> out-of-the-box, like <code>@NotNull</code>, <code>@Size</code>, <code>@Min</code>, <code>@Max</code>, <code>@Pattern</code>, <code>@Email</code>, <code>@Past</code>, less standard like <code>@URL</code>, <code>@Length</code>, and many others.</p>
+</li>
+<li>
+<p>You are not limited by predefined constraints and can define your own constraint annotations. You can also make a new annotation by combining a couple of others, or create a new one and define a Java class that will serve as a validator.</p>
+<div class="paragraph">
+<p>For example, you can define a <a href="#custom-constraints">class-level</a> annotation <code>@ValidPassportNumber</code> to check that passport number follows the right format, which depends on the <code>location</code> field value.</p>
+</div>
+</li>
+<li>
+<p>You can put constraints not only on fields and classes but also on methods and method parameters. It is called <a href="#validation-by-contract">"validation by contract"</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Bean Validation is automatically invoked in <a class="xref page" href="../flow-ui/views/view-validation.html">UI views</a> when user submits data, and in the <a class="xref page" href="../rest/index.html">generic REST API</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="defining-constraints"><a class="anchor" href="#defining-constraints"></a>Defining Constraints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can define constraints using annotations of the <code>jakarta.validation.constraints</code> package or custom annotations. The annotations can be set on an entity or a POJO class declaration, field or getter, and on a service method.</p>
+</div>
+<div class="paragraph">
+<p>The standard set of constraints includes the most commonly used and universal ones. In addition, Bean Validation allows developers to add their <a href="#custom-constraints">own constraints</a>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>@NotNull</code> validates that the annotated property value is not <code>null</code>.</p>
+</li>
+<li>
+<p><code>@Size</code> validates that the annotated property value has a size between the <code>min</code> and <code>max</code> attributes; can be applied to <code>String</code>, <code>Collection</code>, <code>Map</code>, and array properties.</p>
+</li>
+<li>
+<p><code>@Min</code> validates that the annotated property has a value higher than or equal to the <code>value</code> attribute.</p>
+</li>
+<li>
+<p><code>@Max</code> validates that the annotated property has a value less than or equal to the <code>value</code> attribute.</p>
+</li>
+<li>
+<p><code>@Email</code> validates that the annotated property is a valid email address.</p>
+</li>
+<li>
+<p><code>@NotEmpty</code> validates that the property is not <code>null</code> or empty; can be applied to <code>String</code>, <code>Collection</code>, <code>Map</code> or <code>Array</code> values.</p>
+</li>
+<li>
+<p><code>@NotBlank</code> can be applied only to text values and validates that the property is not <code>null</code> or whitespace.</p>
+</li>
+<li>
+<p><code>@Positive</code> and <code>@PositiveOrZero</code> apply to numeric values and validate that they are strictly positive, or positive, including 0.</p>
+</li>
+<li>
+<p><code>@Negative</code> and <code>@NegativeOrZero</code> apply to numeric values and validate that they are strictly negative, or negative, including 0.</p>
+</li>
+<li>
+<p><code>@Past</code> and <code>@PastOrPresent</code> validate that a date value is in the past, or the past including the present.</p>
+</li>
+<li>
+<p><code>@Future</code> and <code>@FutureOrPresent</code> validate that a date value is in the future, or in the future including the present.</p>
+</li>
+<li>
+<p><code>@Pattern</code> checks if the annotated string property matches the regular <code>regex</code> expression.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The <a class="xref page" href="../studio/entity-designer.html#entity-designer-designer">Studio Entity Designer</a> allows you to quickly set validation annotations to entity attributes.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="entity-validation"><a class="anchor" href="#entity-validation"></a>Entity Validation</h3>
+<div class="paragraph">
+<p>Example of using standard validation annotations on entity fields:</p>
+</div>
+<div class="listingblock">
+<div class="title">Person.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "PERSON", indexes = {
+        @Index(name = "IDX_PERSON_LOCATION_ID", columnList = "LOCATION_ID")
+})
+@Entity
+public class Person {
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @InstanceName
+    @Length(min = 3) <i class="conum" data-value="1"></i><b>(1)</b>
+    @Column(name = "FIRST_NAME", nullable = false)
+    @NotNull
+    private String firstName;
+
+    @Email(message = "Email address has invalid format: ${validatedValue}",
+            regexp = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$") <i class="conum" data-value="2"></i><b>(2)</b>
+    @Column(name = "EMAIL", length = 120)
+    private String email;
+
+    @DecimalMin(message = "Person height should be positive",
+            value = "0", inclusive = false) <i class="conum" data-value="3"></i><b>(3)</b>
+    @DecimalMax(message = "Person height can not exceed 300 centimeters",
+            value = "300") <i class="conum" data-value="4"></i><b>(4)</b>
+    @Column(name = "HEIGHT", precision = 19, scale = 2)
+    private BigDecimal height;
+
+    @Column(name = "PASSPORT_NUMBER", nullable = false, length = 15)
+    @NotNull
+    private String passportNumber;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "LOCATION_ID")
+    private Location location;
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Length of a person’s first name should be longer than 3 characters.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Email string should be a properly formatted email address.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>A person’s height should be larger than 0.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>A person’s height should be less than or equal to 300.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Let’s check how bean validation is running automatically, when user submits data in UI.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="validation ui" src="_images/validation-ui.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, our application not just shows error messages to a user but also highlights form fields that have not passed single-field bean validations with red lines.</p>
+</div>
+<div class="sect3">
+<h4 id="custom-constraints"><a class="anchor" href="#custom-constraints"></a>Custom Constraints</h4>
+<div class="paragraph">
+<p>You can create your domain-specific constraints with programmatic or declarative validation.</p>
+</div>
+<div class="paragraph">
+<p>To create a constraint with programmatic validation, do the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create an annotation:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Target(ElementType.TYPE) <i class="conum" data-value="1"></i><b>(1)</b>
+@Retention(RetentionPolicy.RUNTIME)
+@Constraint(validatedBy = ValidPassportNumberValidator.class) <i class="conum" data-value="2"></i><b>(2)</b>
+public @interface ValidPassportNumber {
+    String message() default "Passport number is not valid";
+
+    Class&lt;?&gt;[] groups() default {};
+
+    Class&lt;? extends Payload&gt;[] payload() default {};
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Defines that the target of this runtime annotation is a class or an interface.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>States that the annotation implementation is in the <code>ValidPassportNumberValidator</code> class.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Create a validator class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class ValidPassportNumberValidator
+        implements ConstraintValidator&lt;ValidPassportNumber, Person&gt; {
+
+    @Override
+    public boolean isValid(Person person, ConstraintValidatorContext context) { <i class="conum" data-value="1"></i><b>(1)</b>
+        if (person == null)
+            return false;
+
+        if (person.getLocation() == null || person.getPassportNumber() == null)
+            return false;
+
+        return doPassportNumberFormatCheck(person.getLocation(),
+                person.getPassportNumber());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>isValid()</code> method does the actual check.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Use our class-level annotation:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ValidPassportNumber(groups = {Default.class, UiCrossFieldChecks.class})
+@JmixEntity
+@Table(name = "PERSON", indexes = {
+        @Index(name = "IDX_PERSON_LOCATION_ID", columnList = "LOCATION_ID")
+})
+@Entity
+public class Person {
+}</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You can also create custom constraints using a composition of existing ones, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@NotNull
+@Size(min = 2, max = 14)
+@Pattern(regexp = "\\d+")
+@Target({METHOD, FIELD, ANNOTATION_TYPE})
+@Retention(RUNTIME)
+@Constraint(validatedBy = {})
+@ReportAsSingleViolation
+public @interface ValidZipCode {
+    String message() default "Zip code is not valid";
+
+    Class&lt;?&gt;[] groups() default {};
+
+    Class&lt;? extends Payload&gt;[] payload() default {};
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When using a composite constraint, the resulting set of constraint violations will contain separate entries for each enclosed constraint. If you want to return a single violation, annotate the annotation class with <code>@ReportAsSingleViolation</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="validation-by-contract"><a class="anchor" href="#validation-by-contract"></a>Validation by Contract</h3>
+<div class="paragraph">
+<p>With bean validation, constraints can be applied to the parameters and return values of methods or constructors of any Java type to check for their calls' pre-conditions and post-conditions. This is called "validation by contract".</p>
+</div>
+<div class="paragraph">
+<p>With the "validation by contract" approach, you have clear, compact, and easily supported code.</p>
+</div>
+<div class="paragraph">
+<p>Services perform validation of parameters and results if a method has the <code>@Validated</code> annotation in the service interface. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Validated
+public interface PersonApiService {
+
+    String NAME = "sample_PersonApiService";
+
+    @NotNull
+    @Valid <i class="conum" data-value="1"></i><b>(1)</b>
+    List&lt;Person&gt; getPersons();
+
+    void addNewPerson(@NotNull
+                      @Length(min = 3)
+                      String firstName,
+                      @DecimalMax(message = "Person height can not exceed 300 centimeters",
+                              value = "300")
+                      @DecimalMin(message = "Person height should be positive",
+                              value = "0", inclusive = false)
+                      BigDecimal height,
+                      @NotNull
+                      String passportNumber
+    );
+
+    @Validated <i class="conum" data-value="2"></i><b>(2)</b>
+    @NotNull
+    String validatePerson(@Size(min = 5) String comment,
+                          @Valid @NotNull Person person); <i class="conum" data-value="3"></i><b>(3)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Specifies that every object in the list returned by the <code>getPersons()</code> method needs to be validated against <code>Person</code> class constraints as well.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Indicates that the method should be validated.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <code>@Valid</code> annotation can be used if you need the cascaded validation of method parameters. In the example above, the constraints declared on the <code>Person</code> object will be validated as well.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you perform some custom programmatic validation in a service, use <code>CustomValidationException</code> to inform clients about validation errors in the same format as the standard bean validation does. It can be particularly relevant for REST API clients.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Bean validation is inheritable. If you annotate some class or field or method with a constraint, all descendants that extend or implement this class or interface would be affected by the same constraint check.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="constraint-groups"><a class="anchor" href="#constraint-groups"></a>Constraint Groups</h3>
+<div class="paragraph">
+<p>Constraint groups enable applying only a subset of all defined constraints, depending on the application logic. For example, you may want to force a user to enter a value for an entity attribute, but at the same time to have the ability to set this attribute to <code>null</code> by some internal mechanism. To do it, you should specify the <code>groups</code> attribute on the constraint annotation. Then the constraint will take effect only when the same group is passed to the validation mechanism.</p>
+</div>
+<div class="paragraph">
+<p>The framework passes the following constraint groups to the validation mechanism:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>RestApiChecks</code> - bean validation constraint group used by <a class="xref page" href="../rest/index.html">REST API</a> for data validation.</p>
+</li>
+<li>
+<p><code>UiComponentChecks</code> - bean validation constraint group used by UI for fields validation.</p>
+</li>
+<li>
+<p><code>UiCrossFieldChecks</code> - bean validation constraint group used by UI for cross-field validation.</p>
+</li>
+<li>
+<p><code>jakarta.validation.groups.Default</code> - this group is always passed, except saving the entity detail view.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="validation-messages"><a class="anchor" href="#validation-messages"></a>Validation Messages</h3>
+<div class="paragraph">
+<p>Constraints can have messages to be displayed to users.</p>
+</div>
+<div class="paragraph">
+<p>Messages can be set directly in the validation annotations, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Pattern(message = "Bad formed person last name: ${validatedValue}",
+        regexp = "^[A-Z][a-z]*(\\s(([a-z]{1,3})|(([a-z]+\\')?[A-Z][a-z]*)))*$")
+@Column(name = "LAST_NAME", nullable = false)
+@NotNull
+private String lastName;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also place the message in the <a class="xref page" href="../localization/message-bundles.html">message bundle</a> and specify the message key in the annotation. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Min(message = "{msg://com.company.demo.entity/Person.age.validation.Min}", value = 14)
+@Column(name = "AGE")
+private Integer age;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Messages can contain parameters and expressions. Parameters are enclosed in <code>{}</code> and represent either localized messages or annotation parameters, for example <code>{min}</code>, <code>{max}</code>, <code>{value}</code>. Expressions are enclosed in <code>${}</code> and can include the validated value variable <code>validatedValue</code>, annotation parameters like <code>value</code> or <code>min</code>, and JSR-341 (EL 3.0) expressions. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Pattern(message = "Invalid name: ${validatedValue}, pattern: {regexp}",
+        regexp = "^[A-Z][a-z]*(\\s(([a-z]{1,3})|(([a-z]+\\')?[A-Z][a-z]*)))*$")
+@Column(name = "FULL_NAME")
+private String fullName;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Localized message values can also contain parameters and expressions.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="running-validation"><a class="anchor" href="#running-validation"></a>Running Validation</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="validation-on-persistence-layer"><a class="anchor" href="#validation-on-persistence-layer"></a>Validation on Persistence Layer</h3>
+<div class="paragraph">
+<p>For <a class="xref page" href="entities.html#jpa">JPA entities</a>, bean validation is performed automatically by the EclipseLink ORM framework. It means that when you save an entity instance using <a class="xref page" href="../data-access/data-manager.html">DataManager</a>, <a class="xref page" href="../data-access/entity-manager.html">EntityManager</a> or <a class="xref page" href="../data-access/data-repositories.html">data repositories</a>, it will be validated and an exception will be thrown if the entity state is invalid.</p>
+</div>
+<div class="paragraph">
+<p>You can switch the persistence validation off by specifying the following application property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jakarta.persistence.validation.mode = NONE</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ui-validation"><a class="anchor" href="#ui-validation"></a>Validation in UI</h3>
+<div class="paragraph">
+<p>UI components connected to data automatically get <code>BeanPropertyValidator</code> to check the field value. The validator is invoked from the <code>Validatable.validate()</code> method implemented by the visual component and can throw the <code>ValidationException</code> exception.</p>
+</div>
+<div class="paragraph">
+<p>By default, <code>AbstractBeanValidator</code> has both <code>Default</code> and <code>UiComponentChecks</code> groups.</p>
+</div>
+<div class="paragraph">
+<p>If an entity attribute is annotated with <code>@NotNull</code> without constraint groups, it will be marked as mandatory in metadata, and UI components binding to data will have <code>required = true</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../flow-ui/vc/components/datePicker.html">datePicker</a>, <a class="xref page" href="../flow-ui/vc/components/dateTimePicker.html">dateTimePicker</a> and <a class="xref page" href="../flow-ui/vc/components/timePicker.html">timePicker</a> components automatically set their time range according to the <code>@Past</code>, <code>@PastOrPresent</code>, <code>@Future</code>, <code>@FutureOrPresent</code> annotations.</p>
+</div>
+<div class="paragraph">
+<p>Entity detail view <a class="xref page" href="../flow-ui/views/view-classes.html#standard-detail-view">controllers</a> perform validation against class-level constraints on save if the constraint includes the <code>UiCrossFieldChecks</code> group and if all attribute-level checks are passed.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="rest-api-validation"><a class="anchor" href="#rest-api-validation"></a>Validation in REST API</h3>
+<div class="paragraph">
+<p>Generic REST API automatically performs bean validation for <a class="xref page" href="../rest/entities-api/create-entities.html#entity-validation">creating and updating</a> actions and when using the <a class="xref page" href="../rest/business-logic.html#services-api">Services API</a> approach.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="programmatic-validation"><a class="anchor" href="#programmatic-validation"></a>Programmatic Validation</h3>
+<div class="paragraph">
+<p>You can perform bean validation programmatically using the <code>validate()</code> method of <code>jakarta.validation.Validator</code> interface. The result of validation is a set of <code>ConstraintViolation</code> objects. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Validator validator;
+
+protected void save(Person person) {
+    Set&lt;ConstraintViolation&lt;Person&gt;&gt; violations = validator.validate(person);
+    // handle collection of violations
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

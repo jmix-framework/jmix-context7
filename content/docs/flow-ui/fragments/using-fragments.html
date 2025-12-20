@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using Fragments :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Using Fragments</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section explains how to define and use fragments. See also the <a class="xref page" href="fragments.html#fragment-events">Fragment Events</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="declarative-usage"><a class="anchor" href="#declarative-usage"></a>Declarative Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Suppose you have a fragment for entering an address:</p>
+</div>
+<div class="listingblock">
+<div class="title">AddressFragment.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@FragmentDescriptor("address-fragment.xml")
+public class AddressFragment extends Fragment&lt;FormLayout&gt; {
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">address-fragment.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+    &lt;content&gt;
+        &lt;formLayout&gt;
+            &lt;textField id="cityField" label="City"/&gt;
+            &lt;textField id="zipcodeField" label="Zipcode"/&gt;
+        &lt;/formLayout&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+A fragment can be created using the <a class="xref page" href="../../studio/view-wizard.html">View Creation Wizard</a> in Studio. Select the <code>Blank fragment</code> template from the view templates list.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Then you can include it in a view using the <code>fragment</code> element with the <code>class</code> attribute specifying the fragment class FQN:</p>
+</div>
+<div class="listingblock">
+<div class="title">host-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"&gt;
+    &lt;layout&gt;
+        &lt;details id="addressDetails" summaryText="Address" opened="true" alignSelf="STRETCH"&gt;
+            &lt;fragment class="com.company.onboarding.view.address.var1.AddressFragment"/&gt;
+        &lt;/details&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>fragment</code> element can be added to any layout component of the view, including the top-level <code>layout</code> element.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+In Studio <a class="xref page" href="../../studio/view-designer.html">View Designer</a>, use the <strong>Add Component</strong> action to open the component palette. Find the <code>Fragment</code> component in it, then drag and drop it into the component structure or into the XML.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="programmatic-usage"><a class="anchor" href="#programmatic-usage"></a>Programmatic Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The same fragment can be included in a view programmatically using the <code>Fragments</code> bean, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">host-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"&gt;
+    &lt;layout&gt;
+        &lt;details id="addressDetails" summaryText="Address" opened="true" alignSelf="STRETCH"/&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">HostView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Route(value = "HostView", layout = MainView.class)
+@ViewController("HostView")
+@ViewDescriptor("host-view.xml")
+public class HostView extends StandardView {
+
+    @ViewComponent
+    private Details addressDetails;
+
+    @Autowired
+    private Fragments fragments; <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @Subscribe
+    public void onInit(InitEvent event) {
+        AddressFragment addressFragment = fragments.create(this, AddressFragment.class); <i class="conum" data-value="2"></i><b>(2)</b>
+        addressDetails.add(addressFragment); <i class="conum" data-value="3"></i><b>(3)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Injects the <code>Fragments</code> bean which is designed to instantiate fragments.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Creates the fragment’s instance by its class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Add fragment instance to the <code>Details</code> layout component.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If a fragment subscribes to a host view <a class="xref page" href="fragments.html#fragment-autowiring">event</a>, the fragment must be created and added to the view before this event is triggered.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="passing-parameters-to-fragments"><a class="anchor" href="#passing-parameters-to-fragments"></a>Passing Parameters to Fragments</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A fragment controller can have public setters to accept parameters as it is done when opening views, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">AddressFragment.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@FragmentDescriptor("address-fragment.xml")
+public class AddressFragment extends Fragment&lt;FormLayout&gt; {
+
+    @ViewComponent
+    private EntityComboBox&lt;City&gt; cityField;
+    @ViewComponent
+    private TypedTextField&lt;String&gt; zipcodeField;
+
+    public void setCitiesContainer(CollectionContainer&lt;City&gt; citiesContainer) { <i class="conum" data-value="1"></i><b>(1)</b>
+        cityField.setItems(citiesContainer);
+    }
+
+    public void setZipcodePlaceholder(String placeholder) {
+        zipcodeField.setPlaceholder(placeholder);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Setter methods allows you to pass parameters to the fragment.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If the fragment is added to the view declaratively in XML, use the <code>properties</code> element to pass the parameters, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">host-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"&gt;
+    &lt;data&gt;
+        &lt;collection id="citiesDc"
+                    class="com.company.onboarding.entity.City"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="citiesDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from City e]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;dataLoadCoordinator auto="true"/&gt;
+    &lt;/facets&gt;
+    &lt;layout&gt;
+        &lt;details id="addressDetails" summaryText="Address" opened="true" alignSelf="STRETCH"&gt;
+            &lt;fragment class="com.company.onboarding.view.address.var2.AddressFragment"&gt;
+                &lt;properties&gt;
+                    &lt;property name="citiesContainer" value="citiesDc" type="CONTAINER_REF"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+                    &lt;property name="zipcodePlaceholder" value="Zipcode"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+                &lt;/properties&gt;
+            &lt;/fragment&gt;
+        &lt;/details&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Passes a data container to the <code>setCitiesContainer()</code> method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Passes a string parameter to the <code>setZipcodePlaceholder()</code> method.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Use the <code>value</code> attribute to specify values and the optional <code>type</code> attribute to indicate that the string value must be converted by one of the pluggable <code>PropertyParser</code> beans. Setters must have parameters of appropriate types.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To add a parameter in Jmix Studio, select <code>fragment</code> in the view descriptor XML or in the <strong>Jmix UI</strong> structure panel and click on the <a class="xref page" href="../../studio/view-designer.html#component-inspector-add-button">Add</a><strong>→Properties→Property</strong> button in the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If the fragment is created programmatically, setters can be invoked explicitly:</p>
+</div>
+<div class="listingblock">
+<div class="title">HostView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionContainer&lt;City&gt; citiesDc;
+
+@Autowired
+private Fragments fragments;
+
+@Subscribe
+public void onInit(InitEvent event) {
+    AddressFragment addressFragment = fragments.create(this, AddressFragment.class);
+    addressFragment.setCitiesContainer(citiesDc); <i class="conum" data-value="1"></i><b>(1)</b>
+    addressFragment.setZipcodePlaceholder("Zipcode");
+    getContent().add(addressFragment);
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Passes a parameter before adding the fragment to the view.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-data-components"><a class="anchor" href="#using-data-components"></a>Using Data Components</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A fragment can have its own data containers and loaders defined in the <code>data</code> XML element. At the same time, the framework creates a single instance of <a class="xref page" href="../data/data-context.html">DataContext</a> for the view and all its fragments. Therefore, all loaded entities are merged to the same context, and their changes are saved when the host view saves the data.</p>
+</div>
+<div class="paragraph">
+<p>The following example demonstrates the usage of own data containers and loaders in a fragment.</p>
+</div>
+<div class="paragraph">
+<p>Suppose you have a <code>City</code> entity, you want to show a drop-down list with available cities. You can define data components in the fragment descriptor as you would in a regular view:</p>
+</div>
+<div class="listingblock">
+<div class="title">address-fragment.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+    &lt;data&gt;
+        &lt;collection id="citiesDc"
+                    class="com.company.onboarding.entity.City"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="citiesDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from City e]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;content&gt;
+        &lt;formLayout id="addressForm"&gt;
+            &lt;entityComboBox id="cityField" label="City" itemsContainer="citiesDc"/&gt;
+            &lt;textField id="zipcodeField" label="Zipcode"/&gt;
+        &lt;/formLayout&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">AddressFragment.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@FragmentDescriptor("address-fragment.xml")
+public class AddressFragment extends Fragment&lt;FormLayout&gt; {
+
+    @ViewComponent
+    private CollectionLoader&lt;City&gt; citiesDl;
+
+    @Subscribe(target = Target.HOST_CONTROLLER)
+    protected void onHostBeforeShow(View.BeforeShowEvent event) { <i class="conum" data-value="1"></i><b>(1)</b>
+        citiesDl.load();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The fragment subscribes to the host view <code>BeforeShowEvent</code>, so fragment data will be loaded when the host view is opened.</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="provided-data-components"><a class="anchor" href="#provided-data-components"></a>Provided Data Components</h3>
+<div class="paragraph">
+<p>The next example demonstrates how to use data containers of the host view in a fragment.</p>
+</div>
+<div class="listingblock">
+<div class="title">host-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"&gt;
+    &lt;data&gt;
+        &lt;instance id="addressDc"
+                  class="com.company.onboarding.entity.Address"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader/&gt;
+        &lt;/instance&gt;
+
+        &lt;collection id="citiesDc"
+                    class="com.company.onboarding.entity.City"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="citiesDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from City e]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;dataLoadCoordinator auto="true"/&gt;
+    &lt;/facets&gt;
+    &lt;layout&gt;
+        &lt;details id="addressDetails" summaryText="Address" opened="true" alignSelf="STRETCH"&gt;
+            &lt;fragment class="com.company.onboarding.view.address.var4.AddressFragment"/&gt;
+        &lt;/details&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Data container that is used in the fragment below.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">address-fragment.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+    &lt;data&gt;
+        &lt;instance id="addressDc"
+                  class="com.company.onboarding.entity.Address"
+                  provided="true"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+
+        &lt;collection id="citiesDc"
+                    class="com.company.onboarding.entity.City"
+                    provided="true"/&gt;
+    &lt;/data&gt;
+    &lt;content&gt;
+        &lt;formLayout id="addressForm" dataContainer="addressDc"&gt;
+            &lt;entityComboBox id="cityField" itemsContainer="citiesDc" property="city"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+            &lt;textField id="zipcodeField" property="zipcode"/&gt;
+        &lt;/formLayout&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>provided="true"</code> means that the container with the same id must exist in a host view or enclosing fragment.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>UI component is linked to the provided data container.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In the XML element having <code>provided="true"</code>, all attributes except id are ignored but can be present to provide information for design time tools.</p>
+</div>
+<div class="paragraph">
+<p>A fragment can also define loaders, provided by a host view. A provided loader must have the same id as a loader of the host view, and <code>provided="true"</code> attribute. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;loader id="addressDl" provided="true"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

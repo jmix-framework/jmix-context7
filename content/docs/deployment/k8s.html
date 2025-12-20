@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes Cluster :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Kubernetes Cluster</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this guide, we describe how to deploy a Jmix application to a Kubernetes cluster. We’ll use the single-node Kubernetes cluster provided by <a href="https://minikube.sigs.k8s.io/" rel="noopener" target="_blank">minikube</a>, which you can install on your development machine and test the deployment locally.</p>
+</div>
+<div class="paragraph">
+<p>The guide focuses on what should be configured in the application in order to run on Kubernetes. You can complete the guide and prepare your application for such deployment without any previous knowledge of Kubernetes. However, to run real production deployments, you should be familiar with this technology.</p>
+</div>
+<div class="paragraph">
+<p>For more information about working in a cluster, see the <a class="xref page" href="../features/cluster-communication.html">Cluster Communication</a> section.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="app-configuration"><a class="anchor" href="#app-configuration"></a>Configure Your Application</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="build-image"><a class="anchor" href="#build-image"></a>Configure Image Building</h3>
+<div class="paragraph">
+<p>The Spring Boot Gradle plugin provides the <code>bootBuildImage</code> task which builds your application and creates a Docker image with it. To specify the image name, add the following section to your <code>build.gradle</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">bootBuildImage {
+    imageName = 'mycompany/sample-app'
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="hazelcast-configuration"><a class="anchor" href="#hazelcast-configuration"></a>Configure Hazelcast</h3>
+<div class="paragraph">
+<p>Jmix framework modules use various caches: JPA entity and query caches, pessimistic locks, dynamic attributes configuration, etc. When running in a cluster, a Jmix application requires coordination of caches between cluster nodes.</p>
+</div>
+<div class="paragraph">
+<p>All Jmix caches support coordination through <a href="https://docs.hazelcast.com/imdg/latest/index.html" rel="noopener" target="_blank">Hazelcast</a>. In this guide, we’ll use Hazelcast in the embedded mode, together with the <a href="https://github.com/hazelcast/hazelcast-kubernetes" rel="noopener" target="_blank">hazelcast-kubernetes</a> plugin for auto-discovery in Kubernetes environment.</p>
+</div>
+<div class="paragraph">
+<p>Follow the steps below to configure Hazelcast for coordination of caches in a Kubernetes cluster.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Add the Hazelcast dependency to your <code>build.gradle</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'com.hazelcast:hazelcast'</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Specify Hazelcast as JCache provider by adding the following property to the <code>application.properties</code> file:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.cache.jcache.provider = com.hazelcast.cache.HazelcastMemberCachingProvider</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create <code>hazelcast.yaml</code> file in the <code>resources</code> root:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">hazelcast:
+  network:
+    join:
+      multicast:
+        enabled: false
+      kubernetes:
+        enabled: false
+        service-name: sample-app-service</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The <code>hazelcast.network.join.kubernetes.service-name</code> property must point to the application service defined in the <a href="#app-service-config">application service configuration file</a>.</p>
+</div>
+<div class="paragraph">
+<p>Notice that the <code>hazelcast.network.join.kubernetes.enabled</code> property is set to <code>false</code> in this file. It’s done to be able to run your application locally without Kubernetes. The property is set to <code>true</code> when the application actually runs on Kubernetes, using the <code>HZ_NETWORK_JOIN_KUBERNETES_ENABLED</code> environment variable in the application service configuration file.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="k8s-config"><a class="anchor" href="#k8s-config"></a>Create Kubernetes Configuration Files</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Create <code>k8s</code> folder in the project root and add the files listed below to it.</p>
+</div>
+<div class="sect2">
+<h3 id="db-service-config"><a class="anchor" href="#db-service-config"></a>Database Service Configuration</h3>
+<div class="paragraph">
+<p>This file defines the PostgreSQL database service named <code>sample-db-service</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">k8s/db.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sample-db-config
+data:
+  db_user: root
+  db_password: root
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sample-db-pvclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample-db
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: sample-db
+    spec:
+      volumes:
+        - name: sample-db-storage
+          persistentVolumeClaim:
+            claimName: sample-db-pvclaim
+      containers:
+      - image: postgres
+        name: sample-db
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              configMapKeyRef:
+                name: sample-db-config
+                key: db_user
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                name: sample-db-config
+                key: db_password
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
+          - name: POSTGRES_DB
+            value: sample
+        ports:
+          - containerPort: 5432
+            name: sample-db
+        volumeMounts:
+          - name: sample-db-storage
+            mountPath: /var/lib/postgresql/data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-db-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+  selector:
+    app: sample-db</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="app-service-config"><a class="anchor" href="#app-service-config"></a>Application Service Configuration</h3>
+<div class="paragraph">
+<p>This file defines the application service named <code>sample-app-service</code>. It uses the <code>mycompany/sample-app</code> Docker <a href="#build-image">image</a> with our application.</p>
+</div>
+<div class="listingblock">
+<div class="title">k8s/app.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample-app
+  template:
+    metadata:
+      labels:
+        app: sample-app
+    spec:
+      containers:
+        - image: mycompany/sample-app
+          imagePullPolicy: IfNotPresent
+          name: sample-app
+          env:
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: sample-db-config
+                  key: db_user
+            - name: DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: sample-db-config
+                  key: db_password
+            - name: DB_HOST
+              value: sample-db-service
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s
+            - name: HZ_NETWORK_JOIN_KUBERNETES_ENABLED
+              value: "true"
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "sh", "-c", "sleep 10" ]
+          ports:
+            - containerPort: 8080
+            - containerPort: 5701
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-app-service
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      name: sample-app-app
+    - port: 5701
+      name: sample-app-hazelcast
+  selector:
+    app: sample-app</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="load-balancer-config"><a class="anchor" href="#load-balancer-config"></a>Load-balancer Configuration</h3>
+<div class="paragraph">
+<p>The Jmix <a class="xref page" href="../flow-ui/index.html">User Interface</a> expects that all requests from a user come to the same server. In a cluster environment with multiple servers it requires a load-balancer with sticky sessions. Below is the configuration of NGINX Ingress Controller with <a href="https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#session-affinity" rel="noopener" target="_blank">session affinity</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">k8s/balancer.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: balancer
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+spec:
+  defaultBackend:
+    service:
+      name: sample-app-service
+      port:
+        number: 8080
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: sample-app-service
+                port:
+                  number: 8080
+            path: /
+            pathType: Prefix</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="hazelcast-rbac-config"><a class="anchor" href="#hazelcast-rbac-config"></a>Hazelcast Access Control Confguration</h3>
+<div class="listingblock">
+<div class="title">k8s/hazelcast-rbac.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hazelcast-cluster-role
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+      - pods
+      - nodes
+      - services
+    verbs:
+      - get
+      - list
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: hazelcast-cluster-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: hazelcast-cluster-role
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: default</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="local-k8s"><a class="anchor" href="#local-k8s"></a>Set up Local Kubernetes</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Make sure Docker is running on your machine. The below command displays the Docker version:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">docker -v</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the command fails, see <a href="https://docs.docker.com/get-docker" rel="noopener" target="_blank">Docker documentation</a> for how to install and run Docker.</p>
+</div>
+</li>
+<li>
+<p>Install Minikube as described in its <a href="https://minikube.sigs.k8s.io/docs/start" rel="noopener" target="_blank">installation instruction</a>.</p>
+</li>
+<li>
+<p>Run Minikube:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">minikube start --vm-driver=virtualbox</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Enable Ingress Controller:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">minikube addons enable ingress</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Configure the Kubernetes command-line tool to use Minikube:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">kubectl config use-context minikube</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>To open the Kubernetes dashboard in the web browser, run in a separate terminal:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">minikube dashboard</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="build-and-run-app"><a class="anchor" href="#build-and-run-app"></a>Build and Run Application</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Build Docker image:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">./gradlew -Pvaadin.productionMode=true bootBuildImage</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Load the image into Minikube:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">minikube image load mycompany/sample-app:latest</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Apply Kubernetes <a href="#k8s-config">configuration files</a>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">kubectl apply -f ./k8s</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>To increase the number of application instances, use the following command:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">kubectl scale deployment sample-app --replicas=2</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Figure out the cluster IP address:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">minikube ip</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use this address to open the application in the web browser, for example: <code>http://192.168.99.100</code></p>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

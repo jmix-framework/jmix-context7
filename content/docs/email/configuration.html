@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Properties :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Email Properties</h1>
+<div class="sect1">
+<h2 id="spring-boot-mail-properties"><a class="anchor" href="#spring-boot-mail-properties"></a>Spring Boot Mail Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use Spring Boot <a href="https://docs.spring.io/spring-boot/appendix/application-properties/index.html#appendix.application-properties.mail" rel="noopener" target="_blank">mail properties</a> to define basic email sending parameters, such as protocol, host, port, and others.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.mail.host=smtp.company.com
+spring.mail.port=587
+spring.mail.protocol=smtp
+spring.mail.username=username
+spring.mail.password=password</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, you can specify <code>JavaMail</code> properties in the format <code>spring.mail.properties.*</code>. For example, the <code>mail.smtp.auth</code> property can be provided as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.mail.properties.mail.smtp.auth=true</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="email-properties"><a class="anchor" href="#email-properties"></a>Jmix Email Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix email properties allow you to configure the functionality described in the <a class="xref page" href="api.html">Email Sending API</a> section.</p>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.from-address"><a class="anchor" href="#jmix.email.from-address"></a>jmix.email.from-address</h3>
+<div class="paragraph">
+<p>Defines the default sender’s address. It is used if the <code>EmailInfo.from</code> attribute is not specified.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>DoNotReply@localhost</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.scheduled-sending-delay-call-count"><a class="anchor" href="#jmix.email.scheduled-sending-delay-call-count"></a>jmix.email.scheduled-sending-delay-call-count</h3>
+<div class="paragraph">
+<p>Property is used in asynchronous sending of emails to skip the first few calls of <code>Emailer.processQueuedEmails()</code> after server startup to reduce the load during application initialization. Email sending will start with the next call.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>2</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.message-queue-capacity"><a class="anchor" href="#jmix.email.message-queue-capacity"></a>jmix.email.message-queue-capacity</h3>
+<div class="paragraph">
+<p>Property is used for asynchronous sending, the maximum number of messages read from the queue and sent in one call of <code>Emailer.processQueuedEmails()</code>.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>100</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.default-sending-attempts-limit"><a class="anchor" href="#jmix.email.default-sending-attempts-limit"></a>jmix.email.default-sending-attempts-limit</h3>
+<div class="paragraph">
+<p>Property is used for asynchronous sending, the default number of attempts to send an email. It is used if the <code>attemptsCount</code> parameter is not specified when calling <code>Emailer.sendEmailAsync()</code>.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>10</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.sending-timeout-sec"><a class="anchor" href="#jmix.email.sending-timeout-sec"></a>jmix.email.sending-timeout-sec</h3>
+<div class="paragraph">
+<p>Defines the maximum expected time in seconds, which is required to send an email to the SMTP server. It is used for asynchronous sending to optimize the selection of <code>SendingMessage</code> objects from the DB queue.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>240</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.admin-address"><a class="anchor" href="#jmix.email.admin-address"></a>jmix.email.admin-address</h3>
+<div class="paragraph">
+<p>Defines the address, to which all messages are sent if the <a href="#jmix.email.send-all-to-admin">jmix.email.send-all-to-admin</a> property is switched on.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>admin@localhost</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.send-all-to-admin"><a class="anchor" href="#jmix.email.send-all-to-admin"></a>jmix.email.send-all-to-admin</h3>
+<div class="paragraph">
+<p>Indicates that all messages should be sent to the <a href="#jmix.email.admin-address">jmix.email.admin-address</a> address, regardless of the specified recipient’s address. It is recommended to use this parameter during system development and debugging.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>false</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.use-file-storage"><a class="anchor" href="#jmix.email.use-file-storage"></a>jmix.email.use-file-storage</h3>
+<div class="paragraph">
+<p>When turned on, the email body text and attachments will be stored in file storage instead of BLOB columns in the database. Should be used if the application stores lots of emails and/or email attachments.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>false</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.async-sending-username"><a class="anchor" href="#jmix.email.async-sending-username"></a>jmix.email.async-sending-username</h3>
+<div class="paragraph">
+<p>Defines the login of the system user, used by asynchronous email sending code to be able to persist the information to the database. It is recommended to create a separate user (for example, emailer) without a password so that it will be impossible to log in under their name via user interface. This is also convenient to search for messages related to email sending in the server log.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>admin</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.use-default-quartz-configuration"><a class="anchor" href="#jmix.email.use-default-quartz-configuration"></a>jmix.email.use-default-quartz-configuration</h3>
+<div class="paragraph">
+<p>Defines whether the <a href="#sending-default-quartz-configuration">Default Quartz Configuration</a> of the Email Sending is used.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.email-sending-cron"><a class="anchor" href="#jmix.email.email-sending-cron"></a>jmix.email.email-sending-cron</h3>
+<div class="paragraph">
+<p>Defines the CRON expression that is used by default in quartz scheduling configuration of the Email Sending .</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>0 * * * * ?</code> (every minute).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.use-default-email-cleaning-quartz-configuration"><a class="anchor" href="#jmix.email.use-default-email-cleaning-quartz-configuration"></a>jmix.email.use-default-email-cleaning-quartz-configuration</h3>
+<div class="paragraph">
+<p>Defines whether the <a href="#cleaning-default-quartz-configuration">Default Quartz Configuration</a> of the Email Cleaning is used.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>false</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.email-cleaning-cron"><a class="anchor" href="#jmix.email.email-cleaning-cron"></a>jmix.email.email-cleaning-cron</h3>
+<div class="paragraph">
+<p>Defines the CRON expression that is used by default in quartz scheduling configuration of the Email Cleaning .</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>0 0 0 * * ?</code> (in the beginning of every day)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.max-age-of-important-messages"><a class="anchor" href="#jmix.email.max-age-of-important-messages"></a>jmix.email.max-age-of-important-messages</h3>
+<div class="paragraph">
+<p>Defines the maximum age (in days) of important messages after which they must be deleted. Zero value (<code>0</code>) means that messages won’t be removed.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>0</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.max-age-of-non-important-messages"><a class="anchor" href="#jmix.email.max-age-of-non-important-messages"></a>jmix.email.max-age-of-non-important-messages</h3>
+<div class="paragraph">
+<p>Defines the maximum age (in days) of messages after which they must be deleted. Zero value (<code>0</code>) means that messages won’t be removed.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>0</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.clean-file-storage"><a class="anchor" href="#jmix.email.clean-file-storage"></a>jmix.email.clean-file-storage</h3>
+<div class="paragraph">
+<p>Defines whether the file storage cleaning should be performed while the cleaning scheduler is working.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>false</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.oauth2.enabled"><a class="anchor" href="#jmix.email.oauth2.enabled"></a>jmix.email.oauth2.enabled</h3>
+<div class="paragraph">
+<p>If <code>true</code> enables using OAuth 2.0 token-based authorization to connect to email server.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.oauth2.provider"><a class="anchor" href="#jmix.email.oauth2.provider"></a>jmix.email.oauth2.provider</h3>
+<div class="paragraph">
+<p>Specifies email OAuth provider.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.oauth2.client-id"><a class="anchor" href="#jmix.email.oauth2.client-id"></a>jmix.email.oauth2.client-id</h3>
+<div class="paragraph">
+<p>Specifies OAuth client id.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.oauth2.secret"><a class="anchor" href="#jmix.email.oauth2.secret"></a>jmix.email.oauth2.secret</h3>
+<div class="paragraph">
+<p>Specifies OAuth client secret.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.oauth2.tenant-id"><a class="anchor" href="#jmix.email.oauth2.tenant-id"></a>jmix.email.oauth2.tenant-id</h3>
+<div class="paragraph">
+<p>Specifies OAuth tenant id.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.oauth2.refresh-token"><a class="anchor" href="#jmix.email.oauth2.refresh-token"></a>jmix.email.oauth2.refresh-token</h3>
+<div class="paragraph">
+<p>Specifies OAuth refresh token.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="email-sending-scheduler"><a class="anchor" href="#email-sending-scheduler"></a>Email Sending Scheduler</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you call the <code>Emailer.sendEmailAsync()</code> method, an email is not sent but queued in the database. To send queued emails, you need to invoke the <code>Emailer.processQueuedEmails()</code> method.</p>
+</div>
+<div class="paragraph">
+<p>You can use Quartz Job Scheduler for periodic processing of the email queue as described below.</p>
+</div>
+<div class="sect2">
+<h3 id="sending-default-quartz-configuration"><a class="anchor" href="#sending-default-quartz-configuration"></a>Default Quartz Configuration</h3>
+<div class="paragraph">
+<p>The Email Sending add-on provides the default configuration of the Quartz job that processes the email sending queue. To use it, do the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include Quartz add-on in your project as described in the <a class="xref page" href="../quartz/index.html#installation">Quartz / Installation</a> section.</p>
+</li>
+<li>
+<p>Change the CRON expression if necessary using the <a href="#jmix.email.email-sending-cron">jmix.email.email-sending-cron</a> property:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.email.email-sending-cron=* 0/2 * * * ?</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="sending-custom-quartz-configuration"><a class="anchor" href="#sending-custom-quartz-configuration"></a>Custom Quartz Configuration</h3>
+<div class="paragraph">
+<p>If you want to use a custom Quartz job configuration, do the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include Quartz add-on in your project as described in the <a class="xref page" href="../quartz/index.html#installation">Quartz / Installation</a> section.</p>
+</li>
+<li>
+<p>Set the <a href="#jmix.email.use-default-quartz-configuration">jmix.email.use-default-quartz-configuration</a> application property to false:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.email.use-default-quartz-configuration = false</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create a job class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class MyCustomEmailCleaningJob implements Job {
+
+    @Autowired
+    private EmailCleaner emailCleaner;
+
+    @Override
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        emailCleaner.deleteOldEmails();
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>In the running application, open the <strong>Quartz → Quartz jobs</strong> view, and configure a job for the <code>MyCustomEmailSendingJob</code> class.</p>
+</li>
+<li>
+<p>Alternatively, if you want to configure the email sending job at development time, add the following beans to the main application class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+JobDetail myCustomEmailSendingJob() {
+    return JobBuilder.newJob()
+            .ofType(MyCustomEmailSendingJob.class)
+            .storeDurably()
+            .withIdentity("emailSending")
+            .build();
+}
+
+@Bean
+Trigger myCustomEmailSendingTrigger() {
+    return TriggerBuilder.newTrigger()
+            .forJob(myCustomEmailSendingJob())
+            .startNow()
+            .withSchedule(CronScheduleBuilder.cronSchedule("* 0/2 * * * ?"))
+            .build();
+}</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="email-cleaning-scheduler"><a class="anchor" href="#email-cleaning-scheduler"></a>Email Cleaning Scheduler</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on has a built-in cleaning Quartz job that is switched off by default. You can use it for periodic cleaning of saved emails as described below.</p>
+</div>
+<div class="paragraph">
+<p>If you need to keep some emails longer, use the <code>important</code> flag and set the maximum age for important and non-important emails. You can set this flag using the <code>setImportant()</code> method of the <code>EmailInfoBuilder</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="cleaning-default-quartz-configuration"><a class="anchor" href="#cleaning-default-quartz-configuration"></a>Default Quartz Configuration</h3>
+<div class="paragraph">
+<p>To use the default configuration of the Quartz job for regular cleaning of emails, do the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include Quartz add-on in your project as described in the <a class="xref page" href="../quartz/index.html#installation">Quartz / Installation</a> section.</p>
+</li>
+<li>
+<p>Set the <a href="#jmix.email.use-default-email-cleaning-quartz-configuration">jmix.email.use-default-email-cleaning-quartz-configuration</a> property to <code>true</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.email.use-default-email-cleaning-quartz-configuration=true</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Change the CRON expression if necessary using the <a href="#jmix.email.email-cleaning-cron">jmix.email.email-cleaning-cron</a> property.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.email.email-cleaning-cron=0 0 0 1/2 * ?</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Set the age for important and non-important emails using the <a href="#jmix.email.max-age-of-important-messages">jmix.email.max-age-of-important-messages</a> and <a href="#jmix.email.max-age-of-non-important-messages">jmix.email.max-age-of-non-important-messages</a> properties, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.email.max-age-of-non-important-messages=5
+jmix.email.max-age-of-important-messages=30</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Set the <a href="#jmix.email.clean-file-storage">jmix.email.clean-file-storage</a> property to <code>true</code> in case you want to delete attachments.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="cleaning-custom-quartz-configuration"><a class="anchor" href="#cleaning-custom-quartz-configuration"></a>Custom Quartz Configuration</h3>
+<div class="paragraph">
+<p>If you want to use a custom Quartz job configuration, do the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include Quartz add-on in your project as described in the <a class="xref page" href="../quartz/index.html#installation">Quartz / Installation</a> section.</p>
+</li>
+<li>
+<p>Create a job class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class MyCustomEmailCleaningJob implements Job {
+
+    @Autowired
+    private EmailCleaner emailCleaner;
+
+    @Override
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        emailCleaner.deleteOldEmails();
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>In the running application, open the <strong>Quartz → Quartz jobs</strong> view, and configure a job for the <code>MyCustomEmailCleaningJob</code> class.</p>
+</li>
+<li>
+<p>Alternatively, if you want to configure the email cleaning job at development time, add the following beans to the main application class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+JobDetail myCustomEmailCleaningJob() {
+    return JobBuilder.newJob()
+            .ofType(MyCustomEmailCleaningJob.class)
+            .storeDurably()
+            .withIdentity("emailCleaning")
+            .build();
+}
+
+@Bean
+Trigger MyCustomEmailCleaningTrigger() {
+    return TriggerBuilder.newTrigger()
+            .forJob(myCustomEmailCleaningJob())
+            .startNow()
+            .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 1/2 * ? "))
+            .build();
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Set the age for important and non-important emails using the <a href="#jmix.email.max-age-of-important-messages">jmix.email.max-age-of-important-messages</a> and <a href="#jmix.email.max-age-of-non-important-messages">jmix.email.max-age-of-non-important-messages</a> properties, for example:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.email.max-age-of-non-important-messages=5
+jmix.email.max-age-of-important-messages=30</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Set the <a href="#jmix.email.clean-file-storage">jmix.email.clean-file-storage</a> property to <code>true</code> in case you want to delete attachments.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="file-storage-usage"><a class="anchor" href="#file-storage-usage"></a>File Storage Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can store email body text and attachments in file storage instead of BLOB columns in the database.</p>
+</div>
+<div class="paragraph">
+<p>To use file storage:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Ensure the following line is present in the <code>dependencies</code> section of your <code>build.gradle</code> file:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.localfs:jmix-localfs-starter'</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Enable file storage usage. Set in the <code>application.properties</code> file:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.email.use-file-storage=true</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>By default, the local file storage is located in the application work directory at <code>${user.dir}/.jmix/work/filestorage</code>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

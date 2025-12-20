@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataContext :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">DataContext</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>DataContext</code> is an interface for tracking changes in entities loaded to the UI layer. Tracked entities are marked as "dirty" on any modification of their attributes, and <code>DataContext</code> saves dirty entities when its <code>save()</code> method is invoked.</p>
+</div>
+<div class="paragraph">
+<p>Within <code>DataContext</code>, an entity with the given identifier is represented by a single object instance, no matter where and how many times it is used in graphs of entities contained in this context.</p>
+</div>
+<div class="paragraph">
+<p>In order to be tracked, an entity must be put into <code>DataContext</code> using its <code>merge()</code> method. If the context does not contain the entity with the same id, the context creates a new instance, copies the state of the passed instance to the new one and returns it. If the context already contains an instance with the same id, it copies the state of the passed instance to the existing one and returns the existing instance. This mechanism allows the context to always have only one instance of an entity with a particular identifier.</p>
+</div>
+<div class="paragraph">
+<p>When you merge an entity, the whole object graph with the root in this entity will be merged. That is all referenced entities (including collections) will become tracked.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The main rule of using the <code>merge()</code> method is to continue working with the returned instance and discarding the passed one. In most cases, the returned object instance will be different. The only exception is when you pass to <code>merge()</code> an instance that was earlier returned from another invocation of <code>merge()</code> or <code>find()</code> of the same context.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>An example of merging an entity into <code>DataContext</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionContainer&lt;Department&gt; departmentsDc;
+
+@Autowired
+private DataManager dataManager;
+
+@ViewComponent
+private DataContext dataContext;
+
+private void loadDepartment(Id&lt;Department&gt; departmentId) {
+    Department department = dataManager.load(departmentId).one();
+    Department trackedDepartment = dataContext.merge(department);
+    departmentsDc.getMutableItems().add(trackedDepartment);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A single instance of <code>DataContext</code> exists for a given view. It is created if there is <code>&lt;data&gt;</code> element in the view XML descriptor.</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="data-loaders.html">Data loaders</a> defined in XML automatically merge loaded entities into the <code>DataContext</code> if they don’t have the <code>readOnly="true"</code> attribute. By default, data loaders in <a class="xref page" href="../views/view-classes.html#standard-list-view">entity list views</a> scaffolded by Studio include this attribute, so if you need to track changes and save dirty entities in a list view, remove the <code>readOnly="true"</code> XML attribute for respective loaders.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+If a referenced entity is not included in the <a class="xref page" href="../../data-access/fetching.html#fetch-plan">fetch plan</a> of the view but loaded by <a class="xref page" href="../../data-access/fetching.html#lazy-loading">lazy loading</a>, it is not merged into the view’s <code>DataContext</code> and hence not tracked for changes. Make sure all entities edited on the view are loaded eagerly by including references to them in the fetch plan.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="obtaining-data-context"><a class="anchor" href="#obtaining-data-context"></a>Obtaining DataContext</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>DataContext</code> of a view can be obtained in its controller using injection:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataContext dataContext;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>If you have a reference to a view, you can get its <code>DataContext</code> using the <code>ViewControllerUtils</code> class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void sampleMethod(View sampleView) {
+    DataContext dataContext = ViewControllerUtils.getViewData(sampleView).getDataContext();
+    // ...
+}</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="parent-data-context"><a class="anchor" href="#parent-data-context"></a>Parent DataContext</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>DataContext instances can form parent-child relationships. If a <code>DataContext</code> instance has parent context, it saves changed entities to the parent instead of saving them to the data store. This feature enables <a class="xref page" href="../../concepts/features.html#editing-aggregates">editing aggregates</a> when detail entities are saved only together with the master entity. If an entity attribute is annotated with <a class="xref page" href="../../data-model/entities.html#composition">@Composition</a>, the framework automatically sets parent context in the attribute detail view, so the changed attribute entity will be saved to the data context of the master entity.</p>
+</div>
+<div class="paragraph">
+<p>You can easily provide the same behavior for any entities and views.</p>
+</div>
+<div class="paragraph">
+<p>If you open a detail view that should save data to the current view’s data context, use the <code>withParentDataContext()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void detailViewWithCurrentDataContextAsParent() {
+    DialogWindow&lt;DepartmentDetailView&gt; dialogWindow = dialogWindows.detail(this, Department.class)
+            .withViewClass(DepartmentDetailView.class)
+            .withParentDataContext(dataContext)
+            .build();
+    dialogWindow.open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more examples of explicit usage of <code>DataContext</code>, refer to the <a class="xref page" href="../../data-modeling-composition-guide/index.html">Data Modeling: Composition</a> guide.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-context-events"><a class="anchor" href="#data-context-events"></a>Events and Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes the <code>DataContext</code> lifecycle events that can be handled in view controllers.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, select the element in the view descriptor XML or in the <strong>Jmix UI</strong> structure panel and use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can use the <strong>Generate Handler</strong> button in the top panel of the view controller.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="save-delegate"><a class="anchor" href="#save-delegate"></a>SaveDelegate</h3>
+<div class="paragraph">
+<p>By default, <code>DataContext</code> saves changed and removed entities using the <a class="xref page" href="../../data-access/data-manager.html#save">DataManager.save(SaveContext)</a> method. The <code>saveDelegate</code> handler allows you to customize the logic of saving data, which is especially useful when working with <a class="xref page" href="../../data-model/entities.html#dto">DTO entities</a>. For example, you can save the changed entities with a custom service:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DepartmentService departmentService;
+
+@Install(target = Target.DATA_CONTEXT)
+private Set&lt;Object&gt; saveDelegate(final SaveContext saveContext) {
+    return departmentService.saveEntities(
+            saveContext.getEntitiesToSave(),
+            saveContext.getEntitiesToRemove());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The save delegate should return the set of saved instances. If it’s impossible, return the original instances from <code>saveContext.getEntitiesToSave()</code> or just an empty set. Do not return removed instances. <code>DataContext</code> will merge back the returned instances so the view will continue working with the updated state.</p>
+</div>
+<div class="paragraph">
+<p>See the <a class="xref page" href="entities-in-ui.html">Working with Entities in UI</a> section for more information on saving entities using custom services.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="change-event"><a class="anchor" href="#change-event"></a>ChangeEvent</h3>
+<div class="paragraph">
+<p>This event is sent when the context detects changes in a tracked entity, a new instance is merged or an entity is removed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(target = Target.DATA_CONTEXT)
+public void onChange(final DataContext.ChangeEvent event) {
+    log.debug("Changed entity: " + event.getEntity());
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="pre-save-event"><a class="anchor" href="#pre-save-event"></a>PreSaveEvent</h3>
+<div class="paragraph">
+<p>This event is sent before saving changes.
+In this event listener, you can add arbitrary entity instances to the saved collections returned by <code>getModifiedInstances()</code> and <code>getRemovedInstances()</code> methods, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(target = Target.DATA_CONTEXT)
+public void onPreSave(final DataContext.PreSaveEvent event) {
+    event.getModifiedInstances().add(department);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also prevent the save using the <code>preventSave()</code> method of the event, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(target = Target.DATA_CONTEXT)
+public void onPreSave2(DataContext.PreSaveEvent event) {
+    if (checkSomeCondition()) {
+        event.preventSave();
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="post-save-event"><a class="anchor" href="#post-save-event"></a>PostSaveEvent</h3>
+<div class="paragraph">
+<p>This event is sent after saving changes.
+In this event listener, you can get the collection of saved entities returned from <code>DataManager</code> or a custom <a href="#save-delegate">save delegate</a>. These entities are already merged into the DataContext. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(target = Target.DATA_CONTEXT)
+public void onPostSave(final DataContext.PostSaveEvent event) {
+    log.debug("Saved: " + event.getSavedInstances());
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

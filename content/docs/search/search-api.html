@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search API and Internals :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Search API and Internals</h1>
+<div class="sect1">
+<h2 id="diagram"><a class="anchor" href="#diagram"></a>Search Components Diagram</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><span class="image"><img alt="Architecture Diagram" src="_images/search_architecture.png"/></span></p>
+</div>
+<div class="paragraph">
+<p>Search add-on includes the following components:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Startup Index Synchronizer</strong> - automatically validates and recreates irrelevant or missing indexes on application startup. Starts background process with enqueueing all instances of entities related to created indexes.</p>
+</li>
+<li>
+<p><strong>Entity Tracking Listener</strong> - tracks changes of indexed entities and enqueues corresponding queue items.</p>
+</li>
+<li>
+<p><strong>Quartz Scheduler</strong> - schedules job that periodically processes items of the Indexing Queue.</p>
+</li>
+<li>
+<p><strong>Indexing Queue Manager</strong> - enqueues items to the Indexing Queue. Processes previously enqueued items and performs corresponding actions via the Entity Indexer.</p>
+</li>
+<li>
+<p><strong>Entity Indexer</strong> - performs operations with index data: saves and deletes entity instances.</p>
+</li>
+<li>
+<p><strong>Index Manager</strong> - manages index metadata: creates and drops indexes, validates mappings.</p>
+</li>
+<li>
+<p><strong>Entity Searcher</strong> - performs searching in indexes and retrieves the search result that can be rendered on a view.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="indexing-api"><a class="anchor" href="#indexing-api"></a>Indexing API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to index/delete entity instances directly without enqueuing an event, use methods of <code>EntityIndexer</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>index(Object entityInstance)</code> - stores a provided entity instance to index.</p>
+</li>
+<li>
+<p><code>indexCollection(Collection&lt;Object&gt; entityInstances)</code> - stores provided entity instances to index.</p>
+</li>
+<li>
+<p><code>indexByEntityId(Id entityId)</code> - stores entity instance to index by a provided id.</p>
+</li>
+<li>
+<p><code>indexCollectionByEntityIds(Collection&lt;Id&gt; entityIds)</code> - stores entity instances to index by provided ids.</p>
+</li>
+<li>
+<p><code>delete(Object entityInstance)</code> - deletes a provided entity instance from index.</p>
+</li>
+<li>
+<p><code>deleteCollection(Collection&lt;Object&gt; entityInstances)</code> - deletes provided entity instances from index</p>
+</li>
+<li>
+<p><code>deleteByEntityId(Id entityId)</code> - deletes entity instance from the index by a provided id.</p>
+</li>
+<li>
+<p><code>deleteCollectionByEntityIds(Collection&lt;Id&gt; entityIds)</code> - deletes entity instances from index by provided ids.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you want to enqueue instances to be indexed/deleted, use methods of <code>IndexingQueueManager</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>emptyQueue()</code> - removes all queue items from the indexing queue.</p>
+</li>
+<li>
+<p><code>emptyQueue(String entityName)</code> - removes all queue items related to a provided entity from the indexing queue.</p>
+</li>
+<li>
+<p><code>enqueueIndex(Object entityInstance)</code> - enqueues index event for a provided entity instance.</p>
+</li>
+<li>
+<p><code>enqueueIndexCollection(Collection&lt;Object&gt; entityInstances)</code> - enqueues index events for provided entity instances.</p>
+</li>
+<li>
+<p><code>enqueueIndexByEntityId(Id entityId)</code> - enqueues index event for a provided entity id.</p>
+</li>
+<li>
+<p><code>enqueueIndexCollectionByEntityIds(Collection&lt;Id&gt; entityIds)</code> - enqueues index events for provided entity ids.</p>
+</li>
+<li>
+<p><code>enqueueIndexAll()</code> - enqueues index events for all instances of all entities configured for indexing.</p>
+</li>
+<li>
+<p><code>enqueueIndexAll(String entityName)</code> - enqueues index events for all instances of a provided entity. This entity should be previously configured for indexing.</p>
+</li>
+<li>
+<p><code>enqueueDelete(Object entityInstance)</code> - enqueues delete event for a provided entity instance.</p>
+</li>
+<li>
+<p><code>enqueueDeleteCollection(Collection&lt;Object&gt; entityInstances)</code> - enqueues delete events for provided entity instances.</p>
+</li>
+<li>
+<p><code>enqueueDeleteByEntityId(Id entityId)</code> - enqueues delete event for a provided entity id.</p>
+</li>
+<li>
+<p><code>enqueueDeleteCollectionByEntityIds(Collection&lt;Id&gt; entityIds)</code> - enqueues delete events for provided entity ids.</p>
+</li>
+<li>
+<p><code>processNextBatch()</code> - retrieves the next batch of items from the indexing queue and processes them.</p>
+</li>
+<li>
+<p><code>processNextBatch(int batchSize)</code> - retrieves the next batch (with size equals to <code>batchSize</code>) of items from the indexing queue and processes them.</p>
+</li>
+<li>
+<p><code>processEntireQueue()</code> - retrieves all items from indexing queue and processes them.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="searching-api"><a class="anchor" href="#searching-api"></a>Searching API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to search entities in the index, use methods of <code>EntitySearcher</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>SearchResult search(SearchContext searchContext, String searchStrategy)</code> - performs searching in search indexes according to provided <code>SearchContext</code> and search strategy name.</p>
+</li>
+<li>
+<p><code>search(SearchContext searchContext)</code> - similar to the previous one but uses the default <code>SearchStrategy</code>.</p>
+</li>
+<li>
+<p><code>searchNextPage(SearchResult previousSearchResult)</code> - performs a search for the next page based on <code>SearchResult</code> of the previous search request. Returns its own <code>SearchResult</code> that can be used for the next invocation.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The returned <code>SearchResult</code> object contains the result data:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>SearchContext</code> - describes the main settings of the current search:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>searchText</code> - the text to search for.</p>
+</li>
+<li>
+<p><code>size</code> - the maximum amount of documents to return.</p>
+</li>
+<li>
+<p><code>offset</code> - the number of documents that should be skipped.</p>
+</li>
+<li>
+<p><code>entities</code> - a collection of entity names to search. If none is specified, the search will be performed within all indexed entities.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>SearchStrategy</code> - describes the way of <code>searchText</code> processing.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Also, you can use <code>SearchResult</code> to load a collection of related entity instances. For that purpose, use methods of <code>SearchResultProcessor:</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Collection&lt;Object&gt; loadEntityInstances(SearchResult searchResult)</code></p>
+</li>
+<li>
+<p><code>Collection&lt;Object&gt; loadEntityInstances(SearchResult searchResult, Map&lt;String, FetchPlan&gt; fetchPlans)</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-indexing-mbean"><a class="anchor" href="#entity-indexing-mbean"></a>EntityIndexing MBean</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Search add-on provides an MBean with <code>jmix.search:type=EntityIndexing</code> object name that has the following operations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>emptyIndexingQueue</code> - removes all items from indexing queue. There are two variants of this operation:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>with parameter <code>entityName</code> - removes all instances of this entity only.</p>
+</li>
+<li>
+<p>without parameters - removes instances of all entities.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>enqueueIndexAll</code> - enqueues all instances of indexed entities. Two variants of this operation are available:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>with parameter <code>entityName</code> - enqueues instances of this entity only.</p>
+</li>
+<li>
+<p>without parameters - enqueues all instances of all indexed entities.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>processEntireIndexingQueue</code> - processes all items in Indexing Queue.</p>
+</li>
+<li>
+<p><code>processIndexingQueueNextBatch</code> - processes next batch of items in Indexing Queue.</p>
+</li>
+<li>
+<p><code>recreateIndex</code> - drops and creates index related to a provided entity. All data will be lost.</p>
+</li>
+<li>
+<p><code>recreateIndexes</code> - drops and creates all search indexes defined in the application. All data will be lost.</p>
+</li>
+<li>
+<p><code>synchronizeIndexSchema</code> - synchronizes schema of index related to a provided entity. This may cause deletion of this index with all data - depends on schema management strategy.</p>
+</li>
+<li>
+<p><code>synchronizeIndexSchemas</code> - synchronizes schemas of all search indexes defined in the application. This may cause deletion of indexes with all their data - depends on schema management strategy.</p>
+</li>
+<li>
+<p><code>validateIndex</code> - validates schema of search index related to a provided entity and displays a status.</p>
+</li>
+<li>
+<p><code>validateIndexes</code> - validates schemas of all search indexes defined in the application and displays status for all indexes.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="security-and-pagination"><a class="anchor" href="#security-and-pagination"></a>Access Control and Pagination</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Data access control is performed by the Search add-on in two steps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Pre-search - checks <a class="xref page" href="../security/resource-roles.html#entity-policy">entity policies</a> and excludes indexes related to forbidden entities.</p>
+</li>
+<li>
+<p>Post-search - checks if there are any <a class="xref page" href="../security/row-level-roles.html#policies">row-level policies</a> configured for found entities. If they exist, the found instances are reloaded to apply security policies.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>EntitySearcher</code> tries to fill the entire page with data within its search request execution. If some data are excluded from the current result set due to security restrictions and there are more suitable documents in indexes, <code>EntitySearcher</code> automatically performs additional search requests with a shifted offset to fetch more data. This can happen multiple times until the page is full or there are no more results.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

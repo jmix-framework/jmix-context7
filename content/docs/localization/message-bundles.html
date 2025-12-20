@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Bundles :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Message Bundles</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The most common task of localization is to provide messages depending on the current user locale. To achieve this, messages must be extracted from code and placed in special property files, one file per language. A collection of such files is called a <em>message bundle</em>.</p>
+</div>
+<div class="paragraph">
+<p>Apart from messages, the message bundle can also contain <a class="xref page" href="../data-model/datatype.html#localized-format-strings">localized data format strings</a>.</p>
+</div>
+<div class="paragraph">
+<p>The default message bundle of your project is a set of <code>messages_&lt;language&gt;.properties</code> files located in the base package under the <code>src/main/resources</code> folder.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Message bundle files must have the UTF-8 encoding.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setting-locales"><a class="anchor" href="#setting-locales"></a>Setting Up Locales</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you create a new project using Studio, you can set up the list of supported locales in the <strong>Locales</strong> field of the project wizard. This field allows you to select a languages and their codes.</p>
+</div>
+<div class="paragraph">
+<p>Studio writes the list of language codes to the <a class="xref page" href="../app-properties.html#jmix.core.available-locales">jmix.core.available-locales</a> application property and language names to the corresponding <code>messages_&lt;language&gt;.properties</code> files with <code>localeDisplayName.&lt;language&gt;</code> key. You can later edit these properties manually or use the <strong>Locales</strong> tab of the <strong>Project Properties</strong> window in Studio.</p>
+</div>
+<div class="paragraph">
+<p>For example, if you have defined two languages for your application: <code>English (en)</code> and <code>Deutsch (de)</code>, you have the following file structure in the project (provided that the base package is <code>com.company.demo</code>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">src/main/resources/
+    com/company/demo/
+        messages_en.properties
+        messages_de.properties
+    application.properties</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And the files have the following contents:</p>
+</div>
+<div class="listingblock">
+<div class="title">messages_en.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">messages_de.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">localeDisplayName.de=Deutsch</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.available-locales = en,de</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-messages"><a class="anchor" href="#creating-messages"></a>Creating Messages</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="group-and-key"><a class="anchor" href="#group-and-key"></a>Group and Key</h3>
+<div class="paragraph">
+<p>Usually, an application contains a single message bundle. Because the number of messages even in a simple application can be quite large, we recommend making property keys of two parts: the group and the message key, separated by the forward slash (<code>/</code>). It allows you to group related messages and avoid naming conflicts. In the following example, <code>com.company.demo.view.main</code> is the group and <code>applicationTitle.text</code> is the message key:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo.view.main/applicationTitle.text=Demo App</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>But you can also define a message without a group, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">messageWithoutGroup = Message without a group</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="localizing-data-model"><a class="anchor" href="#localizing-data-model"></a>Localizing Data Model</h3>
+<div class="paragraph">
+<p>Jmix introduces some conventions on localization of the data model elements: entity and attribute names, enumeration values. It allows the framework to find the localized names when displaying entities and enumerations in UI components.</p>
+</div>
+<div class="paragraph">
+<p>Entity name is localized using the <code>&lt;package&gt;/&lt;class&gt;</code> format, attribute name - using the <code>&lt;package&gt;/&lt;class&gt;.&lt;attribute&gt;</code> format. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># entity name
+com.company.demo.entity/User=User
+# attribute names
+com.company.demo.entity/User.id=ID
+com.company.demo.entity/User.username=Username
+com.company.demo.entity/User.firstName=First name
+com.company.demo.entity/User.lastName=Last name
+com.company.demo.entity/User.password=Password
+com.company.demo.entity/User.email=Email</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Enumeration name is localized using the <code>&lt;package&gt;/&lt;class&gt;</code> format, enumeration value - using the <code>&lt;package&gt;/&lt;class&gt;.&lt;value&gt;</code> format. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># enumeration name
+com.company.demo.entity/Status=Status
+# enumeration values
+com.company.demo.entity/Status.ACTIVE=Active
+com.company.demo.entity/Status.INACTIVE=Inactive
+com.company.demo.entity/Status.SUSPENDED=Suspended</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can easily create localized names of the data model elements in Studio visual designers. Click the 🌐 (globe) button next to the element name and enter localized values for available locales in the <strong>Localized Message</strong> dialog.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="additional-bundles"><a class="anchor" href="#additional-bundles"></a>Additional Bundles</h3>
+<div class="paragraph">
+<p>In a big application with a lot of messages you can maintain a reasonable size of the property files by defining additional message bundles:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a set of property files with arbitrary name in any directory under <code>src/main/resources</code>. In the example below, we created <code>additional_messages</code> files in the same base package as the main message bundle:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">src/main/resources/com/company/demo/
+    additional_messages_en.properties
+    additional_messages_de.properties
+    messages_en.properties
+    messages_de.properties</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Write localized messages in the additional files in the same way as in the main bundle.</p>
+</li>
+<li>
+<p>Add the <code>@MessageSourceBasenames</code> annotation to the application class and set the path and name of the additional bundle in it:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SpringBootApplication
+@MessageSourceBasenames({"com/company/demo/additional_messages"})
+public class DemoApplication implements AppShellConfigurator {</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Messages from all bundles of the application are loaded into a single list, so property keys must be unique among all your bundles.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-messages"><a class="anchor" href="#using-messages"></a>Using Messages</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="using-messages-in-java"><a class="anchor" href="#using-messages-in-java"></a>In Java Code</h3>
+<div class="sect3">
+<h4 id="messages-interface"><a class="anchor" href="#messages-interface"></a>Messages Interface</h4>
+<div class="paragraph">
+<p>To get localized messages from the message bundle, use the <code>Messages</code> bean. The most common use case is to invoke its <code>getMessage()</code> method and provide the message group and key. The method will return a message for the current user locale, or the given message key if the message is not found.</p>
+</div>
+<div class="paragraph">
+<p>In the following example, we define a message in a message bundle and get it using different methods of the <code>Messages</code> bean:</p>
+</div>
+<div class="listingblock">
+<div class="title">messages_en.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo/someNotification = Something has happened</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String message1 = messages.getMessage("com.company.demo/someNotification"); <i class="conum" data-value="1"></i><b>(1)</b>
+
+String message2 = messages.getMessage("com.company.demo", "someNotification"); <i class="conum" data-value="2"></i><b>(2)</b>
+
+String message3 = messages.getMessage(getClass(), "someNotification"); <i class="conum" data-value="3"></i><b>(3)</b></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All three methods return the same value: <code>Something has happened</code>.</p>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The whole property key is specified.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The group and the message key are specified separately.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>If the first argument is <code>Class</code>, the method uses the package of the class as the group.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>There is also an overloaded <code>getMessage()</code> method accepting <code>Enum</code>. Use it to retrieve a localized enum value, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String message = messages.getMessage(Status.ACTIVE);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="message-bundle-interface"><a class="anchor" href="#message-bundle-interface"></a>MessageBundle Interface</h4>
+<div class="paragraph">
+<p>The <code>MessageBundle</code> interface is available in UI view controllers. It provides methods to get localized messages of a single group associated with the view. It differs from the <a href="#messages-interface">Messages</a> bean in that it can obtain the message group implicitly from the view class, so there is no need to pass the group key or the class name.</p>
+</div>
+<div class="paragraph">
+<p>To use <code>MessageBundle</code>, inject it in the view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private MessageBundle messageBundle;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you can use it to get the message by the key:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String someMessage = messageBundle.getMessage("someMessage");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The group of the message is inferred from the view class package, as if using <code>Messages.getMessage(getClass(), "someMessage")</code>.</p>
+</div>
+<div class="paragraph">
+<p>An arbitrary group can be either defined using the <code>messagesGroup</code> XML attribute described below, or you can set it in the controller using the <code>setMessageGroup()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">messageBundle.setMessageGroup("some.group");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>formatMessage()</code> method of <code>MessageBundle</code> retrieves a localized message by the key and then uses it to format the input parameters. The format is defined according to <code>String.format()</code> method rules. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">messages_en.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo.view.user/userInfo=User name: %s</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String formattedMessage = messageBundle.formatMessage("userInfo", user.getUsername());</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="using-messages-in-ui"><a class="anchor" href="#using-messages-in-ui"></a>In View XML Descriptors</h3>
+<div class="paragraph">
+<p>Jmix UI view descriptors and menu configuration files recognize the <code>msg://</code> prefix in messages and load such messages from the message bundle.</p>
+</div>
+<div class="paragraph">
+<p>Let’s consider different options of using <code>msg://</code> with examples.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The group of the message is inferred from the view’s package.</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>For example, if you have defined a message with <code>com.company.demo.view.user</code> group:</p>
+</div>
+<div class="listingblock">
+<div class="title">messages_en.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo.view.user/someMessage = Some message</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you can retrieve it in a view descriptor located in the <code>com.company.demo.view.user</code> package simply by specifying the message key without the group:</p>
+</div>
+<div class="listingblock">
+<div class="title">com/company/demo/view/user/user-list-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;span text="msg://someMessage"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Getting a message with an arbitrary group.</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>You can retrieve the message from the previous example in any view by specifying both the group and the key after the <code>msg://</code> prefix, for example:</p>
+</div>
+<div class="listingblock">
+<div class="title">com/company/demo/view/main/main-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;span text="msg://com.company.demo.view.user/someMessage"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also set an arbitrary message group at the view level using the <code>messagesGroup</code> attribute, so that all messages will be retrieved from it by default:</p>
+</div>
+<div class="listingblock">
+<div class="title">com/company/demo/view/sample/sample-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      messagesGroup="some.common.messages"
+      title="msg://sampleView.title"&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Getting a message without a group.</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>To retrieve a message without a group, use triple slash in the prefix <code>msg:///</code>, followed by the message key.</p>
+</div>
+<div class="paragraph">
+<p>For example, if you have defined a message like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">messageWithoutGroup = Message without a group</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you can get it in any view descriptor as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;span text="msg:///messageWithoutGroup"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cluster Communication :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Cluster Communication</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A Jmix application can be deployed in a cluster of multiple interconnected servers to distribute workloads, enhance reliability, and optimize resource utilization. The <a class="xref page" href="../deployment/k8s.html">Kubernetes Cluster</a> section provides a practical guide on cluster deployment.</p>
+</div>
+<div class="paragraph">
+<p>This section contains information about what Jmix mechanisms participate in the cluster communication and what underlying technologies are used. It can be helpful for troubleshooting and for implementing your own ways of cluster communication.</p>
+</div>
+<div class="paragraph">
+<p>Jmix subsystems require two distinct ways of communication: shared cache and messaging. Both are used through high-level abstractions that can have different implementations. The default implementation is Hazelcast.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="shared-cache"><a class="anchor" href="#shared-cache"></a>Shared Cache</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The shared cache is used by the following Jmix features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../data-access/cache.html#query-cache">Query Cache</a> - to store results of query execution.</p>
+</li>
+<li>
+<p><a class="xref page" href="../security/index.html">Security</a> - to store resource and row-level roles configuration.</p>
+</li>
+<li>
+<p><a class="xref page" href="../pessimistic-lock/index.html">Pessimistic Locking</a> - to maintain distributed locks.</p>
+</li>
+<li>
+<p><a class="xref page" href="../dyn-attr/index.html">Dynamic Attributes</a> - to store dynamic attributes configuration.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>All these mechanisms rely on Spring Cache and JCache APIs. As an example, the following diagram shows classes involved in Jmix query caching:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jmix cluster cache.drawio" src="_images/jmix-cluster-cache.drawio.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>StandardQueryCache</code> class uses Spring Cache for most operations. It also uses JCache through the <code>CacheOperations</code> utility class to iterate through the cache entries, because Spring Cache doesn’t provide such a function.</p>
+</div>
+<div class="paragraph">
+<p>The other Jmix features listed above use the shared cache in the same way.</p>
+</div>
+<div class="paragraph">
+<p>The application project should provide a JCache implementation for Spring Cache. For example, to use Hazelcast, add the dependency:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'com.hazelcast:hazelcast'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and define the property:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.cache.jcache.provider = com.hazelcast.cache.HazelcastMemberCachingProvider</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="messaging"><a class="anchor" href="#messaging"></a>Messaging</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The messaging is used by the following Jmix features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../data-access/cache.html#entity-cache">Entity Cache</a> - to broadcast changes in cached entities.</p>
+</li>
+<li>
+<p><a class="xref page" href="../notifications/index.html">Notifications</a> - to broadcast in-app notifications.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These features rely on Spring Messaging abstraction: <code>SubscribableChannel</code> interface. Jmix provides implementations of this interface delegating to the Hazelcast’s <code>ITopic</code>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jmix cluster messaging.drawio" src="_images/jmix-cluster-messaging.drawio.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p>These implementations are automatically instantiated in your project if you add a dependency to Hazelcast.</p>
+</div>
+<div class="paragraph">
+<p>If you want to use another messaging provider, create your own Spring beans implementing the <code>EclipseLinkChannelSupplier</code> interface for entity cache and <code>InAppSubscribableChannelSupplier</code> interface for notifications.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storing Files in Database :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Storing Files in Database</h1>
+<div class="paragraph">
+<p>In this section, we will give an example of uploading and saving images to the application database. In addition, we will describe how images can be displayed in Jmix UI views.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Save only small files in the database: thumbnails, icons, etc., because the whole file is placed in memory when it is uploaded or downloaded.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Firstly, create an attribute of the byte array (<code>byte[]</code>) type in your entity, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Column(name = "PHOTO")
+private byte[] photo;
+
+public byte[] getPhoto() {
+    return photo;
+}
+
+public void setPhoto(byte[] photo) {
+    this.photo = photo;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you run the application, Studio generates a database migration script for creating a corresponding column of the type appropriate for your database. For example, for PostgreSQL it is <code>bytea</code>.</p>
+</div>
+<div class="paragraph">
+<p>For uploading the file from a user interface, use the <a class="xref page" href="../flow-ui/vc/components/fileUploadField.html">fileUploadField</a> component bound to the entity attribute. If the file is an image, you can use the <a class="xref page" href="../flow-ui/vc/html-components/image.html">image</a> component to display the image in the view. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;formLayout id="form" dataContainer="personDc"&gt;
+    &lt;textField id="nameField" property="name"/&gt;
+    &lt;vbox&gt;
+        &lt;hbox&gt;
+            &lt;fileUploadField id="photoField" property="photo"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;button id="downloadBtn" text="Download"/&gt;
+        &lt;/hbox&gt;
+        &lt;image id="image" dataContainer="personDc" property="photo"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/vbox&gt;
+&lt;/formLayout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>fileUploadField</code> component allows users to upload a file and store it in an entity attribute.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>image</code> component displays the content of the entity attribute.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you want to be able to download the file, add a button and define its click handler as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private InstanceContainer&lt;Person&gt; personDc;
+
+@Autowired
+private Downloader downloader; <i class="conum" data-value="1"></i><b>(1)</b>
+
+@Subscribe("downloadBtn")
+public void onDownloadBtnClick(final ClickEvent&lt;Button&gt; event) {
+    byte[] photo = personDc.getItem().getPhoto();
+    downloader.download(
+            photo,
+            personDc.getItem().getName() + "photo", <i class="conum" data-value="2"></i><b>(2)</b>
+            DownloadFormat.JPG <i class="conum" data-value="3"></i><b>(3)</b>
+    );
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Use the <a class="xref page" href="downloading-files.html#downloader">Downloader</a> bean to download files.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Define the downloaded file name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>If you know the file format, specify it in the last argument of the <code>download()</code> method. Depending on the format, the web browser either downloads the file or shows it in a tab.</td>
+</tr>
+</table>
+</div>
+
+</article>
+</body>
+</html>

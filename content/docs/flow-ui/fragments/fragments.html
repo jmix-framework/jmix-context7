@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fragments :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Fragments</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/fragments" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>A <em>fragment</em> is a UI building block that can be used as a part of views and other fragments. It’s a composite component with the following additional features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Ability to define the content in XML.</p>
+</li>
+<li>
+<p>The <code>fragment</code> XML element allows you to include fragments in views and other fragments declaratively.</p>
+</li>
+<li>
+<p>The fragment class (AKA controller) supports injection of Spring beans and fragment’s UI components, as well as the use of annotated methods as handlers.</p>
+</li>
+<li>
+<p>The <code>ReadyEvent</code> is sent when a fragment is fully initialized.</p>
+</li>
+<li>
+<p>You can define <a class="xref page" href="../actions.html">actions</a> and <a class="xref page" href="../data-components.html">data components</a> (data containers and loaders) in the fragment’s XML. Data components can be marked as <code>provided</code> to obtain them from the host view.</p>
+</li>
+<li>
+<p>Studio offers the <a class="xref page" href="../../studio/view-wizard.html#creating-blank-fragment">Blank fragment</a> template to generate fragments, shows them in the Jmix tool window and allows you to use the <a class="xref page" href="../../studio/view-designer.html">visual designer</a> the same as for views.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Fragments currently do not support <a class="xref page" href="../facets.html">facets</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Fragments can be used to render items within certain UI components, such as <a class="xref page" href="../vc/components/virtualList.html">virtualList</a>, or <a class="xref page" href="../vc/components/dataGrid.html">dataGrid</a> columns. This is achieved using a nested <a class="xref page" href="../vc/miscellaneous/renderers.html#fragment-renderer">fragmentRenderer</a> element. The <code>fragmentRenderer</code> element specifies a Java class that extends <code>io.jmix.flowui.fragmentrenderer.FragmentRenderer</code>. This class is responsible for taking a data item and rendering it within the fragment’s template.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fragment-content"><a class="anchor" href="#fragment-content"></a>Fragment Content</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>@FragmentDescriptor</code> annotation specifies a string value that is a path to an XML file which is used for the fragment initialization. If the value contains a file name only (and doesn’t start with <code>/</code>), it is assumed that the file is located in the package of the fragment class.</p>
+</div>
+<div class="paragraph">
+<p>Elements available in the XML descriptor:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>content</code> - required element that contains the fragment layout (similar to the view <code>layout</code> element). Since the root component of a fragment can be any component, <code>content</code> has no attributes and doesn’t represent any component.</p>
+</li>
+<li>
+<p><code>actions</code> - optional fragment actions element (similar to the view <code>actions</code> element). If an action has a <a class="xref page" href="../keyboard-shortcuts.html">shortcut</a>, it is bound to the root component of the fragment. That is, the shortcut can be triggered only if focus is within the fragment layout.</p>
+</li>
+<li>
+<p><code>data</code> - optional fragment data element (similar to the view <code>data</code> element). A fragment can define its own data containers and loaders or get them by id from a host view or enclosing fragment as described in the <a class="xref page" href="using-fragments.html#using-data-components">Using Data Components</a> section.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example of a fragment XML:</p>
+</div>
+<div class="listingblock">
+<div class="title">customer-list-fragment.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+    &lt;data&gt;
+        &lt;collection id="customersDc"
+                    class="com.company.onboarding.entity.Customer"&gt;
+            &lt;fetchPlan extends="_base"&gt;
+                &lt;property name="city" fetchPlan="_base"/&gt;
+            &lt;/fetchPlan&gt;
+            &lt;loader id="customersDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from Customer e]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;content&gt;
+        &lt;vbox id="root" padding="false"&gt;
+            &lt;genericFilter id="genericFilter"
+                           dataLoader="customersDl"&gt;
+                &lt;properties include=".*"/&gt;
+            &lt;/genericFilter&gt;
+            &lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+                &lt;button id="createBtn" action="customersDataGrid.create"/&gt;
+                &lt;button id="editBtn" action="customersDataGrid.edit"/&gt;
+                &lt;button id="removeBtn" action="customersDataGrid.remove"/&gt;
+                &lt;simplePagination id="pagination" dataLoader="customersDl"/&gt;
+            &lt;/hbox&gt;
+            &lt;dataGrid id="customersDataGrid"
+                      width="100%"
+                      minHeight="20em"
+                      dataContainer="customersDc"
+                      columnReorderingAllowed="true"&gt;
+                &lt;actions&gt;
+                    &lt;action id="create" type="list_create"/&gt;
+                    &lt;action id="edit" type="list_edit"/&gt;
+                    &lt;action id="remove" type="list_remove"/&gt;
+                &lt;/actions&gt;
+                &lt;columns resizable="true"&gt;
+                    &lt;column property="city"/&gt;
+                    &lt;column property="level"/&gt;
+                    &lt;column property="age"/&gt;
+                    &lt;column property="martialStatus"/&gt;
+                    &lt;column property="hobby"/&gt;
+                    &lt;column property="firstName"/&gt;
+                    &lt;column property="lastName"/&gt;
+                    &lt;column property="email"/&gt;
+                    &lt;column property="rewardPoints"/&gt;
+                &lt;/columns&gt;
+            &lt;/dataGrid&gt;
+        &lt;/vbox&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fragment-api"><a class="anchor" href="#fragment-api"></a>Fragment API</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>getFragmentData()</code> - returns the <code>FragmentData</code> object defining methods for interacting with the fragment data components.</p>
+</li>
+<li>
+<p><code>getFragmentActions()</code> - returns the <code>FragmentActions</code> object defining methods for interacting with fragment actions. Similar to <code>ViewActions</code>.</p>
+</li>
+<li>
+<p><code>getParentController()</code> - returns a parent <code>FragmentOwner</code> object. Currently, it may be <code>View</code> or <code>Fragment</code>.</p>
+</li>
+<li>
+<p><code>findInnerComponent()</code> / <code>getInnerComponent()</code> - return the inner component with the given id. These methods search among components added via an XML descriptor only.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fragment-events"><a class="anchor" href="#fragment-events"></a>Fragment Events</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>ReadyEvent</code> - the event that is fired after the fragment and all its declaratively defined inner components are created and fully initialized. In this event listener, you can make the final configuration of the fragment and its inner components. For example:</p>
+<div class="listingblock">
+<div class="title">CustomerListFragment.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@FragmentDescriptor("customer-list-fragment.xml")
+public class CustomerListFragment extends Fragment&lt;VerticalLayout&gt; {
+
+    @Subscribe
+    public void onReady(final ReadyEvent event) {
+        getFragmentData().loadAll(); <i class="conum" data-value="1"></i><b>(1)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Triggers <code>load()</code> method of all loaders registered in the fragment, including the <a class="xref page" href="using-fragments.html#provided-data-components">provided</a> ones.</td>
+</tr>
+</table>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fragment-autowiring"><a class="anchor" href="#fragment-autowiring"></a>Autowiring</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Similar to views, fragments support injection of components defined in XML and invoking annotated handler methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+public JmixButton button; <i class="conum" data-value="1"></i><b>(1)</b>
+
+@ViewComponent
+public CollectionContainer&lt;Customer&gt; collectionDc; <i class="conum" data-value="2"></i><b>(2)</b>
+
+@Subscribe
+public void onReady(ReadyEvent event) { <i class="conum" data-value="3"></i><b>(3)</b>
+    // ...
+}
+
+@Subscribe(value = "button", subject = "clickListener")
+public void onButtonClick(ClickEvent&lt;JmixButton&gt; event) { <i class="conum" data-value="4"></i><b>(4)</b>
+    // ...
+}
+
+@Install(to = "collectionDl", target = Target.DATA_LOADER)
+public List&lt;Customer&gt; collectionDlLoadDelegate(LoadContext&lt;Customer&gt; loadContext) { <i class="conum" data-value="5"></i><b>(5)</b>
+    return loadCustomers(loadContext);
+}
+
+@Supply(to = "dataGrid.name", subject = "renderer")
+public Renderer&lt;Customer&gt; dataGridNameRenderer() { <i class="conum" data-value="6"></i><b>(6)</b>
+    return createRenderer();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Injects a UI component.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Inject a data container.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Subscribes to the fragment’s <code>ReadyEvent</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Subscribes to a button’s <code>ClickEvent</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Installs a load delegate.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Supplies a data grid <code>Renderer</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In addition to that, it’s possible to subscribe to the host view events by defining <code>target = Target.HOST_CONTROLLER</code> in the <code>@Subscribe</code> annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(target = Target.HOST_CONTROLLER)
+public void onHostInit(View.InitEvent event) {
+    // ...
+}
+
+@Subscribe(target = Target.HOST_CONTROLLER)
+public void onHostBeforeShow(View.BeforeShowEvent event) {
+    // ...
+}
+
+@Subscribe(target = Target.HOST_CONTROLLER)
+public void onHostReady(View.ReadyEvent event) {
+    // ...
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

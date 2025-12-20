@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6. Working with Images :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">6. Working with Images</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this chapter, you will add the <code>picture</code> attribute to the <code>User</code> entity and learn how to upload and display images in UI.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="file-ref-attr"><a class="anchor" href="#file-ref-attr"></a>Adding File Reference Attribute</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix allows you to store uploaded files outside the database in a so-called <em>file storage</em>. In the simple case, it’s just a file system directory with a special structure. To link the file located in the file storage to an entity, you create an attribute of the <code>FileRef</code> type.</p>
+</div>
+<div class="paragraph">
+<p>Let’s create such an attribute for managing the user picture.</p>
+</div>
+<div class="paragraph">
+<p>If your application is running, stop it using the <strong>Stop</strong> button (<span class="image"><img alt="suspend" src="_images/common/suspend.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Double-click on the <code>User</code> entity in <strong>Jmix</strong> tool window and select the <code>joiningDate</code> attribute (to add the new attribute after it).</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Add</strong> (<span class="image"><img alt="add" src="_images/common/add.svg"/></span>) in the <strong>Attributes</strong> toolbar. In the <strong>New Attribute</strong> dialog, enter <code>picture</code> into the <strong>Name</strong> field and select <code>FileRef</code> in the <strong>Type</strong> dropdown:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="attribute 2" src="_images/images/attribute-2.png" width="862"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Accept the suggested value (1024) in the <strong>Length</strong> field. For <code>FileRef</code> attribute it defines the column length for storing a reference, not the file itself, so it doesn’t limit the file size.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Select the <code>picture</code> attribute and click the <strong>Add to Views</strong> (<span class="image"><img alt="add attribute to screens" src="_images/common/add-attribute-to-screens.svg"/></span>) button in the <strong>Attributes</strong> toolbar.</p>
+</div>
+<div class="paragraph">
+<p>The appeared dialog window will show all views that display the <code>User</code> entity. Select <code>User.detail</code> view and click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will create the <code>pictureField</code> component in the <code>formLayout</code> of the <code>User.detail</code> view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;formLayout id="form" dataContainer="userDc"&gt;
+    ...
+    &lt;fileStorageUploadField id="pictureField" property="picture"/&gt;
+&lt;/formLayout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Click the <strong>Debug</strong> button (<span class="image"><img alt="start debugger" src="_images/common/start-debugger.svg"/></span>) in the main toolbar.</p>
+</div>
+<div class="paragraph">
+<p>Before running the application, Studio will generate a Liquibase changelog:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 1" src="_images/images/run-app-1.png"/>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, the changelog contains a command for adding the <code>PICTURE</code> column to the <code>USER_</code> table. The column is of type <code>VARCHAR(1024)</code>, because the file reference is actually a string.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Save and run</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Studio will execute the changelog, then build and run the application.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>http://localhost:8080</code> in your web browser and log in to the application with <code>admin</code> / <code>admin</code> credentials.</p>
+</div>
+<div class="paragraph">
+<p>Click on the <code>Users</code> item in the <code>Application</code> menu.</p>
+</div>
+<div class="paragraph">
+<p>Click <strong>Edit</strong> for a user. The UI control for uploading a picture is shown on the form:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="run app 3" src="_images/images/run-app-3.png"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="image-in-form"><a class="anchor" href="#image-in-form"></a>Displaying Image in Form</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will improve the detail view to display the uploaded picture in the form.</p>
+</div>
+<div class="paragraph">
+<p>First, let’s wrap <code>fileStorageUpload</code> into the collapsible <code>Details</code> layout:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="form 1" src="_images/images/form-1.gif"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Now the field is located not immediately in the <code>formLayout</code> which defines the data container for its nested components, so set the <code>dataContainer</code> to the field explicitly:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="form 4" src="_images/images/form-4.png" width="338"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Then add the <code>image</code> component below <code>fileStorageUpload</code> with the following attributes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;details summaryText="Picture"&gt;
+    &lt;hbox&gt;
+        &lt;fileStorageUploadField id="pictureField" dataContainer="userDc" property="picture"/&gt;
+        &lt;image id="image" property="picture" dataContainer="userDc" height="10em" width="10em"
+            classNames="user-picture"/&gt;
+    &lt;/hbox&gt;
+&lt;/details&gt;</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>dataContainer="userDc" property="picture"</code> attributes bind the <code>image</code> component to the <code>picture</code> attribute of the <code>User</code> entity.</p>
+</li>
+<li>
+<p><code>classNames="user-picture"</code> refers to CSS class defined below.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Open <code>onboarding.css</code> file from the <strong>User Interface</strong> → <strong>Themes</strong> section and define the <code>user-picture</code> class:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="form 5" src="_images/images/form-5.png" width="680"/>
+</div>
+</div>
+<div class="paragraph">
+<p><code>object-fit: contain</code> property makes sure the image fills the whole allocated area but keeps the proportions.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.user-picture {
+    object-fit: contain;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh the User detail view and try to upload an image:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="form 2" src="_images/images/form-2.png"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="image-in-table"><a class="anchor" href="#image-in-table"></a>Displaying Image in Data Grid</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s create the column to render the image in the data grid of the <code>User.list</code> view.</p>
+</div>
+<div class="paragraph">
+<p>Open <code>user-list-view.xml</code> and add the following column to <code>usersDataGrid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;columns resizable="true"&gt;
+    &lt;column key="picture" sortable="false" flexGrow="0" resizable="false"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Add the following fields to the <code>UserListView</code> class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataGrid&lt;User&gt; usersDataGrid;
+
+@Autowired
+private UiComponents uiComponents;
+
+@Autowired
+private FileStorage fileStorage;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can use <strong>Inject</strong> button in the top actions panel of the editor to inject dependencies into view controllers and Spring beans.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Select the <code>picture</code> column, switch to the <strong>Handlers</strong> tab of the component inspector and create the <code>renderer</code> handler method. Implement the method as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "usersDataGrid.picture", subject = "renderer")
+private Renderer&lt;User&gt; usersDataGridPictureRenderer() {
+    return new ComponentRenderer&lt;&gt;(user -&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+        FileRef fileRef = user.getPicture();
+        if (fileRef != null) {
+            Image image = uiComponents.create(Image.class);  <i class="conum" data-value="2"></i><b>(2)</b>
+            image.setWidth("30px");
+            image.setHeight("30px");
+            StreamResource streamResource = new StreamResource(
+                    fileRef.getFileName(),
+                    () -&gt; fileStorage.openStream(fileRef));
+            image.setSrc(streamResource); <i class="conum" data-value="3"></i><b>(3)</b>
+            image.setClassName("user-picture");
+
+            return image; <i class="conum" data-value="4"></i><b>(4)</b>
+        } else {
+            return null;
+        }
+    });
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The method returns a <code>Renderer</code> object that creates a UI component to be rendered in the column. The renderer receives an entity instance for the current row.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>Image</code> component instance is created using the <code>UiComponents</code> factory.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The image component gets its content from the file storage by the reference stored in the <code>picture</code> attribute of the <code>User</code> entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The renderer returns the visual component to be shown in the column cells.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Press <strong>Ctrl/Cmd+S</strong> and switch to the running application. Refresh the User list view. You will see the user’s picture in the first table column:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="table 3" src="_images/images/table-3.png"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you have added the ability to upload and show a user’s picture.</p>
+</div>
+<div class="paragraph">
+<p>You have learned that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../files/uploading-files.html">Uploaded files</a> can be stored in a <a class="xref page" href="../files/file-storage.html">file storage</a> and linked with entities using attributes of the <code>FileRef</code> type.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../flow-ui/vc/components/fileStorageUploadField.html">fileStorageUploadField</a> component allows you to upload files, save them into the file storage and link to an entity attribute.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../flow-ui/vc/html-components/image.html">image</a> component can display images saved in the file storage.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Using ShowPivotTableAction :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Using ShowPivotTableAction</h1>
+<div class="paragraph">
+<p><code>ShowPivotTableAction</code> is a special action that allows you to export data from components that extend <code>ListDataComponent</code>, such as <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">DataGrid</a> and <a class="xref page" href="../flow-ui/vc/components/treeDataGrid.html">TreeDataGrid</a>, to a Pivot Table.</p>
+</div>
+<div class="paragraph">
+<p>The simplest way to use this action is to define it within your <code>dataGrid</code> and then associate it with a button.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="tipInfoesDataGrid"
+          dataContainer="tipInfoesDc"
+          minWidth="100px"
+          width="100%"&gt;
+    &lt;actions&gt;
+        &lt;action id="showPivotTableAction" type="pvttbl_showPivotTable"/&gt;
+    &lt;/actions&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also create the action programmatically within your view controller and use it with a button.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onInit(final InitEvent event) {
+    ShowPivotTableAction&lt;TipInfo&gt; showPivotTableAction =
+            actions.create(ShowPivotTableAction.ID);
+    showPivotTableAction.setTarget(tipInfoesDataGrid);
+    showManualSetPivotTableActionButton.setAction(showPivotTableAction);
+    showManualSetPivotTableActionButton.setText(
+            messages.getMessage(getClass(), "manualSetShowActionButton.text"));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>ShowPivotTableAction</code> has two modes for exporting data:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>All rows</strong>: Exports all rows in the <code>DataGrid</code> or <code>TreeDataGrid</code>.</p>
+</li>
+<li>
+<p><strong>Selected rows</strong>: Exports only the selected rows in the <code>DataGrid</code> or <code>TreeDataGrid</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If no rows are selected, all rows will be exported by default without confirmation.</p>
+</div>
+<div class="paragraph">
+<p>A pivot table in <a class="xref page" href="pivottable-component.html#ui-mode">UI Mode</a> will be displayed in a new tab. By default, all attributes included in the component’s data container view will be shown, except for:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Attributes of type <code>Collection</code>.</p>
+</li>
+<li>
+<p>Attributes of type <code>byte[]</code> (byte array).</p>
+</li>
+<li>
+<p><code>UUID</code> attributes.</p>
+</li>
+<li>
+<p>Attributes annotated with <a class="xref page" href="../data-model/entities.html#system-level">@SystemLevel</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To exclude certain attributes or include only a specific subset, use the <code>PivotTableViewBuilder</code> Spring bean. This bean provides a fluent API for configuring the pivot table component in the opened view.</p>
+</div>
+<div class="paragraph">
+<p>To implement custom configuration, handle the <code>ActionPerformedEvent</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("tipInfoesDataGrid.customShowPivotTableAction")
+public void onCustomShowPivotTableAction(final ActionPerformedEvent event) {
+    PivotTableViewBuilder builder = getApplicationContext().getBean(
+            PivotTableViewBuilder.class, tipInfoesDataGrid);
+    Renderers renderers = new Renderers();
+    renderers.setSelectedRenderer(Renderer.TABLE);
+    renderers.setRenderers(List.of(Renderer.TABLE, Renderer.TABLE_BAR_CHART, Renderer.HEATMAP,
+            Renderer.ROW_HEATMAP, Renderer.COL_HEATMAP));
+
+    builder.withIncludedProperties(Arrays.asList("sex", "smoker", "day", "time")) <i class="conum" data-value="1"></i><b>(1)</b>
+            .withRows(Arrays.asList("sex", "smoker"))
+            .withColumns(Arrays.asList("day", "time"))
+            .withRenderers(renderers)
+            .withItems(tipInfoesDataGrid.getItems().getItems()) <i class="conum" data-value="2"></i><b>(2)</b>
+            .show();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>withIncludedProperties()</code> method only considers the properties you explicitly include, ignoring all others. To exclude specific properties, use the <code>withExcludedProperties()</code> method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>All other methods starting with <code>"with"</code> can be used to configure Pivot Table options. These include methods like <code>withHiddenFromAggregations()</code>, <code>withHiddenFromDragDrop()</code>, <code>withAggregationProperties()</code>, and more.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can export the displayed Pivot Table data to Excel (if the current renderer is supported). A corresponding button will be displayed by default in the opened tab for this purpose.</p>
+</div>
+
+</article>
+</body>
+</html>

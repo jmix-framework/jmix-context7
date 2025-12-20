@@ -1,0 +1,291 @@
+<Path>Components > VirtualList > Simple VirtualList</Path>
+
+VirtualList allows you to render a long list of items inside a scrollable container without sacrificing performance. Each item is rendered on the fly as the user scrolls the list. A custom renderer for list items can be set in view controller using Java code only. It's possible to specify a renderer using ValueProvider if we want to show some plain text. You can use the setRenderer() method or @Supply annotation for it.
+
+virtual-list-simple.xml
+
+<view xmlns="http://jmix.io/schema/flowui/view">
+    <data readOnly="true">
+        <collection id="customersDc"
+                    class="io.jmix.uisamples.entity.Customer">
+            <fetchPlan extends="_base"/>
+            <loader id="customersDl">
+                <query>
+                    <![CDATA[select e from Customer e]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <layout alignItems="CENTER">
+        <virtualList id="virtualList" width="30em"
+                     itemsContainer="customersDc"
+                     alignSelf="CENTER"/>
+    </layout>
+</view>
+
+
+
+
+VirtualListSimpleSample.java
+
+package io.jmix.uisamples.view.flowui.components.virtuallist.simple;
+
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.dom.ThemeList;
+import com.vaadin.flow.theme.lumo.LumoUtility;
+import io.jmix.core.MetadataTools;
+import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.details.JmixDetails;
+import io.jmix.flowui.view.StandardView;
+import io.jmix.flowui.view.Supply;
+import io.jmix.flowui.view.ViewController;
+import io.jmix.flowui.view.ViewDescriptor;
+import io.jmix.uisamples.entity.Customer;
+import io.jmix.uisamples.entity.CustomerGrade;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
+
+@ViewController("virtual-list-simple")
+@ViewDescriptor("virtual-list-simple.xml")
+public class VirtualListSimpleSample extends StandardView {
+
+    @Autowired
+    protected UiComponents uiComponents;
+    @Autowired
+    protected MetadataTools metadataTools;
+
+    @Supply(to = "virtualList", subject = "renderer")
+    protected Renderer<Customer> virtualListRenderer() {
+        return new ComponentRenderer<>(customer -> {
+            VerticalLayout infoLayout = createVerticalLayout();
+            infoLayout.addClassNames(LumoUtility.Padding.Vertical.SMALL, LumoUtility.Gap.SMALL);
+
+            H4 customerName = new H4(customer.getInstanceName());
+            Span gradeSpan = createGradeSpan(customer.getGrade());
+            infoLayout.add(customerName, gradeSpan);
+
+            HorizontalLayout infoLine = createHorizontalLayout();
+            infoLine.addClassName(LumoUtility.AlignItems.CENTER);
+
+            H5 emailLabel = new H5("Email:");
+            Span email = new Span(customer.getEmail());
+            infoLine.add(emailLabel, email);
+
+            HorizontalLayout infoLine2 = createHorizontalLayout();
+
+            H5 ageLabel = new H5("Age:");
+            Span age = new Span(String.valueOf(customer.getAge()));
+
+            infoLine2.add(ageLabel, age);
+
+            VerticalLayout additionalInfoLayout = createVerticalLayout();
+            additionalInfoLayout.add(infoLine, infoLine2);
+
+            JmixDetails infoDetails = uiComponents.create(JmixDetails.class);
+            infoDetails.setSummaryText("Additional information");
+            infoDetails.add(additionalInfoLayout);
+
+            infoLayout.add(infoDetails, new Hr());
+            return infoLayout;
+        });
+    }
+
+    protected VerticalLayout createVerticalLayout() {
+        VerticalLayout layout = uiComponents.create(VerticalLayout.class);
+        layout.setSpacing(false);
+        layout.setPadding(false);
+        return layout;
+    }
+
+    protected HorizontalLayout createHorizontalLayout() {
+        HorizontalLayout layout = uiComponents.create(HorizontalLayout.class);
+        layout.setPadding(false);
+        return layout;
+    }
+
+    protected Span createGradeSpan(@Nullable CustomerGrade grade) {
+        Span gradeSpan = new Span(metadataTools.format(grade));
+
+        if (grade != null) {
+            ThemeList gradeThemeList = gradeSpan.getElement().getThemeList();
+
+            switch (grade) {
+                case STANDARD -> gradeThemeList.add("badge contrast");
+                case PREMIUM -> gradeThemeList.add("badge primary");
+                default -> gradeThemeList.add("badge");
+            }
+        }
+
+        return gradeSpan;
+    }
+}
+
+
+
+
+Customer.java
+
+package io.jmix.uisamples.entity;
+
+import io.jmix.core.entity.annotation.JmixGeneratedValue;
+import io.jmix.core.metamodel.annotation.DependsOnProperties;
+import io.jmix.core.metamodel.annotation.InstanceName;
+import io.jmix.core.metamodel.annotation.JmixEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import org.springframework.lang.Nullable;
+
+import java.util.UUID;
+
+@Table(name = "CUSTOMER")
+@Entity
+@JmixEntity
+public class Customer {
+
+    @Id
+    @Column(name = "ID", nullable = false)
+    @JmixGeneratedValue
+    protected UUID id;
+
+    @Column(name = "NAME", length = 50, nullable = false)
+    protected String name;
+
+    @Column(name = "LAST_NAME", length = 100, nullable = false)
+    protected String lastName;
+
+    @Email
+    @Column(name = "EMAIL", nullable = false)
+    protected String email;
+
+    @Column(name = "AGE")
+    protected Integer age;
+
+    @Column(name = "ACTIVE", nullable = false)
+    protected Boolean active = false;
+
+    @Column(name = "GRADE")
+    protected Integer grade;
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public Customer() {
+        this.id = UUID.randomUUID();
+    }
+
+    @InstanceName
+    @DependsOnProperties({"name", "lastName"})
+    public String getInstanceName() {
+        return name + " " + lastName;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setGrade(@Nullable CustomerGrade grade) {
+        this.grade = grade == null ? null : grade.getId();
+    }
+
+    @Nullable
+    public CustomerGrade getGrade() {
+        return grade == null ? null : CustomerGrade.fromId(grade);
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Boolean isActive() {
+        return active;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+}
+
+
+
+
+CustomerGrade.java
+
+package io.jmix.uisamples.entity;
+
+import io.jmix.core.metamodel.datatype.EnumClass;
+import org.springframework.lang.Nullable;
+
+public enum CustomerGrade implements EnumClass<Integer> {
+
+    PREMIUM(10),
+    HIGH(20),
+    STANDARD(30);
+
+    private final Integer id;
+
+    CustomerGrade(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public Integer getId() {
+        return id;
+    }
+
+    @Nullable
+    public static CustomerGrade fromId(Integer id) {
+        for (CustomerGrade grade : CustomerGrade.values()) {
+            if (grade.getId().equals(id))
+                return grade;
+        }
+        return null;
+    }
+}
+
+

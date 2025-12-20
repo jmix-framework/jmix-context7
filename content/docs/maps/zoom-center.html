@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zooming and Centering :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Zooming and Centering</h1>
+<div class="paragraph">
+<p>Zooming and centering are essential <a class="xref page" href="map-component.html">map</a> features that allow users to adjust the zoom level and focus on specific geographical locations within the map <a class="xref page" href="map-component.html#view">view</a>.</p>
+</div>
+<div class="paragraph">
+<p>The Maps add-on provides methods that developers can use to programmatically control these features.</p>
+</div>
+<div class="paragraph">
+<p>Let’s explore some methods of the <code>GeoMap</code> class:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>setCenter()</code> - sets the central geographic point within the visible area of the map. The coordinates should be provided in the map projection, specifically in <code>EPSG:4326</code>. In case the map projection has been altered using <code>setProjection(CRS)</code>, the coordinates must then be specified in that adjusted projection. It’s important to differentiate the map projection from the view projection configured in the map’s <code>GeoMapView</code>. The view projection influences how map data is understood and displayed, whereas the map projection sets the coordinate system for all coordinates exchanged with the public API.</p>
+</li>
+<li>
+<p><code>setZoom(double zoom)</code> - adjusts the map to a particular zoom level. The zoom level begins at 0, representing the maximum zoomed-out view, and increases as you zoom in for a closer perspective</p>
+</li>
+<li>
+<p><code>zoomToExtent(Extent)</code> - sets the visible area of the map to encompass the provided geographical boundaries at the highest possible zoom level. <code>Extent</code> is a bounding box that defines a specific geographical area on the map. The extent is represented by a set of coordinates: the minimum (left, bottom) and maximum (right, top) coordinates that delineate the boundaries of a rectangular region on the map. For a more advanced method of zooming to a specific extent, use the <code>fit(FitOptions)</code> method.</p>
+</li>
+<li>
+<p><code>zoomToGeometry(SimpleGeometry)</code> - sets the visible area of a map to encompass the envelope of the provided geometry at the maximum achievable zoom level.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If the provided geometry is a <code>Point</code>, the map will be centered on this point at the current zoom level.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A more advanced method for zooming to a specific geometry can be achieved by using the <code>fit(FitOptions)</code> method.</p>
+</div>
+</li>
+<li>
+<p><code>zoomToFeature(Feature)</code> - a utility method that extracts the geometry from the provided feature and delegates to <code>zoomToGeometry(SimpleGeometry)</code>.</p>
+</li>
+<li>
+<p><code>fit(FitOptions)</code> - adjusts the provided geometry or extent according to the specified map size, border settings, and specified options. For example, to set a maximum zoom level and enable animation, the following approach can be taken:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">protected GeometryFactory geometryFactory = GeometryUtils.getGeometryFactory();
+
+@ViewComponent
+private GeoMap map;
+
+@Subscribe("map")
+public void onMapMapSingleClick(final MapSingleClickEvent event) {
+    map.fit(new FitOptions(new PointFeature(
+            geometryFactory.createPoint(event.getCoordinate())))
+            .withDuration(2000)
+            .withEasing(Easing.LINEAR)
+            .withMaxZoom(20d));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>FitOptions</code> are used to configure how a map’s view should fit or adjust to a specific extent or geometry. These options provide developers with control over aspects such as zoom level, duration of animation, easing functions, and other parameters related to fitting the map view.</p>
+</div>
+<div class="paragraph">
+<p>For additional information, refer to the documentation for <a href="https://openlayers.org/en/v8.2.0/apidoc/module-ol_View-View.html#fit" rel="noopener" target="_blank">View</a>.</p>
+</div>
+</li>
+</ul>
+</div>
+
+</article>
+</body>
+</html>

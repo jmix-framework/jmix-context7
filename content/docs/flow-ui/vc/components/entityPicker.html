@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>entityPicker :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">entityPicker</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/entity-picker-simple" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>An input field to select an <a class="xref page" href="../../../data-model/entities.html">entity</a> instance through a dialog and perform various actions on it. These can be both predefined actions such as updating instance details, as well as custom, configurable actions to perform more specific tasks.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>XML element: <code>entityPicker</code></p>
+</li>
+<li>
+<p>Java class: <code>EntityPicker</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>entityPicker</code> component is commonly used when the field value must represent a reference to an entity. It combines the ability to select a particular entity instance with the ability to perform relevant actions.</p>
+</div>
+<div class="paragraph">
+<p>Clicking the lookup button opens a dialog with a <a class="xref page" href="../../views/views.html#standard-list-view">list view</a> containing entity instances.</p>
+</div>
+<table class="tableblock frame-none grid-none stretch">
+<colgroup>
+<col style="width: 100%;"/>
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="imageblock text-center">
+<div class="content">
+<img alt="entity picker basic" src="../../_images/visual-components/components/entity-picker-basic.png" width="206"/>
+</div>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="imageblock text-center">
+<div class="content">
+<img alt="entity picker basic 2" src="../../_images/visual-components/components/entity-picker-basic-2.png" width="806"/>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Like other views in the application, this view is configurable, allowing multiple attributes to help users easily identify the needed instance. It provides more context than the <a class="xref page" href="entityComboBox.html">entityComboBox</a> which only shows instance names.</p>
+</div>
+<div class="paragraph">
+<p>When the number of instances is large, additional instances are loaded dynamically as you navigate the list.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="quick-start"><a class="anchor" href="#quick-start"></a>Quick Start</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following example demonstrates how to use the <code>entityPicker</code> component to select the department the user belongs to:</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For the example to work correctly, ensure that you define a <a class="xref page" href="../../views/views.html#standard-list-view">list view</a> for the Department entity.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance class="com.company.onboarding.entity.User" id="userDc"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;fetchPlan extends="_base"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+            &lt;property name="department" fetchPlan="_base"/&gt;
+        &lt;/fetchPlan&gt;
+        &lt;loader id="userDl"/&gt;
+    &lt;/instance&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;entityPicker id="entityPicker"
+                  dataContainer="userDc"
+                  property="department"
+                  label="Department"&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+        &lt;actions&gt;
+            &lt;action id="entityLookup" type="entity_lookup"/&gt; <i class="conum" data-value="5"></i><b>(5)</b>
+            &lt;action id="entityClear" type="entity_clear"/&gt; <i class="conum" data-value="6"></i><b>(6)</b>
+        &lt;/actions&gt;
+    &lt;/entityPicker&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Data container to hold the User instance which is currently being edited.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Fetch plan extended to retrieve a collection of Department instances that will be available for selection.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Data load coordinator to automatically supply the component with instances to select from.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Binding the component to a data container and property.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Adding a predefined action to open the lookup view.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Adding a predefined action to clear the selection.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For more interactive example of <code>entityPicker</code> and its variations, see:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://demo.jmix.io/ui-samples/sample/entity-picker-actions" rel="noopener" target="_blank">entityPicker with actions</a></p>
+</li>
+<li>
+<p><a href="https://demo.jmix.io/ui-samples/sample/entity-picker-meta-class" rel="noopener" target="_blank">entityPicker with metaClass</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_data_binding"><a class="anchor" href="#_data_binding"></a>Data Binding</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Data binding refers to linking a visual component to a data container. Changes in the visual component or corresponding data container can trigger updates to one another. See <a class="xref page" href="../../data/data-examples.html">Using Data Components</a> for more details.</p>
+</div>
+<div class="sect2">
+<h3 id="_select_an_instance"><a class="anchor" href="#_select_an_instance"></a>Select an instance</h3>
+<div class="paragraph">
+<p>If you simply need a way to select an instance of a specific entity, specify that entity using the <a href="#metaClass">metaClass</a> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityPicker metaClass="Department"&gt;
+    //...
+&lt;/entityPicker&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_select_an_instance_to_update_a_related_attribute"><a class="anchor" href="#_select_an_instance_to_update_a_related_attribute"></a>Select an instance to update a related attribute</h3>
+<div class="paragraph">
+<p>Selecting an instance is often intended to update an attribute within another instance. In the <a href="#quick-start">example above</a>, selecting a <code>Department</code> instance updates the <code>User</code> instance by associating it with the chosen department.</p>
+</div>
+<div class="paragraph">
+<p>In such cases you will need to bind the component to the data container holding the instance and specify the attribute to be updated using the <a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> and <a class="xref page" href="../common-attributes.html#property">property</a> attributes respectively:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityPicker dataContainer="userDc" property="department"&gt;
+    //...
+&lt;/entityPicker&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="actions"><a class="anchor" href="#actions"></a>Actions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can define custom and predefined actions for <code>entityPicker</code> displayed as buttons on the right.
+You can do it either in the XML descriptor using the <code>actions</code> nested element or programmatically in the controller using the <code>addAction()</code> method.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To add <code>action</code> in Jmix Studio, select the component in the screen descriptor XML or in the <strong>Jmix UI</strong> structure panel and click on the <a class="xref page" href="../../../studio/view-designer.html#add-picker-action">Add</a> button in the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="predefined-action"><a class="anchor" href="#predefined-action"></a>Predefined Action</h3>
+<div class="paragraph">
+<p>When Studio generates <code>entityPicker</code> in the detail view, it also generates two predefined standard actions: <code>entity_lookup</code> and <code>entity_clear</code>. There are also the <code>entity_open</code> and <code>entity_openComposition</code> actions.</p>
+</div>
+<div class="paragraph">
+<p>Use the <code>type</code> and <code>id</code> attributes for declaring predefined action in XML.</p>
+</div>
+<div class="paragraph">
+<p>If you create <code>entityPicker</code> without actions, the XML loader will define only the <code>entity_lookup</code> and <code>entity_clear</code> actions. To add another predefined action, for example, the <code>entity_open</code>, you should specify the <code>actions</code> element as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityPicker dataContainer="userDc"
+              property="department"
+              label="Department" &gt;
+    &lt;actions&gt;
+        &lt;action id="entityLookup" type="entity_lookup"/&gt;
+        &lt;action id="entityClear" type="entity_clear"/&gt;
+        &lt;action id="entityOpen" type="entity_open"/&gt;
+    &lt;/actions&gt;
+&lt;/entityPicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>actions</code> element does not extend but overrides a set of standard actions. You should define the identifiers of all required actions explicitly.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="custom-actions"><a class="anchor" href="#custom-actions"></a>Custom Actions</h3>
+<div class="paragraph">
+<p>To define a custom action in XML, use the <code>actions</code> nested element. Specify the <code>id</code> and <code>icon</code> attributes for the <code>action</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityPicker id="departmentEntityPicker"
+              dataContainer="userWithDeptManagerDc"
+              property="department"&gt;
+    &lt;actions&gt;
+        &lt;action id="entityLookup" type="entity_lookup"/&gt;
+        &lt;action id="knowManager" icon="QUESTION"
+                description="Know HR-manager"/&gt;
+    &lt;/actions&gt;
+&lt;/entityPicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then implement custom logic in the view controller by subscribing to <code>ActionPerformedEvent</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private EntityPicker&lt;Department&gt; departmentEntityPicker;
+
+@Autowired
+private Notifications notifications;
+
+@Subscribe("departmentEntityPicker.knowManager")
+public void onKnowManager(ActionPerformedEvent event) {
+    Department department = departmentEntityPicker.getValue();
+    if (department != null)
+        notifications.create(department.getName() + " has "
+                + department.getHrManager() + " HR-manager")
+                .show();
+    else notifications.create("Choose a department").show();
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can generate the <code>ActionPerformedEvent</code> handler implementation stub using Studio.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="add-actions-programmatically"><a class="anchor" href="#add-actions-programmatically"></a>Adding Actions Programmatically</h3>
+<div class="paragraph">
+<p>Use the <code>addAction()</code> method to set actions programmatically.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Adding Standard Action</strong></p>
+<div class="paragraph">
+<p>For example, if the component is defined in the XML descriptor without the <code>actions</code> nested element, it is sufficient to add missing standard actions:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private EntityPicker&lt;Department&gt; departmentEntityPicker;
+
+@Autowired
+private Actions actions;
+
+@Subscribe
+public void onInit(InitEvent event) {
+    departmentEntityPicker.addAction(actions.create(EntityOpenAction.ID));
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Adding Custom Action</strong></p>
+<div class="paragraph">
+<p>An example of creating a custom action:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private EntityPicker&lt;Department&gt; departmentEntityPicker;
+
+@Subscribe
+public void onInit(InitEvent event) {
+    departmentEntityPicker.addAction(new BaseAction("showManager")
+            .withIcon(VaadinIcon.QUESTION_CIRCLE)
+            .withHandler(e -&gt; {
+                Department department = departmentEntityPicker.getValue();
+                if (department != null)
+                    notifications.create(department.getName() + " has "
+                                    + department.getHrManager() + " HR-manager")
+                            .show();
+                else notifications.create("Choose a department").show();
+            }));
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="valuePicker.html#allowCustomValue">allowCustomValue</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
+<a class="xref page" href="../common-attributes.html#autofocus">autofocus</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a>
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#errorMessage">errorMessage</a> -
+<a class="xref page" href="../common-attributes.html#focusShortcut">focusShortcut</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
+<a class="xref page" href="../common-attributes.html#label">label</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a href="#metaClass">metaClass</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#placeholder">placeholder</a> -
+<a class="xref page" href="../common-attributes.html#property">property</a> -
+<a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
+<a class="xref page" href="../common-attributes.html#required">required</a> -
+<a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
+<a class="xref page" href="../common-attributes.html#tabIndex">tabIndex</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#title">title</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+<div class="sect2">
+<h3 id="metaClass"><a class="anchor" href="#metaClass"></a>metaClass</h3>
+<div class="paragraph">
+<p>You can use <code>entityPicker</code> without binding to the data container, that is, without setting <code>dataContainer</code> and <code>property</code>. In this case, the <code>metaClass</code> attribute should be used to specify an entity type for <code>entityPicker</code>. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityPicker metaClass="Department"&gt;
+    &lt;actions&gt;
+        &lt;action id="entityLookup" type="entity_lookup"/&gt;
+        &lt;action id="entityOpen" type="entity_open"/&gt;
+    &lt;/actions&gt;
+&lt;/entityPicker&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can get an instance of a selected entity by injecting the component into a controller and invoking its <code>getValue()</code> method.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
+<a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
+<a class="xref page" href="valuePicker.html#CustomValueSetEvent">CustomValueSetEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a> -
+<a class="xref page" href="valuePicker.html#formatter">formatter</a> -
+<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a> -
+<a class="xref page" href="textField.html#validator">validator</a></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="#actions">actions</a> -
+<a class="xref page" href="../miscellaneous/formatter.html">formatter</a> -
+<a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a> -
+<a class="xref page" href="../miscellaneous/prefix-suffix.html">suffix</a> -
+<a class="xref page" href="tooltip.html">tooltip</a> -
+<a class="xref page" href="../miscellaneous/validator.html">validator</a></p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

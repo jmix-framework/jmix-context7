@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports REST API :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Reports REST API</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Reports add-on REST API provides the following functions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Getting a list of reports.</p>
+</li>
+<li>
+<p>Getting the details on a specific report.</p>
+</li>
+<li>
+<p>Running a report and getting the result.</p>
+</li>
+<li>
+<p>Getting the details on a specific report group.</p>
+</li>
+<li>
+<p>Getting Swagger documentation.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Reports REST API uses the OAuth2 protocol for authentication in the same way as <a class="xref page" href="../rest/access-control.html">Generic REST</a>.</p>
+</div>
+<div class="paragraph">
+<p>To enable REST API for reports, make sure your <code>build.gradle</code> contains the following dependencies:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.rest:jmix-rest-starter'
+implementation 'io.jmix.authserver:jmix-authserver-starter'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To make a report available through the REST API, select the <strong>Available through REST API</strong> checkbox on the <a class="xref page" href="creation/details.html">Report details</a> tab.</p>
+</div>
+<div class="paragraph">
+<p>Below we provide a formal description of some features specific to the Reports add-on. For more information on how to get an OAuth token and other REST API features, see REST API add-on <a class="xref page" href="../rest/index.html">documentation</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="rest_reports_get_all"><a class="anchor" href="#rest_reports_get_all"></a>Getting Reports List</h2>
+<div class="sectionbody">
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>The list of existing reports can be retrieved with the following <strong>GET</strong> request:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">/rest/reports/report</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">GET http://localhost:8080/rest/reports/report
+
+Authorization: Bearer j-Rn3PPAiH7cZZfaDiDWQEDp9YU
+Content-Type: application/json</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The response body will contain the list of brief information on the reports marked as <strong>Available through REST API</strong>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+    {
+        "id": "cb090350-2694-e2bb-f5d9-813daa8dc418", <i class="conum" data-value="1"></i><b>(1)</b>
+        "name": "booksAvailability(xlsx)",<i class="conum" data-value="2"></i><b>(2)</b>
+        "code": "BOOKS_AVAIL",<i class="conum" data-value="3"></i><b>(3)</b>
+        "group": "4e083530-0b9c-11e1-9b41-6bdaa41bff94"<i class="conum" data-value="4"></i><b>(4)</b>
+    },
+    {
+        "id": "d8c7f4c5-2dd7-c7f1-7286-f8dd286d2603",
+        "name": "LiteratureTypes(csv)",
+        "group": "4e083530-0b9c-11e1-9b41-6bdaa41bff94"
+    }
+]</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Report ID,</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Report name,</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><a class="xref page" href="creation/details.html">Report system code</a> (if exists),</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Group ID.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="rest_reports_get_one"><a class="anchor" href="#rest_reports_get_one"></a>Getting Report Info</h2>
+<div class="sectionbody">
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>The detailed information on a specific report is retrieved with the following <strong>GET</strong> request:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">/rest/reports/report/{id}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The last part of the query here is the report identifier, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">GET http://localhost:8080/rest/reports/report/cb090350-2694-e2bb-f5d9-813daa8dc418</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The returned JSON object will contain the following information on the passed report:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ID</p>
+</li>
+<li>
+<p>report name</p>
+</li>
+<li>
+<p>group ID</p>
+</li>
+<li>
+<p><a class="xref page" href="creation/details.html">system code</a> (if exists)</p>
+</li>
+<li>
+<p><a class="xref page" href="creation/templates.html">report templates</a></p>
+</li>
+<li>
+<p><a class="xref page" href="creation/parameters.html">parameters</a> and their types</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "id": "cb090350-2694-e2bb-f5d9-813daa8dc418",
+  "name": "booksAvailability(xlsx)",
+  "code": "BOOKS_AVAIL",
+  "group": "4e083530-0b9c-11e1-9b41-6bdaa41bff94",
+  "templates": [
+    {
+      "code": "DEFAULT",
+      "outputType": "XLSX"
+    }
+  ],
+  "inputParameters": []
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="rest_reports_run"><a class="anchor" href="#rest_reports_run"></a>Running Report</h2>
+<div class="sectionbody">
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>To run a report, send the following <strong>POST</strong> request:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">/rest/reports/run/{id}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The last part of the query here is the report identifier, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">POST http://localhost:8080/rest/reports/run/2dd27fbf-8830-416a-899f-339543f8f27a</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The report parameters are passed in the request body:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">{parameters: [{name: 'author',value: '4b3a21b0-d6b7-4161-b0b6-55f118fbaac5'}]}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To print a report with a non-default template, pass the template code in the request body:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">{template: 'Template_1', parameters: [{name: 'author',value: '4b3a21b0-d6b7-4161-b0b6-55f118fbaac5'}]}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="rest_reports_get_group_details"><a class="anchor" href="#rest_reports_get_group_details"></a>Getting Report Group Info</h2>
+<div class="sectionbody">
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>The detailed information on a specific report group is retrieved with the following <strong>GET</strong> request:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">/rest/reports/group/{groupId}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The last part of the query here is the group identifier, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">GET http://localhost:8080/rest/reports/group/4e083530-0b9c-11e1-9b41-6bdaa41bff94</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The returned JSON object will contain the following information on the passed group:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>group ID</p>
+</li>
+<li>
+<p>group title</p>
+</li>
+<li>
+<p>group code (if exists)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "id": "4e083530-0b9c-11e1-9b41-6bdaa41bff94",
+  "title": "General",
+  "code": "ReportGroup.default"
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="rest_reports_openapi"><a class="anchor" href="#rest_reports_openapi"></a>Getting the OpenAPI Documentation</h2>
+<div class="sectionbody">
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>The complete OpenAPI documentation on the Reports add-on can be retrieved with the <strong>GET</strong> request on the address:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-plain hljs" data-lang="plain">http://localhost:8080/rest/reports/docs/openapi.json
+http://localhost:8080/rest/reports/docs/openapi.yaml</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When fetching <code>openapi.yaml</code> from the server, the response returns <code>application/yaml</code> content type, so in you should use <code>Accept: application/yaml</code> in request header.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

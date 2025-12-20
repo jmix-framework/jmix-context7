@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4. Customizing UI :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">4. Customizing UI</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will make some improvements to the appearance of the application:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add a new column called <code>lastModifiedBy</code> to the WebDAV document wrapper data grid. This column will display the author of the latest changes made to the WebDAV file.</p>
+</li>
+<li>
+<p>Add a <code>lastModifiedDate</code> column, whose cells will show the date of the latest changes to the WebDAV file.</p>
+</li>
+<li>
+<p>Add a <strong>Download</strong> button above the data grid. Using this button, users with the <em>Employee</em> role will be able to download files from the knowledge base without the ability to modify them on the WebDAV server.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-renderers"><a class="anchor" href="#using-renderers"></a>Using Renderers in Data Grid</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the data grid, we will learn how to display columns that are not directly linked to attributes of the associated entity. These columns are often used to show derived information. To create a column of this type, you need to define a column with a <code>key</code> attribute in the XML descriptor and then generate a <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#renderers">renderer</a> for that column.</p>
+</div>
+<div class="sect2">
+<h3 id="add-last-modified-by-column"><a class="anchor" href="#add-last-modified-by-column"></a>Adding lastModifiedBy Column</h3>
+<div class="paragraph">
+<p>Let’s configure the display of the author of the latest changes to the WebDAV file.</p>
+</div>
+<div class="paragraph">
+<p>Add a new column to <code>webdavDocumentWrappersDataGrid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="webdavDocumentWrappersDataGrid" ...&gt;
+    &lt;columns resizable="true"&gt;
+        &lt;!--..--&gt;
+        &lt;column key="lastModifiedBy" header="msg://column.lastModifiedBy"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This column is not bound to an entity attribute, so it has the <code>key</code> attribute instead of <code>property</code>.</p>
+</div>
+<div class="paragraph">
+<p>Select the <code>lastModifiedBy</code> column, switch to the <strong>Handlers</strong> tab of the component inspector and create the <code>renderer</code> handler method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "webdavDocumentWrappersDataGrid.lastModifiedBy", subject = "renderer")
+private Renderer&lt;WebdavDocumentWrapper&gt; webdavDocumentWrappersDataGridLastModifiedByRenderer() {
+    return null;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Implement the <code>webdavDocumentWrappersDataGridLastModifiedByRenderer</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "webdavDocumentWrappersDataGrid.lastModifiedBy", subject = "renderer")
+private Renderer&lt;WebdavDocumentWrapper&gt; webdavDocumentWrappersDataGridLastModifiedByRenderer() {
+    return new TextRenderer&lt;&gt;(documentWrapper -&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+        WebdavDocument webdavDocument = documentWrapper.getWebdavDocument();
+        if (webdavDocument == null) {
+            return null;
+        }
+
+        WebdavDocumentVersion lastVersion = webdavDocument.getLastVersion();
+        return lastVersion.getCreatedBy(); <i class="conum" data-value="2"></i><b>(2)</b>
+    });
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The method returns a <code>TextRenderer</code> object.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The renderer returns the name of the user who made changes to the latest version of the WebDAV document.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="add-last-modified-date-column"><a class="anchor" href="#add-last-modified-date-column"></a>Adding lastModifiedDate Column</h3>
+<div class="paragraph">
+<p>In the <code>lastModifiedDate</code> column, let’s configure the display of the date of the latest changes to the WebDAV file.</p>
+</div>
+<div class="paragraph">
+<p>Add a new column to <code>webdavDocumentWrappersDataGrid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="webdavDocumentWrappersDataGrid" ...&gt;
+    &lt;columns resizable="true"&gt;
+        &lt;!--..--&gt;
+        &lt;column key="lastModifiedDate" header="msg://column.lastModifiedDate"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This column is not bound to an entity attribute, so it has the <code>key</code> attribute instead of <code>property</code>.</p>
+</div>
+<div class="paragraph">
+<p>Select the <code>lastModifiedDate</code> column, switch to the <strong>Handlers</strong> tab of the component inspector and create the <code>renderer</code> handler method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ApplicationContext applicationContext;
+
+@Supply(to = "webdavDocumentWrappersDataGrid.lastModifiedDate", subject = "renderer")
+private Renderer&lt;WebdavDocumentWrapper&gt; webdavDocumentWrappersDataGridLastModifiedDateRenderer() {
+    DateFormatter dateFormatter = applicationContext.getBean(DateFormatter.class);
+    return new TextRenderer&lt;&gt;(documentWrapper -&gt; {
+        WebdavDocument webdavDocument = documentWrapper.getWebdavDocument();
+        if (webdavDocument == null) {
+            return null;
+        }
+
+        WebdavDocumentVersion lastVersion = webdavDocument.getLastVersion();
+        Date lastModifiedDate = lastVersion.getCreatedDate();
+        dateFormatter.setFormat("MMM dd, yyyy");
+        return dateFormatter.apply(lastModifiedDate);
+    });
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="download-button"><a class="anchor" href="#download-button"></a>Adding Download Button</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s add a <strong>Download</strong> button to the WebDAV documents data grid. Using this button, users with the <em>Employees</em> role would be able to force a download of the selected WebDAV file.</p>
+</div>
+<div class="paragraph">
+<p>First add a <code>download</code> action to <code>webdavDocumentWrappersDataGrid</code>. Then, in the <code>buttonsPanel</code> <code>hbox</code>, add a button and associate it with the newly created action.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox expand="webdavDocumentWrappersDataGrid"&gt;
+     &lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+         &lt;!--...--&gt;
+         &lt;button id="downloadBtn" action="webdavDocumentWrappersDataGrid.download" icon="vaadin:download"/&gt;
+     &lt;/hbox&gt;
+     &lt;dataGrid width="100%" id="webdavDocumentWrappersDataGrid" dataContainer="webdavDocumentWrappersDc"&gt;
+         &lt;actions&gt;
+             &lt;!--...--&gt;
+             &lt;action id="download" text="msg://download" type="list_itemTracking"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+         &lt;/actions&gt;
+         &lt;!--...--&gt;
+     &lt;/dataGrid&gt;
+     &lt;!--...--&gt;
+&lt;/vbox&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>list_itemTracking</code> action will automatically become active only when a specific item is selected in the associated <code>dataGrid</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Generate an <code>ActionPerformedEvent</code> handler method for the <code>download</code> action. Add the logic to it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataGrid&lt;WebdavDocumentWrapper&gt; webdavDocumentWrappersDataGrid;
+
+@Autowired
+private Downloader downloader; <i class="conum" data-value="1"></i><b>(1)</b>
+
+@Subscribe("webdavDocumentWrappersDataGrid.download")
+public void onWebdavDocumentWrappersDataGridDownload(final ActionPerformedEvent event) {
+    WebdavDocumentWrapper webdavDocumentWrapper = webdavDocumentWrappersDataGrid.getSingleSelectedItem();
+    if (webdavDocumentWrapper == null) {
+        return;
+    }
+
+    WebdavDocument webdavDocument = webdavDocumentWrapper.getWebdavDocument();
+    if (webdavDocument == null) {
+        return;
+    }
+    WebdavDocumentVersion lastVersion = webdavDocument.getLastVersion(); <i class="conum" data-value="2"></i><b>(2)</b>
+    FileRef fileReference = lastVersion.getFileReference(); <i class="conum" data-value="3"></i><b>(3)</b>
+    downloader.download(fileReference); <i class="conum" data-value="4"></i><b>(4)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Use the <a class="xref page" href="../files/downloading-files.html#downloader">Downloader</a> bean to download files.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Get the last of <code>WebdavDocumentVersion</code> instance - specific version of a document managed within the WebDAV system.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The returned <code>FileRef</code> object is a reference to the file in the file storage.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <code>download()</code> method accepts the <code>FileRef</code> value and takes the file from the file storage specified in the <code>FileRef</code> object. The name and type of the file are also encoded in <code>FileRef</code>, so the web browser correctly chooses whether to download or display the file.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="running-application"><a class="anchor" href="#running-application"></a>Running the Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Navigate to <code>https://localhost:8443</code> using your web browser and sign in to the application with the credentials <code>admin/admin</code>.</p>
+</div>
+<div class="paragraph">
+<p>Choose the <code>Knowledge base</code> item from the <code>Application</code> menu.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="knowledge base with renderers" src="_images/knowledge-base-with-renderers.png" width="1451"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>Last modified by</strong> column displays the author of the latest modifications to the WebDav file, while the <strong>Last modified date</strong> column shows the date of the last modifications to the WebDav file.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>Download</strong> button allows users to download the selected WebDAV document.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you have learned that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The data in data grid columns can be presented using <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#renderers">renderers</a>. Renderers provide a way to customize how the data is displayed in each column of a data grid.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../files/downloading-files.html#downloader">Downloader</a> bean is used to download files.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

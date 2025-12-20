@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Chart :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Bar Chart</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, you will:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Integrate a chart with multiple <a class="xref page" href="chart-component.html#series">series</a></p>
+</li>
+<li>
+<p>Add <code>title</code>, <code>tooltip</code>, <code>legend</code> elements</p>
+</li>
+<li>
+<p>Bind data through a data container</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="multiple-series-chart"><a class="anchor" href="#multiple-series-chart"></a>Multiple Series Chart Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You will integrate a chart component that combines a <code>bar</code> <a class="xref page" href="chart-component.html#series">series</a> to represent employees' salaries and a <code>line</code> series to display their total assessment scores.</p>
+</div>
+<div class="sect2">
+<h3 id="series"><a class="anchor" href="#series"></a>Setting Chart Series</h3>
+<div class="paragraph">
+<p>Double-click on <code>user-list-view.xml</code> in the <strong>Jmix</strong> tool window. First, click on the <code>formLayout</code> element where your chart will be located.</p>
+</div>
+<div class="paragraph">
+<p>To add a <code>chart</code> element, choose <strong>Add Component</strong> in the actions panel, select the <strong>Chart</strong> item.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="adding charts" src="_images/adding-charts.png" width="331"/>
+</div>
+</div>
+<div class="paragraph">
+<p>This will automatically add the charts namespace to your root tag, if you haven’t added it in this file yet.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+    xmlns:charts="http://jmix.io/schema/charts/ui" /&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As well as the <code>&lt;charts:chart/&gt;</code> element in the <code>formLayout</code>. Configure the <code>id</code>, <code>height</code> and <code>width</code> attributes as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:chart id="bar" width="40em" height="100%" minHeight="30em" alignSelf="STRETCH"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To pick your charts type you need the series attribute.
+Select the <code>chart</code> element in the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, then click on the <strong>Add</strong> button in the inspector panel. Choose <strong>Series → Bar</strong> from the drop-down list.</p>
+</div>
+<div class="paragraph">
+<p>To include the <code>line</code> series to your chart, choose the <code>series</code> element and pick <strong>Add → Line</strong>. Add a name property for both chart types: <code>Salary</code> and <code>AssesmentTotal</code> respectively.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:series&gt;
+    &lt;charts:bar name="Salary"/&gt;
+    &lt;charts:line name="Assessment Total"/&gt;
+&lt;/charts:series&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="axes"><a class="anchor" href="#axes"></a>Adding Axes</h3>
+<div class="paragraph">
+<p>The <code>Bar</code>, <code>scatter</code>, <code>line</code> charts need <code>yAxes</code> and <code>xAxes</code> elements to display the chart’s values.
+To add an X axis, click on the charts element and choose <strong>Add → XAxes → XAxis</strong>. Your chart X axis will display the names of the employees.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:xAxes&gt;
+    &lt;charts:xAxis/&gt;
+&lt;/charts:xAxes&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Since the chart has two different data types with varying scales, you need to configure two Y axes separately.
+To configure the first Y-axis for displaying employees' salaries, click on the <code>chart</code> element and pick <strong>Add → XAxes → XAxis</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Add the <code>name="Salary"</code> attribute in the <code>XAxis</code> element and configure its position and alignment.</p>
+</div>
+<div class="paragraph">
+<p>The values in the database are stored as multiples of 100,000. To display these values in a format scaled down to hundreds, add the <code>axisLabel</code> element under <code>YAxis</code> and set the formatterFunction attribute as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:yAxis name="Salary" position="LEFT" alignTicks="true"&gt;
+    &lt;charts:axisLabel
+            formatterFunction="function(value){return value / 100;}"/&gt;
+&lt;/charts:yAxis&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>formatterFunction</code> attribute defines a JavaScript function which is called to adjust the format of the tick values on the axis.
+In the example above, the function divides the incoming <code>value</code> by <code>1000</code> to adjust the scale from hundreds of thousands to hundreds.</p>
+</div>
+<div class="paragraph">
+<p>To add the second Y axis, choose the <code>YAxes</code> element and pick <strong>Add → XAxis</strong>, configure the axis' name, position and ticks alignment as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:yAxis name="Assessment Total" position="RIGHT" alignTicks="true"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, map each Y axis with its respective series by adding <code>yAxisIndex</code> attributes in the <code>bar</code> and <code>line</code> series respectively as shown below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:series&gt;
+    &lt;charts:bar name="Salary" yAxisIndex="0"/&gt;
+    &lt;charts:line name="Assessment Total" yAxisIndex="1"/&gt;
+&lt;/charts:series&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="properties"><a class="anchor" href="#properties"></a>Adding Chart Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now, you will add optional properties to your chart such as <code>title</code>, <code>tooltip</code>, and <code>legend</code> to provide more context.</p>
+</div>
+<div class="sect2">
+<h3 id="title"><a class="anchor" href="#title"></a>Title</h3>
+<div class="paragraph">
+<p>By default, the <code>title</code> text appears at the top of the chart. To add a title, select the <code>chart</code> element, then choose <strong>Add → Title</strong> from the inspector panel. Configure the <code>text</code> attribute to describe what the chart represents, i.e. <code>Salary &amp; Assessment Total</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:title text="Salary &amp;amp; Assessment Total"/&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="tooltip"><a class="anchor" href="#tooltip"></a>Tooltip</h3>
+<div class="paragraph">
+<p>The <code>tooltip</code> attribute provides detailed information when users hover over different parts of the chart. To add a <code>tooltip</code> attribute, select the <code>chart</code> element, then choose <strong>Add → Tooltip</strong>. Set the trigger attribute to "AXIS" to show tooltips for all items in the same category.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:tooltip trigger="AXIS"&gt;
+    &lt;charts:axisPointer type="SHADOW"/&gt;
+&lt;/charts:tooltip&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="legend"><a class="anchor" href="#legend"></a>Legend</h3>
+<div class="paragraph">
+<p>The <code>legend</code> attribute helps users distinguish different categories on the chart. It is configured automatically based on the chart’s data. To add a <code>legend</code> attribute, select the <code>chart</code> element, then choose <strong>Add → Legend</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:legend/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding Using Data Container</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First, you need to load all users except the <code>Admin</code>.</p>
+</div>
+<div class="paragraph">
+<p>Create a new <a class="xref page" href="../flow-ui/data/data-containers.html"><code>collectionContainer</code></a> under the <code>data</code> element with the <code>employeesDc</code> name and the corresponding JPQL <code>query</code> as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;collection id="employeesDc"
+            class="com.company.onboarding.entity.User"&gt;
+    &lt;fetchPlan extends="_base"&gt;
+        &lt;property name="department" fetchPlan="_base"/&gt;
+    &lt;/fetchPlan&gt;
+    &lt;loader id="employeesDl" readOnly="true"&gt;
+        &lt;query&gt;
+            &lt;![CDATA[select e from User e where e.username &lt;&gt; 'admin']]&gt;
+        &lt;/query&gt;
+    &lt;/loader&gt;
+&lt;/collection&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To include the loaded data to the chart, select the <code>chart</code> element and add a <code>dataSet</code> attribute manually.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:dataSet/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inside the <code>dataSet</code> element, choose the <code>employeesDc</code> container as your <code>source</code> and configure the <code>categoryField</code> as your X axis, and <code>valueFields</code> as your Y axes as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:dataSet&gt;
+    &lt;charts:source dataContainer="employeesDc"
+                   categoryField="username" valueFields="salary assessmentTotal"/&gt;
+&lt;/charts:dataSet&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By the end of this tutorial, your bar chart XML configuration will be as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;charts:chart id="bar" width="40em" height="100%" minHeight="30em" alignSelf="STRETCH"&gt;
+    &lt;charts:title text="Salary &amp;amp; Assessment Total"/&gt;
+    &lt;charts:tooltip trigger="AXIS"&gt;
+        &lt;charts:axisPointer type="SHADOW"/&gt;
+    &lt;/charts:tooltip&gt;
+    &lt;charts:legend/&gt;
+
+    &lt;charts:dataSet&gt;
+        &lt;charts:source dataContainer="employeesDc"
+                       categoryField="username" valueFields="salary assessmentTotal"/&gt;
+    &lt;/charts:dataSet&gt;
+
+    &lt;charts:xAxes&gt;
+        &lt;charts:xAxis/&gt;
+    &lt;/charts:xAxes&gt;
+    &lt;charts:yAxes&gt;
+        &lt;charts:yAxis name="Salary" position="LEFT" alignTicks="true"&gt;
+            &lt;charts:axisLabel
+                    formatterFunction="function(value){return value / 100;}"/&gt;
+        &lt;/charts:yAxis&gt;
+        &lt;charts:yAxis name="Assessment Total" position="RIGHT" alignTicks="true"/&gt;
+    &lt;/charts:yAxes&gt;
+
+    &lt;!-- Add yAxisIndex for each series to bind yAxis to their corresponding data --&gt;
+    &lt;charts:series&gt;
+        &lt;charts:bar name="Salary" yAxisIndex="0"/&gt;
+        &lt;charts:line name="Assessment Total" yAxisIndex="1"/&gt;
+    &lt;/charts:series&gt;
+&lt;/charts:chart&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This chart provides a visualization of the employees’ salaries and total assessment score.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="bar res" src="_images/bar-res.png" width="1136"/>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

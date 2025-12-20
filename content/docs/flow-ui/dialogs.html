@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dialogs :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Dialogs</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/dialogs-and-notifications" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>The <code>Dialogs</code> interface is designed to display standard dialog windows. A dialog window is a small popup window that you can use to present information and user interface elements in an overlay.</p>
+</div>
+<div class="paragraph">
+<p>The <code>createMessageDialog()</code>, <code>createOptionDialog()</code>, and <code>createInputDialog()</code> methods are the entry points to the fluent API that allows you to construct and show dialogs.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="message-dialog"><a class="anchor" href="#message-dialog"></a>Message Dialog</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A message dialog shows a message to the user.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="message dialog" src="_images/dialogs/message-dialog.png" width="399"/>
+</div>
+</div>
+<div class="paragraph">
+<p>In the following example, a message dialog is shown when the user clicks a button:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Dialogs dialogs;
+@Autowired
+private DatatypeRegistry datatypeRegistry;
+@Autowired
+private Notifications notifications;
+
+@Subscribe("messageDialogButton")
+public void onHelloButtonClick(ClickEvent&lt;Button&gt; event) {
+    dialogs.createMessageDialog()
+            .withHeader("Success") <i class="conum" data-value="1"></i><b>(1)</b>
+            .withText("Invitation sent successfully") <i class="conum" data-value="2"></i><b>(2)</b>
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Adds a dialog header.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Adds a text message to show in the dialog.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following methods allow you to customize the look and behavior of the message dialog:</p>
+</div>
+<div class="paragraph">
+<p><a href="#with-header">withHeader</a> -
+<a href="#with-width">withWidth</a> -
+<a href="#with-height">withHeight</a> -
+<a href="#with-left">withLeft</a> -
+<a href="#with-top">withTop</a> -
+<a href="#with-text">withText</a> -
+<a href="#with-content">withContent</a> -
+<a href="#with-modal">withModal</a> -
+<a href="#with-themeName">withThemeName</a> -
+<a href="#with-className">withClassName</a> -
+<a href="#with-draggable">withDraggable</a> -
+<a href="#with-resizable">withResizable</a> -
+<a href="#with-min-max-sizes">withMinWidth</a> -
+<a href="#with-min-max-sizes">withMaxWidth</a> -
+<a href="#with-min-max-sizes">withMaxWidth</a> -
+<a href="#with-min-max-sizes">withMaxHeight</a> -
+<a href="#with-closeOnOutsideClick">withCloseOnOutsideClick</a> -
+<a href="#with-closeOnEsc">withCloseOnEsc</a> -
+<a href="#with-draggedListener">withDraggedListener</a> -
+<a href="#with-resizeListener">withResizeListener</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="option-dialog"><a class="anchor" href="#option-dialog"></a>Option Dialog</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The option dialog displays a message and a set of buttons for user reaction.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="option dialog" src="_images/dialogs/option-dialog.png" width="400"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the <code>withActions()</code> method to provide <a class="xref page" href="actions.html">actions</a>, each of which is represented by a button in the dialog. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Dialogs dialogs;
+@Autowired
+private DatatypeRegistry datatypeRegistry;
+@Autowired
+private Notifications notifications;
+
+@Subscribe("selectOptionButton")
+public void onSelectOptionButtonClick(ClickEvent&lt;Button&gt; event) {
+    dialogs.createOptionDialog()
+            .withHeader("Please confirm")
+            .withText("Do you really want to add a customer?")
+            .withActions(
+                    new DialogAction(DialogAction.Type.YES)
+                            .withHandler(e -&gt; addCustomer()), <i class="conum" data-value="1"></i><b>(1)</b>
+                    new DialogAction(DialogAction.Type.NO)
+            )
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>If you click Yes, the dialog closes and invokes the corresponding <code>addCustomer()</code> action method.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>DialogAction</code> base class is designed to create actions with standard names and icons. Five types of actions, defined by the <code>DialogAction.Type</code> enum, are supported: <code>OK</code>, <code>CANCEL</code>, <code>YES</code>, <code>NO</code>, <code>CLOSE</code>. Names of buttons are extracted from the <a class="xref page" href="../localization/message-bundles.html">message bundle</a>.</p>
+</div>
+<div class="paragraph">
+<p>The following methods allow you to customize the look and behavior of the option dialog:</p>
+</div>
+<div class="paragraph">
+<p><a href="#with-header">withHeader</a> -
+<a href="#with-width">withWidth</a> -
+<a href="#with-height">withHeight</a> -
+<a href="#with-left">withLeft</a> -
+<a href="#with-top">withTop</a> -
+<a href="#with-text">withText</a> -
+<a href="#with-content">withContent</a> -
+<a href="#with-themeName">withThemeName</a> -
+<a href="#with-className">withClassName</a> -
+<a href="#with-draggable">withDraggable</a> -
+<a href="#with-resizable">withResizable</a> -
+<a href="#with-min-max-sizes">withMinWidth</a> -
+<a href="#with-min-max-sizes">withMaxWidth</a> -
+<a href="#with-min-max-sizes">withMaxWidth</a> -
+<a href="#with-min-max-sizes">withMaxHeight</a> -
+<a href="#with-draggedListener">withDraggedListener</a> -
+<a href="#with-resizeListener">withResizeListener</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="background-task-dialog"><a class="anchor" href="#background-task-dialog"></a>Background Task Dialog</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Background task dialog provides a user-friendly experience for long-running tasks, where the user can monitor progress and cancel the operation if needed.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+For more information on the background tasks mechanism, please see the <a class="xref page" href="background-tasks.html">Background Tasks</a> article.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="backgroundtask dialog" src="_images/dialogs/backgroundtask-dialog.png" width="402"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To configure a dialog, provide it with a background task object:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Dialogs dialogs;
+@Autowired
+private DatatypeRegistry datatypeRegistry;
+@Autowired
+private Notifications notifications;
+
+@Subscribe(id = "backgroundTaskButton", subject = "singleClickListener")
+public void onBackgroundTaskClick(final ClickEvent&lt;JmixButton&gt; event) {
+    dialogs.createBackgroundTaskDialog(new SampleTask(15, this, 10)) <i class="conum" data-value="1"></i><b>(1)</b>
+            .withHeader("Background task running")
+            .withText("Please wait until the task is complete")
+            .withTotal(10) <i class="conum" data-value="2"></i><b>(2)</b>
+            .withCancelAllowed(true) <i class="conum" data-value="3"></i><b>(3)</b>
+            .open();
+}
+
+protected class SampleTask extends BackgroundTask&lt;Integer, Void&gt; {
+    int count;
+
+    public SampleTask(long timeoutSeconds, View&lt;?&gt; view, int count) {
+        super(timeoutSeconds, view);
+        this.count = count;
+    }
+
+    @Override
+    public Void run(TaskLifeCycle&lt;Integer&gt; taskLifeCycle) throws Exception {
+        for (int i = 1; i &lt; count + 1; i++) {
+            Thread.sleep(1000);
+            taskLifeCycle.publish(i);
+        }
+        return null;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Pass a background task object to the dialog.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Set the number of progress bar sections based on the number of tasks.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Allow user to interrupt the task.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following methods allow you to customize the look and behavior of the background task dialog:</p>
+</div>
+<div class="paragraph">
+<p><a href="#with-header">withHeader</a> -
+<a href="#with-width">withWidth</a> -
+<a href="#with-height">withHeight</a> -
+<a href="#with-left">withLeft</a> -
+<a href="#with-top">withTop</a> -
+<a href="#with-text">withText</a> -
+<a href="#with-content">withContent</a> -
+<a href="#with-themeName">withThemeName</a> -
+<a href="#with-className">withClassName</a> -
+<a href="#with-draggable">withDraggable</a> -
+<a href="#with-resizable">withResizable</a> -
+<a href="#with-min-max-sizes">withMinWidth</a> -
+<a href="#with-min-max-sizes">withMaxWidth</a> -
+<a href="#with-min-max-sizes">withMaxWidth</a> -
+<a href="#with-min-max-sizes">withMaxHeight</a> -
+<a href="#with-draggedListener">withDraggedListener</a> -
+<a href="#with-resizeListener">withResizeListener</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="input-dialog"><a class="anchor" href="#input-dialog"></a>Input Dialog</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Input dialog is a versatile tool that allows you to construct input forms using API and often saves you from creating screens for trivial data input. It enables entering values of different types, validates the input, and provides different actions to be selected by the user.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="input dialog" src="_images/dialogs/input-dialog.png" width="560"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The following methods allow you to customize the look and behavior of the input dialog:</p>
+</div>
+<div class="paragraph">
+<p><a href="#with-header">withHeader</a> -
+<a href="#with-width">withWidth</a> -
+<a href="#with-height">withHeight</a> -
+<a href="#with-left">withLeft</a> -
+<a href="#with-top">withTop</a> -
+<a href="#with-text">withText</a> -
+<a href="#with-draggable">withDraggable</a> -
+<a href="#with-draggedListener">withDraggedListener</a></p>
+</div>
+<div class="paragraph">
+<p>Let’s consider some examples.</p>
+</div>
+<div class="sect2">
+<h3 id="standard-parameters"><a class="anchor" href="#standard-parameters"></a>Standard Parameters</h3>
+<div class="paragraph">
+<p>Use the <code>withParameters()</code> method to add parameters, each of which will be represented by an input field in the dialog.
+The following example creates an input dialog with parameters of standard types and standard <code>OK/Cancel</code> actions:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Dialogs dialogs;
+@Autowired
+private DatatypeRegistry datatypeRegistry;
+@Autowired
+private Notifications notifications;
+
+@Subscribe("standardParametersButton")
+public void onStandardParametersButtonClick(ClickEvent&lt;Button&gt; event) {
+    dialogs.createInputDialog(this)
+            .withHeader("Enter values")
+            .withParameters(
+                    stringParameter("name").withLabel("Name").withRequired(true), <i class="conum" data-value="1"></i><b>(1)</b>
+                    intParameter("amount").withLabel("Amount").withDefaultValue(1), <i class="conum" data-value="2"></i><b>(2)</b>
+                    entityParameter("user", User.class).withLabel("User"), <i class="conum" data-value="3"></i><b>(3)</b>
+                    enumParameter("status", OnboardingStatus.class).withLabel("Status") <i class="conum" data-value="4"></i><b>(4)</b>
+            )
+            .withActions(DialogActions.OK_CANCEL) <i class="conum" data-value="5"></i><b>(5)</b>
+            .withCloseListener(closeEvent -&gt; {
+                if (closeEvent.closedWith(DialogOutcome.OK)) { <i class="conum" data-value="6"></i><b>(6)</b>
+                    String name = closeEvent.getValue("name"); <i class="conum" data-value="7"></i><b>(7)</b>
+                    int amount = closeEvent.getValue("amount");
+                    User user = closeEvent.getValue("user");
+                    OnboardingStatus status = closeEvent.getValue("status");
+                    // process entered values...
+                }
+            })
+            .open();
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Specifies a mandatory string parameter.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Specifies an integer parameter with the default value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Specifies an entity parameter.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Specifies an enumeration parameter.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Specifies standard <code>OK/Cancel</code> actions represented by buttons at the bottom of the dialog.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>In the close listener, we can check what action was used by the user.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>The close event contains entered values that can be obtained using parameter identifiers.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="custom-paramters"><a class="anchor" href="#custom-paramters"></a>Custom Parameters</h3>
+<div class="paragraph">
+<p>The following example illustrates creating a custom parameter that lets the user select a value from a combobox:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Dialogs dialogs;
+@Autowired
+private DatatypeRegistry datatypeRegistry;
+@Autowired
+private Notifications notifications;
+
+@Autowired
+private DataManager dataManager;
+@Autowired
+private UiComponents uiComponents;
+
+@Subscribe("customParameterButton")
+public void onCustomParameterButtonClick(ClickEvent&lt;Button&gt; event) {
+    dialogs.createInputDialog(this)
+            .withHeader("Enter values")
+            .withParameters(
+                    stringParameter("name").withLabel("Name").withRequired(true),
+                    intParameter("amount").withLabel("Amount").withDefaultValue(1),
+                    parameter("user") <i class="conum" data-value="1"></i><b>(1)</b>
+                            .withLabel("User")
+                            .withField(() -&gt; {
+                                EntityComboBox&lt;User&gt; field = uiComponents.create(EntityComboBox.class); <i class="conum" data-value="2"></i><b>(2)</b>
+                                field.setItems(dataManager.load(User.class).all().list()); <i class="conum" data-value="3"></i><b>(3)</b>
+                                field.setWidthFull();
+                                return field;
+                            }),
+                    enumParameter("status", OnboardingStatus.class).withLabel("Status")
+            )
+            .withActions(DialogActions.OK_CANCEL).withCloseListener(closeEvent -&gt; {
+                if (closeEvent.closedWith(DialogOutcome.OK)) {
+                    String name = closeEvent.getValue("name");
+                    int amount = closeEvent.getValue("amount");
+                    User user = closeEvent.getValue("user");
+                    OnboardingStatus status = closeEvent.getValue("status");
+                    // process entered values...
+                }
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Specifies a custom parameter.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Creates a combobox within a custom parameter field.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Loads a list of options into the combobox.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When using the <code>InputParameter.withField()</code> method, only the <code>label</code> attribute from the <code>InputParameter</code> is propagated to the created field. Other attributes set on the <code>InputParameter</code> are <strong>not</strong> automatically applied to the field created inside the <code>withField()</code> lambda.</p>
+</div>
+<div class="paragraph">
+<p>The following <code>InputParameter</code> attributes are <strong>not</strong> propagated when using <code>withField()</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>required</code></p>
+</li>
+<li>
+<p><code>requiredMessage</code></p>
+</li>
+<li>
+<p><code>datatype</code></p>
+</li>
+<li>
+<p><code>defaultValue</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This is because you are fully responsible for manually creating and configuring the field inside the lambda. Therefore, all additional settings except for the <code>label</code> must be explicitly applied.</p>
+</div>
+<div class="paragraph">
+<p>In the example below, important attributes like <code>datatype</code> and <code>required</code> need to be set manually on the created field. If you rely solely on <code>withField()</code> without explicitly configuring these attributes, they will not be applied automatically.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">parameter("passedDate")
+        .withLabel("Date")
+        .withField(() -&gt; {
+            TypedDatePicker&lt;LocalDate&gt; datePicker = uiComponents.create(TypedDatePicker.class);
+            datePicker.setDatatype(datatypeRegistry.get(LocalDate.class));
+            datePicker.setRequired(true);
+            return datePicker;
+        })</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you do not need to customize the field manually, you can simply configure the attributes directly on the <code>InputParameter</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">InputParameter.parameter("passedDate")
+        .withLabel("Date")
+        .withRequired(true)
+        .withDatatype(datatypeRegistry.get(LocalDate.class))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, Jmix will automatically create the field and apply all specified attributes.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="custom-validator"><a class="anchor" href="#custom-validator"></a>Custom Validator</h3>
+<div class="paragraph">
+<p>The dialog enables some basic validation from the start: it can validate the type of entered values or check that the required field is not empty. On top of it you can add more general, custom validators.</p>
+</div>
+<div class="paragraph">
+<p>The following example adds a validator checking that at least one parameter is entered:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Dialogs dialogs;
+@Autowired
+private DatatypeRegistry datatypeRegistry;
+@Autowired
+private Notifications notifications;
+
+@Subscribe("validationButton")
+public void onValidationButtonClick(ClickEvent&lt;Button&gt; event) {
+    dialogs.createInputDialog(this)
+            .withHeader("Enter at least one value")
+            .withParameters(
+                    stringParameter("name").withLabel("Name").withRequired(true),
+                    entityParameter("User", User.class).withLabel("User")
+            )
+            .withValidator(context -&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+                String name = context.getValue("name"); <i class="conum" data-value="2"></i><b>(2)</b>
+                User user = context.getValue("user");
+                if (Strings.isNullOrEmpty(name) &amp;&amp; user == null) {
+                    return ValidationErrors.of("Enter name or select a customer"); <i class="conum" data-value="3"></i><b>(3)</b>
+                }
+                return ValidationErrors.none();
+            })
+            .withActions(DialogActions.OK_CANCEL)
+            .withCloseListener(closeEvent -&gt; {
+                if (closeEvent.closedWith(DialogOutcome.OK)) {
+                    String name = closeEvent.getValue("name");
+                    User user = closeEvent.getValue("user");
+                    // process entered values...
+                }
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The custom validator adding logic to ensure at least one parameter is entered.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>In the validator, parameter values can be obtained from the context object.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The validator returns validation errors if no parameters are entered.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dialog-configuration"><a class="anchor" href="#dialog-configuration"></a>Dialog Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can customize the header, size, and position of all dialogs using the following methods:</p>
+</div>
+<div class="ulist" id="with-header">
+<ul>
+<li>
+<p><code>withHeader()</code> - sets the header text.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-width">
+<ul>
+<li>
+<p><code>withWidth()</code> - sets the dialog width.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-height">
+<ul>
+<li>
+<p><code>withHeight()</code> - sets the dialog height.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-left">
+<ul>
+<li>
+<p><code>withLeft()</code> - sets the dialog’s left offset from its container (unitless values are interpreted as pixels)</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-top">
+<ul>
+<li>
+<p><code>withTop()</code> - sets the dialog’s top offset (unitless values are interpreted as pixels)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "configDialogButton", subject = "clickListener")
+public void onConfigDialogButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    dialogs.createMessageDialog()
+            .withHeader("Information")
+            .withWidth("600px")
+            .withHeight("200px")
+            .withTop("100px")
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Additional appearance and behavior configurations are available for specific dialog types:</p>
+</div>
+<div class="ulist" id="with-text">
+<ul>
+<li>
+<p><code>withText()</code> - sets the text message to be displayed in the dialog.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-content">
+<ul>
+<li>
+<p><code>withContent()</code> - sets the dialog’s content. This is text rendered within a <code>Paragraph</code> component. Note that this overrides any text previously set via <code>withText()</code>.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Text formatting is available with HTML - the dialog can display HTML content using the <code>withContent()</code> method. A given HTML fragment must be encapsulated in a component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Dialogs dialogs;
+@Autowired
+private DatatypeRegistry datatypeRegistry;
+@Autowired
+private Notifications notifications;
+
+Html htmlContent = new Html("&lt;p&gt;Here starts a paragraph. A new line starts after this.&lt;br /&gt;" +
+        "&lt;b&gt;This text is bold.&lt;/b&gt; &lt;i&gt;This text is italic.&lt;/i&gt;&lt;/p&gt;");
+
+@Subscribe("htmlContentButton")
+public void onHtmlContentButtonClick(ClickEvent&lt;Button&gt; event) {
+    dialogs.createMessageDialog()
+            .withHeader("HTML Formatting")
+            .withContent(htmlContent)
+            .open();
+}</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-modal">
+<ul>
+<li>
+<p><code>withModal()</code> - when set to <code>false</code>, displays the dialog as non-modal, allowing interaction with other application components. Dialogs are modal by default.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-themeName">
+<ul>
+<li>
+<p><code>withThemeName()</code> - sets the dialog’s theme name(s), replacing any previously set values.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-className">
+<ul>
+<li>
+<p><code>withClassName()</code> - sets the CSS class name(s) for the component, replacing all previously defined classes.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-draggable">
+<ul>
+<li>
+<p><code>withDraggable()</code> - sets whether dialog is enabled to be dragged by the user or not. Dialogs are draggable by default.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-resizable">
+<ul>
+<li>
+<p><code>withResizable()</code> - sets whether dialog can be resized by user or not.
+By default, the dialog is not resizable.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-min-max-sizes">
+<ul>
+<li>
+<p><code>withMinWidth()</code>, <code>withMaxWidth()</code>, <code>withMaxWidth()</code>, <code>withMaxHeight()</code> - set the dialog’s minimum/maximum width and height dimensions respectively.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-closeOnOutsideClick">
+<ul>
+<li>
+<p><code>withCloseOnOutsideClick()</code> - controls whether clicking outside the dialog closes it. By default, the dialog is closable with an outside click.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-closeOnEsc">
+<ul>
+<li>
+<p><code>withCloseOnEsc()</code> - controls whether pressing <code>ESC</code> closes the dialog. By default, the dialog is closable with <code>ESC</code>.</p>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-draggedListener">
+<ul>
+<li>
+<p><code>withDraggedListener()</code> - registers a callback invoked after user dragging completes. It is called only if dragging is enabled.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+By default, the component will sync the top/left values after every dragging.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "dragDialogButton", subject = "clickListener")
+public void onDragDialogButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    dialogs.createMessageDialog()
+            .withHeader("Drag this dialog")
+            .withDraggedListener(dialogDraggedEvent -&gt; {
+                String left = dialogDraggedEvent.getLeft();
+                String top = dialogDraggedEvent.getTop();
+
+                try {
+                    int leftValue = Integer.parseInt(left.replace("px", ""));
+                    int topValue = Integer.parseInt(top.replace("px", ""));
+
+                    if (leftValue &lt; 300 &amp;&amp; topValue &lt; 200) {
+                        notifications.create("Dialog is in the upper left corner").show();
+                    } else if (leftValue &gt; 800 &amp;&amp; topValue &gt; 500) {
+                        notifications.create("Dialog is in the lower right corner").show();
+                    } else {
+                        notifications.create("Dialog is in a neutral area").show();
+                    }
+                } catch (NumberFormatException e) {
+                    notifications.create("Error: Invalid coordinates")
+                            .withType(Notifications.Type.WARNING)
+                            .show();
+                }
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="ulist" id="with-resizeListener">
+<ul>
+<li>
+<p><code>withResizeListener()</code> - registers a callback invoked after user resizing completes. It is called only if resizing is enabled.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+By default, the component will sync the width/height and top/left values after every resizing.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe(id = "resizeDialogButton", subject = "clickListener")
+public void onResizeDialogButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    dialogs.createMessageDialog()
+            .withHeader("Resize this dialog")
+            .withResizable(true)
+            .withResizeListener(dialogResizeEvent -&gt; {
+                String width = dialogResizeEvent.getWidth();
+                String height = dialogResizeEvent.getHeight();
+                try {
+                    int widthValue = Integer.parseInt(width);
+                    int heightValue = Integer.parseInt(height);
+
+                    if (widthValue &lt; 400 || heightValue &lt; 300) {
+                        notifications.create("Minimum size: 400×300")
+                                .withType(Notifications.Type.WARNING)
+                                .show();
+                    }
+                } catch (NumberFormatException e) {
+                    notifications.create("Error: Invalid coordinates")
+                            .withType(Notifications.Type.WARNING)
+                            .show();
+                }
+            })
+            .open();
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

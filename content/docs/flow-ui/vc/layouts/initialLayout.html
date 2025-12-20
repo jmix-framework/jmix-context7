@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>initialLayout :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">initialLayout</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>initialLayout</code> component is a layout that will be displayed when no views are opened in the <a class="xref page" href="../../views/view-classes.html#standard-main-view">main view</a>. This component can be useful when you need to show some default content, such as a logo or dashboard, before any other views are opened.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>XML element: <code>initialLayout</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>initialLayout</code> is a nested element of the <code>appLayout</code> component.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+To add a nested <code>initialLayout</code> element in Jmix Studio, select the <code>appLayout</code> element in the main view descriptor XML or in the <strong>Jmix UI</strong> structure panel and click on the <a class="xref page" href="../../../studio/view-designer.html#component-inspector-add-button">Add</a><strong>→InitialLayout</strong> button in the <strong>Jmix UI</strong> inspector panel.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>An example of defining <code>initialLayout</code> in <code>main-view.xml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;mainView xmlns="http://jmix.io/schema/flowui/main-view"
+          title="msg://MainView.title"&gt;
+    &lt;appLayout&gt;
+        &lt;navigationBar .../&gt;
+        &lt;drawerLayout .../&gt;
+        &lt;initialLayout&gt;
+            &lt;image id="urlImage"
+                   resource="https://www.jmix.io/uploads/framework_image_9efadbc372.svg"
+                   width="100%"
+                   height="100%"/&gt;
+        &lt;/initialLayout&gt;
+    &lt;/appLayout&gt;
+&lt;/mainView&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When added in XML, the root <code>&lt;initialLayout&gt;</code> element effectively is <a class="xref page" href="vbox.html">VerticalLayout</a>.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, the <code>StandardMainView</code> Java API can be used to set/get the initial layout:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>getInitialLayout()</code> - returns the root component of the initial layout.</p>
+</li>
+<li>
+<p><code>setInitialLayout()</code> - sets a component that will be the initial layout.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Components inside <code>initialLayout</code> can be injected into the <code>MainView</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixImage&lt;Object&gt; urlImage;
+@Autowired
+private Notifications notifications;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    urlImage.setSrc("https://www.jmix.io/uploads/framework_image_9efadbc372.svg");
+    urlImage.setWidth("100%");
+    urlImage.setHeight("100%");
+}
+
+@Subscribe(id = "urlImage", subject = "singleClickListener")
+public void onUrlImageClick(final ClickEvent&lt;JmixImage&lt;?&gt;&gt; event) {
+    Notification.show("Clicked!");
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignItems">alignItems</a> -
+<a class="xref page" href="vbox.html#boxSizing">boxSizing</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="vbox.html#expand">expand</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="vbox.html#justifyContent">justifyContent</a> -
+<a class="xref page" href="vbox.html#margin">margin</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="vbox.html#padding">padding</a> -
+<a class="xref page" href="vbox.html#spacing">spacing</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="vbox.html#ClickEvent">ClickEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

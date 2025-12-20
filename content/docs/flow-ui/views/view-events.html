@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Events :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">View Events</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes the view lifecycle events that can be handled in controllers. To gain a general understanding of the sequence of events, see the <a href="#diagrams">diagrams</a> at the end of the section.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a view event handler stub in Jmix Studio, select the root <code>view</code> element in the <strong>Jmix UI</strong> structure panel and use the <strong>Handlers</strong> tab of the inspector panel.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, execute the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="init-event"><a class="anchor" href="#init-event"></a>InitEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>InitEvent</code> is the first event in the view opening process. The view and all its declaratively defined components are created, and dependency injection is completed. Some visual components are not fully initialized, for example, buttons are not linked with actions. In this event listener, you can create and/or initialize visual and data components.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixComboBox&lt;String&gt; timeZoneField;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    timeZoneField.setItems(List.of(TimeZone.getAvailableIDs()));
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The event is triggered only once after the view is created. This means that if the navigation to the view occurs for the first time, the event triggers. However, if navigation is performed to a view that is currently open, for example, by clicking on the same menu item multiple times, the event will not be triggered because the view instance has already been created.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="before-show-event"><a class="anchor" href="#before-show-event"></a>BeforeShowEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>BeforeShowEvent</code> is the second event (after <code>View.InitEvent</code>) in the view opening process. All components have completed their internal initialization procedures. <a class="xref page" href="../data/data-loaders.html">Data loaders</a> have been triggered by the automatically configured <a class="xref page" href="../facets/dataLoadCoordinator.html">DataLoadCoordinator</a> facet. Security policies are applied to UI components. In this event listener, you can load data, check permissions and modify UI components. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionLoader&lt;User&gt; usersDl;
+
+@Subscribe
+public void onBeforeShow(final BeforeShowEvent event) {
+    usersDl.load();
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Consequent navigation to a view that is currently open, leads to triggering <code>BeforeShowEvent</code> again for the same instance of the view.</p>
+</div>
+<div class="paragraph">
+<p>For example, the user navigates to a view for the first time, the view instance is created and <code>BeforeShowEvent</code> is triggered. Then, the user clicks on the same menu item, navigating to the same opened view again, and <code>BeforeShowEvent</code> is triggered again for the same view instance. If the <code>BeforeShowEvent</code> listener adds components or loads data, it will be done twice, which could lead to duplicating components or reloading data.</p>
+</div>
+<div class="paragraph">
+<p><code>BeforeShowEvent</code> works this way, because in case of navigation, it is fired by Vaadin’s <code>BeforeEnterEvent</code> lifecycle event handler.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ready-event"><a class="anchor" href="#ready-event"></a>ReadyEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>ReadyEvent</code> is the last event (after <code>View.BeforeShowEvent</code>) in the view opening process. In this event listener, you can make final configuration of the view according to loaded data and show notifications or dialogs.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe
+public void onReady(final ReadyEvent event) {
+    notifications.show("Just opened");
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Consequent navigation to a view that is currently open, leads to triggering <code>View.ReadyEvent</code> again for the same instance of the view.</p>
+</div>
+<div class="paragraph">
+<p>For example, the user navigates to a view for the first time, the view instance is created and <code>View.ReadyEvent</code> is triggered. Then, the user clicks on the same menu item, navigating to the same opened view again, and <code>View.ReadyEvent</code> is triggered again for the same view instance. If the <code>View.ReadyEvent</code> listener adds components or loads data, it will be done twice, which could lead to duplicating components or reloading data.</p>
+</div>
+<div class="paragraph">
+<p><code>ReadyEvent</code> works this way, because in case of navigation, it is fired by Vaadin’s <code>AfterNavigationEvent</code> lifecycle event handler.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attach-event"><a class="anchor" href="#attach-event"></a>AttachEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>AttachEvent</code> is fired after a view is attached to the UI.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onAttachEvent(final AttachEvent event) {
+    log.debug("View is attached");
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This event is fired by Vaadin, since a view is a UI component too.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="before-close-event"><a class="anchor" href="#before-close-event"></a>BeforeCloseEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>BeforeCloseEvent</code> is the first event in the view closing process. The view is still displayed and fully functional. In this event listener, you can check any conditions and prevent closing using the <code>preventClose()</code> method of the event.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onBeforeClose(BeforeCloseEvent event) {
+    if (!isLicenseAgreementAccepted()) {
+        CloseAction action = event.getCloseAction();
+        if (action instanceof NavigateCloseAction navigateCloseAction) {
+            BeforeLeaveEvent beforeLeaveEvent = navigateCloseAction.getBeforeLeaveEvent();
+            beforeLeaveEvent.postpone();
+        }
+
+        event.preventClose();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you prevent closing the view, in case of navigation you need to postpone it too. Check the type of action and if it’s <code>NavigateCloseAction</code>, then obtain Vaadin’s <code>BeforeLeaveEvent</code> and call its <code>postpone()</code> method.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="after-close-event"><a class="anchor" href="#after-close-event"></a>AfterCloseEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>AfterCloseEvent</code> is the second event (after <code>View.BeforeCloseEvent</code>) in the view closing process. In this event listener, you can show notifications or dialogs after closing the view, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe
+public void onAfterClose(final AfterCloseEvent event) {
+    notifications.show("View is closed");
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="detach-event"><a class="anchor" href="#detach-event"></a>DetachEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>DetachEvent</code> is fired before a view is detached from the UI. This event listener can be used for releasing resources acquired by the view.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onDetachEvent(final DetachEvent event) {
+    log.debug("View is detached");
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This event is fired by Vaadin, since a view is a UI component too.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="query-parameters-change-event"><a class="anchor" href="#query-parameters-change-event"></a>QueryParametersChangeEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>QueryParametersChangeEvent</code> informs which query parameters a view was opened with. It is sent after <code>InitEvent</code> if the view was opened by navigation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private Span messageLabel;
+
+public void setMessage(String message) {
+    messageLabel.setText(message);
+}
+
+@Subscribe
+public void onQueryParametersChange(final QueryParametersChangeEvent event) {
+    event.getQueryParameters()
+            .getSingleParameter("message")
+            .ifPresent(this::setMessage);
+
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="init-entity-event"><a class="anchor" href="#init-entity-event"></a>InitEntityEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>InitEntityEvent</code> is fired in views inherited from <a class="xref page" href="view-classes.html#standard-detail-view">StandardDetailView</a> before the new entity instance is set to the edited entity container.</p>
+</div>
+<div class="paragraph">
+<p>Use this event listener to initialize default values in the new entity instance, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onInitEntity(final InitEntityEvent&lt;User&gt; event) {
+    User user = event.getEntity();
+    user.setOnboardingStatus(OnboardingStatus.NOT_STARTED);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="validation-event"><a class="anchor" href="#validation-event"></a>ValidationEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>ValidationEvent</code> is fired in views inherited from <code>StandardDetailView</code> when the view is saved. You can use this event listener to perform custom validation of the view.</p>
+</div>
+<div class="paragraph">
+<p>To report validation errors and abort the save process, use the <code>ValidationErrors</code> object returned by the <code>getErrors()</code> method of the event. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onValidation(final ValidationEvent event) {
+    if (entityStates.isNew(getEditedEntity())
+            &amp;&amp; !Objects.equals(passwordField.getValue(), confirmPasswordField.getValue())) {
+        event.getErrors().add("Passwords do not match");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the <code>ValidationErrors</code> object is not empty after the validation process, the saving operation will not be executed, and the view will display errors using the <code>ViewValidation.showValidationErrors()</code> method.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="view-validation.html">View Validation</a> for more information.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="before-save-vent"><a class="anchor" href="#before-save-vent"></a>BeforeSaveEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>BeforeSaveEvent</code> is fired in views inherited from <code>StandardDetailView</code> before saving the view <code>DataContext</code>. Use this event listener to prevent saving, alter entity attribute values before saving or/and interact with the user before save.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixPasswordField passwordField;
+@ViewComponent
+private JmixPasswordField confirmPasswordField;
+
+@Autowired
+private EntityStates entityStates;
+@Autowired
+private PasswordEncoder passwordEncoder;
+
+@Subscribe
+public void onBeforeSave(final BeforeSaveEvent event) {
+    if (entityStates.isNew(getEditedEntity())) {
+        if (!Objects.equals(passwordField.getValue(), confirmPasswordField.getValue())) {
+            notifications.create("Passwords do not match")
+                    .withType(Notifications.Type.WARNING)
+                    .show();
+            event.preventSave(); <i class="conum" data-value="1"></i><b>(1)</b>
+        }
+
+        getEditedEntity().setPassword(passwordEncoder.encode(passwordField.getValue())); <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Interrupt the saving process if passwords do not match.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Set encoded password to the entity.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="after-save-event"><a class="anchor" href="#after-save-event"></a>AfterSaveEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>AfterSaveEvent</code> is fired in views inherited from <code>StandardDetailView</code> after saving the view <code>DataContext</code>. Use this event listener to notify users after save, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe
+public void onAfterSave(final AfterSaveEvent event) {
+    notifications.create("Entity saved successfully")
+            .withType(Notifications.Type.SUCCESS)
+            .withPosition(Notification.Position.TOP_END)
+            .show();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="read-only-change-event"><a class="anchor" href="#read-only-change-event"></a>ReadOnlyChangeEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>ReadOnlyChangeEvent</code> is fired by views that inherit from <code>StandardDetailView</code> when their read-only state changes. This typically occurs when a user switches between viewing and editing modes.</p>
+</div>
+<div class="paragraph">
+<p>Subscribe to this event to synchronize the read-only state of custom components with the view’s overall mode. This ensures consistent user interaction patterns throughout the interface.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixComboBox&lt;String&gt; timeZoneField;
+
+@Subscribe
+public void onReadOnlyChange(final ReadOnlyChangeEvent event) {
+    timeZoneField.setReadOnly(event.isReadOnly());
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you are creating a custom view that needs to track and respond to read-only state changes, your view class must implement the <code>ReadOnlyTracker</code> interface.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="diagrams"><a class="anchor" href="#diagrams"></a>Diagrams</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="opening-standard-view"><a class="anchor" href="#opening-standard-view"></a>Opening Standard View</h3>
+<div class="paragraph">
+<p>The following diagram shows the process of opening a <a class="xref page" href="view-classes.html#standard-view">standard view</a>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="open standard view" src="../_images/views/open-standard-view.svg"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="closing-standard-view"><a class="anchor" href="#closing-standard-view"></a>Closing Standard View</h3>
+<div class="paragraph">
+<p>The following diagram shows the process of closing a <a class="xref page" href="view-classes.html#standard-view">standard view</a>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="close standard view" src="../_images/views/close-standard-view.svg"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="opening-entity-detail-view"><a class="anchor" href="#opening-entity-detail-view"></a>Opening Entity Detail View</h3>
+<div class="paragraph">
+<p>The following diagram shows the process of opening a <a class="xref page" href="view-classes.html#standard-detail-view">detail view</a>:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="open detail view" src="../_images/views/open-detail-view.svg"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="closing-entity-detail-view"><a class="anchor" href="#closing-entity-detail-view"></a>Closing Entity Detail View</h3>
+<div class="paragraph">
+<p>The following diagram shows the process of saving changes and closing a detail view by the <a class="xref page" href="../actions/view-actions.html#detail_saveClose">detail_saveClose</a> action:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="detail view close with save" src="../_images/views/detail-view-close-with-save.svg"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

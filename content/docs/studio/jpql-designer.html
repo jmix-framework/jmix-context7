@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPQL Designer :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">JPQL Designer</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>JPQL Designer is a visual tool designed to simplify the creation and modification of Java Persistence Query Language (JPQL) queries within your Jmix applications. It aims to abstract away some of the complexity of writing JPQL by hand, making it easier for developers of all experience levels to work with data access.</p>
+</div>
+<div class="paragraph">
+<p>The JPQL Designer provides a visual interface for constructing JPQL queries. You can define the target tables, data selection conditions, sorting, and other parameters without directly writing JPQL code. The tool outputs a properly formatted JPQL query string.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This feature is free to use in small projects with up to 10 entities and roles. In a larger project, it requires a Sprint, Enterprise, or BPM <a class="xref page" href="subscription.html#subscription">subscription</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The key functionalities include:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Visual Query Design</strong>: A graphical user interface allows for the construction of JPQL queries without direct JPQL syntax input.</p>
+</li>
+<li>
+<p><strong>Intelligent Auto-Completion</strong>: Context-aware suggestions for attributes and entities minimize manual typing and errors.</p>
+</li>
+<li>
+<p><strong>Query Syntax Validation</strong>: Real-time checks for correct syntax and common errors ensure query integrity.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="launching-jpql-designer"><a class="anchor" href="#launching-jpql-designer"></a>Launching JPQL Designer</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can start the JPQL Designer in the following ways:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Through the <a class="xref page" href="code-snippets.html">Code Snippets</a> palette of common user actions when creating data loading operations (entity or entity list loads).</p>
+</li>
+<li>
+<p>Through a <a class="xref page" href="coding-assistance.html#line-markers">line marker</a> that appears alongside an existing JPQL query, facilitating its modification.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql designer launch 1" src="_images/jpql-designer-launch-1.png" width="655"/>
+</div>
+</div>
+</li>
+<li>
+<p>Through the <strong>Jmix UI</strong> inspector panel, accessing the <code>query</code> property.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql designer launch 2" src="_images/jpql-designer-launch-2.png" width="399"/>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jpql-designer-dialogue"><a class="anchor" href="#jpql-designer-dialogue"></a>JPQL Designer Dialog</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The JPQL designer provides a dialog where the query’s structure is displayed, and allows for users to edit and add to the query’s functionality.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql designer" src="_images/jpql-designer.png" width="952"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The JPQL designer displays the generated JPQL query in a text area for review.</p>
+</div>
+<div class="paragraph">
+<p>The JPQL designer performs validation before saving to ensure that the query structure is valid and that the various parts of the query are consistent with one another. Specifically, the validation checks:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>That any entity attribute used for sorting is also present in the query’s result set.</p>
+</li>
+<li>
+<p>That the data types of inline parameters used in conditions are compatible with the data types of the entity attributes they are compared against.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When saving a JPQL query structure, the designer generates a JPQL string and stores it in the original Java code or XML file from where the designer was invoked.</p>
+</div>
+<div class="paragraph">
+<p>If the designer is opened to edit an existing query, it parses the JPQL structure upon loading. However, if the existing query structure uses constructs not supported by the designer (such as nested subqueries), the designer will not open and instead displays a message informing the user that it cannot be launched.</p>
+</div>
+<div class="sect2">
+<h3 id="root-entity-selection"><a class="anchor" href="#root-entity-selection"></a>Root Entity Selection</h3>
+<div class="paragraph">
+<p>When creating a new query, the designer prompts the user to select the query’s root entity (the <code>"from E"</code> clause).</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql designer 1" src="_images/jpql-designer-1.png" width="583"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>Entity class</strong> field provides a list of options, allowing quick searches by class name or entity name.</p>
+</li>
+<li>
+<p>The <strong>Entity alias</strong> field requires the user to enter an alias for the entity, which is then validated to ensure compliance with JPQL grammar.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When editing an existing query, the designer does not allow changing the root entity without completely clearing the existing query structure.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="query-result"><a class="anchor" href="#query-result"></a>JPQL Query Results</h3>
+<div class="paragraph">
+<p>The <strong>Result type</strong> field is used to specify the output parameters of the query.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql designer 2" src="_images/jpql-designer-2.png" width="952"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The output parameter can be:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The root entity itself as the output object.</p>
+</li>
+<li>
+<p>An attribute of the entity, or a nested path to an entity attribute (for example, <code>student.group.number</code>).</p>
+</li>
+<li>
+<p>Aggregate functions applied to the root entity or entity attributes: <code>AVG</code>, <code>COUNT</code>, <code>MIN</code>, <code>MAX</code>, <code>SUM</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Multiple output parameters can be specified. Additionally, a <strong>Distinct</strong> option can be selected.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="query-conditions"><a class="anchor" href="#query-conditions"></a>Specifying Query Conditions</h3>
+<div class="paragraph">
+<p>The JPQL designer provides several ways to specify query conditions, allowing you to filter and sort the data you retrieve. This section will detail the usage of <code>WHERE</code>, <code>HAVING</code>, and <code>ORDER BY</code> clauses within the JPQL Designer.</p>
+</div>
+<div class="sect3">
+<h4 id="where-clause"><a class="anchor" href="#where-clause"></a>Filtering Results with the WHERE Clause</h4>
+<div class="paragraph">
+<p>The <code>WHERE</code> clause is used to filter rows based on one or more specified conditions in JPQL queries.</p>
+</div>
+<div class="paragraph">
+<p>In the JPQL Designer, you can define <code>WHERE</code> conditions by interacting with the visual elements that represent entity attributes and related values. This includes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Selecting an entity alias, an attribute, or nested attribute path from the list of available attributes.</p>
+</li>
+<li>
+<p>Choosing a comparison operator (for example, <code>=</code>, <code>&lt;&gt;</code>, <code>&gt;</code>, <code>&lt;</code>, <code>LIKE</code>, <code>IN</code>).</p>
+</li>
+<li>
+<p>Specifying a value, another attribute, or parameter for the comparison.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The JPQL query designer provides the following capabilities:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Sub-Condition Construction:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Selection of a logical operator: <code>=</code>, <code>&lt;&gt;</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>, <code>IN</code>, <code>NOT IN</code>, <code>LIKE</code>, <code>NOT LIKE</code>, <code>IS NULL</code>, <code>IS NOT NULL</code>.</p>
+</li>
+<li>
+<p>Modifier support (<code>%</code>, <code>_</code>) for <code>LIKE</code> patterns.</p>
+</li>
+<li>
+<p>Support for string functions: <code>LOWER</code>, <code>UPPER</code>, <code>TRIM</code>, and others.</p>
+</li>
+<li>
+<p>Support for date/time functions: <code>CURRENT_DATE</code>, <code>CURRENT_TIME</code>, <code>CURRENT_TIMESTAMP</code>, and others.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Combining Conditions:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>AND</code>: Both conditions must be <code>true</code>.</p>
+</li>
+<li>
+<p><code>OR</code>: At least one condition must be <code>true</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Parameterized Conditions:</p>
+<div class="paragraph">
+<p>It’s also possible to create parameterized conditions. This is useful when you need to build dynamic queries. You define parameters within the designer and pass their values when executing the query.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can specify conditions for your query by clicking either the <strong>Add query condition</strong> link or the <strong>Add (+)</strong> button.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql designer 3" src="_images/jpql-designer-3.png" width="952"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Then, select an entity attribute from the <strong>Choose Attribute</strong> dialog and choose an operator from the available list:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql designer 4" src="_images/jpql-designer-4.png" width="969"/>
+</div>
+</div>
+<div class="paragraph">
+<p>To specify a query parameter, click the <strong>…​</strong> button in the <strong>Parameter</strong> column. This will open a dialog where you can either enter the parameter name directly, select an entity attribute, or utilize a function.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql designer 6" src="_images/jpql-designer-6.png" width="908"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Query conditions can be grouped using <code>and</code> and <code>or</code> operators. The final query might resemble the example below:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql designer 5" src="_images/jpql-designer-5.png" width="952"/>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="order-by-clause"><a class="anchor" href="#order-by-clause"></a>Sorting Results with the ORDER BY Clause</h4>
+<div class="paragraph">
+<p>The <code>ORDER BY</code> clause allows you to sort your query results based on one or more attributes in ascending (<code>ASC</code>) or descending (<code>DESC</code>) order.</p>
+</div>
+<div class="paragraph">
+<p>You can specify a single or multiple sorting criteria in the <strong>ORDER</strong> tab. A sort criterion can be either:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>An attribute of the root entity.</p>
+</li>
+<li>
+<p>A nested attribute path (for example, <code>student.group.number</code>).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For each sort criterion you define, you must also select the sort order: <code>ASC</code> (ascending) or <code>DESC</code> (descending).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="having-clause"><a class="anchor" href="#having-clause"></a>Filtering Aggregated Data with the HAVING Clause</h4>
+<div class="paragraph">
+<p>The <code>HAVING</code> clause is used specifically with aggregated data. It filters groups based on results from aggregate functions (for example, <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>).</p>
+</div>
+<div class="paragraph">
+<p>The <strong>HAVING</strong> tab is displayed if the user chooses the <strong>Tuple</strong> <a href="#query-result">result type</a> and applies an aggregate function to an entity attribute.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="jpql designer 7" src="_images/jpql-designer-7.png" width="952"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>GROUP BY</code> functionality is activated if the user selects an entity attribute in the <strong>Select</strong> block without specifying an aggregate function to it (leaving that the <strong>Aggregate</strong> field blank).</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>
