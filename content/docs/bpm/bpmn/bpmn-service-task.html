@@ -12,7 +12,7 @@
 <h2 id="overview"><a class="anchor" href="#overview"></a>Overview</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A <strong>Service Task</strong> is used to invoke Java code, external services, APIs, or automated applications, to complete its function.</p>
+<p>A <strong>Service Task</strong> is used to invoke Java logic, external services, APIs, or automated applications.</p>
 </div>
 <div class="paragraph">
 <div class="title"><strong>Graphical Notation</strong></div>
@@ -86,40 +86,31 @@ In some cases, it can affect performance.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="task-types"><a class="anchor" href="#task-types"></a>Types of Service Tasks</h2>
+<h2 id="task-type"><a class="anchor" href="#task-type"></a>Task Type</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Parameter <strong>Task type</strong> defines the way service task is implemented.
-There are the following types of service tasks in Jmix BPM:</p>
+<p><strong>Task type</strong> declares how Java logic should be invoked for the service task:</p>
 </div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Spring bean</dt>
-<dd>
-<p>In this case, specified method of the selected bean will be executed when the process reaches the task.
-Process variables or fixed values can be passed as method parameters, the result can be stored in a result variable.</p>
-</dd>
-<dt class="hdlist1">Java Delegate Class</dt>
-<dd>
-<p>In this case, the service task is implemented as <em>JavaDelegate</em> class, and its <em>execute()</em> method will be invoked.
-Also, it supports a <em>Fields injection</em> mechanism.</p>
-</dd>
-<dt class="hdlist1">Expression</dt>
-<dd>
-<p>It is a general way to call any method or evaluate inline expression.</p>
-</dd>
-<dt class="hdlist1">Delegate expression</dt>
-<dd>
-<p>Actually, it isn’t expression, it is a Spring bean that implements JavaDelegate interface.
-So it has features of both.</p>
-</dd>
-</dl>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Spring Bean</strong>: Specify a Spring Bean, its method, and the necessary method parameters.</p>
+</li>
+<li>
+<p><strong>Java Delegate Class</strong>: Provide a class that implements <code>JavaDelegate</code> or <code>FutureJavaDelegate</code>.</p>
+</li>
+<li>
+<p><strong>Expression</strong>: Invoke a method expression.</p>
+</li>
+<li>
+<p><strong>Delegate Expression</strong>: Evaluate an expression that resolves to a delegation object.</p>
+</li>
+</ul>
 </div>
 <div class="sect2">
-<h3 id="spring-bean-service-task"><a class="anchor" href="#spring-bean-service-task"></a>Spring Bean Service Task</h3>
+<h3 id="spring-bean-service-task"><a class="anchor" href="#spring-bean-service-task"></a>Spring Bean</h3>
 <div class="paragraph">
-<p><strong>Jmix BPM</strong> allows to invoke from the service task a Spring bean method and provide parameter values for it.
-This approach is the most recommended for using in service tasks.</p>
+<p><strong>Jmix BPM</strong> allows to invoke from the service task a Spring bean method and provide parameter values for it.</p>
 </div>
 <div class="paragraph">
 <p>You can select an existing bean and its associated method using the <strong>Bean Name</strong> and <strong>Method</strong> fields, respectively.</p>
@@ -279,11 +270,10 @@ public class MyProcessBean {
 <div class="sect2">
 <h3 id="java-delegate-service-task"><a class="anchor" href="#java-delegate-service-task"></a>Java Delegate Class</h3>
 <div class="paragraph">
-<p>In this case, business logic will be executed by a class implementing <code>org.flowable.engine.delegate.JavaDelegate</code> interface with <em>execute()</em> method.
-The method receives <code>execution</code> object as a parameter, so you’ll have access to process context, including all process variables.</p>
+<p>In this case, business logic will be executed by a class that implements <code>org.flowable.engine.delegate.JavaDelegate</code> or <code>org.flowable.engine.delegate.FutureJavaDelegate</code> interface overriding its <em>execute()</em> method. The method receives <code>execution</code> object as a parameter, so you’ll have access to process context, including all process variables.</p>
 </div>
 <div class="paragraph">
-<p>If you select <em>JavaDelegate class</em> option in the <em>Task type</em> combo box, you can select an appropriate class implementing <code>JavaDelegate</code>:</p>
+<p>If you select <em>JavaDelegate class</em> option in the <strong>Task type</strong> combo box, you can select an appropriate class:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -354,7 +344,7 @@ This also may affect <a href="#field-injections">Fields injection</a>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="delegate-expression-service-task"><a class="anchor" href="#delegate-expression-service-task"></a>Delegate Expression Service Task</h3>
+<h3 id="delegate-expression-service-task"><a class="anchor" href="#delegate-expression-service-task"></a>Delegate Expression</h3>
 <div class="paragraph">
 <p>A <strong>delegate expression</strong> is a powerful feature used in service tasks that allows for the dynamic resolution of a Java object at runtime.
 For example, an expression like <code>${myServiceBean}</code> would resolve to a Spring bean named <code>myServiceBean</code>.</p>
@@ -364,7 +354,7 @@ For example, an expression like <code>${myServiceBean}</code> would resolve to a
 This allows for dependency injection and the use of Spring’s features within the delegate implementation.</p>
 </div>
 <div class="paragraph">
-<p>To use <code>JavaDelegate</code> classes in delegate expressions, annotate them with @Component, similar to a Spring bean.
+<p>To use delegated classes in delegate expressions, annotate them with <code>@Component</code>, similar to a Spring bean.
 In this case, it combines the features of both types — <em>Spring bean</em> and <em>Java Delegate</em> class:</p>
 </div>
 <div class="listingblock">
@@ -404,7 +394,7 @@ In XML, an attribute <code>flowable:delegateExpression</code> is used for this p
 </div>
 </div>
 <div class="sect2">
-<h3 id="expression-service-task"><a class="anchor" href="#expression-service-task"></a>Expression Service Task</h3>
+<h3 id="expression-service-task"><a class="anchor" href="#expression-service-task"></a>Expression</h3>
 <div class="paragraph">
 <p>Expression is the most general way to invoke Java logic.
 You can call a Spring bean method from expression:</p>
@@ -487,28 +477,7 @@ Here is a sample usage:</p>
 <div class="sect2">
 <h3 id="field-injections"><a class="anchor" href="#field-injections"></a>Field Injections</h3>
 <div class="paragraph">
-<p>The <strong>field injections</strong> is a Flowable mechanism of passing parameter in Java Delegate class as fixed string values or expressions resolved in strings.
-It can be used with the following task types:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Java Delegate class</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>And, if a called object is Java Delegate class, in</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Delegate expression</p>
-</li>
-<li>
-<p>Expression</p>
-</li>
-</ul>
+<p>The <strong>field injections</strong> is a Flowable mechanism of passing parameter in Java Delegate class as fixed string values or expressions resolved in strings.</p>
 </div>
 <div class="paragraph">
 <p>Injected field must always be of <code>org.flowable.common.engine.api.delegate.Expression</code> type.
@@ -536,7 +505,7 @@ Otherwise, it’ll be an error.</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create fields definition in your <code>JavaDelegate</code> class:</p>
+<p>Create fields definition in your delegated class:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private Expression messageField;
@@ -568,7 +537,7 @@ If you write just <em>3</em>, this will be interpreted as <code>String</code> ob
 </div>
 </li>
 <li>
-<p>At runtime, the process engine resolves expression and passes result strings in Java Delegate class.</p>
+<p>At runtime, the process engine resolves expression and passes result strings to the delegated class.</p>
 </li>
 <li>
 <p>In Java Delegate class, there must be a code getting values from the fields and casing them to desired types:</p>

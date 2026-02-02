@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowable REST API :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Flowable REST API</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A Jmix application with the BPM add‑on can use Flowable REST APIs:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>BPMN REST API</strong> includes endpoints for process definitions, runtime and historic instances, user tasks, and more (see <a href="https://www.flowable.com/open-source/docs/bpmn/ch14-REST" rel="noopener" target="_blank">Flowable docs</a> for the full list).</p>
+</li>
+<li>
+<p><strong>DMN REST API</strong> includes endpoints for managing decision tables (see the <a href="https://www.flowable.com/open-source/docs/dmn/ch07-REST" rel="noopener" target="_blank">Flowable docs</a> for the full list).</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="gradle-dependencies"><a class="anchor" href="#gradle-dependencies"></a>Gradle Dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To enable the APIs, add the appropriate dependencies to <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">dependencies {
+    //...
+    implementation 'org.flowable:flowable-spring-boot-starter-process-rest'
+    implementation 'org.flowable:flowable-spring-boot-starter-dmn-rest'
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="base-path-configuration"><a class="anchor" href="#base-path-configuration"></a>Base Path Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The REST APIs are reachable under separate base paths. The default locations are:</p>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 66.6668%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Base Path</th>
+<th class="tableblock halign-left valign-top">Example URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">BPMN REST API</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/process-api</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>http://localhost:8080/process-api/repository/process-definitions</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">DMN REST API</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/dmn-api</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>http://localhost:8080/dmn-api/dmn-repository/deployments</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If a context path is set, prepend it to the URLs.
+For example, with <code>server.servlet.context-path=/app</code> the DMN URL becomes
+<code>http://localhost:8080/app/rest/bpm/dmn/dmn-repository/deployments</code></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To change the default paths, set the desired values in <code>application.properties</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">flowable.process.servlet.path=/rest/bpm/process
+flowable.dmn.servlet.path=/rest/bpm/dmn</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="security-configuration"><a class="anchor" href="#security-configuration"></a>Security Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After adding the dependencies, configure Spring Security for the Flowable REST endpoints in your Jmix project. The <a class="xref page" href="../security/custom-endpoints.html">Custom Endpoints</a> section provides sample code for the following scenarios:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Public endpoint</p>
+</li>
+<li>
+<p>HTTP Basic Authentication</p>
+</li>
+<li>
+<p>Token Based Authentication</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

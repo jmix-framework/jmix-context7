@@ -14,7 +14,7 @@
 <p>External parameters are passed from the outside when running a report and can be used as conditions in datasets. All external parameters become fields for each report band, so you can use them directly in the template as dataset fields. If any dataset contains field with the same name, it overrides the external parameter in the corresponding band and the report uses the dataset field value.</p>
 </div>
 <div class="paragraph">
-<p>External parameters can be passed by the invoking code when running a report through <a class="xref page" href="../run-report.html#reports-api">API</a>. Also, the report generator can show a dialog to enter parameters when a user runs the report. In the latter case you should describe the external parameters in the <strong>Parameters</strong> tab of the report detail view.</p>
+<p>External parameters can be passed by the invoking code when running a report through <a class="xref page" href="../run-report.html#reports-api">API</a>. Also, the report generator can show a dialog to enter parameters when a user runs the report. In the latter case you should describe the external parameters in the <strong>Parameters</strong> tab of the runtime report editor.</p>
 </div>
 <div class="imageblock text-center">
 <div class="content">
@@ -225,6 +225,168 @@
 </div>
 </li>
 </ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="input-parameter-def"><a class="anchor" href="#input-parameter-def"></a>@InputParameterDef Annotation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>@InputParameterDef</code> annotation allows you to define an input parameter when creating a report at design time. Input parameters are passed externally when running a report and can be used as conditions in <a class="xref page" href="bands.html#datasets">datasets</a>.</p>
+</div>
+<div class="paragraph">
+<p>To implement additional logic, create a method annotated with <a href="#input-parameter-delegate">@InputParameterDelegate</a>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>@InputParameterDef</code> annotation has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>alias</code> - unique alias used to access the parameter in datasets.</p>
+</li>
+<li>
+<p><code>name</code> - input parameter name. You can use the <code>msg://</code> prefix to refer to a <a class="xref page" href="../../localization/message-bundles.html">localized message</a>.</p>
+</li>
+<li>
+<p><code>required</code> - specifies whether the parameter is mandatory. Default: <code>false</code>.</p>
+</li>
+<li>
+<p><code>type</code> - data type of the parameter defined by the <code>ParameterType</code> enum:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>DATE</code> - date, without time. Value class: <code>java.util.Date</code>.</p>
+</li>
+<li>
+<p><code>TEXT</code> - text string. Value class: <code>String</code></p>
+</li>
+<li>
+<p><code>ENTITY</code> - a single entity instance (persistent or DTO).</p>
+</li>
+<li>
+<p><code>BOOLEAN</code> - <code>Boolean</code> value.</p>
+</li>
+<li>
+<p><code>NUMERIC</code> - number with an optional decimal part. Value class: <code>Double</code>.</p>
+</li>
+<li>
+<p><code>ENTITY_LIST</code> - a <code>java.util.Collection</code> of entity instances (persistent or DTO).</p>
+</li>
+<li>
+<p><code>ENUMERATION</code> - enumeration value, descendant of <code>Enum</code>.</p>
+</li>
+<li>
+<p><code>DATETIME</code> - date with time. Value class: <code>java.util.Date</code>.</p>
+</li>
+<li>
+<p><code>TIME</code> - time. Value class: <code>java.util.Date</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>enumerationClass</code> - enumeration class for <code>ParameterType.ENUMERATION</code> parameters.</p>
+</li>
+<li>
+<p><code>defaultValue</code> - string representation of the default value used if no other value is selected. Consider using <code>io.jmix.reports.yarg.structure.DefaultValueProvider</code> delegate instead for complex types.</p>
+</li>
+<li>
+<p><code>defaultDateIsCurrent</code> - indicates whether the current timestamp will be used as the default value for <code>ParameterType.DATE</code>, <code>ParameterType.TIME</code>, <code>ParameterType.DATETIME</code> types. Default: <code>false</code>.</p>
+</li>
+<li>
+<p><code>entity</code> - additional parameters for <code>ParameterType.ENTITY</code> and <code>ParameterType.ENTITY_LIST</code> types defined by <a href="#entity-parameter-def">@EntityParameterDef</a>.</p>
+</li>
+<li>
+<p><code>predefinedTransformationEnabled</code> - enables predefined transformation for <code>ParameterType.TEXT</code> parameters, useful when the parameter is used in query conditions for SQL and JPQL datasets. Default: <code>false</code>.</p>
+</li>
+<li>
+<p><code>predefinedTransformation</code> - type of predefined transformation for <code>ParameterType.TEXT</code> parameters defined by the <code>PredefinedTransformation</code> enum: <code>STARTS_WITH</code>, <code>CONTAINS</code>, <code>ENDS_WITH</code>. Default: <code>CONTAINS</code>.</p>
+</li>
+<li>
+<p><code>hidden</code> - determines whether the request for parameter should be hidden from users. Default: <code>false</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="input-parameter-delegate"><a class="anchor" href="#input-parameter-delegate"></a>@InputParameterDelegate Annotation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>@InputParameterDelegate</code> annotation defines a delegate method that implements logic related to an input parameter.</p>
+</div>
+<div class="paragraph">
+<p><strong>Requirements</strong>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The method must have no parameters.</p>
+</li>
+<li>
+<p>The method must return one of the supported functional interfaces.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Supported interfaces:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>DefaultValueProvider</code> - provides a default value for the parameter.</p>
+</li>
+<li>
+<p><code>ParameterValidator</code> - validates the parameter value.</p>
+</li>
+<li>
+<p><code>ParameterTransformer</code> - transforms the parameter value.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>@InputParameterDelegate</code> annotation has the <code>alias</code> attribute, which is an alias of the input parameter declared in the current report definition.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-parameter-def"><a class="anchor" href="#entity-parameter-def"></a>@EntityParameterDef Annotation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Defines additional parameters for input parameters of type <code>ParameterType.ENTITY</code> and <code>ParameterType.ENTITY_LIST</code>.</p>
+</div>
+<div class="paragraph">
+<p>It has the following attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>entityClass</code> - entity class of the parameter. Default: <code>void.class</code>.</p>
+</li>
+<li>
+<p><code>component</code> - UI component type used to input <code>ParameterType.ENTITY</code> parameter values when launching a report from the UI. The <code>component</code> attribute accepts the following <code>EntityInputComponent</code> enum values:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>OPTION_LIST</code> - <a class="xref page" href="../../flow-ui/vc/components/entityComboBox.html">EntityComboBox</a> component is used. Options are loaded with a JPQL query.</p>
+</li>
+<li>
+<p><code>LOOKUP_VIEW</code> - <a class="xref page" href="../../flow-ui/vc/components/entityPicker.html">EntityPicker</a> component is used, which opens a lookup view. Default value.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>optionsQueryJoin</code> - JOIN clause added to the JPQL query that loads options.</p>
+</li>
+<li>
+<p><code>optionsQueryWhere</code> - WHERE clause added to the JPQL query that loads options.</p>
+</li>
+<li>
+<p><code>lookupViewId</code> - ID of the lookup view opened to select <code>ParameterType.ENTITY</code> or <code>ParameterType.ENTITY_LIST</code> parameter values.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

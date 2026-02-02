@@ -11,7 +11,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This add-on provides a simple API and UI to work with mutable values of different types stored in database. These values are usually used as parameters of different functionality of the application.</p>
+<p>This add-on provides a simple API and UI to work with mutable values of different types stored in the database. These values are usually used as parameters of different functionality of the application, such as default settings, thresholds, and feature flags.</p>
 </div>
 </div>
 </div>
@@ -26,8 +26,8 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation("io.jmix.appsettings:jmix-appsettings-starter")
-implementation("io.jmix.appsettings:jmix-appsettings-flowui-starter")</code></pre>
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.appsettings:jmix-appsettings-flowui-starter'
+implementation 'io.jmix.appsettings:jmix-appsettings-starter'</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -84,10 +84,31 @@ implementation("io.jmix.appsettings:jmix-appsettings-flowui-starter")</code></pr
 </div>
 </div>
 <div class="sect1">
-<h2 id="usage"><a class="anchor" href="#usage"></a>Usage</h2>
+<h2 id="usage"><a class="anchor" href="#usage"></a>Usage Example</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To define some settings, create an entity extending the <code>io.jmix.appsettings.entity.AppSettingsEntity</code> class:</p>
+<p>Consider you have a <code>Customer</code> entity and simple business logic:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>New customers should get <strong>default grade</strong> (e.g., Bronze/Gold/Platinum) and <strong>default country</strong> that business users can change at runtime.</p>
+</li>
+<li>
+<p>There is also a <strong>notification text</strong> that might be used in UI or reports.</p>
+</li>
+<li>
+<p>All these values must be changeable without rerunning the application.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This can be implemented in two steps.</p>
+</div>
+<div class="sect2">
+<h3 id="_step_1_define_a_settings_entity"><a class="anchor" href="#_step_1_define_a_settings_entity"></a>Step 1. Define a settings entity</h3>
+<div class="paragraph">
+<p>Create an entity extending the <code>io.jmix.appsettings.entity.AppSettingsEntity</code> class:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -96,25 +117,32 @@ implementation("io.jmix.appsettings:jmix-appsettings-flowui-starter")</code></pr
 @Entity
 public class CustomerSettings extends AppSettingsEntity {
 
-    @Column(name = "NOTIFICATION_TEXT")
-    private String notificationText;
-
     @AppSettingsDefault("B")
     @Column(name = "DEFAULT_GRADE")
     private String defaultGrade;
 
-    @AppSettingsDefault("1000")
-    @Column(name = "SALES_THRESHOLD", precision = 19, scale = 2)
-    private BigDecimal salesThreshold;
+    @Column(name = "COUNTRY")
+    private String country;
+
+    @Column(name = "NOTIFICATION_TEXT")
+    private String notificationText;
 
     // getters and setters</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>After that, you will be able to set values for this entity attributes using the <strong>Application settings</strong> view.</p>
+<p>After this, the <strong>Application settings</strong> view in your app will allow business users to edit <code>defaultGrade</code>, <code>country</code>, and <code>notificationText</code>.</p>
 </div>
+<div class="imageblock">
+<div class="content">
+<img alt="app settings menu view" src="_images/app-settings-menu-view.png" width="1478"/>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_step_2_use_the_settings_in_business_logic"><a class="anchor" href="#_step_2_use_the_settings_in_business_logic"></a>Step 2. Use the settings in business logic</h3>
 <div class="paragraph">
-<p>To get settings in the application code, use the <code>AppSettings</code> bean, for example:</p>
+<p>To get settings in the application code, use the <code>AppSettings</code> bean. For example, in a Customer detail view or in an entity initializer you can set default values based on settings:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -127,8 +155,31 @@ public void onInitEntity(InitEntityEvent&lt;Customer&gt; event) {
     CustomerGrade defaultGrade = customerSettings.getDefaultGrade();
 
     Customer customer = event.getEntity();
+    customer.setCountry(customerSettings.getCountry());
     customer.setGrade(defaultGrade);
 }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Currently:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When a business user updates the default grade from Bronze to Gold, all newly created customers will be initialized with that setting.</p>
+</li>
+<li>
+<p>When a business user specifies a default country, all new customers will be initialized with that setting.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="app settings initialize entity" src="_images/app-settings-initialize-entity.png" width="1478"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Similarly, you can use notification text for UI labels or hints by binding it to a label or tooltip.</p>
 </div>
 </div>
 </div>

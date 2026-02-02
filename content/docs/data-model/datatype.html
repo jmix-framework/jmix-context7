@@ -224,31 +224,8 @@ private Integer productionYear;</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import java.io.Serializable;
-import java.util.Objects;
 
-public class GeoPoint implements Serializable {
-
-    public final double latitude;
-    public final double longitude;
-
-    public GeoPoint(double latitude, double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GeoPoint that = (GeoPoint) o;
-        return Double.compare(that.latitude, latitude) == 0 &amp;&amp;
-                Double.compare(that.longitude, longitude) == 0;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(latitude, longitude);
-    }
+public record GeoPoint(double latitude, double longitude) implements Serializable {
 }</code></pre>
 </div>
 </div>
@@ -271,7 +248,7 @@ public class GeoPointConverter implements AttributeConverter&lt;GeoPoint, String
     public String convertToDatabaseColumn(GeoPoint attribute) {
         if (attribute == null)
             return null;
-        return attribute.latitude + "|" + attribute.longitude;
+        return attribute.latitude() + "|" + attribute.longitude();
     }
 
     @Override
@@ -317,7 +294,7 @@ public class GeoPointDatatype implements Datatype&lt;GeoPoint&gt; {
     @Override
     public String format(@Nullable Object value) { <i class="conum" data-value="5"></i><b>(5)</b>
         if (value instanceof GeoPoint) {
-            return ((GeoPoint) value).latitude + "|" + ((GeoPoint) value).longitude;
+            return ((GeoPoint) value).latitude() + "|" + ((GeoPoint) value).longitude();
         }
         return null;
     }
@@ -336,7 +313,7 @@ public class GeoPointDatatype implements Datatype&lt;GeoPoint&gt; {
         try {
             return new GeoPoint(Double.parseDouble(strings[0]), Double.parseDouble(strings[1]));
         } catch (Exception e) {
-            throw new ParseException(String.format("Cannot parse %s as GeoPoint: %s", value, e.toString()), 0);
+            throw new ParseException(String.format("Cannot parse %s as GeoPoint: %s", value, e), 0);
         }
     }
 

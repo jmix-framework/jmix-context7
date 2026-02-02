@@ -76,6 +76,7 @@ It offers a wide range of features for managing calendar events and provides var
 <a href="#eventOrderStrict">eventOrderStrict</a> -
 <a href="#eventOverlap">eventOverlap</a> -
 <a href="#eventResizableFromStart">eventResizableFromStart</a> -
+<a href="#eventSingleClickThreshold">eventSingleClickThreshold</a> -
 <a href="#eventStartEditable">eventStartEditable</a> -
 <a href="#eventTextColor">eventTextColor</a> -
 <a href="#expandRows">expandRows</a> -
@@ -2950,6 +2951,14 @@ The following attributes are specific to <code>calendar</code>:</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
 </tr>
 <tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="eventSingleClickThreshold"></a>eventSingleClickThreshold</p></th>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Specifies the delay (in milliseconds) before a single-click event is triggered. This threshold is used to distinguish a single click from a double-click action.
+Please note, this attribute is supported in Jmix 2.7.2 and later.</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>250</code></p></td>
+</tr>
+<tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="eventStartEditable"></a>eventStartEditable</p></th>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Enables to edit event start time using dragging.</p>
@@ -3454,6 +3463,37 @@ The following handlers are specific to <code>calendar</code>:</p>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="EventClickEvent"></a>EventClickEvent</p></th>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p><code>io.jmix.fullcalendarflowui.component.event.EventClickEvent</code> fired when the calendar event is clicked.</p>
+</div>
+<div class="paragraph">
+<p>The calendar click event includes <code>MouseEventDetails</code>, providing specific information about the mouse interaction:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>clickCount</code>: number of consecutive clicks (1 for single-click, 2 for double-click). Please note, this attribute is supported in Jmix 2.7.2 and later.</p>
+</li>
+<li>
+<p><code>button</code>: which mouse button was pressed (<code>LEFT</code>, <code>MIDDLE</code>, <code>RIGHT</code>).</p>
+</li>
+<li>
+<p><code>pageX/pageY</code>: document-relative coordinates of the click.</p>
+</li>
+<li>
+<p>Modifier keys: state of <code>Alt</code>, <code>Ctrl</code>, <code>Meta</code> (<code>Cmd</code> on macOS), and <code>Shift</code> keys during the click.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="EventDoubleClickEvent"></a>EventDoubleClickEvent</p></th>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><code>io.jmix.fullcalendarflowui.component.event.EventDoubleClickEvent</code> is fired when a user double-clicks on a calendar event.</p>
+</div>
+<div class="paragraph">
+<p>Please note, this functionality is supported in Jmix 2.7.2 and later.</p>
+</div>
+<div class="paragraph">
+<p><code>EventDoubleClickEvent</code> includes <a href="#EventClickEvent">MouseEventDetails</a>, providing specific information about the mouse interaction.</p>
 </div></div></td>
 </tr>
 <tr>
@@ -3478,6 +3518,18 @@ The following handlers are specific to <code>calendar</code>:</p>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="EventResizeEvent"></a>EventResizeEvent</p></th>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p><code>io.jmix.fullcalendarflowui.component.event.EventResizeEvent</code> fired when the resizing stops and the calendar event’s duration has changed.</p>
+</div></div></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="EventSingleClickEvent"></a>EventSingleClickEvent</p></th>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><code>io.jmix.fullcalendarflowui.component.event.EventSingleClickEvent</code> is fired when a user clicks on a calendar event. To distinguish it from a double-click, the event is dispatched after a short delay. You can configure this delay via the <a href="#eventSingleClickThreshold">eventSingleClickThreshold</a> attribute.</p>
+</div>
+<div class="paragraph">
+<p>Please note, this functionality is supported in Jmix 2.7.2 and later.</p>
+</div>
+<div class="paragraph">
+<p><code>EventSingleClickEvent</code> includes <a href="#EventClickEvent">MouseEventDetails</a>, providing specific information about the mouse interaction.</p>
 </div></div></td>
 </tr>
 <tr>

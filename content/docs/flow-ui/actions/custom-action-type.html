@@ -8,11 +8,91 @@
 <body>
 <article class="doc">
 <h1 class="page">Custom Action Types</h1>
+<div id="preamble">
+<div class="sectionbody">
 <div class="paragraph">
-<p>You can create your own action types or override existing standard types in your project.</p>
+<p>You can create your own action types or override existing standard types in your project. These custom actions are then reusable across all application views, as illustrated in the examples below.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_baseaction"><a class="anchor" href="#_baseaction"></a>BaseAction</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>For example, imagine that you need an action that would show the instance name of the currently selected entity in a <code>dataGrid</code>. You would like to reuse this action in multiple views by specifying its type only. Below are the steps to create the action.</p>
+<p>You can create your own action class and then assign it to a component. Below is a minimal example that makes the button show “Hello” when clicked.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create an action class extending <code>BaseAction</code> and add the <code>@ActionType</code> annotation with the desired type name:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.view.actions;
+
+import com.vaadin.flow.component.Component;
+import io.jmix.flowui.Notifications;
+import io.jmix.flowui.action.ActionType;
+import io.jmix.flowui.kit.action.BaseAction;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@ActionType("myAction")
+public class MyCustomAction extends BaseAction {
+
+    @Autowired
+    private Notifications notifications;
+
+    public MyCustomAction(String id) {
+        super(id);
+        setText("Click me!");
+    }
+
+     @Override
+     public void actionPerform (Component component) {
+         notifications.create("Hello!")
+                 .withType(Notifications.Type.SUCCESS)
+                 .show();
+     }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you want to override an existing action, register your new action class with the same type name in <code>@ActionType</code> annotation.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Now you can use the action in view descriptors by specifying its type:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;action id="myAction" type="myAction"/&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>You can then assign it to a component:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="actionBtn" action="myAction"/&gt;</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_itemstrackingaction"><a class="anchor" href="#_itemstrackingaction"></a>ItemsTrackingAction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you need an action, which becomes enabled when one or more table rows are selected, use <code>ItemTrackingAction</code>. For example, imagine that you need an action that would show the instance name of the currently selected entity in a <code>dataGrid</code>. Below are the steps to create the action.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -55,9 +135,21 @@ public class ShowSelectedAction&lt;E&gt; extends ItemTrackingAction&lt;E&gt; {
 }</code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you want to override an existing action, register your new action class with the same type name in <code>@ActionType</code> annotation.
+</td>
+</tr>
+</table>
+</div>
 </li>
 <li>
-<p>Now you can use the action in screen descriptors by specifying its type:</p>
+<p>Now you can use the action in view descriptors by specifying its type:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;action id="showSelected" type="showSelected"/&gt;</code></pre>
@@ -66,19 +158,7 @@ public class ShowSelectedAction&lt;E&gt; extends ItemTrackingAction&lt;E&gt; {
 </li>
 </ol>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>If you want to override an existing type, register your new action class with the same type name in <code>@ActionType</code> annotation.</p>
 </div>
-</td>
-</tr>
-</table>
 </div>
 
 </article>

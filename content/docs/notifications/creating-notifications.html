@@ -82,31 +82,55 @@
 <img alt="ntf programmatic" src="_images/ntf-programmatic.png" width="1270"/>
 </div>
 </div>
+<div class="paragraph">
+<p>This scenario belongs to the category of <em>Entity Lifecycle Events</em>. The logic must be executed when a new order entity is created. The Jmix framework publishes an <a class="xref page" href="../data-access/entity-events.html#entity-changed-event">EntityChangedEvent</a> whenever an entity is created, updated, or deleted in the database.</p>
+</div>
+<div class="paragraph">
+<p>To handle this event, you need to define an event listener as a spring bean. The method that listens to <code>EntityChangedEvent</code> should be annotated with <code>@TransactionalEventListener</code> to ensure that it only executes after the entity has been committed to the database.</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private boolean justCreated;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.notificationsex1.entity.Order;
+import io.jmix.core.DataManager;
+import io.jmix.core.event.EntityChangedEvent;
+import io.jmix.notifications.NotificationManager;
+import io.jmix.notifications.channel.impl.InAppNotificationChannel;
+import io.jmix.notifications.entity.ContentType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 
-@ViewComponent
-private TypedTextField&lt;Integer&gt; numberField;
+@Component
+public class OrderEventListener {
 
-@Autowired
-protected NotificationManager notificationManager;
+    private static final Logger log = LoggerFactory.getLogger(OrderEventListener.class);
+    @Autowired
+    private DataManager dataManager;
+    @Autowired
+    protected NotificationManager notificationManager;
 
-@Subscribe
-public void onInitEntity(InitEntityEvent&lt;Order&gt; event) {
-    justCreated = true;
-}
+    @TransactionalEventListener <i class="conum" data-value="1"></i><b>(1)</b>
+    @Transactional(propagation = Propagation.REQUIRES_NEW) <i class="conum" data-value="2"></i><b>(2)</b>
+    public void onOrderChangedAfterCommit(final EntityChangedEvent&lt;Order&gt; event) {
+        try {
+            if (event.getType() == EntityChangedEvent.Type.CREATED) {
+                Order order = dataManager.load(event.getEntityId()).one();
 
-@Subscribe(target = Target.DATA_CONTEXT)
-public void onPostSave(final DataContext.PostSaveEvent event) { <i class="conum" data-value="1"></i><b>(1)</b>
-    if (justCreated) { <i class="conum" data-value="2"></i><b>(2)</b>
-        notificationManager.createNotification() <i class="conum" data-value="3"></i><b>(3)</b>
-                .withSubject("New order")<i class="conum" data-value="4"></i><b>(4)</b>
-                .withRecipientUsernames("admin") <i class="conum" data-value="5"></i><b>(5)</b>
-                .toChannelsByNames("in-app") <i class="conum" data-value="6"></i><b>(6)</b>
-                .withContentType(ContentType.PLAIN) <i class="conum" data-value="7"></i><b>(7)</b>
-                .withBody("A new order with number " + numberField.getValue()+ " is created.") <i class="conum" data-value="8"></i><b>(8)</b>
-                .send(); <i class="conum" data-value="9"></i><b>(9)</b>
+                notificationManager.createNotification() <i class="conum" data-value="3"></i><b>(3)</b>
+                        .withSubject("New order")<i class="conum" data-value="4"></i><b>(4)</b>
+                        .withRecipientUsernames("admin") <i class="conum" data-value="5"></i><b>(5)</b>
+                        .toChannelsByNames(InAppNotificationChannel.NAME) <i class="conum" data-value="6"></i><b>(6)</b>
+                        .withContentType(ContentType.PLAIN) <i class="conum" data-value="7"></i><b>(7)</b>
+                        .withBody("A new order with number " + order.getNumber() + " is created.") <i class="conum" data-value="8"></i><b>(8)</b>
+                        .send(); <i class="conum" data-value="9"></i><b>(9)</b>
+            }
+        } catch (Exception e) {
+            log.error("Error processing order", e);
+        }
     }
 }</code></pre>
 </div>
@@ -115,11 +139,11 @@ public void onPostSave(final DataContext.PostSaveEvent event) { <i class="conum"
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>This method is invoked after saving changes.</td>
+<td>Listens for <code>EntityChangedEvent</code> after the transaction is committed, ensuring that the order record is already stored in the database.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Checks if this entity is newly created.</td>
+<td>Opens a new transaction for loading and saving data. This is necessary because the current transaction has already been closed after the commit. Without this, <code>dataManager.load()</code> or <code>dataManager.save()</code> would fail due to the lack of an active transaction.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>

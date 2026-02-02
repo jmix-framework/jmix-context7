@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Process Form Data :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Getting Process Form Data</h1>
+<div class="paragraph">
+<p>The <code>io.jmix.bpm.processform.ProcessFormDataExtractor</code> bean provides programmatic access to process-form information. The following example demonstrates a REST controller that uses this bean to obtain the form data associated with a running process instance.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestController
+@RequestMapping("rest/bpm/process-form-data")
+public class FormDataController {
+
+    @Autowired
+    private ProcessFormDataExtractor processFormDataExtractor;
+
+    @GetMapping(produces = "application/json")
+    public FormData getTaskFormData(
+            @RequestParam(required = false) String taskId,
+            @RequestParam(required = false) String processDefinitionId) {
+
+        if (Strings.isEmpty(taskId) &amp;&amp; Strings.isEmpty(processDefinitionId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The taskId or processDefinitionId parameter has to be provided");
+        }
+
+        if (!Strings.isEmpty(taskId) &amp;&amp; !Strings.isEmpty(processDefinitionId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The request cannot contain both taskId and processDefinitionId.");
+        }
+
+        if (Strings.isEmpty(taskId)) {
+            return processFormDataExtractor.getStartFormData(processDefinitionId); <i class="conum" data-value="1"></i><b>(1)</b>
+        } else {
+            return processFormDataExtractor.getTaskFormData(taskId); <i class="conum" data-value="2"></i><b>(2)</b>
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Supplying a <code>processDefinitionID</code> returns the data for the process’s start form.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Supplying a <code>taskID</code> returns the data for that task’s form.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><strong>Success response body:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+  "type": "jmix-screen",
+  "screenId": "FormExample",
+  "openMode": "DIALOG",
+  "businessKey": null,
+  "businessKeySource": null,
+  "allowedProcessKeys": [],
+  "fields": [],
+  "outcomes": [],
+  "formParams": [],
+  "outputVariables": []
+}</pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Make sure to secure application endpoints. Use the code samples in <a class="xref page" href="../security/custom-endpoints.html">Custom Endpoints</a> as a guide.
+</td>
+</tr>
+</table>
+</div>
+
+</article>
+</body>
+</html>

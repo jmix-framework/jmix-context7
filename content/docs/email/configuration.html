@@ -276,14 +276,20 @@ spring.mail.password=password</code></pre>
 <p>Create a job class:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class MyCustomEmailCleaningJob implements Job {
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.email.Emailer;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.springframework.beans.factory.annotation.Autowired;
+
+public class MyCustomEmailSendingJob implements Job {
 
     @Autowired
-    private EmailCleaner emailCleaner;
+    private Emailer emailer;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        emailCleaner.deleteOldEmails();
+        emailer.processQueuedEmails();
     }
 }</code></pre>
 </div>
@@ -298,22 +304,46 @@ spring.mail.password=password</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
 JobDetail myCustomEmailSendingJob() {
-    return JobBuilder.newJob()
+    return JobBuilder.newJob() <i class="conum" data-value="1"></i><b>(1)</b>
             .ofType(MyCustomEmailSendingJob.class)
             .storeDurably()
             .withIdentity("emailSending")
-            .build();
+            .build(); <i class="conum" data-value="2"></i><b>(2)</b>
 }
 
 @Bean
 Trigger myCustomEmailSendingTrigger() {
-    return TriggerBuilder.newTrigger()
-            .forJob(myCustomEmailSendingJob())
+    return TriggerBuilder.newTrigger() <i class="conum" data-value="3"></i><b>(3)</b>
+            .forJob(myCustomEmailSendingJob()) <i class="conum" data-value="4"></i><b>(4)</b>
             .startNow()
             .withSchedule(CronScheduleBuilder.cronSchedule("* 0/2 * * * ?"))
-            .build();
+            .build(); <i class="conum" data-value="5"></i><b>(5)</b>
 }</code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Start building a job definition using the <code>org.quartz.JobBuilder</code> class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Create an <code>org.quartz.JobDetail</code> instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Start building a trigger definition using the <code>org.quartz.TriggerBuilder</code> class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Link this trigger to the previously defined job.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Create an <code>org.quartz.Trigger</code> instance.</td>
+</tr>
+</table>
 </div>
 </li>
 </ol>
@@ -385,7 +415,13 @@ jmix.email.max-age-of-important-messages=30</code></pre>
 <p>Create a job class:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class MyCustomEmailCleaningJob implements Job {
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.email.EmailCleaner;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.springframework.beans.factory.annotation.Autowired;
+
+public class MyCustomEmailCleaningJob implements Job {
 
     @Autowired
     private EmailCleaner emailCleaner;
@@ -407,22 +443,46 @@ jmix.email.max-age-of-important-messages=30</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
 JobDetail myCustomEmailCleaningJob() {
-    return JobBuilder.newJob()
+    return JobBuilder.newJob() <i class="conum" data-value="1"></i><b>(1)</b>
             .ofType(MyCustomEmailCleaningJob.class)
             .storeDurably()
             .withIdentity("emailCleaning")
-            .build();
+            .build(); <i class="conum" data-value="2"></i><b>(2)</b>
 }
 
 @Bean
 Trigger MyCustomEmailCleaningTrigger() {
-    return TriggerBuilder.newTrigger()
-            .forJob(myCustomEmailCleaningJob())
+    return TriggerBuilder.newTrigger() <i class="conum" data-value="3"></i><b>(3)</b>
+            .forJob(myCustomEmailCleaningJob()) <i class="conum" data-value="4"></i><b>(4)</b>
             .startNow()
             .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 1/2 * ? "))
-            .build();
+            .build(); <i class="conum" data-value="5"></i><b>(5)</b>
 }</code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Start building a job definition using the <code>org.quartz.JobBuilder</code> class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Create an <code>org.quartz.JobDetail</code> instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Start building a trigger definition using the <code>org.quartz.TriggerBuilder</code> class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Link this trigger to the previously defined job.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Create an <code>org.quartz.Trigger</code> instance.</td>
+</tr>
+</table>
 </div>
 </li>
 <li>

@@ -105,7 +105,10 @@
 <p>Set up a handler for the <code>sendEmailAction</code> action. In the handler, show a dialog asking if the news can be queued for sending:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("newsItemsDataGrid.sendEmailAction")
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Dialogs dialogs; <i class="conum" data-value="1"></i><b>(1)</b>
+
+@Subscribe("newsItemsDataGrid.sendEmailAction")
 public void onNewsItemsDataGridSendEmailAction(final ActionPerformedEvent event) {
     NewsItem newsItem = newsItemsDataGrid.getSingleSelectedItem();
 
@@ -130,26 +133,40 @@ public void onNewsItemsDataGridSendEmailAction(final ActionPerformedEvent event)
 }</code></pre>
 </div>
 </div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Inject the <code>io.jmix.flowui.Dialogs</code> object into the controller class.</td>
+</tr>
+</table>
+</div>
 </li>
 <li>
 <p>Implement the <code>sendNewsByEmail()</code> method.</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void sendNewsByEmail(NewsItem newsItem) throws IOException {
-    InputStream resourceAsStream = resources.getResourceAsStream("/META-INF/resources/icons/icon.png"); <i class="conum" data-value="1"></i><b>(1)</b>
-    byte[] bytes = IOUtils.toByteArray(resourceAsStream);
-    EmailAttachment emailAttachment = new EmailAttachment(bytes, "logo.png", "logoId");
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Emailer emailer; <i class="conum" data-value="1"></i><b>(1)</b>
 
-    final EmailInfo emailInfo = EmailInfoBuilder.create()
+@Autowired
+private Resources resources; <i class="conum" data-value="2"></i><b>(2)</b>
+
+private void sendNewsByEmail(NewsItem newsItem) throws IOException {
+    InputStream resourceAsStream = resources.getResourceAsStream("/META-INF/resources/icons/icon.png"); <i class="conum" data-value="3"></i><b>(3)</b>
+    byte[] bytes = IOUtils.toByteArray(resourceAsStream);
+    EmailAttachment emailAttachment = new EmailAttachment(bytes, "logo.png", "logoId"); <i class="conum" data-value="4"></i><b>(4)</b>
+
+    final EmailInfo emailInfo = EmailInfoBuilder.create() <i class="conum" data-value="5"></i><b>(5)</b>
             .setAddresses("john.doe@company.com,jane.doe@company.com")
             .setSubject(newsItem.getSubject())
-            .setFrom(null) <i class="conum" data-value="2"></i><b>(2)</b>
+            .setFrom(null) <i class="conum" data-value="6"></i><b>(6)</b>
             .setBodyContentType("text/plain; charset=UTF-8")
             .setBody(newsItem.getContent())
             .setAttachments(emailAttachment)
             .setImportant(false)
             .build();
-    emailer.sendEmailAsync(emailInfo);
+    emailer.sendEmailAsync(emailInfo); <i class="conum" data-value="7"></i><b>(7)</b>
 }</code></pre>
 </div>
 </div>
@@ -157,11 +174,31 @@ public void onNewsItemsDataGridSendEmailAction(final ActionPerformedEvent event)
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>To demonstrate adding an attachment, an application icon file will be used.</td>
+<td>Inject the <code>io.jmix.email.Emailer</code> interface.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>The <strong>from</strong> address will be taken from the <a class="xref page" href="configuration.html#jmix.email.from-address">jmix.email.from-address</a>.</td>
+<td>Inject the <code>io.jmix.core.Resources</code> interface.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>To demonstrate how to add an attachment, we’ll use an application icon file.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Create an <code>io.jmix.email.EmailAttachment</code> object.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Create an <code>io.jmix.email.EmailInfo</code> object using <code>io.jmix.email.EmailInfoBuilder</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The <strong>from</strong> address will be taken from the <a class="xref page" href="configuration.html#jmix.email.from-address">jmix.email.from-address</a> property.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Send the email asynchronously (in the background).</td>
 </tr>
 </table>
 </div>

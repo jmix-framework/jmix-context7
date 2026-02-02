@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combining Roles :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Combining Roles</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Multiple roles can be combined to create a hierarchy, based on these rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Resource roles only combine with other resource roles.</p>
+</li>
+<li>
+<p>Row‑level roles only combine with other row‑level roles.</p>
+</li>
+<li>
+<p>If a role is assigned to a user, all its parent roles also apply.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Roles can be combined at design time — either by writing code or using <a class="xref page" href="../studio/role-designer.html#resource-role-designer">role designer</a>. At runtime, the hierarchy can be managed via the security views.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_combining_resource_roles_at_design_time"><a class="anchor" href="#_combining_resource_roles_at_design_time"></a>Combining Resource Roles at Design Time</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Role combination in code works like one interface extending another. For example, the resource <code>SystemOwner</code> role can get its policies from multiple more restrictive roles and then gain even broader access by adding its own extra policies.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ResourceRole(name = "SystemOwner", code = SystemOwnerRole.CODE)
+public interface SystemOwnerRole extends BasicEmployeeRole, ManagerRole, SupervisorRole {
+    String CODE = "system-owner";
+
+    // System owner's policies go here
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use <a class="xref page" href="../studio/role-designer.html#resource-role-designer">role designer</a> in Studio to combine resource roles visually and see the resulting set of policies.</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img alt="resource role designer" src="_images/resource-role-designer.png" width="1016"/></span></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_combining_resource_roles_at_runtime"><a class="anchor" href="#_combining_resource_roles_at_runtime"></a>Combining Resource Roles at Runtime</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Resource roles can be combined at runtime on the <strong>Security → Resource roles</strong> view. Create or choose a resource role to edit, then add one or several <strong>Base roles</strong>.</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img alt="combined runtime resource role" src="_images/combined-runtime-resource-role.png" width="1055"/></span></p>
+</div>
+<div class="paragraph">
+<p>The final permission set is the role’s own permissions plus all permissions granted by the selected base roles.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Base roles can only be added to roles that were created at runtime.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_combining_row_level_roles_at_design_time"><a class="anchor" href="#_combining_row_level_roles_at_design_time"></a>Combining Row-level Roles at Design Time</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To combine row‑level roles, make an interface that extends the existing role interfaces. For example, <code>SameRegionRole</code> combines several roles whose policies let an employee see only data for their region.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(name = "Can see data of their region", code = SameRegionRole.CODE)
+public interface SameRegionRole extends SameRegionCustomersRole, SameRegionRowsRole {
+    String CODE = "same-region-role";
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_combining_row_level_roles_at_runtime"><a class="anchor" href="#_combining_row_level_roles_at_runtime"></a>Combining Row-level Roles at Runtime</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Row-level roles can be combined at runtime on the <strong>Security → Row-level roles</strong> view. Create or choose a row-level role to edit, then add one or several <strong>Base roles</strong>.</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img alt="combined runtime row level role" src="_images/combined-runtime-row-level-role.png" width="1088"/></span></p>
+</div>
+<div class="paragraph">
+<p>The final permission set is the role’s own permissions plus all permissions granted by the selected base roles.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Base roles can only be added to roles that were created at runtime.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -270,6 +270,7 @@ def main():
     )
     parser.add_argument(
         'output_dir',
+        
         help='Output directory for scraped documentation'
     )
     parser.add_argument(
