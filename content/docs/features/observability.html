@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Observability :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Observability</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Observability is the ability to understand application behavior through three types of signals: logs, metrics, and traces. Together, they help you investigate failures, analyze performance, and understand how requests move through the system.</p>
+</div>
+<div class="paragraph">
+<p>Jmix does not introduce a separate observability model. Instead, it builds on the standard Spring Boot ecosystem, primarily Spring Boot Actuator, Micrometer, and Micrometer Observation / Tracing.</p>
+</div>
+<div class="paragraph">
+<p>Observability is different from <a class="xref page" href="../audit/index.html">Audit</a>. Audit is used to track who changed business data and when. Observability is used to analyze runtime behavior, performance, failures, and request flow.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="logging"><a class="anchor" href="#logging"></a>Logging</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Logs are the simplest way to observe a running application. They are useful for troubleshooting, diagnostics, and investigating production errors.</p>
+</div>
+<div class="paragraph">
+<p>In Jmix applications, logging is configured in the same way as in Spring Boot. Log levels are usually set in <code>application.properties</code>, globally or for individual packages and classes. For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">logging.level.eclipselink.logging.sql=debug
+logging.level.io.jmix=debug
+logging.level.org.springframework=info</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These settings can help focus on a particular part of the system. For example, <code>eclipselink.logging.sql</code> shows generated SQL, while <code>io.jmix</code> enables debug output for Jmix framework code.</p>
+</div>
+<div class="paragraph">
+<p>Use <code>DEBUG</code> logging carefully in production. It is often useful for short troubleshooting sessions, but keeping it enabled permanently can produce excessive output and affect performance.</p>
+</div>
+<div class="paragraph">
+<p>For detailed logging configuration and centralized log collection, see the following guides:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../application-logging-guide/index.html">Application Logging in Jmix</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../observability-logging-guide/index.html">Observability: Centralized Logging</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="metrics-and-monitoring"><a class="anchor" href="#metrics-and-monitoring"></a>Metrics and Monitoring</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Metrics are numeric measurements collected over time. They are used to observe throughput, latency, error rate, resource consumption, and internal framework and application activity. Monitoring is the process of collecting, storing, visualizing, and alerting on these metrics.</p>
+</div>
+<div class="paragraph">
+<p>A typical Spring Boot application exposes metrics through Actuator and Micrometer. These metrics usually include JVM memory and garbage collection, CPU and process data, thread pools, HTTP server requests, datasource pools.</p>
+</div>
+<div class="paragraph">
+<p>Jmix adds timer metrics for selected framework operations. These metrics are recorded through Micrometer <code>MeterRegistry</code>.</p>
+</div>
+<div class="paragraph">
+<p>Jmix provides a default <code>MeterRegistry</code> bean, and exporting metrics depends on the Spring Boot Actuator and Micrometer registry configuration.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Metric names and tags</caption>
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 33.3333%;"/>
+<col style="width: 50.0001%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Tags</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.ui.views</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>view</code>, <code>lifeCycle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Duration of UI view lifecycle stages (for example create/show/close) per view.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.ui.data</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dataLoader</code>, <code>view</code>, <code>lifeCycle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Duration of UI data loader lifecycle stages inside a specific view.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.EmailSender.send</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No custom tags</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time spent sending an email message through the framework email sender.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.JavaClassLoader.loadClass</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No custom tags</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time spent resolving/loading a Java class by the dynamic class loader.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>UI lifecycle values include:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>View lifecycle: <code>create</code>, <code>load</code>, <code>inject</code>, <code>init</code>, <code>beforeShow</code>, <code>ready</code>, <code>beforeClose</code>, <code>afterClose</code></p>
+</li>
+<li>
+<p>Data loader lifecycle: <code>preLoad</code>, <code>load</code>, <code>postLoad</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For a typical monitoring setup, add Spring Boot Actuator and a Micrometer registry for the monitoring backend used in your infrastructure. For example, to expose Prometheus-compatible metrics, add the following dependencies:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'org.springframework.boot:spring-boot-starter-actuator'
+implementation 'io.micrometer:micrometer-registry-prometheus'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then expose the Prometheus endpoint in the application:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">management.endpoints.web.exposure.include=*
+management.endpoints.prometheus.enabled=true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Prometheus can then scrape the <code>/actuator/prometheus</code> endpoint. Keep the list of exposed management endpoints as small as possible in production.</p>
+</div>
+<div class="paragraph">
+<p>For additional information, see:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://docs.spring.io/spring-boot/3.5/reference/actuator/metrics.html" rel="noopener" target="_blank">Spring Boot Actuator Metrics</a></p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-boot/3.5/reference/actuator/observability.html" rel="noopener" target="_blank">Spring Boot Observability</a></p>
+</li>
+<li>
+<p><a href="https://docs.micrometer.io/micrometer/reference/concepts/meters.html" rel="noopener" target="_blank">Micrometer Meters</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="tracing"><a class="anchor" href="#tracing"></a>Tracing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Tracing shows how a request or operation moves through an application. It helps identify latency, failures, and dependencies between components. Tracing becomes especially useful when several services or infrastructure layers participate in request processing.</p>
+</div>
+<div class="paragraph">
+<p>In a typical tracing setup, the application creates spans for important operations, propagates trace context across service boundaries, and sends trace data to a backend for storage and analysis. Trace identifiers can also be added to logs to correlate log records with traces.</p>
+</div>
+<div class="paragraph">
+<p>Jmix uses Micrometer Observation API to create spans for framework operations. Built-in tracing covers the following areas:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Data access operations such as load, count, and save</p>
+</li>
+<li>
+<p>UI view lifecycle events</p>
+</li>
+<li>
+<p>UI fragment lifecycle events</p>
+</li>
+<li>
+<p>UI action execution</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Jmix can also enrich observations with the current user and tenant context.</p>
+</div>
+<div class="paragraph">
+<p>To enable Jmix tracing, set the following properties:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.data-observation-enabled=true
+jmix.ui.ui-observation-enabled=true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To include current user information in observation attributes, use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.core.use-user-info-for-observation=true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>jmix.core.use-user-info-for-observation</code> property is enabled by default. Disable it if user or tenant data must not be added to observations.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. Span names and attributes</caption>
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 33.3333%;"/>
+<col style="width: 50.0001%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Key attributes</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.data.load</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>method</code>, <code>entity.name</code>; may include <code>jpql.query</code>, <code>jpql.parameters</code>, <code>properties</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data read operations performed by the framework (entity/value load and count flows).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.data.save</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>method</code>, <code>dataStore</code>; may include <code>entitiesToSave.count</code>, <code>entitiesToRemove.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data write operations performed by the framework when saving/removing entities.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.ui.views</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lifecycle.name</code>, <code>view.id</code>, <code>view.class</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UI view lifecycle events represented as tracing/observation spans.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.ui.fragments</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lifecycle.name</code>, <code>fragment.class</code>, optional <code>fragment.id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UI fragment creation/ready lifecycle events represented as spans.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.ui.actions</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>action.id</code>, optional <code>target.id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execution of UI actions (for example button/menu actions) represented as spans.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>When context enrichment is enabled, observations may also include:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>jmix.user.username</code></p>
+</li>
+<li>
+<p><code>jmix.user.tenantId</code> in <a class="xref page" href="../multitenancy/index.html">multitenancy</a> setups</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For distributed tracing across service boundaries, add the Micrometer tracing bridge and an exporter to the application. Spring Boot Actuator then configures an <code>ObservationRegistry</code> bean and connects it to tracing. A typical setup for a Jmix application is:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'org.springframework.boot:spring-boot-starter-actuator'
+implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+implementation 'io.opentelemetry:opentelemetry-exporter-otlp'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">management.tracing.sampling.probability=0.1
+management.otlp.tracing.export.enabled=true
+management.otlp.tracing.endpoint=http://localhost:4318/v1/traces</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the application makes outbound HTTP calls, build clients from the auto-configured <code>RestTemplateBuilder</code> or <code>RestClient.Builder</code> so that trace headers are added to requests automatically.</p>
+</div>
+<div class="paragraph">
+<p>For additional information, see:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://docs.spring.io/spring-boot/3.5/reference/actuator/tracing.html" rel="noopener" target="_blank">Spring Boot Tracing</a></p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-boot/3.5/reference/actuator/observability.html" rel="noopener" target="_blank">Spring Boot Observability</a></p>
+</li>
+<li>
+<p><a href="https://docs.micrometer.io/micrometer/reference/observation.html" rel="noopener" target="_blank">Micrometer Observation</a></p>
+</li>
+<li>
+<p><a href="https://docs.micrometer.io/tracing/reference/index.html" rel="noopener" target="_blank">Micrometer Tracing</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

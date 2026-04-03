@@ -12,177 +12,121 @@
 <h2 id="visual-components"><a class="anchor" href="#visual-components"></a>Visual Components</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Search add-on provides two UI components: <code>SearchField</code> and <code>FullTextFilter</code>.</p>
+<p>The Search add-on provides two UI components: <a class="xref page" href="search-field-component.html">SearchField</a> and <a class="xref page" href="full-text-filter-component.html">FullTextFilter</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="search-strategies"><a class="anchor" href="#search-strategies"></a>Search Strategies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A search strategy defines how the search term is processed. Basically, it configures a search request with a query.</p>
 </div>
 <div class="paragraph">
-<p>These components are available in the <strong>Add Component</strong> palette of the Studio <a class="xref page" href="../studio/view-designer.html">View Designer</a> as soon as you install the add-on in your project.</p>
-</div>
-<div class="paragraph">
-<p>If you don’t use the view designer, declare the <code>search</code> namespace in your view’s XML descriptor manually:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
-      xmlns:search="http://jmix.io/schema/search/ui"
-      title="msg://searchView.title"&gt;</code></pre>
-</div>
-</div>
-<div class="sect2">
-<h3 id="search-field"><a class="anchor" href="#search-field"></a>SearchField</h3>
-<div class="paragraph">
-<p>The <code>SearchField</code> component presents a text input field along with a button for executing searches.</p>
-</div>
-<div class="paragraph">
-<p>Here’s a usage example of the <code>SearchField</code> component within a view:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
-      xmlns:search="http://jmix.io/schema/search/ui"
-      title="msg://searchView.title"&gt;
-    &lt;layout&gt;
-        &lt;search:searchField id="searchField"/&gt;
-    &lt;/layout&gt;
-&lt;/view&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Attributes of the <code>SearchField</code> component:</p>
+<p>The <a class="xref page" href="search-field-component.html">SearchField</a> and <a class="xref page" href="full-text-filter-component.html">FullTextFilter</a> components support the following built-in search strategies:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>searchStrategy</code> - determines the search strategy applied. If no strategy is specified, the default one is used.</p>
-</li>
-<li>
-<p><code>entities</code> - specifies the entities for searching. Multiple entities can be listed as a comma-separated sequence:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;search:searchField id="searchField"
-                    entities="Customer, Order_"/&gt;</code></pre>
-</div>
-</div>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>By default, <code>searchField</code> opens the built-in <code>SearchResultsView</code>. This view handles the search engine querying process and presents a result list within the navigation view or in a new dialog, based on the <code>openMode</code> attribute of <code>searchField</code>.</p>
+<p><code>startsWith</code></p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This strategy is <strong>only available</strong> when <a class="xref page" href="index-definitions.html#extended-search">@ExtendedSearch</a> is enabled on at least one index definition.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>If you wish to modify this functionality, you can configure the <code>SearchCompletedHandler</code> in the following manner:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
-private DialogWindows dialogWindows;
-@ViewComponent
-private SearchField searchField;
-
-@Install(to = "searchField", subject = "searchCompletedHandler")
-private void searchFieldSearchCompletedHandler(
-        final SearchField.SearchCompletedEvent event) {
-    SearchResult searchResult = event.getSearchResult();
-    DialogWindow&lt;SearchResultsView&gt; searchResultsDialog =
-            dialogWindows.view(UiComponentUtils.getView(this),
-                            SearchResultsView.class)
-                    .build();
-    SearchResultsView view = searchResultsDialog.getView();
-    view.initView(new SearchFieldContext(searchField));
-    searchResultsDialog.open();
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Alternatively, you can use the <code>setSearchCompletedHandler()</code> method of the component.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="full-text-filter"><a class="anchor" href="#full-text-filter"></a>FullTextFilter</h3>
-<div class="paragraph">
-<p>The <code>FullTextFilter</code> component functions similarly to the <a class="xref page" href="../flow-ui/vc/components/propertyFilter.html">propertyFilter</a> component.</p>
-</div>
-<div class="paragraph">
-<p>Here’s an example of using <code>fullTextFilter</code> in the view:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
-    &lt;collection id="ordersDc"
-                class="com.company.demo.entity.Order"&gt;
-        &lt;loader id="ordersDl"
-                readOnly="true"&gt;
-            &lt;query&gt;
-                &lt;![CDATA[select e from Order_ e]]&gt;
-            &lt;/query&gt;
-        &lt;/loader&gt;
-        &lt;fetchPlan extends="_base"&gt;
-            &lt;property name="customer"
-                      fetchPlan="_base"/&gt;
-        &lt;/fetchPlan&gt;
-    &lt;/collection&gt;
-&lt;/data&gt;
-&lt;layout&gt;
-    &lt;search:fullTextFilter dataLoader="ordersDl"
-                           autoApply="true"/&gt;
-    &lt;dataGrid id="ordersDataGrid"
-              width="100%"
-              dataContainer="ordersDc"&gt;
-        &lt;columns&gt;
-            &lt;column property="number"/&gt;
-            &lt;column property="date"/&gt;
-            &lt;column property="amount"/&gt;
-            &lt;column property="product"/&gt;
-        &lt;/columns&gt;
-    &lt;/dataGrid&gt;
-&lt;/layout&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Attributes of the <code>FullTextFilter</code> component:</p>
+<p>Performs prefix-based search using pre-indexed Edge N-Gram subfields:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>dataLoader</code> specifies the <code>DataLoader</code> to be filtered.</p>
+<p>Generates all prefixes from <a class="xref page" href="search-properties.html#jmix.search.minPrefixLength">jmix.search.min-prefix-length</a> (default: <code>3</code>) to <a class="xref page" href="search-properties.html#jmix.search.maxPrefixLength">jmix.search.max-prefix-length</a> (default: <code>8</code>).</p>
 </li>
 <li>
-<p><code>searchStrategy</code> determines the search strategy to be employed. If not explicitly defined, a default strategy is utilized.</p>
+<p>Provides significantly faster performance than wildcard queries.</p>
 </li>
 <li>
-<p><code>autoApply</code> - when set to <code>true</code>, the <code>FullTextFilter</code> component automatically applies itself to the <code>DataLoader</code> upon changes to its value.</p>
+<p>When input exceeds maximum prefix length, falls back to wildcard query if <a class="xref page" href="search-properties.html#jmix.search.wildcardPrefixQueryEnabled">jmix.search.wildcard-prefix-query-enabled</a> = <code>true</code> (default).</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Terms shorter than <code>jmix.search.min-prefix-length</code> always return empty results.
+</td>
+</tr>
+</table>
+</div>
 </li>
 </ul>
 </div>
+</li>
+<li>
+<p><code>phrase</code></p>
 <div class="paragraph">
-<p><code>FullTextFilter</code> works as follows: it finds identifiers of entities through a full-text search, and subsequently appends a condition containing these identifiers to the data loader. Consequently, when a <code>DataGrid</code> is linked to this data loader, it will display only those records that match the full-text search criteria, combined with other filters, if any.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="search-strategies"><a class="anchor" href="#search-strategies"></a>Search Strategies</h3>
-<div class="paragraph">
-<p>A search strategy defines how the search term is processed. Basically it configures search request with some query.</p>
-</div>
-<div class="paragraph">
-<p>The <code>SearchField</code> and <code>FullTextFilter</code> components support the following built-in search strategies:</p>
+<p>Performs exact phrase matching:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>anyTermAnyField</code> - a document matches if it contains at least one of input words in any indexed field.</p>
+<p>Documents must contain all search terms in the <strong>exact order</strong> within a single field.</p>
 </li>
 <li>
-<p><code>allTermsAnyField</code> - a document matches if it contains all input words in any field in any order.  This strategy is set by default.</p>
+<p>Equivalent to a traditional phrase query in search engines.</p>
 </li>
 <li>
-<p><code>allTermsSingleField</code> - a document matches if it has at least one field that contains all input words in any order.</p>
+<p>Ideal for name, title, or exact wording searches.</p>
+</li>
+</ul>
+</div>
 </li>
 <li>
-<p><code>phrase</code> - a document matches if it has at least one field that contains all input words in the provided order.</p>
+<p><code>anyTermAnyField</code></p>
+<div class="paragraph">
+<p>Performs disjunctive term matching across all fields:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Documents matching <strong>any</strong> of the input terms in <strong>any</strong> indexed field are returned.</p>
+</li>
+<li>
+<p>Terms are combined with OR logic.</p>
+</li>
+<li>
+<p>Default strategy for backward compatibility.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>You can set the proper strategy by using the <code>strategy</code> attribute, for example:</p>
+<p>This strategy is set by default.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<code>allTermsAnyField</code> and <code>allTermsSingleField</code> are deprecated and hidden from UI but can be reimplemented if needed.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can set the proper strategy by using the <code>searchStrategy</code> attribute, for example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -196,11 +140,11 @@ private void searchFieldSearchCompletedHandler(
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.search.default-search-strategy = allTermsSingleField</code></pre>
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.search.default-search-strategy = phrase</code></pre>
 </div>
 </div>
-<div class="sect3">
-<h4 id="custom-search-strategies"><a class="anchor" href="#custom-search-strategies"></a>Custom Search Strategies</h4>
+<div class="sect2">
+<h3 id="custom-search-strategies"><a class="anchor" href="#custom-search-strategies"></a>Custom Search Strategies</h3>
 <div class="paragraph">
 <p>Additionally, you can create a custom search strategy. For that purpose, you need to create a new Spring bean implementing one of the platform-specific interfaces:</p>
 </div>
@@ -223,7 +167,7 @@ private void searchFieldSearchCompletedHandler(
 <p><code>String getName()</code> - should return a unique strategy name.</p>
 </li>
 <li>
-<p><code>void configureRequest(SearchRequest.Builder requestBuilder, SearchContext searchContext)</code> - configure you search request using provided builder according to your requirements.</p>
+<p><code>void configureRequest(SearchRequest.Builder requestBuilder, SearchContext searchContext)</code> - configure your search request using the provided builder according to your requirements.</p>
 </li>
 </ul>
 </div>
@@ -251,8 +195,7 @@ public class CustomOpenSearchSearchStrategy implements OpenSearchSearchStrategy 
 </div>
 </div>
 <div class="paragraph">
-<p>After that, you can assign your custom strategy to the <code>SearchField</code> or <code>FullTextFilter</code> component using the strategy name.</p>
-</div>
+<p>After that, you can assign your custom strategy to the <a class="xref page" href="search-field-component.html">SearchField</a> or <a class="xref page" href="full-text-filter-component.html">FullTextFilter</a> component using the strategy name.</p>
 </div>
 </div>
 </div>
@@ -270,7 +213,7 @@ public class CustomOpenSearchSearchStrategy implements OpenSearchSearchStrategy 
 <p>Within the <strong>Full-text filter condition editor</strong> dialog, you can define a caption for the full-text filter and choose a search strategy. If no search strategy is selected, then the default one is used.</p>
 </div>
 <div class="paragraph">
-<p><span class="image"><img alt="condition editor" src="_images/condition_editor.png" width="641"/></span></p>
+<p><span class="image"><img alt="condition editor" src="_images/condition_editor.png" width="642"/></span></p>
 </div>
 <div class="paragraph">
 <p>Subsequently, the records in the list component linked to the filter will undergo filtering based on the outcome of the full-text search.</p>

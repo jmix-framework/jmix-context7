@@ -101,12 +101,12 @@
 private JmixCheckbox checkbox;
 
 @ViewComponent
-private SettingsFacet settings;
+private ViewSettingsFacet settings;
 
 @Install(to = "settings", subject = "applySettingsDelegate")
-private void settingsApplySettingsDelegate(final SettingsFacet.SettingsContext settingsContext) {
+private void settingsApplySettingsDelegate(final SettingsFacet.SettingsContext&lt;ViewSettings&gt; settingsContext) {
     settings.applySettings();
-    Optional&lt;Boolean&gt; value = settingsContext.getViewSettings().getBoolean("checkbox", "value");
+    Optional&lt;Boolean&gt; value = settingsContext.getSettings().getBoolean("checkbox", "value");
     checkbox.setValue(value.orElse(Boolean.FALSE));
 }</code></pre>
 </div>
@@ -129,11 +129,11 @@ private void settingsApplySettingsDelegate(final SettingsFacet.SettingsContext s
 private JmixCheckbox checkbox;
 
 @ViewComponent
-private SettingsFacet settings;
+private ViewSettingsFacet settings;
 
 @Install(to = "settings", subject = "saveSettingsDelegate")
-private void settingsSaveSettingsDelegate(final SettingsFacet.SettingsContext settingsContext) {
-    settingsContext.getViewSettings().put("testCheckbox", "value", checkbox.getValue());
+private void settingsSaveSettingsDelegate(final SettingsFacet.SettingsContext&lt;ViewSettings&gt; settingsContext) {
+    settingsContext.getSettings().put("testCheckbox", "value", checkbox.getValue());
     settings.saveSettings();
 }</code></pre>
 </div>

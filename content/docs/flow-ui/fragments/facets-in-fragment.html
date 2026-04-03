@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facets in Fragments :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Facets in Fragments</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Fragments support the same facet mechanism as views. You can use framework-provided facets inside fragments to add reusable functionality. For a general introduction to facets, see <a class="xref page" href="../facets.html">Facets</a>.</p>
+</div>
+<div class="paragraph">
+<p>The following facets are available for use in fragments:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>timer</code> – creates a client-side timer that can trigger periodic actions.</p>
+</li>
+<li>
+<p><code>fragmentSettings</code> – saves UI component settings for a specific user.</p>
+</li>
+<li>
+<p><code>fragmentDataLoadCoordinator</code> – controls how data is loaded into the fragment.</p>
+</li>
+<li>
+<p><code>urlQueryParameters</code> – persists the state of UI components in the URL.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+&lt;!-- some code --&gt;
+    &lt;facets&gt;
+        &lt;timer id="timer" delay="1000" autostart="true" repeating="true"/&gt;
+        &lt;fragmentSettings auto="true"/&gt;
+        &lt;fragmentDataLoadCoordinator auto="true"/&gt;
+        &lt;urlQueryParameters&gt;
+            &lt;dataGridFilter component="usersDataGrid"/&gt;
+            &lt;pagination component="simplePagination"/&gt;
+            &lt;propertyFilter component="propertyFilter"/&gt;
+            &lt;genericFilter component="genericFilter"/&gt;
+        &lt;/urlQueryParameters&gt;
+    &lt;/facets&gt;
+    &lt;content&gt;
+        &lt;!-- some code --&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution" id="facets-with-required-id">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Some facets require the fragment to have an ID. You can set it either in XML using the <code>id</code> attribute, or programmatically in the view controller.</p>
+</div>
+<div class="listingblock">
+<div class="title">settings-fragment-view.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://fragmentsettingsfragmentview.title"&gt;
+    &lt;layout&gt;
+        &lt;details id="xmlFacetDetails"
+                 summaryText="XML Facet"
+                 opened="true"
+                 width="100%"&gt;
+            &lt;fragment id="xmlFragment"
+                      class="com.company.onboarding.view.fragments.settingsfragment.SettingsFragment"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+        &lt;/details&gt;
+        &lt;details id="javaFacetDetails"
+                 summaryText="Java Facet"
+                 opened="true"
+                 width="100%"/&gt;<i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Include the fragment in a view using the <code>fragment</code> element with the <code>class</code> attribute specifying the fragment class FQN, and the <code>id</code> attribute that will be set to the fragment.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>details</code> layout for programmatically defining the fragment in the view controller.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The same fragment can be created programmatically using the <code>Fragments</code> bean. The ID is set in the <code>create()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="title">SettingsFragmentView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.onboarding.view.fragments.settingsfragment.SettingsFragment;
+import com.company.onboarding.view.main.MainView;
+import com.vaadin.flow.router.Route;
+import io.jmix.flowui.Fragments;
+import io.jmix.flowui.component.details.JmixDetails;
+import io.jmix.flowui.view.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Route(value = "settings-fragment-view", layout = MainView.class)
+@ViewController(id = "SettingsFragmentView")
+@ViewDescriptor(path = "settings-fragment-view.xml")
+public class SettingsFragmentView extends StandardView {
+    @ViewComponent
+    private JmixDetails javaFacetDetails;
+    @Autowired
+    private Fragments fragments; <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @Subscribe
+    public void onInit(final InitEvent event) {
+        SettingsFragment javaFragment = fragments.create(this, SettingsFragment.class, "javaFragment"); <i class="conum" data-value="2"></i><b>(2)</b>
+        javaFacetDetails.add(javaFragment); <i class="conum" data-value="3"></i><b>(3)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Injects the <code>Fragments</code> bean which is used to create fragments.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Creates the fragment instance using its controller class and an ID that will be set to the fragment.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Adds the fragment instance to the <code>details</code> layout component.</td>
+</tr>
+</table>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="timer"><a class="anchor" href="#timer"></a>Timer Facet</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>timer</code> facet creates a client-side timer element. It uses the same implementation as the view-level <a class="xref page" href="../facets/timer.html">timer</a>, so all properties and events work the same in fragments.</p>
+</div>
+<div class="paragraph">
+<p>Fragment XML example:</p>
+</div>
+<div class="listingblock">
+<div class="title">timer-fragment.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+    &lt;facets&gt;
+        &lt;timer id="timer" delay="1000" repeating="true" autostart="true"/&gt;
+    &lt;/facets&gt;
+    &lt;content&gt;
+        &lt;vbox id="root"&gt;
+            &lt;textField id="displayField" readOnly="true"/&gt;
+        &lt;/vbox&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Fragment controller example:</p>
+</div>
+<div class="listingblock">
+<div class="title">TimerFragment.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import io.jmix.flowui.component.textfield.TypedTextField;
+import io.jmix.flowui.facet.Timer;
+import io.jmix.flowui.fragment.Fragment;
+import io.jmix.flowui.fragment.FragmentDescriptor;
+import io.jmix.flowui.view.Subscribe;
+import io.jmix.flowui.view.ViewComponent;
+
+@FragmentDescriptor("timer-fragment.xml")
+public class TimerFragment extends Fragment&lt;VerticalLayout&gt; {
+    @ViewComponent
+    private TypedTextField&lt;String&gt; displayField;
+
+    private int tick;
+
+    @Subscribe("timer")
+    public void onTimerTimerAction(final Timer.TimerActionEvent event) {
+        displayField.setValue("Timer tick: " + tick++);
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fragmentSettings"><a class="anchor" href="#fragmentSettings"></a>Fragment Settings Facet</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>fragmentSettings</code> facet saves settings for visual components. Saving occurs when the view is closed, similar to the <a class="xref page" href="../facets/settings.html">setting</a> facet for views.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+A fragment using <code>fragmentSettings</code> <strong>must have</strong> an ID. You can set it in <a href="#facets-with-required-id">XML or programmatically</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Key differences from view settings:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Settings are applied at the <code>HostView.ReadyEvent</code> event in the fragment lifecycle (instead of <code>ReadyEvent</code> for views).</p>
+</li>
+<li>
+<p>This ensures settings are applied at the latest possible moment in both view and fragment lifecycles.</p>
+</li>
+<li>
+<p>Each fragment on a view stores its own separate set of settings.</p>
+</li>
+<li>
+<p>A dedicated XML tag <code>fragmentSettings</code> is used.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Fragment XML example:</p>
+</div>
+<div class="listingblock">
+<div class="title">settings-fragment.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+    &lt;data&gt;
+        &lt;collection id="usersDc"
+                    class="com.company.onboarding.entity.User"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="usersDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from User e order by e.username]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;fragmentSettings auto="true"/&gt;
+        &lt;fragmentDataLoadCoordinator auto="true"/&gt;
+        &lt;urlQueryParameters&gt;
+            &lt;pagination component="pagination"/&gt;
+        &lt;/urlQueryParameters&gt;
+    &lt;/facets&gt;
+    &lt;content&gt;
+        &lt;vbox id="root"&gt;
+            &lt;details id="details" summaryText="Nested details"&gt;
+                &lt;avatar abbreviation="Jmix"/&gt;
+            &lt;/details&gt;
+            &lt;genericFilter id="genericFilter"
+                           dataLoader="usersDl"&gt;
+                &lt;properties include=".*"/&gt;
+            &lt;/genericFilter&gt;
+            &lt;simplePagination id="pagination" dataLoader="usersDl"
+                              itemsPerPageVisible="true" itemsPerPageItems="1, 2, 5, 10"/&gt;
+            &lt;dataGrid id="usersDataGrid"
+                      width="100%"
+                      columnReorderingAllowed="true"
+                      minHeight="20em"
+                      dataContainer="usersDc"&gt;
+                &lt;columns resizable="true"&gt;
+                    &lt;column property="username" filterable="true"/&gt;
+                    &lt;column property="firstName" filterable="true"/&gt;
+                    &lt;column property="lastName" filterable="true"/&gt;
+                    &lt;column property="email" filterable="true"/&gt;
+                    &lt;column property="timeZoneId" filterable="true"/&gt;
+                    &lt;column property="active" filterable="true"/&gt;
+                &lt;/columns&gt;
+            &lt;/dataGrid&gt;
+        &lt;/vbox&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Fragment controller example:</p>
+</div>
+<div class="listingblock">
+<div class="title">SettingsFragment.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import io.jmix.flowui.fragment.Fragment;
+import io.jmix.flowui.fragment.FragmentDescriptor;
+
+@FragmentDescriptor("settings-fragment.xml")
+public class SettingsFragment extends Fragment&lt;VerticalLayout&gt; {
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fragmentDataLoadCoordinator"><a class="anchor" href="#fragmentDataLoadCoordinator"></a>Fragment Data Load Coordinator Facet</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>fragmentDataLoadCoordinator</code> facet controls data loading within a fragment. For example, you can set a loading trigger on specific fragment lifecycle events.</p>
+</div>
+<div class="paragraph">
+<p>Available lifecycle events for fragments:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Fragment.ReadyEvent</code></p>
+</li>
+<li>
+<p><code>HostView.InitEvent</code></p>
+</li>
+<li>
+<p><code>HostView.BeforeShowEvent</code></p>
+</li>
+<li>
+<p><code>HostView.ReadyEvent</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The rest of the functionality works the same as the <a class="xref page" href="../facets/dataLoadCoordinator.html">dataLoadCoordinator</a> facet for views.</p>
+</div>
+<div class="paragraph">
+<p>Fragment XML example:</p>
+</div>
+<div class="listingblock">
+<div class="title">data-load-coordinator-fragment.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+    &lt;data&gt;
+        &lt;collection id="usersDc"
+                    class="com.company.onboarding.entity.User"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="usersDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from User e order by e.username]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;fragmentDataLoadCoordinator auto="true"/&gt;
+    &lt;/facets&gt;
+    &lt;content&gt;
+        &lt;vbox id="root"&gt;
+            &lt;details id="details" summaryText="Nested details"&gt;
+                &lt;avatar abbreviation="Jmix"/&gt;
+            &lt;/details&gt;
+            &lt;genericFilter id="genericFilter"
+                           dataLoader="usersDl"&gt;
+                &lt;properties include=".*"/&gt;
+            &lt;/genericFilter&gt;
+            &lt;simplePagination id="pagination" dataLoader="usersDl"
+                              itemsPerPageVisible="true" itemsPerPageItems="1, 2, 5, 10"/&gt;
+            &lt;dataGrid id="usersDataGrid"
+                      width="100%"
+                      columnReorderingAllowed="true"
+                      minHeight="20em"
+                      dataContainer="usersDc"&gt;
+                &lt;columns resizable="true"&gt;
+                    &lt;column property="username" filterable="true"/&gt;
+                    &lt;column property="firstName" filterable="true"/&gt;
+                    &lt;column property="lastName" filterable="true"/&gt;
+                    &lt;column property="email" filterable="true"/&gt;
+                    &lt;column property="timeZoneId" filterable="true"/&gt;
+                    &lt;column property="active" filterable="true"/&gt;
+                &lt;/columns&gt;
+            &lt;/dataGrid&gt;
+        &lt;/vbox&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Fragment controller example:</p>
+</div>
+<div class="listingblock">
+<div class="title">DataLoadCoordinatorFragment.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import io.jmix.flowui.fragment.Fragment;
+import io.jmix.flowui.fragment.FragmentDescriptor;
+
+@FragmentDescriptor("data-load-coordinator-fragment.xml")
+public class DataLoadCoordinatorFragment extends Fragment&lt;VerticalLayout&gt; {
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="urlQueryParameters"><a class="anchor" href="#urlQueryParameters"></a>Url Query Parameters Facet</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>urlQueryParameters</code> facet persists component state in the URL. This is useful when using the URL-first approach – leaving and returning to a view preserves information like filter states.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The fragment <strong>must have</strong> an ID, as its value is used for serialization. You can set the ID in <a href="#facets-with-required-id">XML or programmatically</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The working principle is similar to the <a class="xref page" href="../facets/urlQueryParameters.html">urlQueryParameters</a> facet for views.</p>
+</div>
+<div class="paragraph">
+<p>Fragment XML example:</p>
+</div>
+<div class="listingblock">
+<div class="title">url-query-parameters-fragment.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+    &lt;data&gt;
+        &lt;collection id="usersDc"
+                    class="com.company.onboarding.entity.User"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="usersDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from User e order by e.username]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;fragmentDataLoadCoordinator auto="true"/&gt;
+        &lt;urlQueryParameters&gt;
+            &lt;propertyFilter component="propertyFilter"/&gt;
+            &lt;genericFilter component="genericFilter"/&gt;
+            &lt;dataGridFilter component="usersDataGrid"/&gt;
+            &lt;pagination component="pagination"/&gt;
+        &lt;/urlQueryParameters&gt;
+    &lt;/facets&gt;
+    &lt;content&gt;
+        &lt;vbox id="root"&gt;
+            &lt;propertyFilter id="propertyFilter" property="username" operation="CONTAINS" dataLoader="usersDl"/&gt;
+            &lt;genericFilter id="genericFilter"
+                           dataLoader="usersDl"&gt;
+                &lt;properties include=".*"/&gt;
+            &lt;/genericFilter&gt;
+            &lt;simplePagination id="pagination" dataLoader="usersDl"
+                              itemsPerPageVisible="true" itemsPerPageItems="1, 2, 5, 10"/&gt;
+            &lt;dataGrid id="usersDataGrid"
+                      width="100%"
+                      columnReorderingAllowed="true"
+                      minHeight="20em"
+                      dataContainer="usersDc"&gt;
+                &lt;columns resizable="true"&gt;
+                    &lt;column property="username" filterable="true"/&gt;
+                    &lt;column property="firstName" filterable="true"/&gt;
+                    &lt;column property="lastName" filterable="true"/&gt;
+                    &lt;column property="email" filterable="true"/&gt;
+                    &lt;column property="timeZoneId" filterable="true"/&gt;
+                    &lt;column property="active" filterable="true"/&gt;
+                &lt;/columns&gt;
+            &lt;/dataGrid&gt;
+        &lt;/vbox&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Fragment controller example:</p>
+</div>
+<div class="listingblock">
+<div class="title">UrlQueryParametersFragment.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import io.jmix.flowui.fragment.Fragment;
+import io.jmix.flowui.fragment.FragmentDescriptor;
+
+@FragmentDescriptor("url-query-parameters-fragment.xml")
+public class UrlQueryParametersFragment extends Fragment&lt;VerticalLayout&gt; {
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

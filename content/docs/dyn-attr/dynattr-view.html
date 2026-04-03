@@ -22,10 +22,12 @@
 <h2 id="using-dynamicattributes-facet"><a class="anchor" href="#using-dynamicattributes-facet"></a>Using dynamicAttributes Facet</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><code>dynamicAttributes</code> facet enables the display of dynamic attributes in <code>DataGrid</code> or <code>FormLayout</code> associated with a data container containing entities with dynamic attributes.</p>
+<p>The <code>dynamicAttributes</code> facet enables the display of dynamic attributes in <code>DataGrid</code> or <code>FormLayout</code> components that are associated with a data container containing entities with dynamic attributes.</p>
 </div>
+<div class="sect2">
+<h3 id="_in_views"><a class="anchor" href="#_in_views"></a>In Views</h3>
 <div class="paragraph">
-<p>Include the <code>dynamicAttributes</code> facet to the <code>facets</code> section of the view XML descriptor:</p>
+<p>To use dynamic attributes in a view, include the <code>dynamicAttributes</code> facet in the <code>facets</code> section of the view XML descriptor:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -42,7 +44,98 @@
 </div>
 </div>
 <div class="paragraph">
-<p>Subsequently, you can choose this view within the <strong>Category attribute details</strong> on the <a class="xref page" href="dynattr-managing.html#visibility">Visibility</a> tab.</p>
+<p>After adding the facet, you can select this view in the <strong>Category attribute details</strong> dialog on the <a class="xref page" href="dynattr-managing.html#visibility">Visibility</a> tab.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="dynamicAttributes"><a class="anchor" href="#dynamicAttributes"></a>In Fragments</h3>
+<div class="paragraph">
+<p>The <code>dynamicAttributes</code> facet can also be used in <a class="xref page" href="../flow-ui/fragments/fragments.html">fragments</a>.</p>
+</div>
+<div class="paragraph">
+<p>Add the facet to the fragment XML:</p>
+</div>
+<div class="listingblock">
+<div class="title">dynamic-attributes-fragment.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"
+          xmlns:dynattr="http://jmix.io/schema/dynattr/flowui"&gt;
+    &lt;data&gt;
+        &lt;collection id="usersDc"
+                    class="com.company.demo.entity.User"&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+            &lt;loader id="usersDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from User e order by e.username]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;dynattr:dynamicAttributes/&gt;
+        &lt;fragmentDataLoadCoordinator auto="true"/&gt;
+    &lt;/facets&gt;
+    &lt;content&gt;
+        &lt;vbox id="root"&gt;
+            &lt;dataGrid id="usersDataGrid"
+                      width="100%"
+                      columnReorderingAllowed="true"
+                      minHeight="20em"
+                      dataContainer="usersDc"&gt;
+                &lt;columns resizable="true"&gt;
+                    &lt;column property="username"/&gt;
+                    &lt;column property="firstName"/&gt;
+                    &lt;column property="lastName"/&gt;
+                    &lt;column property="email"/&gt;
+                    &lt;column property="timeZoneId"/&gt;
+                    &lt;column property="active"/&gt;
+                &lt;/columns&gt;
+            &lt;/dataGrid&gt;
+        &lt;/vbox&gt;
+    &lt;/content&gt;
+&lt;/fragment&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Fragment controller example:</p>
+</div>
+<div class="listingblock">
+<div class="title">DynamicAttributesFragment.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import io.jmix.flowui.fragment.Fragment;
+import io.jmix.flowui.fragment.FragmentDescriptor;
+
+@FragmentDescriptor("dynamic-attributes-fragment.xml")
+public class DynamicAttributesFragment extends Fragment&lt;VerticalLayout&gt; {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then create a view that uses this fragment.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>A fragment using the <code>dynamicAttributes</code> facet <strong>must have</strong> an ID. You can set it in <a class="xref page" href="../flow-ui/fragments/facets-in-fragment.html#facets-with-required-id">XML or programmatically</a>.</p>
+</div>
+<div class="paragraph">
+<p>When configuring dynamic attribute <a class="xref page" href="dynattr-managing.html#visibility">visibility</a>, the identifier for a view that uses a fragment follows this pattern: <code>&lt;view_ID&gt;.&lt;fragment_ID&gt;</code>. For example, if a view with ID <code>DynAttrFacetView</code> contains a fragment with ID <code>xmlFragment</code>, the full identifier would be <code>DynAttrFacetView.xmlFragment</code>.</p>
+</div>
+<div class="imageblock text-centre">
+<div class="content">
+<img alt="dyn attr facet" src="_images/dyn-attr-facet.png"/>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 </div>
@@ -90,6 +183,14 @@
 </div>
 </li>
 </ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-to-business-process-forms"><a class="anchor" href="#adding-to-business-process-forms"></a>Adding to Business Process Form</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>With the <a class="xref page" href="../bpm/index.html">BPM</a> add-on, dynamic attributes can be loaded and displayed on process forms. For details and an example, see <a class="xref page" href="../bpm/bpmn/jmix-view-forms.html#loading-dynamic-attributes">Loading Dynamic Attributes</a>.</p>
 </div>
 </div>
 </div>

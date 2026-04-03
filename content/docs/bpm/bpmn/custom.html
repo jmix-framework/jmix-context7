@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Form :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Custom Form</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>When an element needs a form that cannot be shown as a simple <a class="xref page" href="../input-dialog.html">Input Dialog</a> and cannot use the usual <a class="xref page" href="jmix-view-forms.html">Jmix View</a> annotation-driven approach, you can supply a custom form. This form may still be a Jmix view, or it can be built with an alternative UI technology (e.g., React).</p>
+</div>
+<div class="paragraph">
+<p>In the modeler, you will need to provide an id for this form. The custom form must read the supplied input parameters and return the outcomes.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="custom form" src="../_images/custom-forms/custom-form.png" width="861"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_custom_jmix_form"><a class="anchor" href="#_custom_jmix_form"></a>Custom Jmix Form</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To render custom forms in the <strong>Start process</strong> or <strong>My tasks</strong> views, implement the <code>ProcessFormViewCreator</code> interface and register it for the <code>custom</code> form type.</p>
+</div>
+<div class="paragraph">
+<p>Let’s look at the example of <code>MyCustomProcessFormViewCreator</code> that implements <code>ProcessFormViewCreator</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component("MyCustomProcessFormViewCreator")
+@Order(1) <i class="conum" data-value="1"></i><b>(1)</b>
+public class MyCustomProcessFormViewCreator implements ProcessFormViewCreator {
+
+    @Autowired
+    private DialogWindows dialogWindows;
+
+    @Override
+    public String isApplicableFor() {
+        return "custom";
+    }
+
+    @Override
+    public DialogWindow&lt;?&gt; createStartProcessView(CreationContext creationContext) { <i class="conum" data-value="2"></i><b>(2)</b>
+        FormData formData = creationContext.getFormData();
+        View origin = creationContext.getOrigin();
+        String viewId = formData.getScreenId();
+
+        DialogWindow dialog = dialogWindows
+                .view(origin, viewId)
+                .open();
+
+        if (dialog.getView() instanceof AcceptsProcessDefinition) { <i class="conum" data-value="3"></i><b>(3)</b>
+            ((AcceptsProcessDefinition) dialog.getView())
+                    .setProcessDefinition(creationContext.getProcessDefinition());
+        }
+        return dialog;
+    }
+
+    @Override
+    public DialogWindow&lt;?&gt; createUserTaskView(CreationContext creationContext) { <i class="conum" data-value="4"></i><b>(4)</b>
+        FormData formData = creationContext.getFormData();
+        View origin = creationContext.getOrigin();
+
+        String viewId = formData.getScreenId();
+        DialogWindow dialog = dialogWindows
+                .view(origin, viewId)
+                .build();
+
+        if (dialog.getView() instanceof AcceptsTask) { <i class="conum" data-value="5"></i><b>(5)</b>
+            ((AcceptsTask) dialog.getView())
+                    .setTask(creationContext.getTask());
+        }
+        return dialog;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>@Order</code> annotation makes this implementation the first one the framework will consider.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Overrides the method for creating a start process form.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Checks if the view implements <code>AcceptsProcessDefinition</code>. In this case, it is necessary to set <code>ProcessDefiniton</code> to the view.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Overrides the method for creating a task process form.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Checks if the view implements <code>AcceptsTask</code>. In this case, it is necessary to set <code>Task</code> to the view.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The code above uses two supporting interfaces. An example of <code>AcceptsProcessDefinition</code> interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public interface AcceptsProcessDefinition {
+    void setProcessDefinition(ProcessDefinition processDefinition);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>An example of <code>AcceptsTask</code> interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public interface AcceptsTask {
+    void setTask(Task task);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These interfaces must be implemented by the custom start and task forms.</p>
+</div>
+<div class="sect2">
+<h3 id="_custom_start_form"><a class="anchor" href="#_custom_start_form"></a>Custom Start Form</h3>
+<div class="paragraph">
+<p>XML descriptor for a custom start form that has only a <strong>Start process</strong> button:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://customStartForm.title"&gt;
+    &lt;layout&gt;
+        &lt;button id="startProcessBtn" text="msg://startProcessBtn.caption"/&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>View controller for the custom start form:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewController(id = "CustomStartForm")
+@ViewDescriptor(path = "custom-start-form.xml")
+public class CustomStartForm extends StandardView implements AcceptsProcessDefinition {
+
+    private ProcessDefinition processDefinition;
+
+    @Autowired
+    private RuntimeService runtimeService;
+
+    @Override
+    public void setProcessDefinition(ProcessDefinition processDefinition) {
+        this.processDefinition = processDefinition;
+    }
+
+    @Subscribe(id = "startProcessBtn", subject = "clickListener")
+    public void onStartProcessBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+        runtimeService.startProcessInstanceByKey(processDefinition.getKey());
+        closeWithDefaultAction();
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_custom_task_from"><a class="anchor" href="#_custom_task_from"></a>Custom Task From</h3>
+<div class="paragraph">
+<p>XML descriptor for a custom task form that has only <strong>Task complete</strong> button:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://com.company.bpmex1.view.forms/customTaskForm.title"&gt;
+    &lt;layout&gt;
+        &lt;button id="completeTaskBtn" text="msg://com.company.bpmex1.view.forms/completeTaskBtn.text"/&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>View controller of the custom task form:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewController("CustomTaskForm")
+@ViewDescriptor("custom-task-form.xml")
+public class CustomTaskForm extends StandardView implements AcceptsTask {
+
+    private Task task;
+
+    @Autowired
+    private TaskService taskService;
+
+    @Subscribe("completeTaskBtn")
+    public void onCompleteTaskBtnClick(ClickEvent&lt;JmixButton&gt; event) {
+        taskService.complete(task.getId());
+        closeWithDefaultAction();
+    }
+
+    @Override
+    public void setTask(Task task) {
+        this.task = task;
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_alternative_ui_technology"><a class="anchor" href="#_using_alternative_ui_technology"></a>Using Alternative UI Technology</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It is possible to create forms with an alternative UI technology (e.g., React) that talk to Jmix BPM via REST. You can obtain form information directly from the engine using Flowable’s <code>FormService</code>, that provides the following methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>StartFormData getStartFormData (String processDefinitionId)</code></p>
+</li>
+<li>
+<p><code>TaskFormData getTaskFormData (String taskId)</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Or, expose form metadata using <code>ProcessFormDataExtractor</code> in Jmix. See the <a class="xref page" href="../process-form-data-extractor.html">Getting Process Form Data</a> section for example.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

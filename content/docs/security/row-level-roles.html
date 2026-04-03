@@ -84,27 +84,39 @@ public interface LimitedAmountOrdersRole {
 <p>JPQL policy specifies the <code>where</code> (and optionally <code>join</code>) clause to be used when loading the entity.</p>
 </div>
 <div class="paragraph">
-<p>JPQL policy transforms the JPQL (and hence SQL) operator and filters out restricted instances on the database level, which is very efficient in terms of performance. But keep in mind that it affects only the root entity of a loaded object graph. If an entity can be loaded as a collection in another entity’s object graph, define both JPQL and <a href="#predicate-policy">predicate</a> policies for it.</p>
+<p>JPQL policy transforms the JPQL (and hence SQL) operator and filters out restricted instances on the database level, which is very efficient in terms of performance. But keep in mind that it affects only the root entity of a loaded object graph.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If an entity can be loaded</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>as a root, or</p>
+</li>
+<li>
+<p>as a collection in another entity’s object graph,</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>In a design-time role, the JPQL policy is defined using the <code>@JpqlRowLevelPolicy</code> annotation, for example:</p>
+<p>create both a <a href="#jpql-policy">JPQL</a> (for root loads) and a <a href="#predicate-policy">predicate</a> policy (for nested loads) for that entity.</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(
-        name = "Can see only Orders created by themselves",
-        code = "orders-created-by-themselves")
-public interface CreatedByMeOrdersRole {
-
-    @JpqlRowLevelPolicy(
-            entityClass = Order.class,
-            where = "{E}.createdBy = :current_user_username")
-    void order();
-}</code></pre>
+</td>
+</tr>
+</table>
 </div>
-</div>
+<div class="sect3">
+<h4 id="_creating_a_jpql_policy"><a class="anchor" href="#_creating_a_jpql_policy"></a>Creating a JPQL Policy</h4>
 <div class="paragraph">
-<p>Consider the following rules when writing JPQL policies:</p>
+<p>A row‑level role can contain any number of JPQL policies. Keep these guidelines in mind when writing them:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -120,8 +132,84 @@ public interface CreatedByMeOrdersRole {
 </ul>
 </div>
 <div class="paragraph">
-<p>You can use <a class="xref page" href="../data-access/jpql-extensions.html#session-and-user-attributes">session and user attributes</a> in query parameters. For example, the <code>current_user_username</code> parameter gets its value from the <code>username</code> attribute.</p>
+<p>In a design‑time role, add policies with the <code>@JpqlRowLevelPolicy</code> annotation, for example:</p>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(name = "Can see orders of active customers",
+        code = "active-customers-role")
+public interface ActiveCustomersRole {
+    @JpqlRowLevelPolicy(entityClass = Order.class,
+            join = "join {E}.customer c",
+            where = "c.active = TRUE")
+    void order();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>join</code> clause is optional. Since JPA creates implicit joins for path expressions, you can often achieve the same result by using a path expression in the <code>where</code> clause. The previous example can therefore be rewritten as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(name = "Can see orders of active customers",
+        code = "active-customers-role")
+public interface ActiveCustomersRole {
+    @JpqlRowLevelPolicy(entityClass = Order.class,
+            where = "{E}.customer.active = TRUE")
+    void order1();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both variants produce the same row-level filter.</p>
+</div>
+<div class="paragraph">
+<p>However, explicit <code>join</code> becomes necessary when there is no direct relationship between entities. To illustrate, consider the following object graph:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="row level roles diagram" src="_images/row-level-roles-diagram.svg"/>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Customer</code> and <code>Employee</code> have no direct reference attributes, but are still connected through the intermediate <code>CustomerAccess</code> entity. By joining <code>CustomerAccess</code> you can create a role that determines <strong>which employee is allowed to see which customer</strong>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(name = "AccessToCustomerRole", code = AccessToCustomerRole.CODE)
+public interface AccessToCustomerRole {
+    String CODE = "access-to-customer-role";
+
+    @JpqlRowLevelPolicy(entityClass = Customer.class,
+            join = "join CustomerAccess ca on ca.customer = {E}",
+            where = "ca.employee.user.id = :current_user_id")
+    void customer();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_session_and_user_attributes"><a class="anchor" href="#_session_and_user_attributes"></a>Session and User Attributes</h4>
+<div class="paragraph">
+<p>You can use <a class="xref page" href="../data-access/jpql-extensions.html#session-and-user-attributes">session and user attributes</a> in query parameters. In the example below, the <code>current_user_username</code> parameter gets its value from the <code>username</code> attribute of the current user.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RowLevelRole(
+        name = "Can see only Orders created by themselves",
+        code = "orders-created-by-themselves")
+public interface CreatedByMeOrdersRole {
+
+    @JpqlRowLevelPolicy(
+            entityClass = Order.class,
+            where = "{E}.createdBy = :current_user_username")
+    void order();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application_specific_attributes"><a class="anchor" href="#_application_specific_attributes"></a>Application-specific Attributes</h4>
 <div class="paragraph">
 <p>You can add application-specific attributes to your <code>User</code> entity and use them in JPQL policies. For example, imagine that you have added the <code>region</code> attribute to the <code>User</code> and <code>Customer</code> entities. Then you can restrict access to <code>Customer</code> and <code>Order</code> entities by allowing users to see only entities of their region:</p>
 </div>
@@ -145,19 +233,51 @@ public interface SameRegionRowsRole {
 </div>
 </div>
 </div>
+</div>
 <div class="sect2">
 <h3 id="predicate-policy"><a class="anchor" href="#predicate-policy"></a>Predicate Policy</h3>
 <div class="paragraph">
-<p>Predicate policy defines a predicate that is tested when performing different actions with the entity. If the predicate returns true, the action is permitted for the entity instance.</p>
+<p>Predicate policy ties a boolean condition (the predicate) to an entity operation – <code>READ</code>, <code>CREATE</code>, <code>UPDATE</code>, or <code>DELETE</code>. If the predicate returns true, the operation is permitted for that entity instance.</p>
 </div>
 <div class="paragraph">
-<p>You can define predicate policies for the following actions: <code>READ</code>, <code>CREATE</code>, <code>UPDATE</code>, <code>DELETE</code>.</p>
+<p>The moment the predicate is tested differs by operation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>READ</code> predicate is tested when the entity is loaded from the database. This includes both the root entity and (unlike <a href="#jpql-policy">JPQL policy</a>) all nested collections down to the loaded object graph. This in-memory test can <strong>significantly impact performance when run on many instances</strong> because they will be loaded and tested one at a time.</p>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If an entity can be loaded</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>as a root, or</p>
+</li>
+<li>
+<p>as a collection in another entity’s object graph,</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>The <code>READ</code> predicate is tested when the entity is loaded from the database for the root entity and (unlike <a href="#jpql-policy">JPQL policy</a>) all nested collections down to the loaded object graph. If an entity can be loaded as a collection in another entity’s object graph, define both JPQL and predicate policies for it.</p>
+<p>create both a <a href="#jpql-policy">JPQL</a> (for root loads) and a <a href="#predicate-policy">predicate</a> policy (for nested loads) for that entity.</p>
 </div>
-<div class="paragraph">
-<p>The <code>CREATE</code>, <code>UPDATE</code>, <code>DELETE</code> predicates are tested before the entity instance is created, updated or deleted from the database.</p>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p><code>CREATE</code>, <code>UPDATE</code>, <code>DELETE</code> predicates are tested before the entity instance is created, updated, or deleted from the database.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>In a design-time role, the predicate policy is defined using the <code>@PredicateRowLevelPolicy</code> annotation, for example:</p>
@@ -179,7 +299,7 @@ public interface NonConfidentialRowsRole {
 </div>
 </div>
 <div class="paragraph">
-<p>This example demonstrates a row-level role that should be used in addition to resource roles of the example from the <a class="xref page" href="resource-roles.html#example">previous section</a> to restrict access to instances of <code>CustomerDetail</code> having <code>confidential = true</code> attribute. You cannot use a JPQL policy to filter out <code>CustomerDetail</code> instances from the <code>Customer.details</code> collection because it can be loaded together with the owning <code>Customer</code> in a single database operation. Predicate policies are executed in memory for root entities and nested collections.</p>
+<p>This example demonstrates a row-level role that should be used in addition to resource roles of the example from the <a class="xref page" href="resource-roles.html#example">previous section</a> to restrict access to instances of <code>CustomerDetail</code> having <code>confidential = true</code> attribute. You cannot use a JPQL policy to filter out <code>CustomerDetail</code> instances from the <code>Customer.details</code> collection because it can be loaded together with the owning <code>Customer</code> in a single database operation.</p>
 </div>
 <div class="paragraph">
 <p>In a runtime role, the predicate policy is defined using a Groovy script. In the script, use the <code>{E}</code> placeholder as a variable containing the tested entity instance. For example, the same condition as in the design-time role above can be written as the following Groovy script:</p>
@@ -192,7 +312,7 @@ public interface NonConfidentialRowsRole {
 <div class="sect3">
 <h4 id="accessing-spring-beans"><a class="anchor" href="#accessing-spring-beans"></a>Accessing Spring Beans</h4>
 <div class="paragraph">
-<p>If you need to access Spring beans in the predicate, return <code>io.jmix.security.model.RowLevelBiPredicate</code> from your method. This functional interface allows you to define lambda accepting two parameters: the examined entity instance and Spring’s <code>ApplicationContext</code>. For example:</p>
+<p>If you need to access Spring beans in the predicate, return <code>io.jmix.security.model.RowLevelBiPredicate</code> from your method. This functional interface allows you to define a lambda accepting two parameters: the examined entity instance and Spring’s <code>ApplicationContext</code>. For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">

@@ -19,15 +19,15 @@
 <p>User authentication using an external OpenID Provider (e.g., Keycloak).</p>
 </li>
 <li>
-<p>Mapping user attributes and roles from the OpenID Provider user to Jmix user.</p>
+<p>Mapping user attributes and roles from an OpenID Provider user to a Jmix user.</p>
 </li>
 <li>
-<p>Persisting user entity and role assignments after the user is successfully authenticated at the OpenID Provider.</p>
+<p>Persisting the user entity and role assignments after the user is successfully authenticated by the OpenID Provider.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>The add-on leverages Spring Security support for OAuth2 and OpenID Connect 1.0. You may read about it in <a href="https://docs.spring.io/spring-security/reference/servlet/oauth2/index.html" rel="noopener" target="_blank">Spring Security documentation</a>.</p>
+<p>The add-on leverages Spring Security support for OAuth2 and OpenID Connect 1.0. You may read about it in <a href="https://docs.spring.io/spring-security/reference/6.5/servlet/oauth2/index.html" rel="noopener" target="_blank">Spring Security documentation</a>.</p>
 </div>
 <div class="paragraph">
 <p>The add-on applies <code>OidcAutoConfiguration</code> unless it is explicitly disabled by setting the <code>jmix.oidc.use-default-configuration=false</code> application property. The configuration enables OpenID Connect authentication for UI and REST API URLs.</p>
@@ -72,10 +72,10 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realm
 </div>
 </div>
 <div class="paragraph">
-<p><code>keycloak</code> in the property key is the provider id. It may have any value, for example <code>okta</code>, so the property will be <code>spring.security.oauth2.client.registration.okta.client-id</code>.</p>
+<p><code>keycloak</code> in the property key is the provider ID. It may have any value, for example <code>okta</code>, so the property will be <code>spring.security.oauth2.client.registration.okta.client-id</code>.</p>
 </div>
 <div class="paragraph">
-<p>Client ID and client secret values must be taken from the OpenID provider.</p>
+<p>Client ID and client secret values must be taken from the OpenID Provider.</p>
 </div>
 <div class="paragraph">
 <p>The <code>issuer-uri</code> property contains a path to the OpenID Provider <a href="https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig" rel="noopener" target="_blank">Configuration Endpoint</a>.</p>
@@ -99,13 +99,13 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realm
 <div class="ulist">
 <ul>
 <li>
-<p>Non-authenticated users will be redirected to OpenID Provider login page.</p>
+<p>Non-authenticated users will be redirected to the OpenID Provider login page.</p>
 </li>
 <li>
-<p>After the user has authenticated in the OpenID Provider, an instance of <code>DefaultJmixOidcUser</code> will be created and set to the security context. No user attributes will be mapped. The user won’t be stored in the database.</p>
+<p>After the user has authenticated with the OpenID Provider, an instance of <code>DefaultJmixOidcUser</code> will be created and set to the security context. No user attributes will be mapped. The user won’t be stored in the database.</p>
 </li>
 <li>
-<p>Collection of user role codes will be taken from the "roles" claim of the ID Token, and then resource and row-level roles with given codes will be set to the user authentication object.</p>
+<p>A collection of user role codes will be taken from the "roles" claim of the ID Token, and then resource and row-level roles with the given codes will be set to the user authentication object.</p>
 </li>
 </ul>
 </div>
@@ -238,7 +238,7 @@ public class MyClaimsRoleMapper extends BaseClaimsRolesMapper {
 <h2 id="working-with-user-jpa-entity"><a class="anchor" href="#working-with-user-jpa-entity"></a>Working with User JPA Entity</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In order to work with Jmix OIDC add-on, the <code>User</code> JPA entity must implement the <code>io.jmix.oidc.user.JmixOidcUser</code> interface that in turns implements <code>org.springframework.security.oauth2.core.oidc.user.OidcUser</code> required by Spring Security.</p>
+<p>In order to work with the Jmix OIDC add-on, the <code>User</code> JPA entity must implement the <code>io.jmix.oidc.user.JmixOidcUser</code> interface that in turn implements <code>org.springframework.security.oauth2.core.oidc.user.OidcUser</code> required by Spring Security.</p>
 </div>
 <div class="paragraph">
 <p>The simplest way to make the <code>User</code> entity compatible with the OIDC add-on is to make this class a subclass of the <code>io.jmix.oidc.user.JmixOidcUserEntity</code> abstract class:</p>
@@ -264,7 +264,7 @@ public class User extends JmixOidcUserEntity implements HasTimeZone {
 </td>
 <td class="content">
 <div class="paragraph">
-<p>In case of Kotlin project it’s required to make the following additional changes in <code>User</code> entity class:</p>
+<p>In a Kotlin project, you need to make the following additional changes in the <code>User</code> entity class:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -281,7 +281,7 @@ public class User extends JmixOidcUserEntity implements HasTimeZone {
 </table>
 </div>
 <div class="paragraph">
-<p>To store users in the database after they are logged in using OpenID Provider, you’ll need to register a user mapper that extends the <code>SynchronizingOidcUserMapper</code> class. This superclass contains the behavior that stores/updates the user in the database. Optionally you may also store information about role assignments in the database.</p>
+<p>To store users in the database after they log in using an OpenID Provider, you’ll need to register a user mapper that extends the <code>SynchronizingOidcUserMapper</code> class. This superclass contains the behavior that stores/updates the user in the database. Optionally, you may also store information about role assignments in the database.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -329,7 +329,7 @@ public class MySynchronizingOidcUserMapper extends SynchronizingOidcUserMapper&l
 <h2 id="protecting-api"><a class="anchor" href="#protecting-api"></a>Protecting API</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Jmix application may work as a resource server. To specify which authorization server to use, define the following application property:</p>
+<p>A Jmix application may work as a resource server. To specify which authorization server to use, define the following application property:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -337,10 +337,10 @@ public class MySynchronizingOidcUserMapper extends SynchronizingOidcUserMapper&l
 </div>
 </div>
 <div class="paragraph">
-<p>The value of the property is the URL contained in the <code>iss</code> claim for JWT tokens that the authorization server will issue. See <a href="https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html#_specifying_the_authorization_server" rel="noopener" target="_blank">Spring Security documentation</a> for details.</p>
+<p>The value of the property is the URL contained in the <code>iss</code> claim for JWT tokens that the authorization server will issue. See <a href="https://docs.spring.io/spring-security/reference/6.5/servlet/oauth2/resource-server/jwt.html#_specifying_the_authorization_server" rel="noopener" target="_blank">Spring Security documentation</a> for details.</p>
 </div>
 <div class="paragraph">
-<p>By default, the "sub" claim value is used as a username of Jmix user that is set to security context. If you want to change this, use the following application property:</p>
+<p>By default, the "sub" claim value is used as the username of the Jmix user that is set to the security context. If you want to change this, use the following application property:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -351,10 +351,10 @@ public class MySynchronizingOidcUserMapper extends SynchronizingOidcUserMapper&l
 <p>In most cases the property value should be aligned with the value of the <code>spring.security.oauth2.client.provider.keycloak.user-name-attribute</code> property.</p>
 </div>
 <div class="paragraph">
-<p>Access tokens obtained from OpenID Provider may be used for accessing protected endpoints provided by the REST API add-on.</p>
+<p>Access tokens obtained from an OpenID Provider can be used to access protected endpoints provided by the REST API add-on.</p>
 </div>
 <div class="paragraph">
-<p>For local Keycloak instance access tokens may be obtained in the following way:</p>
+<p>For a local Keycloak instance, access tokens can be obtained as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -416,6 +416,24 @@ jmix.resource-server.anonymous-url-patterns = /anonymous/**</code></pre>
 <h2 id="oidc-properties"><a class="anchor" href="#oidc-properties"></a>OIDC Properties</h2>
 <div class="sectionbody">
 <div class="sect2">
+<h3 id="jmix.oidc.filter-chain.force-api-scope-enabled"><a class="anchor" href="#jmix.oidc.filter-chain.force-api-scope-enabled"></a>jmix.oidc.filter-chain.force-api-scope-enabled</h3>
+<div class="paragraph">
+<p>A toggle for compatibility with pre-2.8 versions. Set this property to <code>false</code> to ignore <a class="xref page" href="../security/resource-roles.html#role-scope">role scopes</a> when authenticating users in REST API.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.oidc.filter-chain.force-ui-scope-enabled"><a class="anchor" href="#jmix.oidc.filter-chain.force-ui-scope-enabled"></a>jmix.oidc.filter-chain.force-ui-scope-enabled</h3>
+<div class="paragraph">
+<p>A toggle for compatibility with pre-2.8 versions. Set this property to <code>false</code> to ignore <a class="xref page" href="../security/resource-roles.html#role-scope">role scopes</a> when authenticating users in UI.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code></p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="jmix.oidc.use-default-configuration"><a class="anchor" href="#jmix.oidc.use-default-configuration"></a>jmix.oidc.use-default-configuration</h3>
 <div class="paragraph">
 <p>Defines whether to apply the default auto-configuration. True by default. Set this property to false in case you want to have access to add-on beans and interfaces but don’t want to use predefined Spring security configuration for protecting endpoints. In this case, you’ll have to write your own security configuration.</p>
@@ -448,7 +466,7 @@ jmix.resource-server.anonymous-url-patterns = /anonymous/**</code></pre>
 <div class="sect2">
 <h3 id="starting-keycloak-using-docker"><a class="anchor" href="#starting-keycloak-using-docker"></a>Starting Keycloak Using Docker</h3>
 <div class="paragraph">
-<p>Use the following comment to start Keycloak instance using Docker on the port 8180:</p>
+<p>Use the following command to start a Keycloak instance using Docker on port 8180:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -477,7 +495,7 @@ Password: admin</code></pre>
 <div class="sect2">
 <h3 id="creating-a-realm"><a class="anchor" href="#creating-a-realm"></a>Creating a Realm</h3>
 <div class="paragraph">
-<p>Login to Keycloak admin console.</p>
+<p>Log in to the Keycloak admin console.</p>
 </div>
 <div class="paragraph">
 <p>Open the popup at the top of the left pane.</p>

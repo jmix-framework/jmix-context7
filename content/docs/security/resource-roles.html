@@ -41,14 +41,18 @@ A user without resource roles has no permissions and cannot access the applicati
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ResourceRole( <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.security.role.annotation.ResourceRole;
+import io.jmix.security.model.SecurityScope;
+
+@ResourceRole( <i class="conum" data-value="1"></i><b>(1)</b>
     name = "Full Access", <i class="conum" data-value="2"></i><b>(2)</b>
-    code = FullAccessRole.CODE) <i class="conum" data-value="3"></i><b>(3)</b>
+    code = FullAccessRole.CODE, <i class="conum" data-value="3"></i><b>(3)</b>
+    scope = SecurityScope.UI) <i class="conum" data-value="4"></i><b>(4)</b>
 public interface FullAccessRole {
 
     String CODE = "system-full-access";
     
-    void fullAccess(); <i class="conum" data-value="4"></i><b>(4)</b></code></pre>
+    void fullAccess(); <i class="conum" data-value="5"></i><b>(5)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -67,6 +71,10 @@ public interface FullAccessRole {
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The role’s <a href="#role-scope">scope</a> (optional).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
 <td>The interface can have one or more methods to define policy annotations (see below). Different methods are used just to group related policies. Method names can be arbitrary, they are displayed as <strong>Policy group</strong> when the role is shown in UI.</td>
 </tr>
 </table>
@@ -224,6 +232,37 @@ public void notifyCustomer(Customer customer) {
 </div>
 </div>
 <div class="sect1">
+<h2 id="role-scope"><a class="anchor" href="#role-scope"></a>Role Scope</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A role scope defines the areas where the role is effective. There are two built-in scopes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>UI</code>: the application <a class="xref page" href="../flow-ui/index.html">UI</a> based on Vaadin.</p>
+</li>
+<li>
+<p><code>API</code>: the generic <a class="xref page" href="../rest/index.html">REST API</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Scopes allow you to grant a user different sets of roles depending on how
+they access the application. API roles are usually more restrictive.</p>
+</div>
+<div class="paragraph">
+<p>For example, if the user <code>bob</code> is assigned the following roles in the application: <code>R1(scope=UI,API)</code>, <code>R2(scope=UI)</code>, and <code>R3(scope=API)</code>, then when he logs into the UI, he has <code>R1</code> and <code>R2</code> roles, and when he authenticates with the REST API, he has <code>R1</code> and <code>R3</code> roles.</p>
+</div>
+<div class="paragraph">
+<p>If the scope is not specified for a role, the role is active for all scopes.</p>
+</div>
+<div class="paragraph">
+<p>You can use the string constants of the <code>io.jmix.security.model.SecurityScope</code> interface to define built-in role scopes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="role-granularity"><a class="anchor" href="#role-granularity"></a>Role Granularity</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -235,7 +274,7 @@ public void notifyCustomer(Customer customer) {
 <p>Fine-grained roles define permissions to closely related resources like an entity, its UI views and menu items. For example, "Full access to Customers", "Can create and update Orders". You would normally assign several such roles to the user.</p>
 </li>
 <li>
-<p>Coarse-grained roles define all permissions required for a specific job, like "Salesperson". Such a role can define all permissions itself or inherit them from base roles, so a course-grained role can be made as an aggregation of fine-grained ones.</p>
+<p>Coarse-grained roles define all permissions required for a specific job, like "Salesperson". Such a role can define all permissions itself or inherit them from base roles, so a coarse-grained role can be made as an aggregation of fine-grained ones.</p>
 </li>
 </ul>
 </div>

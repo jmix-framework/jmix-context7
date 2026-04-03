@@ -55,7 +55,7 @@
 <p>The index schema synchronization is automatically performed on application startup. Besides, it can be manually performed using <code>synchronizeXXX</code> operations of <a class="xref page" href="search-api.html#entity-indexing-mbean">EntityIndexing MBean</a>.</p>
 </div>
 <div class="paragraph">
-<p>The EntityIndexing MBean also contains the <code>recreateIndex</code> operation. It drops and creates index without taking into account the current Index Schema Management Strategy, even if the target index has an actual configuration. All index data will be lost.</p>
+<p>The EntityIndexing MBean also contains the <code>recreateIndex</code> operation. It drops and creates an index without taking into account the current Index Schema Management Strategy, even if the target index has an actual configuration. All index data will be lost.</p>
 </div>
 </div>
 </div>
@@ -66,7 +66,7 @@
 <p>Search indexes have the following naming template: <code>&lt;prefix&gt;&lt;entity_name&gt;</code>.</p>
 </div>
 <div class="paragraph">
-<p>Default prefix is <code>search_index_</code>.</p>
+<p>The default prefix is <code>search_index_</code>.</p>
 </div>
 <div class="paragraph">
 <p>If multiple projects use the same Elasticsearch service, you should ensure that index names are unique: all projects should have unique entity names or projects should have different prefixes.</p>
@@ -80,7 +80,7 @@
 </div>
 </div>
 <div class="paragraph">
-<p>Also you can specify full index name in <code>indexName</code> attribute of <code>@JmixEntitySearchIndex</code>.</p>
+<p>Also, you can specify a full index name in the <code>indexName</code> attribute of <code>@JmixEntitySearchIndex</code>.</p>
 </div>
 </div>
 </div>
@@ -156,7 +156,7 @@
 <h2 id="index-settings"><a class="anchor" href="#index-settings"></a>Index Settings and Analysis</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The add-on allows you to configure index settings including analysis.</p>
+<p>The add-on allows you to configure index settings, including analysis configuration.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -165,50 +165,120 @@
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-This configuration depends on used search platform (OpenSearch or Elasticsearch) and should be recreated accordingly if you switch between them.
+This setup depends on your search platform (OpenSearch or Elasticsearch) and must be recreated if you switch between them.
 </td>
 </tr>
 </table>
 </div>
+<div class="sect2">
+<h3 id="_configuration_api"><a class="anchor" href="#_configuration_api"></a>Configuration API</h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The configuration API has been redesigned to separate index settings from analysis settings.
+The previous methods (<code>getCommonSettingsBuilder</code>, <code>getEntitySettingsBuilder</code>) are <strong>deprecated</strong>.
+They continue to work only until any of the new API methods are used or if <a class="xref page" href="index-definitions.html#extended-search">@ExtendedSearch</a> is enabled.
+As soon as the new API is utilized, the deprecated API is ignored.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_create_a_configurer_bean"><a class="anchor" href="#_create_a_configurer_bean"></a>Create a Configurer Bean</h4>
+<div class="paragraph">
+<p>Create a Spring bean that implements:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
-<p>Create a Spring bean that implements <code>OpenSearchIndexSettingsConfigurer</code> (or <code>ElasticsearchIndexSettingsConfigurer</code> in case of Elasticsearch usage).</p>
+<p><code>OpenSearchIndexSettingsConfigurer</code> – for OpenSearch.</p>
 </li>
 <li>
-<p>Implement method <code>configure(OpenSearchIndexSettingsConfigurationContext)</code>.</p>
+<p><code>ElasticsearchIndexSettingsConfigurer</code> – for Elasticsearch.</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>Implement the <code>configure()</code> method, which provides a <code>ConfigurationContext</code> object.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_configure_index_settings"><a class="anchor" href="#_configure_index_settings"></a>Configure Index Settings</h4>
+<div class="paragraph">
+<p>Index settings are configured using dedicated <strong>index settings builders</strong>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>getCommonIndexSettingsBuilder()</code> – applies to <strong>all</strong> indexes.</p>
+</li>
+<li>
+<p><code>getEntityIndexSettingsBuilder(Class&lt;?&gt; entityClass)</code> – applies to a <strong>specific</strong> entity index.
+Entity-specific settings have higher priority and <em>override common settings</em>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_configure_analysis"><a class="anchor" href="#_configure_analysis"></a>Configure Analysis</h4>
+<div class="paragraph">
+<p>Analysis settings are configured using dedicated <strong>analysis builders</strong>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>getCommonAnalysisBuilder()</code> – applies to <strong>all</strong> indexes.</p>
+</li>
+<li>
+<p><code>getEntityAnalysisBuilder(Class&lt;?&gt; entityClass)</code> – applies to a <strong>specific</strong> entity index.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Use the <code>.analysis()</code> method on the builder to define:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Analyzers</strong> – <code>.analyzer()</code></p>
+</li>
+<li>
+<p><strong>Tokenizers</strong> – <code>.tokenizer()</code></p>
+</li>
+<li>
+<p><strong>Filters</strong> – <code>.filter()</code></p>
+</li>
+<li>
+<p><strong>Character filters</strong> – <code>.charFilter()</code></p>
+</li>
+<li>
+<p><strong>Normalizers</strong> – <code>.normalizer()</code></p>
+</li>
+</ul>
+</div>
+</div>
 </div>
 <div class="sect2">
-<h3 id="index-settings-implementation"><a class="anchor" href="#index-settings-implementation"></a>Implementation</h3>
+<h3 id="_complete_example"><a class="anchor" href="#_complete_example"></a>Complete Example</h3>
 <div class="paragraph">
-<p>Settings can be configured via settings builder (belongs to OpenSearch/Elasticsearch Java API client).</p>
-</div>
-<div class="paragraph">
-<p>Configuration context provides two types of settings builder:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Common</strong> - allows you to configure settings that will be applied to all indexes. Can be acquired via <code>context.getCommonSettingsBuilder()</code>.</p>
-</li>
-<li>
-<p><strong>Entity specific</strong> - allows you to configure settings that will be applied only to index for specific entity.
-Entity specific settings has higher priority and <em>override the common settings</em>.
-Can be acquired via <code>context.getEntitySettingsBuilder(Class)</code>.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Use builder’s methods to set corresponding index settings.</p>
-</div>
-<div class="paragraph">
-<p>Use <code>.analysis()</code> to start building chain that allows you to create custom analyzers, tokenizers, etc.</p>
+<p>The following example demonstrates a custom configurer for OpenSearch.
+It configures common index settings and analysis, then overrides them with entity-specific settings for the <code>Order</code> entity.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.entity.Order;
+import io.jmix.searchopensearch.index.OpenSearchIndexSettingsConfigurationContext;
+import io.jmix.searchopensearch.index.OpenSearchIndexSettingsConfigurer;
+import org.opensearch.client.opensearch.indices.IndexSettings;
+import org.springframework.stereotype.Component;
+
+@Component
 public class CustomOpenSearchIndexSettingsConfigurer implements OpenSearchIndexSettingsConfigurer {
 
     @Override
@@ -238,6 +308,49 @@ public class CustomOpenSearchIndexSettingsConfigurer implements OpenSearchIndexS
     }
 }</code></pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_api_migration_guide"><a class="anchor" href="#_api_migration_guide"></a>API Migration Guide</h3>
+<div class="paragraph">
+<p>If you are upgrading from an earlier version, replace the deprecated methods as follows:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deprecated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">New API</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>getCommonSettingsBuilder()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>getCommonIndexSettingsBuilder()</code><br/>
+<code>getCommonAnalysisBuilder()</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>getEntitySettingsBuilder(Class)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>getEntityIndexSettingsBuilder(Class)</code><br/>
+<code>getEntityAnalysisBuilder(Class)</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Do not mix old and new APIs. Once you start using the new builder methods, the deprecated ones will be ignored.
+This is <strong>especially important</strong> if you are using <code>@ExtendedSearch</code>, which <strong>requires</strong> the new API.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>

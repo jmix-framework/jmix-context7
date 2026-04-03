@@ -11,7 +11,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p><em>Database schema migration</em>, or database migration for short, is a process of updating the database schema in accordance with changes of your application data model.</p>
+<p><em>Database schema migration</em>, or database migration for short, is a process of updating the database schema in accordance with changes to your application data model.</p>
 </div>
 <div class="paragraph">
 <p>Jmix uses <a href="https://www.liquibase.org" rel="noopener" target="_blank">Liquibase</a> as a database migration tool.</p>
@@ -60,7 +60,7 @@ You can also create a changelog at any time using the <strong>Generate Liquibase
 <h2 id="changelogs"><a class="anchor" href="#changelogs"></a>Changelog Files Structure</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Studio generates changelog files in the <code>src/main/resources/&lt;base_package&gt;/liquibase</code> directory of the application project. In this directory, Studio creates the <code>changelog</code> directory for the main data store, and <code>&lt;store&gt;-changelog</code> directories for additional data stores. Changelog files are created in subdirectories corresponding to the year and month of the current date. Name of each file includes a current day, a sequence number within the day, and a random character sequence to avoid conflicts if multiple developers work on the same project.</p>
+<p>Studio generates changelog files in the <code>src/main/resources/&lt;base_package&gt;/liquibase</code> directory of the application project. In this directory, Studio creates the <code>changelog</code> directory for the main data store, and <code>&lt;store&gt;-changelog</code> directories for additional data stores. Changelog files are created in subdirectories corresponding to the year and month of the current date. The name of each file includes the current day, a sequence number within the day, and a random character sequence to avoid conflicts if multiple developers work on the same project.</p>
 </div>
 <div class="listingblock">
 <div class="title">src/main/resources/com/company/demo/</div>
@@ -130,7 +130,7 @@ You can also create a changelog at any time using the <strong>Generate Liquibase
 <p>Studio maintains the includes automatically when you add or remove add-ons. Also, when you start the application, it checks that includes in the root changelog correspond to the add-ons used in the project. If it finds a mismatch, Studio shows a notification dialog and suggests adding or removing includes. You can ignore some paths, and the notification won’t be shown again for the ignored items.</p>
 </div>
 <div class="paragraph">
-<p>You can write Liquibase changelog files manually and put them into the structure described above. Liquibase executes included changelogs in the alphabetical order considering the whole path, so give your files appropriate names.</p>
+<p>You can write Liquibase changelog files manually and put them into the structure described above. Liquibase executes included changelogs in alphabetical order considering the whole path, so give your files appropriate names.</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -162,7 +162,7 @@ You can combine multiple recent changelogs into a single file using the <strong>
 <h2 id="configuration"><a class="anchor" href="#configuration"></a>Configuring Liquibase</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can specify Liquibase properties for the main data store in <code>application.properties</code> in the same way as described in the <a href="https://docs.spring.io/spring-boot/appendix/application-properties/index.html#appendix.application-properties.data-migration" rel="noopener" target="_blank">Spring Boot documentation</a> (see <code>spring.liquibase.*</code> properties), but replacing the <code>spring.liquibase</code> prefix with <code>main.liquibase</code>, for example:</p>
+<p>You can specify Liquibase properties for the main data store in <code>application.properties</code> in the same way as described in the <a href="https://docs.spring.io/spring-boot/3.5/appendix/application-properties/index.html#appendix.application-properties.data-migration" rel="noopener" target="_blank">Spring Boot documentation</a> (see <code>spring.liquibase.*</code> properties), but replacing the <code>spring.liquibase</code> prefix with <code>main.liquibase</code>, for example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -202,6 +202,22 @@ second.liquibase.change-log=com/company/demo/liquibase/second-changelog.xml</cod
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">main.datasource.studio.liquibase.exclude-prefixes = abc_,foo,bar</code></pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ignoring-foreign-key-constraint"><a class="anchor" href="#ignoring-foreign-key-constraint"></a>Ignoring Foreign Key Constraint</h3>
+<div class="paragraph">
+<p>Jmix Studio respects JPA constraint modes when generating the changelog. If you need a reference column without a database foreign key (for example, when working with a legacy database schema), set <code>ConstraintMode.NO_CONSTRAINT</code> in <code>@JoinColumn</code> on the owning-side:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JoinColumn(name = "AUTHOR_ID",
+        foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+private Author author;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you use <code>ConstraintMode.NO_CONSTRAINT</code>, the generated changelog still includes the column and index, but it does not add a foreign key constraint.</p>
 </div>
 </div>
 </div>

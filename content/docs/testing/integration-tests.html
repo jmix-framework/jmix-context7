@@ -137,10 +137,10 @@ void given_customerWithEmailExists_when_findByEmail_then_customerFound() {
 <p>In the example above, the <code>DataManager</code> stores a test customer in the database. Since all tests share the same database instance by default, it means that this test data will also be available for the next test. This is not a problem in this example, but in other cases, it might be. For example, consider that there is a unique constraint on the email address field of the <code>Customer</code> entity. If you write a test that creates a customer with a specific email address, and another test that searches for a customer by email address - assuming it is not there, the second test would fail, because it would find the customer created by the first test.</p>
 </div>
 <div class="paragraph">
-<p>There are several ways of cleaning up the test data. The first one is to keep references to entities that were created during the test. In the example above, you could keep a reference to the customer that was created in the test and delete it after the test has finished using <code>dataManager.remove(customer)</code>. This is a valid approach, but it requires some additional code in the test. Additionally, it is not always possible to keep a reference to data that were created during the test. For example, if a new entity is created in the production code, you cannot get a reference to it in the test. Furthermore, in case of an exception during the test, the cleanup code might not be executed.</p>
+<p>There are several ways of cleaning up the test data. The first one is to keep references to entities that were created during the test. In the example above, you could keep a reference to the customer that was created in the test and delete it after the test has finished using <code>dataManager.remove(customer)</code>. This is a valid approach, but it requires some additional code in the test. Additionally, it is not always possible to keep a reference to data that was created during the test. For example, if a new entity is created in the production code, you cannot get a reference to it in the test. Furthermore, in case of an exception during the test, the cleanup code might not be executed.</p>
 </div>
 <div class="paragraph">
-<p>The second option would be to perform more general database cleanup. In the following example a <code>JdbcTemplate</code> performs the SQL statement <code>DELETE FROM CUSTOMER</code> to delete all customers from the database:</p>
+<p>The second option would be to perform more general database cleanup. In the following example, a <code>JdbcTemplate</code> performs the SQL statement <code>DELETE FROM CUSTOMER</code> to delete all customers from the database:</p>
 </div>
 <div class="listingblock">
 <div class="title">CustomerServiceTest.java</div>
@@ -167,7 +167,7 @@ void tearDown() {
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>The Spring <code>JdbcTestUtils</code> class provides a convenience method to delete all data from a database table. See more information about it in the <a href="https://docs.spring.io/spring-framework/reference/testing/support-jdbc.html" rel="noopener" target="_blank">Spring testing documentation</a>.</td>
+<td>The Spring <code>JdbcTestUtils</code> class provides a convenience method to delete all data from a database table. See more information about it in the <a href="https://docs.spring.io/spring-framework/reference/6.2/testing/support-jdbc.html" rel="noopener" target="_blank">Spring testing documentation</a>.</td>
 </tr>
 </table>
 </div>
@@ -178,7 +178,7 @@ void tearDown() {
 <h2 id="security-context-in-tests"><a class="anchor" href="#security-context-in-tests"></a>Security Context in Tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Jmix allows code to be executed on behalf of a specified user, which is often necessary for testing functionalities that rely on user roles and permissions. This can be achieved by using the <a class="xref page" href="../security/authentication.html#system">SystemAuthenticator</a>.</p>
+<p>Jmix allows code to be executed on behalf of a specified user, which is often necessary for testing functionality that relies on user roles and permissions. This can be achieved by using the <a class="xref page" href="../security/authentication.html#system">SystemAuthenticator</a>.</p>
 </div>
 <div class="paragraph">
 <p>Let’s consider an example of testing a <code>CustomerService</code> method that behaves differently depending on the role of the user who executes it:</p>
@@ -251,7 +251,7 @@ void given_noPermissionsToReadCustomerData_when_findByEmail_then_nothingFound() 
 </table>
 </div>
 <div class="paragraph">
-<p>As the user has no roles, the customer service returns an empty <code>Optional</code>.</p>
+<p>As the user has no roles, the <code>CustomerService</code> returns an empty <code>Optional</code>.</p>
 </div>
 <div class="sect2">
 <h3 id="authenticated-as-admin"><a class="anchor" href="#authenticated-as-admin"></a>AuthenticatedAsAdmin</h3>
@@ -268,7 +268,7 @@ public class CustomerServiceTest {
 </div>
 </div>
 <div class="paragraph">
-<p>It is also possible to combine the <code>AuthenticatedAsAdmin</code> extension with the <code>SystemAuthenticator</code> to execute the test code as a particular user. By annotating the test class the default security context is set to the admin. But within the test case, you can use the <code>SystemAuthenticator</code> to execute the code as a particular user.</p>
+<p>It is also possible to combine the <code>AuthenticatedAsAdmin</code> extension with the <code>SystemAuthenticator</code> to execute the test code as a particular user. By annotating the test class, the default security context is set to the admin. But within the test case, you can use the <code>SystemAuthenticator</code> to execute the code as a particular user.</p>
 </div>
 </div>
 </div>
@@ -277,7 +277,7 @@ public class CustomerServiceTest {
 <h2 id="overriding-application-behavior"><a class="anchor" href="#overriding-application-behavior"></a>Overriding Application Behavior</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Sometimes even for integration tests it is required to mock out certain parts of the application. In those cases, it is possible to combine the functionalities of <code>@SpringBooTest</code> with Mockito and mock out particular beans, but still use the overall Spring context.</p>
+<p>Sometimes, even in integration tests, it is necessary to mock out certain parts of the application. In those cases, it is possible to combine the functionalities of <code>@SpringBootTest</code> with Mockito and mock out particular beans, but still use the overall Spring context.</p>
 </div>
 <div class="paragraph">
 <p>Let’s consider a <code>NotificationService</code> that as part of its business logic uses the <code>Emailer</code> API from the <a class="xref page" href="../email/index.html">Email Sending</a> add-on. An integration test for this service should not actually send out emails, so the email functionality should be mocked.</p>
@@ -357,7 +357,7 @@ class NotificationServiceTest {
 <p>To prevent the email from actually being sent.</p>
 </li>
 <li>
-<p>To simulate failure scenario where email sending did not work.</p>
+<p>To simulate a failure scenario in which email sending did not work.</p>
 </li>
 </ol>
 </div>
@@ -439,7 +439,7 @@ class NotificationServiceWithTestConfigurationTest {
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>The behaviour of the mock is specified and the configured mock is returned.</td>
+<td>The behavior of the mock is specified and the configured mock is returned.</td>
 </tr>
 </table>
 </div>

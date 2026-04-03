@@ -1,6 +1,6 @@
 <Path>Facets > UrlQueryParameters</Path>
 
-urlQueryParameters facet is designed for declarative binding of the view state to the URL. It allows you to preserve the view state when navigating between views or refreshing the browser page. The obvious example is the entity list view with pagination and filtering. You will want to preserve pagination and filtering parameters when refreshing the browser page and when navigating to a detail view and back. Supported components: pagination propertyFilter genericFilter In this sample, when opening the view, the age filter condition was automatically applied from the URL. You can use pagination and see that new parameters have been added to the URL. After reloading the page, the state of these components will be restored.
+urlQueryParameters facet is designed for declarative binding of the view state to the URL. It allows you to preserve the view state when navigating between views or refreshing the browser page. The obvious example is the entity list view with pagination and filtering. You will want to preserve pagination and filtering parameters when refreshing the browser page and when navigating to a detail view and back. Supported components: pagination propertyFilter genericFilter dataGridHeaderFilter In this sample, when opening the view, the age filter condition was automatically applied from the URL. You can use pagination and see that new parameters have been added to the URL. After reloading the page, the state of these components will be restored.
 
 url-query-parameters.xml
 

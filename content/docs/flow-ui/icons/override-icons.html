@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overriding Default Icons :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Overriding Default Icons</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix provides a centralized mechanism to override icons used throughout an application. This can be done in several ways depending on the scope of the change:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Replace only specific icons.</p>
+</li>
+<li>
+<p>Replace the entire icon font used by the application.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="how-default-icons-work"><a class="anchor" href="#how-default-icons-work"></a>How Default Icons Work</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The default icons are defined in the <code>JmixFontIcon</code> enum combining all Vaadin icons, Lumo icons (not present in Vaadin), and Jmix-specific icons. Each icon is declared with a CSS variable and two CSS classes in <code>jmix-font-icons.css</code>.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="title">jmix-font-icons.css</div>
+<div class="content">
+<pre>html {
+    --jmix-font-icon-user: "user";
+}
+
+.jmix-font-icon {
+    font-family: var(--jmix-font-icon-font-family);
+}
+
+.jmix-font-icon-user:before {
+    content: var(--jmix-font-icon-user);
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Besides there are currently three icons that declare an additional CSS class that changes <code>font-family</code> value:</p>
+</div>
+<div class="listingblock">
+<div class="title">jmix-font-icons.css</div>
+<div class="content">
+<pre>.jmix-font-icon.jmix-font-icon-lumo {
+    font-family: lumo-icons;
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you create an icon with the <code>Icons</code> bean, it attempts to create a <code>FontIcon</code> component with an appropriate CSS class name. If the given icon name contains of two parts separated with <code>:</code> (like <code>vaadin:user</code>) a new <code>Icon</code> component is created using the first part as collection and the second as icon name.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="remapping-icon"><a class="anchor" href="#remapping-icon"></a>Remapping an Icon</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can remap one icon to another by redefining the CSS variable. For example, add the following line into your <a class="xref page" href="../themes/themes.html#application-theme">application theme</a> custom styles file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html {
+    --jmix-font-icon-edit-action: var(--jmix-font-icon-edit);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the <code>edit-action</code> icon is mapped to the <code>edit</code> icon.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Use your browser’s developer tools to inspect the element and identify the CSS variable for a specific icon.</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img alt="inspect icon" src="../_images/icons/inspect-icon.png" width="437"/></span></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="remapping-to-icon-from-different-font"><a class="anchor" href="#remapping-to-icon-from-different-font"></a>Remapping to an Icon from a Different Icon Font</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can also remap an icon to an icon from a different icon font. Add the following line into your <a class="xref page" href="../themes/themes.html#application-theme">application theme</a> custom styles file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.jmix-font-icon-refresh {
+    font-family: "lumo-icons";
+}
+
+.jmix-font-icon-refresh:before {
+    content: var(--lumo-icons-reload);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This examples changes the font used by the <code>refresh</code> icon and maps it to the <code>reload</code> icon from the <code>lumo-icons</code> font.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-different-icon-font"><a class="anchor" href="#using-different-icon-font"></a>Using a Different Icon Font</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use an entirely different font in your application. This typically involves the following steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Add an icon font.</p>
+</li>
+<li>
+<p>Override <code>--jmix-font-icon-font-family</code> to use the new font.</p>
+</li>
+<li>
+<p>Map icon variables to character codes from the new font.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>For example, given you followed <a class="xref page" href="custom-icons.html#icon-fonts">this instruction</a> to add the <strong>Material</strong> icon font, you can override icons in your <a class="xref page" href="../themes/themes.html#application-theme">application theme</a> custom styles file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html {
+    --jmix-font-icon-font-family: "Material Icons Outlined";
+    --jmix-font-icon-plus: "\e8b6";
+    --jmix-font-icon-home: "\e88a";
+    ...
+    --jmix-font-icon-menu: "\e5d2";
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">Locating variables and character codes.</div>
+<div class="paragraph">
+<p>CSS variables for the default Jmix icons are declared in <code>jmix-font-icons.css</code>. See the <a href="#how-default-icons-work">section above</a> for how this file is structured. Character codes are supplied by the corresponding icon font.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="overriding-icons-bean"><a class="anchor" href="#overriding-icons-bean"></a>Overriding the <code>Icons</code> bean</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can override the <code>Icons</code> bean to provide a custom mapping. Override the bean when the icon set you need isn’t available as a font or when you want to use SVG icons.</p>
+</div>
+<div class="paragraph">
+<p>For example, given you followed <a class="xref page" href="custom-icons.html#svg-sprite">this instruction</a> to add an SVG sprite, you can create a mapping so those SVG icons are used in the default icon set:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Primary
+@org.springframework.stereotype.Component("AppIcons")
+public class AppIcons extends IconsImpl {
+
+    @Override
+    protected Component createIconByName(String iconName) {
+        return switch (iconName) {
+            case "STAR" -&gt; MyIcons.STAR.create(); <i class="conum" data-value="1"></i><b>(1)</b>
+            case "HEART" -&gt; MyIcons.HEART.create();
+            case "CIRCLE" -&gt; MyIcons.CIRCLE.create();
+            default -&gt; super.createIconByName(iconName); <i class="conum" data-value="2"></i><b>(2)</b>
+        };
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The icon names (<code>STAR</code>, <code>HEART</code>, <code>CIRCLE</code>) correspond to values in <code>JmixFontIcons</code> enum. These three icons are replaced with custom SVGs.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>All other icons continue to use the default icon set.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

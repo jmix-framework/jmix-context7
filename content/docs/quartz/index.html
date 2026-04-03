@@ -11,7 +11,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This add-on allows you to manage <a href="https://www.quartz-scheduler.org/" rel="noopener" target="_blank">Quartz</a> jobs via user interface:</p>
+<p>This add-on allows you to manage <a href="https://www.quartz-scheduler.org/" rel="noopener" target="_blank">Quartz</a> jobs via the user interface:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -19,7 +19,7 @@
 <p>Create new Quartz jobs from the existing implementation of <code>org.quartz.Job</code> interface.</p>
 </li>
 <li>
-<p>Pause and resume jobs execution.</p>
+<p>Pause and resume job execution.</p>
 </li>
 <li>
 <p>Trigger immediate execution of inactive jobs.</p>
@@ -63,8 +63,8 @@ implementation 'io.jmix.quartz:jmix-quartz-flowui-starter'</code></pre>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>If URL of your main database is set as variable replacing the whole URL (e.g. <code>main.datasource.url = ${DB_URL}</code>)
-you may need to explicitly set the proper driver delegate class via <code>spring.quartz.properties.org.quartz.jobStore.driverDelegateClass</code> application property.</p>
+<p>If the URL of your main database is set as a variable that replaces the whole URL (for example, <code>main.datasource.url=${DB_URL}</code>),
+you may need to explicitly set the proper driver delegate class with the <code>spring.quartz.properties.org.quartz.jobStore.driverDelegateClass</code> application property.</p>
 </div>
 <div class="paragraph">
 <p>Value depends on your database:</p>
@@ -81,13 +81,13 @@ you may need to explicitly set the proper driver delegate class via <code>spring
 <p><strong>MS SQL</strong>: <code>org.quartz.impl.jdbcjobstore.MSSQLDelegate</code></p>
 </li>
 <li>
-<p>Other database: skip this step - default value will be used</p>
+<p>Other databases: skip this step, the default value will be used.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>If variable within <code>main.datasource.url</code> property doesn’t include database prefix (e.g. <code>main.datasource.url = jdbc:postgresql://${DB_HOST}/${DB_NAME}</code>)
-or there are no variables at all – driver delegate class will be resolved automatically and this step can be skipped.</p>
+<p>If the database prefix is specified explicitly (for example, <code>main.datasource.url=jdbc:postgresql://${DB_HOST}/${DB_NAME}</code>),
+or variables are not used at all, the driver delegate class is resolved automatically and this step can be skipped.</p>
 </div>
 </td>
 </tr>
@@ -109,7 +109,7 @@ or there are no variables at all – driver delegate class will be resolved auto
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Open the <a class="xref page" href="../studio/menu-designer.html">Menu Designer</a> in Jmix Studio.</p>
+<p>Open <a class="xref page" href="../studio/menu-designer.html">Menu Designer</a> in Jmix Studio.</p>
 </li>
 <li>
 <p>Navigate to the <strong>Structure</strong> tab.</p>
@@ -155,7 +155,7 @@ or there are no variables at all – driver delegate class will be resolved auto
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a class implementing the <code>org.quartz.Job</code> interface. It’s <code>execute()</code> method will be invoked by the scheduler. For example:</p>
+<p>Create a class implementing the <code>org.quartz.Job</code> interface. Its <code>execute()</code> method is invoked by the scheduler. For example:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.demo.quartz;
@@ -190,11 +190,11 @@ public class SampleJob implements Job {
 <li>
 <p>Enter an arbitrary unique name in the <strong>Name</strong> field and select your job class in the <strong>Class</strong> field.</p>
 <div class="paragraph">
-<p>The <strong>Group</strong> field is optional but can be used to group jobs in UI.</p>
+<p>The <strong>Group</strong> field is optional but can be used to group jobs in the UI.</p>
 </div>
 </li>
 <li>
-<p>Create at least one trigger for the job on the <strong>Triggers</strong> tab. You can select either <strong>Cron expression</strong> or <strong>Simple</strong> schedule type. In the former case, enter a <a href="http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html" rel="noopener" target="_blank">Cron expression</a> like <code>0/5 * * ? * * *</code> (each 5 sec). In the latter case, enter a repeat interval in milliseconds.</p>
+<p>Create at least one trigger for the job on the <strong>Triggers</strong> tab. You can select either <strong>Cron expression</strong> or <strong>Simple</strong> schedule type. In the former case, enter a <a href="http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html" rel="noopener" target="_blank">Cron expression</a> like <code>0/5 * * ? * * *</code> (every 5 seconds). In the latter case, enter a repeat interval in milliseconds.</p>
 </li>
 </ul>
 </div>
@@ -215,7 +215,7 @@ public class SampleJob implements Job {
 <div class="sect2">
 <h3 id="authentication"><a class="anchor" href="#authentication"></a>Authentication in Jobs</h3>
 <div class="paragraph">
-<p>The code executed by the scheduler is not authenticated, that is not associated with any user.</p>
+<p>The code executed by the scheduler is not authenticated, so it is not associated with any user.</p>
 </div>
 <div class="paragraph">
 <p>If you invoke operations that require authentication, for example working with data through <code>DataManager</code>, use <a class="xref page" href="../security/authentication.html#system">SystemAuthenticator</a> or <code>@Authenticated</code> annotation:</p>
@@ -277,7 +277,7 @@ You can also use <code>UnconstrainedDataManager</code> to work with data in unau
 <div class="sect2">
 <h3 id="track-job-execution"><a class="anchor" href="#track-job-execution"></a>Tracking Job Execution</h3>
 <div class="paragraph">
-<p>If you want to track execution of jobs, create a bean implementing the <code>JobListener</code> interface or extending the <code>JobListenerSupport</code> as follows:</p>
+<p>If you want to track execution of jobs, create a bean implementing the <code>JobListener</code> interface or extending <code>JobListenerSupport</code>, as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">

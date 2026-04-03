@@ -102,7 +102,7 @@ public class DropdownButtonThemeVariantSample extends StandardView {
         }
 
         //clear
-        testButton.setIcon(null);
+        testButton.setIconComponent(null);
         testButton.setText("");
         testButton.getThemeNames().clear();
 
@@ -118,7 +118,7 @@ public class DropdownButtonThemeVariantSample extends StandardView {
             testButton.setText("Button text");
         } else if ("icon".equalsIgnoreCase(command)) {
             testButton.addThemeName(command);
-            testButton.setIcon(VaadinIcon.SMILEY_O.create());
+            testButton.setIconComponent(VaadinIcon.SMILEY_O.create());
         } else {
             testButton.addThemeName(command);
         }

@@ -14,42 +14,133 @@
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/icon-all" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>There are two default icon sets: Vaadin and Lumo. You can view all available icons from these sets by visiting <a href="https://demo.jmix.io/ui-samples/sample/icon-all" rel="noopener" target="_blank">live demo</a>.</p>
+<p>Jmix includes over 600 built-in icons organized into three icon sets:</p>
 </div>
+<table class="tableblock frame-all grid-none stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Jmix</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Default icon set. It combines all Vaadin icons, Lumo icons not present in Vaadin, and Jmix-specific icons.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Vaadin</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Icons provided by the Vaadin framework.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Lumo</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Icons from the Lumo design system.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
-<h2 id="declarative-usage"><a class="anchor" href="#declarative-usage"></a>Declarative Usage</h2>
+<h2 id="icon-attribute"><a class="anchor" href="#icon-attribute"></a>Setting Icon via Attribute</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Set an icon for a component with the <code>icon</code> attribute. Use the <code>vaadin:</code> and <code>lumo:</code> prefixes for different icon sets. If no prefix is present, the Vaadin set is used.</p>
+<p>Many UI components allow icons to be added through attributes. Some components provide multiple such attributes for different icon slots, such as <code>icon</code>, <code>uploadIcon</code>, <code>downloadButtonIcon</code>, <code>dropLabelIcon</code>.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;icon icon="USER"/&gt;
+&lt;button text="Approve" icon="CHECK"/&gt;
+&lt;fileUploadField uploadText="Upload file" uploadIcon="UPLOAD"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To use icons from a specific set, add the appropriate prefix:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;icon icon="vaadin:user"/&gt;
-&lt;icon icon="lumo:user"/&gt;</code></pre>
+&lt;button text="Approve" icon="lumo:checkmark"/&gt;
+&lt;fileUploadField uploadText="Upload file" uploadIcon="vaadin:upload"/&gt;</code></pre>
 </div>
 </div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
 <div class="paragraph">
-<p>When set through the Studio component inspector, the <strong>Choose Icon</strong> dialog appears, displaying icon names and preview for easier selection:</p>
+<p>You can browse and select icons in Studio. In the inspector panel, click an icon attribute to open the <strong>Choose Icon</strong> dialog. The dialog displays available icon sets and lets you select an icon visually.</p>
 </div>
 <div class="imageblock text-center">
 <div class="content">
-<img alt="choose icon dialog" src="../_images/icons/choose-icon-dialog.png" width="512"/>
+<img alt="choose icon dialog" src="../_images/icons/choose-icon-dialog.png" width="592"/>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="icon-nested-element"><a class="anchor" href="#icon-nested-element"></a>Setting Icon in Nested Element</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Some components support adding icons using nested elements that correspond to specific icon slots, such as <code>&lt;icon&gt;</code>, <code>&lt;uploadIcon&gt;</code>, <code>&lt;dropdownIcon&gt;</code>, &lt;prefix&gt;, and &lt;suffix&gt;. This approach allows you to use both built-in and <a class="xref page" href="custom-icons.html">custom icons</a>, including SVGs, font icons, and images.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Approve"&gt;
+    &lt;icon&gt;
+        &lt;icon icon="CHECK"/&gt;
+    &lt;/icon&gt;
+&lt;/button&gt;
+&lt;button text="Start"&gt;
+    &lt;icon&gt;
+        &lt;svgIcon resource="/icons/jmix-icon.svg"/&gt;
+    &lt;/icon&gt;
+&lt;/button&gt;
+&lt;button text="Download"&gt;
+    &lt;prefix&gt;
+        &lt;fontIcon fontFamily="lumo-icons" charCode="ea17"/&gt;
+    &lt;/prefix&gt;
+&lt;/button&gt;
+&lt;button text="Create"&gt;
+    &lt;icon&gt;
+        &lt;image resource="/icons/icon.png" width="24px"/&gt;
+    &lt;/icon&gt;
+&lt;/button&gt;</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="programmatic-usage"><a class="anchor" href="#programmatic-usage"></a>Programmatic Usage</h2>
+<h2 id="programmatic-usage"><a class="anchor" href="#programmatic-usage"></a>Setting Icon Programmatically</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>An icon can be set programmatically to a component:</p>
+<p>Icons can be set programmatically. It is recommended to use the <code>Icons</code> bean as the central interface for creating UI components that represent icons. This ensures consistent behavior (<code>Icons</code> is also used when parsing XML) and simplifies centralized <a class="xref page" href="override-icons.html">icon overrides</a>.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">iconButton1.setIcon(VaadinIcon.USER.create());
-iconButton2.setIcon(LumoIcon.USER.create());</code></pre>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">helperButton.setIcon(icons.get(JmixFontIcon.QUESTION_CIRCLE));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Nevertheless, it is also possible to bypass the bean and instantiate icons directly from a specific set:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">helperButton.setIcon(VaadinIcon.QUESTION_CIRCLE.create());
+editorButton.setIcon(LumoIcon.COG.create());</code></pre>
 </div>
 </div>
 </div>

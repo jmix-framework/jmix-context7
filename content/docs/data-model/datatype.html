@@ -23,7 +23,7 @@
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-We use term <em>datatype</em> in all lowercase to refer to implementations of the <code>Datatype</code> interface.
+We use the term <em>datatype</em> in all lowercase to refer to implementations of the <code>Datatype</code> interface.
 </td>
 </tr>
 </table>
@@ -213,6 +213,44 @@ private Integer productionYear;</code></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="datatypeformatter"><a class="anchor" href="#datatypeformatter"></a>DatatypeFormatter</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>DatatypeFormatter</code> is a utility bean for programmatic formatting and parsing of values based on datatypes. It automatically applies the <a href="#localized-format-strings">localized format strings</a> for the current user’s locale.</p>
+</div>
+<div class="paragraph">
+<p>Example usage:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.core.metamodel.datatype.DatatypeFormatter;
+import org.springframework.stereotype.Component;
+import java.text.ParseException;
+import java.time.LocalDate;
+
+@Component
+public class DataFormatterService {
+
+    private final DatatypeFormatter datatypeFormatter;
+
+    public DataFormatterService(DatatypeFormatter datatypeFormatter) {
+        this.datatypeFormatter = datatypeFormatter;
+    }
+
+    public String formatDate (LocalDate date) {
+        return datatypeFormatter.formatLocalDate(date);
+    }
+
+    public LocalDate parseDate(String value) throws ParseException {
+        return datatypeFormatter.parseLocalDate(value);
+    }
+
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="custom-type"><a class="anchor" href="#custom-type"></a>Support for Custom Java Type</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -341,7 +379,7 @@ public class GeoPointDatatype implements Datatype&lt;GeoPoint&gt; {
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>The <code>@Ddl</code> annotation specifies that Studio should generate <code>varchar(255)</code> column in the database for attributes of this type. See <a href="#ddl-annotation">below</a> for more information.</td>
+<td>The <code>@Ddl</code> annotation specifies that Studio should generate a <code>varchar(255)</code> column in the database for attributes of this type. See <a href="#ddl-annotation">below</a> for more information.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="5"></i><b>5</b></td>

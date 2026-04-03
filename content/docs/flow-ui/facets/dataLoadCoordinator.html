@@ -22,7 +22,7 @@
 <h2 id="basics"><a class="anchor" href="#basics"></a>Basic Usage</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To trigger all data loaders on the view’s <code>BeforeShowEvent</code>, just add <code>dataLoadCoordinator</code> with <code>auto="true"</code> to the view XML descriptor:</p>
+<p>To trigger all data loaders on the view at <a class="xref page" href="../views/view-events.html#before-show-event">BeforeShowEvent</a>, just add <code>dataLoadCoordinator</code> with <code>auto="true"</code> to the view XML descriptor:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -42,28 +42,252 @@
 <div class="sect2">
 <h3 id="automatic-mode"><a class="anchor" href="#automatic-mode"></a>Automatic Mode</h3>
 <div class="paragraph">
-<p>In this mode, <code>dataLoadCoordinator</code> relies on parameter names with particular prefixes. The prefix denotes a component that provides the parameter value and sends value change events.</p>
+<p>In automatic mode (<code>auto="true"</code>), <code>dataLoadCoordinator</code> <strong>triggers every loader it can provide parameter values for</strong> on <a class="xref page" href="../views/view-events.html#before-show-event">BeforeShowEvent</a>. The facet can automatically match parameters in the loader query to values that come from containers or visual components. To indicate the source, prepend the appropriate prefix to the parameter name: use <code>container_</code> for values taken from a container and <code>component_</code> for values taken from a visual component. For example, a parameter named <code>container_citiesDc</code> takes its value from the <code>citiesDc</code> container.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can change the default prefixes with the <code><a href="#componentPrefix">componentPrefix</a></code> and <code><a href="#containerPrefix">containerPrefix</a></code> attributes.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>By default, the parameter prefix is <code>container_</code> for data containers and <code>component_</code> for visual components. The <a href="#componentPrefix">componentPrefix</a> and <a href="#containerPrefix">containerPrefix</a> attributes allow you to use different prefixes.</p>
+<p>If a query contains an arbitrary parameter without a prefix — e.g., <code>select e from User e where e.city = :city</code> — the facet won’t be able to match it, so the loader won’t be triggered automatically. In that case you must set the parameter value yourself and call <code>userDl.load()</code>. Adding arbitrary parameters within a <a class="xref page" href="../data/data-loaders.html#query-conditions">query condition</a> does not prevent the loader’s main query from running.</p>
 </div>
 <div class="paragraph">
-<p>A loader is triggered on <code>BeforeShowEvent</code> if it has no parameters without recognized prefixes in its query text. It means that if the query contains an arbitrary parameter, for example <code>select e from User e where e.department = :department</code>, the loader will not be triggered automatically on view opening. You have to set the parameter value and invoke <code>userDl.load()</code> manually.</p>
+<p>Usage example:</p>
 </div>
-<div class="paragraph">
-<p>Parameters in <a class="xref page" href="../data/data-loaders.html#query-conditions">query conditions</a> do not prevent the loader to be triggered on <code>BeforeShowEvent</code>.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://automaticModeView.title"&gt;
+    &lt;data&gt;
+        &lt;collection id="citiesDc" class="com.company.onboarding.entity.City"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;loader id="citiesDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from City e]]&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+                    &lt;condition&gt;
+                        &lt;and&gt;
+                            &lt;jpql&gt;
+                                &lt;where&gt;e.name like:component_nameField&lt;/where&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+                            &lt;/jpql&gt;
+                        &lt;/and&gt;
+                    &lt;/condition&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+        &lt;/collection&gt;
+        &lt;collection id="customersDc"
+                    class="com.company.onboarding.entity.Customer"&gt;
+            &lt;loader id="customersDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[
+                    select e from Customer e
+                    where e.city = :container_citiesDc]]&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+                &lt;/query&gt;
+            &lt;/loader&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;dataLoadCoordinator auto="true"/&gt; <i class="conum" data-value="5"></i><b>(5)</b>
+    &lt;/facets&gt;
+    &lt;layout&gt;
+        &lt;textField id="nameField"/&gt; <i class="conum" data-value="6"></i><b>(6)</b>
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><strong>Data container</strong> – holds the <code>City</code> entity. Its value is used as the <code>:container_citiesDc</code> parameter.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><strong>City query</strong> – includes no parameters and will execute on <a class="xref page" href="../views/view-events.html#before-show-event">BeforeShowEvent</a>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><strong>Query condition</strong> – is appended to the city query when the user enters a value in <code>nameField</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><strong>Customer query</strong> – reloads <code>Customer</code> rows each time the selected value in the <code>citiesDc</code> container changes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><strong>Facet set to automatic mode</strong> – automatically coordinates loader execution, ensuring queries are run in the correct order.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td><strong>Input field</strong> – the <code>nameField</code> text component whose value is bound to the <code>:component_nameField</code> in the city query.</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
 <h3 id="manual-mode"><a class="anchor" href="#manual-mode"></a>Manual Mode</h3>
 <div class="paragraph">
-<p>In this mode, the nested <a href="#refresh">refresh</a> elements define when the data loaders must be triggered.</p>
+<p>In manual mode (<code>auto = false</code>) the facet no longer performs any automatic actions. You must specify the exact view event that triggers the loader (for instance,<code>InitEvent</code>) and specify the origin of every query parameter, whether it’s a component value or a container value. These details are provided through <a href="#refresh">&lt;refresh&gt; </a> elements placed within the facet declaration.</p>
+</div>
+<div class="paragraph">
+<p>Usage example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://manualModeView.title"&gt;
+    &lt;data&gt;
+        &lt;collection id="citiesDc" class="com.company.onboarding.entity.City"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;loader id="citiesDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from City e]]&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+                    &lt;condition&gt;
+                        &lt;and&gt;
+                            &lt;jpql&gt;
+                                &lt;where&gt;e.name like:name&lt;/where&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+                            &lt;/jpql&gt;
+                        &lt;/and&gt;
+                    &lt;/condition&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+        &lt;/collection&gt;
+        &lt;collection id="customersDc"
+                    class="com.company.onboarding.entity.Customer"&gt;
+            &lt;loader id="customersDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[
+                    select e from Customer e
+                    where e.city = :city]]&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+                &lt;/query&gt;
+            &lt;/loader&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;dataLoadCoordinator auto="false"&gt; <i class="conum" data-value="5"></i><b>(5)</b>
+            &lt;refresh loader="citiesDl"&gt;
+                &lt;onViewEvent type="Init"/&gt;
+                &lt;onComponentValueChanged component="nameField"
+                                         likeClause="CASE_INSENSITIVE"
+                                         param="name"/&gt; <i class="conum" data-value="6"></i><b>(6)</b>
+            &lt;/refresh&gt;
+            &lt;refresh loader="customersDl"&gt;
+                &lt;onContainerItemChanged container="citiesDc"
+                                        param="city"/&gt; <i class="conum" data-value="7"></i><b>(7)</b>
+            &lt;/refresh&gt;
+        &lt;/dataLoadCoordinator&gt;
+    &lt;/facets&gt;
+    &lt;layout&gt;
+        &lt;textField id="nameField"/&gt; <i class="conum" data-value="8"></i><b>(8)</b>
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><strong>Data container</strong> – holds the <code>City</code> entity. Its value is used as the <code>city</code> parameter in the customer query.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><strong>City query</strong> – includes no parameters and will execute on <a class="xref page" href="../views/view-events.html#init-event">InitEvent</a> as per manual configuration.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><strong>Query condition</strong> – is appended to the query when the user enters a value in <code>nameField</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><strong>Customer query</strong> – reloads <code>Customer</code> instances each time the selected value in the <code>citiesDc</code> container changes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><strong>Manual facet mode</strong> – loading is controlled by the rules defined in the <code>&lt;refresh&gt;</code> elements.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td><strong>City loader refresh condition</strong> – triggers a refresh of <code>citiesDl</code> on <code>InitEvent</code> and when the content of the <code>nameField</code> component passing its input as the <code>name</code> parameter.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td><strong>Customer loader refresh condition</strong> – triggers a refresh of <code>customersDl</code> when the selected item in <code>citiesDc</code> container changes, passing that city as the <code>city</code> parameter.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td><strong>Input field</strong> – the <code>nameField</code> text component whose value is bound to the City query via a <code>&lt;refresh&gt;</code> element.</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
 <h3 id="semi-automatic-mode"><a class="anchor" href="#semi-automatic-mode"></a>Semi-automatic Mode</h3>
 <div class="paragraph">
-<p>When the <code>auto</code> attribute is set to <code>true</code>, and there are some manually configured triggers, <code>DataLoadCoordinator</code> will automatically configure all loaders having no manual configuration.</p>
+<p>The facet can be set to semiautomatic mode. In this mode the coordinator triggers loaders automatically (with <code>auto = "true"</code>), <strong>but</strong> also respects any manual rules you add.</p>
+</div>
+<div class="paragraph">
+<p>Usage example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://semiautomaticModeView.title"&gt;
+    &lt;data&gt;
+        &lt;collection id="citiesDc" class="com.company.onboarding.entity.City"&gt;
+            &lt;loader id="citiesDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[select e from City e]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+        &lt;/collection&gt;
+        &lt;collection id="customersDc"
+                    class="com.company.onboarding.entity.Customer"&gt;
+            &lt;loader id="customersDl" readOnly="true"&gt;
+                &lt;query&gt;
+                    &lt;![CDATA[
+                    select e from Customer e
+                    where e.city = :container_citiesDc]]&gt;
+                &lt;/query&gt;
+            &lt;/loader&gt;
+            &lt;fetchPlan extends="_base"/&gt;
+        &lt;/collection&gt;
+    &lt;/data&gt;
+    &lt;facets&gt;
+        &lt;dataLoadCoordinator auto="true"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+            &lt;refresh loader="citiesDl"&gt;
+                &lt;onViewEvent type="Ready"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+            &lt;/refresh&gt;
+        &lt;/dataLoadCoordinator&gt;
+    &lt;/facets&gt;
+    &lt;layout&gt;
+
+        // ...
+
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><strong>Facet set to semiautomatic mode</strong> – the facet will automatically trigger loaders unless overridden by manual rules.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><strong>City loader refresh condition</strong> – specifies that the <code>citiesDl</code> loader should be triggered when the view fires <a class="xref page" href="../views/view-events.html#ready-event">ReadyEvent</a>.</td>
+</tr>
+</table>
 </div>
 </div>
 </div>

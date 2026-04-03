@@ -66,7 +66,7 @@
 <p><code>params</code> - parameters map is available by alias <code>params</code>.</p>
 </li>
 <li>
-<p><code>rootBand</code> - an object of the <code>BandData</code> type that provide access to band datasets.</p>
+<p><code>rootBand</code> - an object of the <code>BandData</code> type that provides access to band datasets.</p>
 </li>
 <li>
 <p><code>applicationContext</code> - an object of the <code>ApplicationContext</code> type that provides access to managed beans.</p>
@@ -117,13 +117,13 @@ You can find examples of various template types in the <a class="xref page" href
 <p>You can create XLS(X) templates using <strong>Microsoft Office</strong> or <strong>LibreOffice</strong>.</p>
 </div>
 <div class="paragraph" id="template_xls_regions">
-<p>Each <a class="xref page" href="bands.html">report band</a> must have a corresponding region in the template, which is named the same as the band. For instance, a report has two bands - <code>Header</code> and <code>Data</code>. This means that the template should also have <code>Header</code> and <code>Data</code> named ranges. To create named regions, select the desired cell ranges and enter the name in the field in the application’s top left corner. To edit existing named regions, use the <strong>Formulas</strong> → <strong>Name Manager</strong> menu command in Microsoft Office, and the <strong>Insert</strong> → <strong>Names</strong> → <strong>Manage</strong> command in LibreOffice. Vice versa, each part of the sheet you want to show should have a band in a report (at least an empty band).</p>
+<p>Each <a class="xref page" href="bands.html">report band</a> must have a corresponding region in the template, which is named the same as the band. For instance, a report has two bands - <code>Header</code> and <code>Data</code>. This means that the template should also have <code>Header</code> and <code>Data</code> named ranges. To create named regions, select the desired cell ranges and enter the name in the field in the application’s top-left corner. To edit existing named regions, use the <strong>Formulas</strong> → <strong>Name Manager</strong> menu command in Microsoft Office, and the <strong>Insert</strong> → <strong>Names</strong> → <strong>Manage</strong> command in LibreOffice. At the same time, each part of the sheet you want to show should have a band in a report (at least an empty band).</p>
 </div>
 <div class="paragraph">
 <p>The bands are output in the order specified in the <a class="xref page" href="bands.html">band hierarchy</a>.</p>
 </div>
 <div class="paragraph">
-<p>Bands can be horizontally and vertically oriented. If the band is horizontal, the suitable named region will grow downward, vertical will grow rightward. Horizontal bands may be organized in a tree-like structure and contain sub-bands (nested or children bands). Therefore, for sub-bands, you need to create named regions directly under the regions that correspond to the parent bands.</p>
+<p>Bands can be horizontally and vertically oriented. If the band is horizontal, the named region will grow downward; if it is vertical, it will grow rightward. Horizontal bands may be organized in a tree-like structure and contain sub-bands (nested or child bands). Therefore, for sub-bands, you need to create named regions directly under the regions that correspond to the parent bands.</p>
 </div>
 <div class="paragraph">
 <p>XLSX formatter will render children bands using the following algorithm:</p>
@@ -178,7 +178,7 @@ You can find examples of various template types in the <a class="xref page" href
 <p>For XLSX reports generated using the <a class="xref page" href="../getting-started.html#creating-report-at-runtime">report wizard</a>, this named region is automatically added for each configured report region.</p>
 </div>
 <div class="paragraph">
-<p>When a report is executed, cell whose content exceeds the available space for a single line will automatically become multi-line, with the row height adjusting accordingly to display the entire contents.</p>
+<p>When a report is executed, a cell whose content exceeds the available space for a single line will automatically become multi-line, with the row height adjusting accordingly to display the entire content.</p>
 </div>
 </td>
 </tr>
@@ -208,7 +208,7 @@ You can find examples of various template types in the <a class="xref page" href
 <p>You can create CSV templates using <strong>Microsoft Office</strong> or <strong>LibreOffice</strong>.</p>
 </div>
 <div class="paragraph">
-<p>Bands in the CSV template should only be horizontally oriented, so the suitably named region will grow downward. Also, bands should belong to the first level of data, that is, be the children of the <code>Root</code> band. In all other respects, the same principles as for <a href="#template_xls">XLS(X) templates</a> should be used.</p>
+<p>Bands in the CSV template should only be horizontally oriented, so the named region will grow downward. Also, bands should belong to the first level of data, that is, be the children of the <code>Root</code> band. In all other respects, the same principles as for <a href="#template_xls">XLS(X) templates</a> should be used.</p>
 </div>
 <div class="imageblock text-center">
 <div class="content">
@@ -233,10 +233,10 @@ You can find examples of various template types in the <a class="xref page" href
 <p>You can create DOC(X) templates using <strong>Microsoft Office</strong> or <strong>LibreOffice</strong>.</p>
 </div>
 <div class="paragraph">
-<p>A template of DOC(X) type can include document text and optionally one or more tables. The document text outputs the data from the first rows of arbitrary bands. While in a table, you can output an arbitrary number of band rows.</p>
+<p>A DOC(X) template can include document text and optionally one or more tables. The document text outputs data from the first rows of arbitrary bands. In a table, you can output an arbitrary number of band rows.</p>
 </div>
 <div class="paragraph">
-<p>To place a field in the document text, you should use a string having <code>${band_name.field_name}</code> format, where <code>band_name</code> is the band name, <code>field_name</code> - name of a band’s field.</p>
+<p>To place a field in the document text, use a string in the <code>${band_name.field_name}</code> format, where <code>band_name</code> is the band name and <code>field_name</code> is the name of a band field.</p>
 </div>
 <div class="paragraph">
 <p>To output data into a table, you should link it to a band. This is done by specifying <code>##band=band_name</code> in the table’s first cell, where <code>band_name</code> is the band name. The table fields are placed using <code>${field_name}</code> format, where <code>field_name</code> is the field name of the band associated with the table. You can use the band name prefix to access fields of other bands, same as in the document text fields. You can output several fields in a single table cell.</p>
@@ -951,7 +951,7 @@ public class BookReport implements CustomReport {
 </div>
 </div>
 <div class="paragraph">
-<p>In the report template dialog check the <strong>Is custom</strong> checkbox, select <strong>Class</strong> in the <strong>Defined by</strong> field and set the fully qualified name of the Java class as the custom definition:</p>
+<p>In the report template dialog, check the <strong>Is custom</strong> checkbox, select <strong>Class</strong> in the <strong>Defined by</strong> field, and set the fully qualified name of the Java class as the custom definition:</p>
 </div>
 <div class="imageblock text-center">
 <div class="content">
@@ -1010,7 +1010,7 @@ public class BookReport implements CustomReport {
 <p>In the <strong>Custom definition</strong> field, specify the URL of the external report. Report parameters can be passed to the URL as <code>${param Alias}</code>.</p>
 </li>
 <li>
-<p>Configure <a class="xref page" href="../configuration.html#jmix.reports.curl-path">jmix.reports.curl-path</a> application property, set it the path to the command line <strong>curl</strong> tool.</p>
+<p>Configure the <a class="xref page" href="../configuration.html#jmix.reports.curl-path">jmix.reports.curl-path</a> application property and set it to the path to the command line <code>curl</code> tool.</p>
 </li>
 </ul>
 </div>

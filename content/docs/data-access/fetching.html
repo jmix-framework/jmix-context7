@@ -14,7 +14,7 @@
 <p>In this section, we describe how and when data is fetched into memory in the process of loading entities from the database.</p>
 </div>
 <div class="paragraph">
-<p>The data model entities often have references to other entities, for example <code>Order</code> has a related <code>Customer</code> in the <code>Order.customer</code> attribute. Jmix allows you to access related entities by navigating the reference attributes in Java code using getters, for example <code>order.getCustomer().getName()</code>, and in data-aware UI components using dot notation, for example <code>order.customer.name</code>.</p>
+<p>The data model entities often have <a class="xref page" href="../data-model/entities.html#references">references</a> to other entities, for example <code>Order</code> has a related <code>Customer</code> in the <code>Order.customer</code> attribute. Jmix allows you to access related entities by navigating the reference attributes in Java code using getters, for example <code>order.getCustomer().getName()</code>, and in data-aware UI components using dot notation, for example <code>order.customer.name</code>.</p>
 </div>
 <div class="paragraph">
 <p>In general, there are two strategies of loading related entities:</p>
@@ -35,7 +35,7 @@
 <h2 id="lazy-loading"><a class="anchor" href="#lazy-loading"></a>Lazy Loading</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Jmix supports lazy loading of references for JPA entities loaded using <a class="xref page" href="data-manager.html">DataManager</a>. It means that if you have used <code>DataManager</code> or UI <a class="xref page" href="../flow-ui/data/data-loaders.html">data loaders</a> for loading an entity, you can access its reference attributes to get the related entities, and Jmix will load them from the database on demand. This process is recursive, so you can traverse the whole object graph just by accessing the reference attributes.</p>
+<p>Jmix supports lazy loading of references and <a class="xref page" href="../data-model/entities.html#element-collections">element collections</a> for JPA entities loaded using <a class="xref page" href="data-manager.html">DataManager</a>. It means that if you have used <code>DataManager</code> or UI <a class="xref page" href="../flow-ui/data/data-loaders.html">data loaders</a> for loading an entity, you can access its reference attributes to get the related entities, and Jmix will load them from the database on demand. This process is recursive, so you can traverse the whole object graph just by accessing the reference attributes.</p>
 </div>
 <div class="paragraph">
 <p>For example:</p>
@@ -95,7 +95,7 @@ List&lt;String&gt; getProductNames(Id&lt;Order&gt; orderId) {
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Fetch plans are fully compatible with lazy loading of related entities. It means that you can load some part of a graph with a fetch plan, and then load other related entities lazily by navigating references.
+Fetch plans are fully compatible with lazy loading of related entities and element collections. It means that you can load some part of a graph with a fetch plan, and then load other related entities lazily by navigating references.
 </td>
 </tr>
 </table>
@@ -139,7 +139,7 @@ Fetch plans are fully compatible with lazy loading of related entities. It means
 </div>
 </div>
 <div class="paragraph">
-<p>As a result, the framework executes a single SQL query with the join between the order and customer tables, and related customers are eagerly loaded together with orders. It eliminates the N+1 problem that would arise if the customers were loading lazily.</p>
+<p>As a result, the framework executes a single SQL query with the join between the order and customer tables, and related customers are eagerly loaded together with orders. It eliminates the N+1 problem that would arise if the customers were loaded lazily.</p>
 </div>
 <div class="paragraph">
 <p>Also, as the fetch plan defines individual local attributes, the SQL result set includes only these attributes and omits the <code>customer.email</code> field. This field is not fetched from the database and does not consume server memory in the entity instance. This is good for performance, but such <a href="#partial-entities">partially loaded</a> entity instances must be handled with care.</p>
@@ -214,7 +214,7 @@ You could select individual local attributes instead of the <code>_base</code> f
 <div class="sect2">
 <h3 id="partial-entities"><a class="anchor" href="#partial-entities"></a>Partial Entities</h3>
 <div class="paragraph">
-<p>If you use a fetch plan that doesn’t include some local attributes of the entity, the entity will be loaded partially. The attributes absent in the fetch plan  will be empty in the entity instance. If you access such an attribute by invoking its getter/setter or by using it in a UI component, the framework throws an exception like this:</p>
+<p>If you use a fetch plan that doesn’t include some local attributes of the entity, the entity will be loaded partially. The attributes absent in the fetch plan will be empty in the entity instance. If you access such an attribute by invoking its getter/setter or by using it in a UI component, the framework throws an exception like this:</p>
 </div>
 <div class="listingblock">
 <div class="content">

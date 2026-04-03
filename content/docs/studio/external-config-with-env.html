@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External Configuration with .env Files :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">External Configuration with .env Files</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix Studio provides support for using <code>.env</code> files to externalize configuration. This allows you to store environment-specific variables separately from your <code>application.properties</code> file, making it easier to manage different configurations across development, testing, and production environments.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="studio-resolve-placeholders"><a class="anchor" href="#studio-resolve-placeholders"></a>How Studio Resolves Placeholders</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Studio resolves placeholders from properties files in the following order (each step overrides the previous step when a value is successfully resolved):</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>System environment variables</p>
+</li>
+<li>
+<p>References to another application property (if that property contains a placeholder, the process returns to step 1)</p>
+</li>
+<li>
+<p>Additional configuration files specified via the <code>spring.config.import</code> property</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="working-with-env"><a class="anchor" href="#working-with-env"></a>Working with .env Files</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Place your <code>.env</code> file in the <strong>project root directory</strong> (not in resources) and add the following property to your <code>application.properties</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.config.import=optional:file:.env[.properties]</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You can also add this property to a <a class="xref page" href="profile-specific-properties.html">profile-specific configuration file</a>, for example <code>application-local.properties</code>, and Studio will resolve it correctly.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+For more details about the <code>spring.config.import</code> mechanism, refer to the <a href="https://docs.spring.io/spring-boot/reference/features/external-config.html#features.external-config.files.importing" rel="noopener" target="_blank">Spring Boot documentation</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Example of the <code>.env</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">env</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">DB_URL=jdbc:postgresql://localhost:5432/mydb
+DB_USERNAME=root
+DB_PASSWORD=secret</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>.env</code> file can be named either <code>.env</code> or <code>.env.properties</code>. Both extensions are supported.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Example of the <code>application.properties</code> file:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.config.import=optional:file:.env[.properties]
+
+main.datasource.url=${DB_URL}
+main.datasource.username=${DB_USERNAME}
+main.datasource.password=${DB_PASSWORD}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When a <code>.env</code> file is connected via <code>spring.config.import</code>, Jmix Studio displays it in the <strong>Jmix Tool Window</strong> under the <strong>Configuration</strong> node, making it easily accessible for editing.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

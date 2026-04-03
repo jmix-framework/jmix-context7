@@ -55,7 +55,7 @@
 <h2 id="management"><a class="anchor" href="#management"></a>User Management</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A new project contains the <code>010-init-user.xml</code> <a class="xref page" href="../data-model/db-migration.html#changelogs">database migration</a> script that creates a user with the <code>admin</code>/<code>admin</code> username/password and grants the user full access to the application by associating the entity with the <code>system-full-access</code> <a class="xref page" href="resource-roles.html">role</a>.</p>
+<p>A new project contains the <code>010-init-user.xml</code> <a class="xref page" href="../data-model/db-migration.html#changelogs">database migration</a> script that creates a user with the <code>admin</code>/<code>admin</code> username/password and grants the user full access to the application by associating the user with the <code>system-full-access</code> <a class="xref page" href="resource-roles.html">role</a>.</p>
 </div>
 <div class="paragraph">
 <p>A new project also contains the UI views for managing users, see <strong>Application</strong> → <strong>Users</strong>. These views allow you to create, edit and remove users, change and reset their passwords. To assign roles to a user, click the <strong>Role assignments</strong> button in the user list view.</p>
@@ -95,7 +95,7 @@ See the <a href="https://github.com/jmix-framework/jmix-samples-2/tree/main/user
 <div class="ulist">
 <ul>
 <li>
-<p><em>Anonymous</em> user object corresponds to not authenticated users limiting them to the login view. By customizing this object, you can grant some permissions to users before they log in.</p>
+<p><em>Anonymous</em> user object corresponds to unauthenticated users and limits them to the login view. By customizing this object, you can grant some permissions to users before they log in.</p>
 </li>
 <li>
 <p><em>System</em> user object is required for the <a class="xref page" href="authentication.html#system">system authentication</a> mechanism. It is used when there is no real user interacting with the application, for example, when the application is starting up, or when a business method is called by a scheduler.</p>
@@ -151,7 +151,7 @@ To simplify providing anonymous access to specific views, use <a class="xref pag
 <h2 id="user-substitution"><a class="anchor" href="#user-substitution"></a>User Substitution</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The system administrator can give a user an ability to substitute another user. The substitution means the user has the <a class="xref page" href="resource-roles.html">resource</a> and <a class="xref page" href="row-level-roles.html">row-level</a> roles of the substituted user. For example, if Alice substitutes Bob, she logs in to the application as Alice but has the Bob’s roles.</p>
+<p>The system administrator can give a user the ability to substitute another user. The substitution means the user has the <a class="xref page" href="resource-roles.html">resource</a> and <a class="xref page" href="row-level-roles.html">row-level</a> roles of the substituted user. For example, if Alice substitutes Bob, she logs in to the application as Alice but has Bob’s roles.</p>
 </div>
 <div class="paragraph">
 <p>To see the feature in action, do the following:</p>
@@ -168,12 +168,18 @@ To simplify providing anonymous access to specific views, use <a class="xref pag
 <p>Create a new record with the user who <code>admin</code> should be able to substitute, then click <strong>OK</strong> in the list view.</p>
 </li>
 <li>
-<p>Now you will see that the current user name in the <code>userIndicator</code> component of the main view has changed to a dropdown list that contains the substituted user. If you select this user, the workspace will change as if you re-login as this user. But all audit features will still register <code>admin</code> - the logged-in user.</p>
+<p>If your project’s main view includes the <a class="xref page" href="../flow-ui/vc/components/userMenu.html">userMenu</a> component with the <a class="xref page" href="../flow-ui/actions/user-menu-actions.html#sec_userMenuSubstituteUser">sec_userMenuSubstituteUser</a> action, the component’s dropdown will show a menu item with the substituted user.</p>
+</li>
+<li>
+<p>If your project’s main view includes the <code>userIndicator</code> component, the current user’s name will change to a dropdown list that contains the substituted user.</p>
+</li>
+<li>
+<p>When you select a substituted user in <code>userMenu</code> or <code>userIndicator</code>, the workspace will change as if you log in again as this user. But all audit features will still register <code>admin</code> (the logged-in user).</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>The <code>CurrentUserSubstitution</code> bean can be used to obtain a currently substituted user, an authenticated user, or the effective user (which is substituted user in case of substitution, authenticated one otherwise).</p>
+<p>The <code>CurrentUserSubstitution</code> bean can be used to obtain a currently substituted user, an authenticated user, or the effective user (which is the substituted user in case of substitution, and the authenticated user otherwise).</p>
 </div>
 <div class="paragraph">
 <p>For example:</p>

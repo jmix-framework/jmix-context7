@@ -24,18 +24,18 @@
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://docs.spring.io/spring-security/reference/servlet/architecture.html" rel="noopener" target="_blank">Spring Security Architecture</a></p>
+<p><a href="https://docs.spring.io/spring-security/reference/6.5/servlet/architecture.html" rel="noopener" target="_blank">Spring Security Architecture</a></p>
 </li>
 <li>
-<p><a href="https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html" rel="noopener" target="_blank">Authorize HttpServletRequests</a></p>
+<p><a href="https://docs.spring.io/spring-security/reference/6.5/servlet/authorization/authorize-http-requests.html" rel="noopener" target="_blank">Authorize HttpServletRequests</a></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Spring Security uses special <a href="https://docs.spring.io/spring-security/reference/servlet/architecture.html#servlet-securityfilterchain" rel="noopener" target="_blank">SecurityFilterChain</a> beans to determine which URLs should be protected. Each <code>SecurityFilterChain</code> bean is configured by the <a href="https://docs.spring.io/spring-security/reference/servlet/configuration/java.html#jc-httpsecurity" rel="noopener" target="_blank">HttpSecurity</a> builder. An application can have multiple <code>SecurityFilterChain</code> beans declared. In this case, it is extremely important to indicate their correct order. See the <a href="https://docs.spring.io/spring-security/reference/servlet/configuration/java.html#_multiple_httpsecurity_instances" rel="noopener" target="_blank">Multiple HttpSecurity Instances</a> section of the Spring Security documentation for how to configure multiple <code>HttpSecurity</code> objects.</p>
+<p>Spring Security uses special <a href="https://docs.spring.io/spring-security/reference/6.5/servlet/architecture.html#servlet-securityfilterchain" rel="noopener" target="_blank">SecurityFilterChain</a> beans to determine which URLs should be protected. Each <code>SecurityFilterChain</code> bean is configured by the <a href="https://docs.spring.io/spring-security/reference/6.5/servlet/configuration/java.html#jc-httpsecurity" rel="noopener" target="_blank">HttpSecurity</a> builder. An application can have multiple <code>SecurityFilterChain</code> beans declared. In this case, it is extremely important to indicate their correct order. See the <a href="https://docs.spring.io/spring-security/reference/6.5/servlet/configuration/java.html#_multiple_httpsecurity_instances" rel="noopener" target="_blank">Multiple HttpSecurity Instances</a> section of the Spring Security documentation for how to configure multiple <code>HttpSecurity</code> objects.</p>
 </div>
 <div class="paragraph">
-<p>Each Jmix application by default contains a security configuration that extends the <a href="https://vaadin.com/docs/latest/security/enabling-security#security-configuration-class" rel="noopener" target="_blank">VaadinWebSecurity</a> class. This configuration sets up access to internal Vaadin endpoints and delegates all requests authorization to Jmix and Vaadin mechanisms (grants access to views using view controller annotation or by analyzing user’s resource roles). <code>SecurityFilterChain</code> created by this configuration always has the lowest priority and is always invoked last. The <a href="#custom-endpoints-security">Custom Endpoints Security</a> section below explains how to define you own <code>SecurityFilterChain</code> to protect custom endpoints. The <a href="#static-public-resources">Static Public Resources</a> section explains how to completely bypass Spring Security for some URLs.</p>
+<p>Each Jmix application by default contains a security configuration that extends the <a href="https://vaadin.com/docs/v24/security/enabling-security#security-configuration-class" rel="noopener" target="_blank">VaadinWebSecurity</a> class. This configuration sets up access to internal Vaadin endpoints and delegates all requests authorization to Jmix and Vaadin mechanisms (grants access to views using view controller annotation or by analyzing user’s resource roles). <code>SecurityFilterChain</code> created by this configuration always has the lowest priority and is always invoked last. The <a href="#custom-endpoints-security">Custom Endpoints Security</a> section below explains how to define your own <code>SecurityFilterChain</code> to protect custom endpoints. The <a href="#static-public-resources">Static Public Resources</a> section explains how to completely bypass Spring Security for some URLs.</p>
 </div>
 <div class="paragraph">
 <p>Add-ons like <a class="xref page" href="../oidc/index.html">OpenID Connect</a> or <a class="xref page" href="../authorization-server/index.html">Authorization Server</a> bring their own <code>SecurityFilterChain</code> beans that protect authorization or resource server endpoints. These beans are always invoked before the one from the UI module. See the <a href="#token-based-authentication">Token Based Authentication</a> section below for how to protect API endpoints when using these add-ons.</p>
@@ -152,7 +152,7 @@ public class AnonymousControllerSecurityConfiguration {
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><a href="https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html#security-matchers" rel="noopener" target="_blank">securityMatcher()</a> is used to determine whether a given <code>HttpSecurity</code> should be applied to the request. The request matcher from the example will match requests with URLs that follow the pattern <code>/greeting/**</code>. Requests for other URLs will be processed by a default security filter chain from Jmix UI module.</td>
+<td><a href="https://docs.spring.io/spring-security/reference/6.5/servlet/authorization/authorize-http-requests.html#security-matchers" rel="noopener" target="_blank">securityMatcher()</a> is used to determine whether a given <code>HttpSecurity</code> should be applied to the request. The request matcher from the example will match requests with URLs that follow the pattern <code>/greeting/**</code>. Requests for other URLs will be processed by a default security filter chain from Jmix UI module.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
@@ -405,10 +405,10 @@ Authorization: Bearer &lt;ACCESS_TOKEN&gt;</code></pre>
 <h2 id="troubleshooting"><a class="anchor" href="#troubleshooting"></a>Troubleshooting</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you come across a 401 Unauthorized or 403 Forbidden HTTP error or have any other issues related to endpoint security, then it’s very likely that Spring Security <a href="https://docs.spring.io/spring-security/reference/servlet/architecture.html#servlet-logging" rel="noopener" target="_blank">logging</a> will help you to understand what is going on.</p>
+<p>If you come across a 401 Unauthorized or 403 Forbidden HTTP error or have any other issues related to endpoint security, then Spring Security <a href="https://docs.spring.io/spring-security/reference/6.5/servlet/architecture.html#servlet-logging" rel="noopener" target="_blank">logging</a> will likely help you understand what is going on.</p>
 </div>
 <div class="paragraph">
-<p>To enable the logging add the following application property with DEBUG or TRACE value to the <code>application.properties</code> file:</p>
+<p>To enable logging, add the following application property with <code>DEBUG</code> or <code>TRACE</code> value to the <code>application.properties</code> file:</p>
 </div>
 <div class="listingblock">
 <div class="content">

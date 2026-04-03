@@ -14,7 +14,7 @@
 <p>Authentication is the process of verifying the identity of a user or process that interacts with the system. For example, the system can authenticate users by their username and password. For authenticated users, the system can perform <a class="xref page" href="authorization.html">authorization</a>, which is a check of permissions to a particular resource.</p>
 </div>
 <div class="paragraph">
-<p>Jmix directly uses Spring Security <a href="https://docs.spring.io/spring-security/reference/servlet/authentication/index.html" rel="noopener" target="_blank">servlet authentication</a>, so if you are familiar with this framework, you can easily extend or override the standard authentication mechanism provided by Jmix out-of-the-box.</p>
+<p>Jmix directly uses Spring Security <a href="https://docs.spring.io/spring-security/reference/6.5/servlet/authentication/index.html" rel="noopener" target="_blank">servlet authentication</a>, so if you are familiar with this framework, you can easily extend or override the standard authentication mechanism provided by Jmix out-of-the-box.</p>
 </div>
 </div>
 </div>
@@ -76,7 +76,7 @@
 <p><code>getTimeZone()</code> returns the time zone of the current user. The <a href="#time-zones">next section</a> explains how the user time zone is determined and how it is used by the framework.</p>
 </li>
 <li>
-<p><code>isSet()</code> returns <code>true</code> if the current execution thread is authenticated, that is contains information about the user. If it’s not, <code>getUser()</code>, <code>getLocale()</code> and <code>getTimeZone()</code> methods described above will throw the <code>IllegalStateException</code>.</p>
+<p><code>isSet()</code> returns <code>true</code> if the current execution thread is authenticated, that is, contains information about the user. If it’s not, the <code>getUser()</code>, <code>getLocale()</code>, and <code>getTimeZone()</code> methods described above will throw <code>IllegalStateException</code>.</p>
 </li>
 </ul>
 </div>
@@ -121,7 +121,7 @@ private String getRoleNames(Authentication authentication) {
 <p><code>CurrentAuthentication</code> is just a wrapper around <a href="https://docs.spring.io/spring-security/site/docs/6.5.x/api/org/springframework/security/core/context/SecurityContextHolder.html" rel="noopener" target="_blank">SecurityContextHolder</a>, so it is fully compatible with all Spring Security mechanisms.</p>
 </div>
 <div class="paragraph">
-<p>For example, you can use <code>DelegatingSecurityContextRunnable</code> to propagate authentication to new threads as described in <a href="https://docs.spring.io/spring-security/reference/servlet/integrations/concurrency.html" rel="noopener" target="_blank">Spring Security documentation</a>.</p>
+<p>For example, you can use <code>DelegatingSecurityContextRunnable</code> to propagate authentication to new threads as described in <a href="https://docs.spring.io/spring-security/reference/6.5/servlet/integrations/concurrency.html" rel="noopener" target="_blank">Spring Security documentation</a>.</p>
 </div>
 </td>
 </tr>
@@ -257,7 +257,7 @@ public void onValidation(final ValidationEvent event) {
 <div class="sect2">
 <h3 id="brute-force-protection"><a class="anchor" href="#brute-force-protection"></a>BruteForce Protection</h3>
 <div class="paragraph">
-<p>The framework has a mechanism for the protection against password brute force cracking.</p>
+<p>The framework has a mechanism for protection against password brute force cracking.</p>
 </div>
 <div class="paragraph">
 <p>The <a href="#jmix.security.bruteforceprotection.enabled">jmix.security.bruteforceprotection.enabled</a> application property enables the protection. If the protection is enabled, the combination of user login and IP address is blocked for a time interval in case of multiple unsuccessful login attempts. A maximum number of login attempts for the combination of user login and IP address is defined by the <a href="#jmix.security.bruteforceprotection.max-login-attempts-number">jmix.security.bruteforceprotection.max-login-attempts-number</a> application property. Blocking interval in seconds is determined by the <a href="#jmix.security.bruteforceprotection.block-interval">jmix.security.bruteforceprotection.block-interval</a> application property.</p>
@@ -299,7 +299,7 @@ public void onValidation(final ValidationEvent event) {
 <h2 id="system"><a class="anchor" href="#system"></a>System Authentication</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The execution thread can be not authenticated if it was started by an internal scheduler or handles a request from the JMX interface. At the same time, your business logic or data access code usually requires information on who is currently working with the system for logging or authorization.</p>
+<p>The execution thread may not be authenticated if it was started by an internal scheduler or handles a request from the JMX interface. At the same time, your business logic or data access code usually requires information on who is currently working with the system for logging or authorization.</p>
 </div>
 <div class="paragraph">
 <p>To temporarily associate the current execution thread with a user, use the <code>SystemAuthenticator</code> bean. It has the following methods:</p>
@@ -369,7 +369,7 @@ public String doSomething3() {
 <h2 id="authentication-events"><a class="anchor" href="#authentication-events"></a>Authentication Events</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Spring framework sends specific application events related to authentication.</p>
+<p>The Spring Framework sends specific application events related to authentication.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -488,7 +488,7 @@ Do not use <code>CurrentAuthentication</code> bean to get <a href="#current">cur
 <div class="sect2">
 <h3 id="sessions-in-ui"><a class="anchor" href="#sessions-in-ui"></a>Sessions in UI</h3>
 <div class="paragraph">
-<p>By default, the UI user session is active as long as at least one browser tab with the application is open. If all browser tabs are closed, the user session lasts for the period defined in the <a href="https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.server.server.servlet.session.timeout" rel="noopener" target="_blank">server.servlet.session.timeout</a> application property.</p>
+<p>By default, the UI user session is active as long as at least one browser tab with the application is open. If all browser tabs are closed, the user session lasts for the period defined in the <a href="https://docs.spring.io/spring-boot/3.5/appendix/application-properties/index.html#application-properties.server.server.servlet.session.timeout" rel="noopener" target="_blank">server.servlet.session.timeout</a> application property.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -525,7 +525,7 @@ vaadin.heartbeatInterval=90</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>See also <a href="https://vaadin.com/docs/latest/flow/advanced/application-lifecycle#application.lifecycle.session" rel="noopener" target="_blank">Vaadin Documentation: User Session</a> for more information.</p>
+<p>See also <a href="https://vaadin.com/docs/v24/flow/advanced/application-lifecycle#application.lifecycle.session" rel="noopener" target="_blank">Vaadin Documentation: User Session</a> for more information.</p>
 </div>
 </div>
 <div class="sect2">
