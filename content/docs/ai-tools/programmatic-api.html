@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programmatic API :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Programmatic API</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can also use the assistant from your own code, without the chat UI. This is useful for background processing, custom views, or integration with existing business logic.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="assistant-service"><a class="anchor" href="#assistant-service"></a>AiAssistantService</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>io.jmix.aitools.service.AiAssistantService</code> is the main programmatic entry point. It is stateless, does not persist chat history, and exposes every registered tool to the model. Inject it and send a message:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class SupportAssistant {
+
+    @Autowired
+    private AiAssistantService aiAssistantService;
+
+    @Nullable
+    public String ask(String question) {
+        return aiAssistantService.send(question); <i class="conum" data-value="1"></i><b>(1)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>send</code> blocks until the full reply is produced and returns it.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For incremental output, use <code>stream(String)</code>, which returns a <code>reactor.core.publisher.Flux&lt;String&gt;</code> that emits the reply in chunks.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-load-service"><a class="anchor" href="#data-load-service"></a>AiDataLoadService</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>io.jmix.aitools.dataload.AiDataLoadService</code> is a specialized entry point for data loading. In addition to the conversational <code>send</code> and <code>stream</code> methods, it provides:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>loadData(String userText)</code> – generates a JPQL query for the request, runs it, and returns a structured <code>EntityDataLoadResult</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>EntityDataLoadResult</code> exposes the full outcome of the load through the following fields:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>query</code> — the LLM-generated query, before any repair;</p>
+</li>
+<li>
+<p><code>validationResult</code> — the validation outcome;</p>
+</li>
+<li>
+<p><code>rows</code> — the fetched rows, each a <code>Map</code> keyed by result-property name;</p>
+</li>
+<li>
+<p><code>hasMore</code> — whether more rows are available beyond the returned page;</p>
+</li>
+<li>
+<p><code>executed</code> — whether the query actually ran;</p>
+</li>
+<li>
+<p><code>executionError</code> — the error message when it did not.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Use this service when you need the data itself rather than a natural-language answer.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="system-prompt"><a class="anchor" href="#system-prompt"></a>Customizing the System Prompt</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The system prompt used by <code>AiAssistantService</code> is supplied by the <code>AiAssistantSystemPromptProvider</code> bean. The default implementation loads a bundled template that introduces the assistant and the tool usage rules. To use your own prompt, register a bean that implements <code>AiAssistantSystemPromptProvider</code> and returns your template.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The default <code>AiAssistantSystemPromptProvider</code> is registered only if the application does not already define a bean of that type. If you provide your own implementation, it automatically takes precedence.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

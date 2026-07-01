@@ -34,11 +34,6 @@
 <div class="paragraph">
 <p>The component can contain a label, a link to the uploaded file, and an upload button. When the upload button is clicked, a standard file picker dialog pops up, allowing the user to select a file.</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="file storage upload basics" src="../../_images/visual-components/components/file-storage-upload-basics.gif"/>
-</div>
-</div>
 <div class="paragraph">
 <p><code>fileStorageUploadField</code> can work both without being bound to an entity attribute and with <a href="#data-binding">data binding</a>.</p>
 </div>
@@ -48,7 +43,7 @@
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fileStorageUploadField id="fileRefField"
-                        acceptedFileTypes=".xlsx, .xls"
+                        acceptedFileTypes=".txt, .csv"
                         fileStoragePutMode="MANUAL"
                         fileNameVisible="true"/&gt;</code></pre>
 </div>
@@ -80,7 +75,7 @@
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The uploaded file will be immediately stored in the default <code>FileStorage</code>. To control the saving of the file programmatically, use the <a href="#fileStoragePutMode">fileStoragePutMode</a> attribute.
+Internally, <code>fileStorageUploadField</code> uses Vaadin’s <code>UploadHandler</code> API. By default, the uploaded file is immediately stored in the default <code>FileStorage</code>. To control the saving of the file programmatically, use the <a href="#fileStoragePutMode">fileStoragePutMode</a> attribute.
 </td>
 </tr>
 </table>
@@ -372,7 +367,7 @@ The <code>acceptedFileTypes</code> attribute filters the files displayed in the 
 <div class="sect2">
 <h3 id="dropAllowed"><a class="anchor" href="#dropAllowed"></a>dropAllowed</h3>
 <div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/components/upload/#drag-drop" target="_blank">Vaadin</a>
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/upload/#drag-drop" target="_blank">Vaadin</a>
 </div>
 <div class="paragraph">
 <p>Sets whether the component supports dropping files for uploading.</p>
@@ -434,22 +429,19 @@ private Notifications notifications;
 
 @Subscribe("manuallyControlledField")
 public void onManuallyControlledFieldFileUploadSucceeded(
-        final FileUploadSucceededEvent&lt;FileStorageUploadField&gt; event) {
-    Receiver receiver = event.getReceiver();
-    if (receiver instanceof FileTemporaryStorageBuffer) {
-        UUID fileId = ((FileTemporaryStorageBuffer) receiver)
-                .getFileData().getFileInfo().getId();
-        File file = temporaryStorage.getFile(fileId);
+        final FileUploadSucceededEvent&lt;FileStorageUploadField, TemporaryStorage.FileInfo&gt; event) {
+    TemporaryStorage.FileInfo fileInfo = event.getData();
+    UUID fileId = fileInfo.getId();
+    File file = fileInfo.getFile();
 
-        if (file != null) {
-            notifications.create("File is uploaded to temporary storage at "
-                            + file.getAbsolutePath())
-                    .show();
-        }
+    if (file != null) {
+        notifications.create("File is uploaded to temporary storage at "
+                        + file.getAbsolutePath())
+                .show();
+
         FileRef fileRef = temporaryStorage.putFileIntoStorage(fileId, event.getFileName());
         manuallyControlledField.setValue(fileRef);
-        notifications.create("Uploaded file: "
-                        + ((FileTemporaryStorageBuffer) receiver).getFileData().getFileName())
+        notifications.create("Uploaded file: " + event.getFileName())
                 .show();
     }
 }</code></pre>
@@ -477,7 +469,7 @@ The <a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent
 <div class="sect2">
 <h3 id="maxFileSize"><a class="anchor" href="#maxFileSize"></a>maxFileSize</h3>
 <div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/components/upload/#file-size" target="_blank">Vaadin</a>
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/upload/#file-size" target="_blank">Vaadin</a>
 </div>
 <div class="paragraph">
 <p>Specifies the maximum file size in bytes allowed for upload. Note that this is a client-side constraint, which is checked before sending the request to the server.</p>
@@ -653,27 +645,32 @@ public void onManuallyControlledFieldFileUploadFailed(
 <p>This event confirms the successful completion of a file upload, indicating that the file has been fully received and processed by the server without errors.</p>
 </div>
 <div class="paragraph">
-<p>Here is an example of using <code>fileStorageUploadField</code> for <code>.xls</code> and <code>.xlsx</code> files, and then processing those files in <code>FileUploadSucceededEvent</code>.</p>
+<p>Here is an example of using <code>fileStorageUploadField</code> for <code>.txt</code> and <code>.csv</code> files, and then processing those files in <code>FileUploadSucceededEvent</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("fileRefField")
 public void onFileRefFieldFileUploadSucceeded(
-        final FileUploadSucceededEvent&lt;FileStorageUploadField&gt; event) {
-    if (event.getReceiver() instanceof FileTemporaryStorageBuffer buffer) {
-        UUID fileId = buffer.getFileData().getFileInfo().getId();
-        log.info("FileId: " + fileId);
+        final FileUploadSucceededEvent&lt;FileStorageUploadField, TemporaryStorage.FileInfo&gt; event) {
+    TemporaryStorage.FileInfo fileInfo = event.getData();
+    UUID fileId = fileInfo.getId();
+    log.info("FileId: " + fileId);
 
-        File file = temporaryStorage.getFile(fileId); <i class="conum" data-value="1"></i><b>(1)</b>
-        log.info("File from temp storage: " + file);
-        try { <i class="conum" data-value="2"></i><b>(2)</b>
-            List&lt;String&gt; lines = FileUtils.readLines(file, StandardCharsets.UTF_8);
-            for (String line : lines) {
-                log.info("Read line: " + line);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    File file = fileInfo.getFile(); <i class="conum" data-value="1"></i><b>(1)</b>
+    log.info("File from temp storage: " + file);
+    try { <i class="conum" data-value="2"></i><b>(2)</b>
+        List&lt;String&gt; lines = FileUtils.readLines(file, StandardCharsets.UTF_8);
+        for (String line : lines) {
+            log.info("Read line: " + line);
         }
+    } catch (MalformedInputException e) {
+        notifications.create("Only UTF-8 text files are supported in this example")
+                .show();
+    } catch (IOException e) {
+        log.error("Unable to read uploaded file {}", event.getFileName(), e);
+        notifications.create("Unable to read uploaded file")
+                .show();
+    } finally {
         temporaryStorage.deleteFile(fileId); <i class="conum" data-value="3"></i><b>(3)</b>
         log.info("File is deleted from temp storage: " + file);
     }

@@ -23,7 +23,7 @@ input-mask-addon-advanced.xml
                         lazy="false" overwrite="true">
 
             <mask:suffix>
-                <button id="showNumberBtn" icon="PHONE" themeNames="tertiary-inline"/>
+                <button id="showNumberBtn" icon="PHONE" classNames="link-button"/>
             </mask:suffix>
         </mask:maskField>
     </layout>

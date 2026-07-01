@@ -16,6 +16,20 @@
 </div>
 </div>
 <div class="sect1">
+<h2 id="creating-index-definition"><a class="anchor" href="#creating-index-definition"></a>Creating Index Definition</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An index definition is created as a Java interface annotated with <code>@JmixEntitySearchIndex</code>. You can create it manually or use Studio support.</p>
+</div>
+<div class="paragraph">
+<p>In Studio, use the <strong>Search Indexes</strong> node in the <a class="xref page" href="../studio/tool-window.html">Jmix Tool Window</a> to create a new index definition with a wizard.</p>
+</div>
+<div class="paragraph">
+<p>Studio groups all interfaces annotated with <code>@JmixEntitySearchIndex</code> under the <strong>Search Indexes</strong> node. Index definitions related to a particular entity are also displayed under that entity node.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="interface"><a class="anchor" href="#interface"></a>Index Definition Interface</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -274,6 +288,40 @@ public interface OrderIndexDefinition {
 <div class="paragraph">
 <p>These are attributes of the <code>FileRef</code> type referring to files in <a class="xref page" href="../files/file-storage.html">File Storage</a>. By default, both the file name and content are utilized as indexed values. If you wish to index only the file name, you must adjust the <code>indexFileContent</code> parameter of <code>@AutoMappedField</code> to <code>false</code>:</p>
 </div>
+<div class="paragraph">
+<p>File content indexing is supported for the following file types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>PDF</p>
+</li>
+<li>
+<p>DOC</p>
+</li>
+<li>
+<p>XLS</p>
+</li>
+<li>
+<p>DOCX</p>
+</li>
+<li>
+<p>XLSX</p>
+</li>
+<li>
+<p>ODT</p>
+</li>
+<li>
+<p>ODS</p>
+</li>
+<li>
+<p>RTF</p>
+</li>
+<li>
+<p>TXT</p>
+</li>
+</ul>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@AutoMappedField(
@@ -403,8 +451,8 @@ public interface CustomerIndexDefinition {
     @ManualMappingDefinition <i class="conum" data-value="1"></i><b>(1)</b>
     default MappingDefinition mapping(FilePropertyValueExtractor filePropertyValueExtractor) { <i class="conum" data-value="2"></i><b>(2)</b>
         return MappingDefinition.builder()
-                .addElement(
-                        MappingDefinitionElement.builder()
+                .addStaticAttributesGroup(
+                        StaticAttributesGroupConfiguration.builder()
                                 .includeProperties("*") <i class="conum" data-value="3"></i><b>(3)</b>
                                 .excludeProperties("hobby", "maritalStatus") <i class="conum" data-value="4"></i><b>(4)</b>
                                 .withFieldMappingStrategyClass(AutoMappingStrategy.class) <i class="conum" data-value="5"></i><b>(5)</b>
@@ -441,109 +489,6 @@ public interface CustomerIndexDefinition {
 <tr>
 <td><i class="conum" data-value="6"></i><b>6</b></td>
 <td>An explicit property value extractor. For example, a <code>FilePropertyValueExtractor</code> instance can be used for processing attributes of the <code>FileRef</code> type.</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>There is an option to define a text configuration for property mapping, for example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ManualMappingDefinition
-default MappingDefinition mappingMethod(AutoMappingStrategy autoMappingStrategy,
-                                  SimplePropertyValueExtractor simplePropertyValueExtractor) {
-    return MappingDefinition.builder()
-            .addElement(
-                    MappingDefinitionElement.builder()
-                            .includeProperties("*")
-                            .excludeProperties("firstName", "lastName") <i class="conum" data-value="1"></i><b>(1)</b>
-                            .withFieldMappingStrategyClass(AutoMappingStrategy.class)
-                            .build()
-            )
-            .addElement(
-                    MappingDefinitionElement.builder()
-                            .includeProperties("firstName") <i class="conum" data-value="2"></i><b>(2)</b>
-                            .withFieldMappingStrategy(autoMappingStrategy) <i class="conum" data-value="3"></i><b>(3)</b>
-                            .withFieldConfiguration( <i class="conum" data-value="4"></i><b>(4)</b>
-                                    "{\n" +
-                                            "    \"type\": \"text\",\n" +
-                                            "    \"analyzer\": \"standard\",\n" +
-                                            "    \"boost\": 2\n" +
-                                            "}"
-                            )
-                            .build()
-            )
-            .addElement(
-                    MappingDefinitionElement.builder()
-                            .includeProperties("lastName")
-                            .withFieldConfiguration( <i class="conum" data-value="5"></i><b>(5)</b>
-                                    "{\n" +
-                                            "    \"type\": \"text\",\n" +
-                                            "    \"analyzer\": \"english\"\n" +
-                                            "}"
-                            )
-                            .withPropertyValueExtractor(simplePropertyValueExtractor) <i class="conum" data-value="6"></i><b>(6)</b>
-                            .withOrder(1) <i class="conum" data-value="7"></i><b>(7)</b>
-                            .build()
-            )
-            .build();
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Excludes two specific properties: <code>firstName</code> and <code>lastName</code>. They will be processed separately by the following elements for fine-tuning.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Applies only to the <code>firstName</code> field.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>First applies the automatic mapping strategy (to obtain a base mapping).</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Defines field configuration as String json object with native configuration. The settings generated by the strategy are overridden and extended:
-<div class="ulist">
-<ul>
-<li>
-<p><code>"type": "text"</code> — explicitly specifies the text type.</p>
-</li>
-<li>
-<p><code>"analyzer": "standard"</code> — uses the standard Elasticsearch analyzer for token splitting.</p>
-</li>
-<li>
-<p><code>"boost": 2</code> — gives the firstName field double weight in search. Documents where the query matches the name will rank higher in results.</p>
-</li>
-</ul>
-</div></td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td>Fully defines the mapping, bypassing any strategy. The field will be indexed as text with the <code>"english"</code> analyzer, which specializes in the English language.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="6"></i><b>6</b></td>
-<td>A mandatory parameter when specifying the configuration directly (<code>withFieldConfiguration</code>). Indicates which component should extract the value of this property from the <code>Customer</code> entity for indexing. Without an extractor, the engine will not know how to retrieve the data.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="7"></i><b>7</b></td>
-<td>Sets the order for this mapping element. This can be important if elements conflict with each other.</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-There can be only one method with programmatic mapping. If a method with programmatic mapping exists, all mapping annotations are ignored.
-</td>
 </tr>
 </table>
 </div>

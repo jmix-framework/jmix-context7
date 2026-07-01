@@ -1,12 +1,12 @@
 <Path>Layouts > TabSheet > TabSheet with ThemeVariant</Path>
 
-The TabSheet component has several theme variants: icon-on-top centered small minimal hide-scroll-buttons equal-width-tabs bordered You can set these styles to the TabSheet component using the themeNames attribute either in the XML descriptor or in the view controller using constants from TabSheetVariant class.
+The TabSheet component has several theme variants: small hide-scroll-buttons no-border no-padding You can set these styles to the TabSheet component using the themeNames attribute either in the XML descriptor or in the view controller using constants from TabSheetVariant class.
 
 tabsheet-theme-variant.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
-        <checkboxGroup id="tabSheetSettingsCheckboxGroup" label="TabSheet themes"/>
+        <checkboxGroup id="tabSheetSettingsCheckboxGroup" label="TabSheet themes" themeNames="horizontal"/>
         <tabSheet id="tabSheet" width="100%">
             <tab id="tab1" label="Tab 1">
                 <div/>
@@ -59,9 +59,11 @@ import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.checkboxgroup.JmixCheckboxGroup;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.theme.StyleUtility;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -70,25 +72,23 @@ import java.util.List;
 public class TabSheetThemeVariantSample extends StandardView {
 
     @ViewComponent
-    protected JmixTabSheet tabSheet;
+    private JmixTabSheet tabSheet;
     @ViewComponent
-    protected JmixCheckboxGroup<String> tabSheetSettingsCheckboxGroup;
+    private JmixCheckboxGroup<String> tabSheetSettingsCheckboxGroup;
 
     @Autowired
-    protected UiComponents uiComponents;
+    private UiComponents uiComponents;
 
     @Subscribe
-    protected void onInit(InitEvent event) {
-        List<String> tabSheetSettingsItems = List.of("Centered", "Small", "Minimal", "Hide-scroll-buttons",
-                "Equal-width-tabs", "Bordered");
-        tabSheetSettingsCheckboxGroup.setItems(tabSheetSettingsItems);
+    public void onInit(InitEvent event) {
+        tabSheetSettingsCheckboxGroup.setItems(getTabSheetThemes());
 
         tabSheet.setSuffixComponent(createAddTabButton());
         tabSheet.setPrefixComponent(createRemoveTabButton());
     }
 
     @Subscribe("tabSheetSettingsCheckboxGroup")
-    protected void onTabSheetSettingsCheckboxGroupValueChange(
+    public void onTabSheetSettingsCheckboxGroupValueChange(
             ComponentValueChangeEvent<JmixCheckboxGroup<String>, Collection<String>> event) {
         if (event.getValue() == null) {
             return;
@@ -97,7 +97,7 @@ public class TabSheetThemeVariantSample extends StandardView {
         applyTabSheetThemes(event.getValue());
     }
 
-    protected void applyTabSheetThemes(Collection<String> themes) {
+    private void applyTabSheetThemes(Collection<String> themes) {
         tabSheet.getElement().getThemeList().clear();
 
         themes.stream()
@@ -105,10 +105,11 @@ public class TabSheetThemeVariantSample extends StandardView {
                 .forEach(tabSheet::addThemeName);
     }
 
-    protected Component createAddTabButton() {
+    private Component createAddTabButton() {
         JmixButton button = uiComponents.create(JmixButton.class);
         button.setIcon(VaadinIcon.PLUS.create());
-        button.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.addClassName(StyleUtility.Button.LINK_BUTTON);
 
         button.addClickListener(event -> {
             int newTabIndex = tabSheet.getOwnComponents().size() + 1;
@@ -119,10 +120,11 @@ public class TabSheetThemeVariantSample extends StandardView {
         return button;
     }
 
-    protected Component createRemoveTabButton() {
+    private Component createRemoveTabButton() {
         JmixButton button = uiComponents.create(JmixButton.class);
         button.setIcon(VaadinIcon.MINUS.create());
-        button.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.addClassName(StyleUtility.Button.LINK_BUTTON);
 
         button.addClickListener(event -> {
             int currentTabSheetSize = tabSheet.getOwnComponents().size();
@@ -132,6 +134,10 @@ public class TabSheetThemeVariantSample extends StandardView {
         });
 
         return button;
+    }
+
+    private List<String> getTabSheetThemes() {
+        return List.of("Small", "Hide-scroll-buttons", "No-border", "No-padding");
     }
 }
 

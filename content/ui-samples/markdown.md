@@ -1,4 +1,4 @@
-<Path>Components > Markdown</Path>
+<Path>Components > Markdown Components > Markdown</Path>
 
 The `markdown` component renders content written in the markdown syntax as HTML. It supports basic text formatting, lists,
 links, and more. All content provided to the component is internally sanitized to prevent potentially dangerous HTML
@@ -58,7 +58,7 @@ Hyperlinks can be added using the `[text](link)` construction:
 
 MarkdownSample.java
 
-package io.jmix.uisamples.view.flowui.components.markdown;
+package io.jmix.uisamples.view.flowui.components.markdowncomponents.markdown;
 
 import com.vaadin.flow.component.markdown.Markdown;
 import io.jmix.core.Resources;

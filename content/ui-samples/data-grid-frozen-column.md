@@ -21,7 +21,7 @@ data-grid-frozen-column.xml
     </facets>
     <layout>
         <span text="Change the size of the columns to see the frozen column."/>
-        <hbox classNames="buttons-panel items-center">
+        <hbox alignItems="CENTER" width="100%" wrap="true">
             <select id="columnSelect" placeholder="Column to freeze"/>
             <hbox id="checkboxPlaceholder" padding="false"/>
         </hbox>
@@ -134,7 +134,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

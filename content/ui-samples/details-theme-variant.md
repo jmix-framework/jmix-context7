@@ -1,16 +1,16 @@
 <Path>Layouts > Details > Details with ThemeVariant</Path>
 
-The Details component has several theme variants: filled reverse small You can set these styles to the Details component using the themeNames attribute either in the XML descriptor or in the view controller using constants from DetailsVariant class.
+The Details component has several theme variants: filled reverse small no-padding You can set these styles to the Details component using the themeNames attribute either in the XML descriptor or in the view controller using constants from DetailsVariant class.
 
 details-theme-variant.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
         <details id="firstDetails" summaryText="Details 1" width="100%" opened="true">
-            <checkboxGroup id="firstDetailsSettingsCheckboxGroup" label="Details themes"/>
+            <checkboxGroup id="firstDetailsSettingsCheckboxGroup" label="Details themes" themeNames="horizontal"/>
         </details>
         <details id="secondDetails" summaryText="Details 2" width="100%">
-            <checkboxGroup id="secondDetailsSettingsCheckboxGroup" label="Details themes"/>
+            <checkboxGroup id="secondDetailsSettingsCheckboxGroup" label="Details themes" themeNames="horizontal"/>
         </details>
     </layout>
 </view>
@@ -35,25 +35,25 @@ import java.util.List;
 public class DetailsThemeVariantSample extends StandardView {
 
     @ViewComponent
-    protected Details firstDetails;
+    private Details firstDetails;
     @ViewComponent
-    protected JmixCheckboxGroup<String> firstDetailsSettingsCheckboxGroup;
+    private JmixCheckboxGroup<String> firstDetailsSettingsCheckboxGroup;
 
     @ViewComponent
-    protected Details secondDetails;
+    private Details secondDetails;
     @ViewComponent
-    protected JmixCheckboxGroup<String> secondDetailsSettingsCheckboxGroup;
+    private JmixCheckboxGroup<String> secondDetailsSettingsCheckboxGroup;
 
     @Subscribe
-    protected void onInit(InitEvent event) {
-        List<String> settingsItems = List.of("Filled", "Reverse", "Small");
+    public void onInit(InitEvent event) {
+        List<String> settingsItems = getThemeList();
 
         firstDetailsSettingsCheckboxGroup.setItems(settingsItems);
         secondDetailsSettingsCheckboxGroup.setItems(settingsItems);
     }
 
     @Subscribe("firstDetailsSettingsCheckboxGroup")
-    protected void onFirstDetailsSettingsValueChange(
+    public void onFirstDetailsSettingsValueChange(
             TypedValueChangeEvent<JmixCheckboxGroup<String>, Collection<String>> event) {
         if (event.getValue() == null) {
             return;
@@ -63,7 +63,7 @@ public class DetailsThemeVariantSample extends StandardView {
     }
 
     @Subscribe("secondDetailsSettingsCheckboxGroup")
-    protected void onSecondDetailsSettingsValueChange(
+    public void onSecondDetailsSettingsValueChange(
             TypedValueChangeEvent<JmixCheckboxGroup<String>, Collection<String>> event) {
         if (event.getValue() == null) {
             return;
@@ -72,12 +72,16 @@ public class DetailsThemeVariantSample extends StandardView {
         applyDetailsSettings(event.getValue(), secondDetails);
     }
 
-    protected void applyDetailsSettings(Collection<String> settings, Details targetDetails) {
+    private void applyDetailsSettings(Collection<String> settings, Details targetDetails) {
         targetDetails.setThemeName("");
 
         settings.stream()
                 .map(String::toLowerCase)
                 .forEach(targetDetails::addThemeName);
+    }
+
+    private List<String> getThemeList() {
+            return List.of("Filled", "Reverse", "Small", "No-padding");
     }
 }
 

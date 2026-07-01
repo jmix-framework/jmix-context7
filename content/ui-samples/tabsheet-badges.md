@@ -5,7 +5,7 @@ Badges for the tab component can be set programmatically.
 tabsheet-badges.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout>
+    <layout classNames="tab-sheet-badges">
         <tabSheet id="tabSheet" width="100%"/>
     </layout>
 </view>
@@ -19,7 +19,6 @@ package io.jmix.uisamples.view.flowui.containers.tabsheet.badges;
 
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.view.*;
@@ -70,9 +69,19 @@ public class TabSheetBadgesSample extends StandardView {
     protected Span createBadge(int value, String theme) {
         Span badge = new Span(String.valueOf(value));
         badge.getElement().getThemeList().add("badge small " + theme);
-        badge.addClassName(LumoUtility.Margin.Start.XSMALL);
+        badge.addClassName("tab-badge");
         return badge;
     }
+}
+
+
+
+
+tab-sheet-badges.css
+
+
+.tab-sheet-badges .tab-badge {
+    margin-inline-start: var(--vaadin-padding-xs);
 }
 
 

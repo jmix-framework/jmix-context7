@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Views and Menu Items :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Views and Menu Items</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dynamic Model can generate UI views for dynamic entities and add the corresponding menu items, so that a runtime-defined entity becomes immediately usable in the application’s UI without writing any Java or XML. It can also override existing views of static entities, which is the way to display dynamic attributes that you have added to those entities.</p>
+</div>
+<div class="paragraph">
+<p>Views are declared per entity in the model, under the entity’s <code>views</code> list. See <a class="xref page" href="yaml-reference.html">YAML Reference</a> for the full list of view fields, and <a class="xref page" href="defining-model.html">Defining the Model</a> for how the data model itself is defined.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dynamic-entity-views"><a class="anchor" href="#dynamic-entity-views"></a>Views for Dynamic Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A dynamic entity has no views of its own until you declare them. To make it visible and editable in the UI, add at least a list view, a detail view, or both. Each view has a <code>type</code> of either <code>list</code> or <code>detail</code>, and from these declarations the framework generates the UI views automatically — no descriptor XML is required.</p>
+</div>
+<div class="paragraph">
+<p>The example below declares a <code>list</code> view for the <code>LoyaltyLevel</code> dynamic entity. The surrounding model also declares a <code>detail</code> view for the same entity, so the entity can be both browsed and edited:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">views:
+  - type: "list"
+    viewId: "LoyaltyLevel.list"
+    viewRoute: "loyalty-levels"
+    viewTitle:
+      en: "Loyalty levels"
+      de: "Treuestufen"
+    templateParams:
+      includeProperties: ["name", "discount"]
+      excludeProperties: ["publicSummary"]
+    resourceRoles:
+      - "employee"
+      - "manager"
+    menuItem:
+      parentMenu: "application"
+      insertBefore: "Customer.list"
+      title:
+        en: "Loyalty levels"
+      resourceRoles:
+        - "employee"
+        - "manager"
+    descriptor:
+      template: "default"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>descriptor</code> of a dynamic entity view controls how its layout is produced. It can take one of the following forms:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Omitted, or <code>template: "default"</code> — the framework builds the view from its built-in default template, which produces a standard list (a data grid with the usual actions) or detail (an editor form) layout. Omitting the <code>descriptor</code> has the same effect as specifying the default template.</p>
+</li>
+<li>
+<p><code>template: "&lt;resource path&gt;"</code> — the view is rendered from a custom view template resource instead of the default one.</p>
+</li>
+<li>
+<p><code>source: "&lt;XML&gt;"</code> — you supply the view XML directly. This gives you full control over the layout, the same as writing a regular view descriptor by hand.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Supplying the descriptor as literal XML is the way to define an arbitrary layout that the default template cannot express — for example, custom components, grouping, or additional actions. The XML must be a valid UI view descriptor; a list view descriptor must contain the lookup component (<code>dataGrid</code> by default) and a detail view descriptor must contain the edited entity container (<code>entityDc</code> by default). See <a class="xref page" href="yaml-reference.html#views">the views reference</a> for the exact rules and defaults.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="menu-items"><a class="anchor" href="#menu-items"></a>Menu Items</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A view declaration for a dynamic entity can also place the view in the application menu by adding a <code>menuItem</code> object. When the model is applied, the menu item appears alongside the generated view. The <code>menuItem</code> in the snippet above demonstrates the typical fields:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>parentMenu</code> — the ID of the parent menu under which the item is placed. If no menu with this ID exists, a new root menu is created with it.</p>
+</li>
+<li>
+<p><code>insertBefore</code> — an optional sibling menu item ID; when present, the new item is inserted before that sibling, otherwise it is appended.</p>
+</li>
+<li>
+<p><code>title</code> — the menu item caption, as a localized value. When omitted, the view title is used.</p>
+</li>
+<li>
+<p><code>resourceRoles</code> — the role codes whose holders can see and use the menu item.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="overriding-static-views"><a class="anchor" href="#overriding-static-views"></a>Overriding Static Entity Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Adding a dynamic attribute to a static entity does not automatically place it on that entity’s existing views. To display a dynamic attribute on a view that already exists in your application, override that view’s descriptor from the model.</p>
+</div>
+<div class="paragraph">
+<p>A static entity view declaration references the registered view through <code>viewId</code> and supplies a <code>descriptor.source</code> containing XML that <code>extends</code> the original descriptor. In the XML you add only the components you need — for example, a column for the new dynamic attribute. The example below extends the application’s <code>Customer.list</code> view and adds a <code>taxId</code> column to its <code>customersDataGrid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- viewId: "Customer.list"
+  descriptor:
+    source: |
+      &lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+      &lt;view xmlns="http://jmix.io/schema/flowui/view"
+            extends="com/company/sample/view/customer/customer-list-view.xml"&gt;
+          &lt;layout&gt;
+              &lt;dataGrid id="customersDataGrid"&gt;
+                  &lt;columns&gt;
+                      &lt;column property="taxId"/&gt;
+                  &lt;/columns&gt;
+              &lt;/dataGrid&gt;
+          &lt;/layout&gt;
+      &lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For static entity view overrides, only <code>descriptor.source</code> is supported — the template, route, title, and menu fields used for dynamic entity views are not allowed here. The override changes only the view’s descriptor: the generated controller subclasses the existing one, so the original route and the view’s existing behavior are preserved.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

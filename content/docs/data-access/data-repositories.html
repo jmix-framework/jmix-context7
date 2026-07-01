@@ -102,7 +102,34 @@ private CustomerRepository customerRepository;</code></pre>
 <p>Load methods of repositories inherited from <code>JmixDataRepository</code> support an additional argument of the <code>JmixDataRepositoryContext</code> type. It allows you to pass the filtering, paging and sorting parameters collected from UI components to the <code>LoadContext</code> object. As a result, all the features of <a class="xref page" href="../flow-ui/vc/components/genericFilter.html">genericFilter</a>, <a class="xref page" href="../flow-ui/vc/components/simplePagination.html">simplePagination</a> and <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a> components will work seamlessly with data repositories.</p>
 </div>
 <div class="paragraph">
+<p>When you scaffold a view that works with a repository data loader, Studio generates a <a class="xref page" href="../flow-ui/data/data-loaders.html#load-from-repository-delegate">loadFromRepositoryDelegate</a> handler with <code>Pageable</code> and <code>JmixDataRepositoryContext</code> parameters.</p>
+</div>
+<div class="sect3">
+<h4 id="_converting_loadcontext_to_jmixdatarepositorycontext"><a class="anchor" href="#_converting_loadcontext_to_jmixdatarepositorycontext"></a>Converting <code>LoadContext</code> to <code>JmixDataRepositoryContext</code></h4>
+<div class="paragraph">
 <p>Use the <code>JmixDataRepositoryUtils.buildRepositoryContext()</code> static method to convert a <code>LoadContext</code> to <code>JmixDataRepositoryContext</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "ordersDl", target = Target.DATA_LOADER)
+private List&lt;Order&gt; customersDlLoadDelegate(LoadContext&lt;Order&gt; loadContext) {
+    JmixDataRepositoryContext repositoryContext = JmixDataRepositoryUtils.buildRepositoryContext(loadContext);
+    return repository.findAll(repositoryContext);
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Because context settings are preserved during conversion, you can modify <code>LoadContext</code> and then convert it to <code>JmixDataRepositoryContext</code>.
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -172,7 +199,7 @@ public interface ProductRepository extends JmixDataRepository&lt;Product, UUID&g
 <p><code>@io.jmix.core.repository.FetchPlan</code> defines a fetch plan to be used when loading data.</p>
 </li>
 <li>
-<p><code>@io.jmix.core.repository.QueryHints</code> and <code>@jakarta.persistence.QueryHint</code> allow you to specify hints for <a class="xref page" href="../data-model/soft-deletion.html#turn-soft-deletion-off">turning soft deletion off</a> and <a class="xref page" href="cache.html#query-cache">using query cache</a>.</p>
+<p><code>@io.jmix.core.repository.QueryHints</code> and <code>@jakarta.persistence.QueryHint</code> allow you to specify hints for <a class="xref page" href="../data-model/soft-deletion.html#turn-soft-deletion-off">turning soft deletion off</a>, <a class="xref page" href="cache.html#query-cache">using query cache</a>, and <a class="xref page" href="../dyn-attr/dynattr-api.html#loading-and-saving">loading dynamic attributes</a>.</p>
 </li>
 </ul>
 </div>
@@ -316,6 +343,18 @@ List&lt;Customer&gt; findByEmail(String email);</code></pre>
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@QueryHints(@QueryHint(name = PersistenceHints.CACHEABLE, value = "true"))
 List&lt;Customer&gt; findByEmail(String email);</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>You can also use <code>@io.jmix.core.repository.QueryHints</code> and <code>@jakarta.persistence.QueryHint</code> to load <a class="xref page" href="../dyn-attr/index.html">dynamic attributes</a> for entities returned by repository methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@QueryHints({@QueryHint(name = DynAttrQueryHints.LOAD_DYN_ATTR, value = "true")})
+List&lt;Customer&gt; findByEmail(String email);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use it when your repository methods should always return entities with dynamic attributes initialized.</p>
 </div>
 </div>
 </div>

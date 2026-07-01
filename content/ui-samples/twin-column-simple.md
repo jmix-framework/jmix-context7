@@ -6,7 +6,7 @@ twin-column-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
-        <hbox classNames="buttons-panel">
+        <hbox width="100%" wrap="true">
             <checkbox id="reorderableCheckbox" label="Reorderable"/>
             <checkbox id="selectAllButtonsCheckbox" label="Select all buttons visible"/>
         </hbox>

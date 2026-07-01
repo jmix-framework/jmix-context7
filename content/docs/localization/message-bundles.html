@@ -60,7 +60,7 @@ Message bundle files must have the UTF-8 encoding.
 <div class="listingblock">
 <div class="title">messages_en.properties</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"></code></pre>
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">localeDisplayName.en=English</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -174,6 +174,7 @@ You can easily create localized names of the data model elements in Studio visua
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SpringBootApplication
 @MessageSourceBasenames({"com/company/demo/additional_messages"})
+@StyleSheet(Lumo.UTILITY_STYLESHEET)
 public class DemoApplication implements AppShellConfigurator {</code></pre>
 </div>
 </div>
@@ -216,11 +217,18 @@ Messages from all bundles of the application are loaded into a single list, so p
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String message1 = messages.getMessage("com.company.demo/someNotification"); <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.core.Messages;
 
-String message2 = messages.getMessage("com.company.demo", "someNotification"); <i class="conum" data-value="2"></i><b>(2)</b>
+// class declaration and annotations omitted
 
-String message3 = messages.getMessage(getClass(), "someNotification"); <i class="conum" data-value="3"></i><b>(3)</b></code></pre>
+    @Autowired
+    private Messages messages;
+
+    String message1 = messages.getMessage("com.company.demo/someNotification"); <i class="conum" data-value="1"></i><b>(1)</b>
+
+    String message2 = messages.getMessage("com.company.demo", "someNotification"); <i class="conum" data-value="2"></i><b>(2)</b>
+
+    String message3 = messages.getMessage(getClass(), "someNotification"); <i class="conum" data-value="3"></i><b>(3)</b></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -249,6 +257,39 @@ String message3 = messages.getMessage(getClass(), "someNotification"); <i class=
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String message = messages.getMessage(Status.ACTIVE);</code></pre>
 </div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="message-tools"><a class="anchor" href="#message-tools"></a>MessageTools</h4>
+<div class="paragraph">
+<p>The <code>MessageTools</code> bean provides utility methods for obtaining localized names of data model elements in Java code. It is useful when you need the same entity and attribute captions that Jmix displays in UI components.</p>
+</div>
+<div class="paragraph">
+<p>The <code>getEntityCaption()</code> method returns the localized name of an entity. The <code>getPropertyCaption()</code> method returns the localized name of an entity attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.core.MessageTools;
+import io.jmix.core.Metadata;
+import io.jmix.core.metamodel.model.MetaClass;
+
+// class declaration and annotations omitted
+
+    @Autowired
+    private MessageTools messageTools;
+
+    @Autowired
+    private Metadata metadata;
+
+    MetaClass userMetaClass = metadata.getClass(User.class);
+
+    String entityCaption = messageTools.getEntityCaption(userMetaClass);
+
+    String propertyCaption = messageTools.getPropertyCaption(userMetaClass, "username");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These methods use the data model localization keys described in the <a href="#localizing-data-model">Localizing Data Model</a> section. In the example above, <code>getEntityCaption()</code> reads the <code>com.company.demo.entity/User</code> key, and <code>getPropertyCaption()</code> reads the <code>com.company.demo.entity/User.username</code> key.</p>
 </div>
 </div>
 <div class="sect3">

@@ -5,7 +5,7 @@ ListBox allows the user to select values from a scrollable list of items. ListBo
 list-box-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <vbox width="AUTO">
             <h4 text="Simple ListBox"/>
             <listBox id="listBox"/>

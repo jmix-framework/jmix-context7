@@ -23,7 +23,7 @@ calendar-event-overlap-function.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <div classNames="border rounded-s p-s">
+        <div classNames="rounded-panel">
             <span text="msg://sampleDescription.text"/>
         </div>
         <calendar:calendar id="calendar"
@@ -359,14 +359,15 @@ public class WorkingShift {
 calendar-event-overlap-function.css
 
 jmix-full-calendar .fc-event.green-background-event {
-    background: var(--lumo-success-color);
+    background: var(--aura-green);
     border-radius: inherit;
-    color: var(--lumo-success-contrast-color);
+    color: var(--aura-accent-contrast-color);
 }
 
 jmix-full-calendar .fc-event.red-background-event {
-    background: var(--lumo-error-color);
+    background: var(--aura-red);
     border-radius: inherit;
-    color: var(--lumo-error-contrast-color);
+    color: var(--aura-accent-contrast-color);
 }
+
 

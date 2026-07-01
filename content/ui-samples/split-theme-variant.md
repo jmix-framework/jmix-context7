@@ -6,7 +6,7 @@ split-theme-variant.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
-        <split id="split" width="100%" height="100%" themeNames="splitter-spacing" splitterPosition="70">
+        <split id="split" width="100%" height="100%" splitterPosition="70">
             <vbox padding="false">
                 <textArea label="TextArea" width="100%" height="100%"/>
             </vbox>
@@ -29,6 +29,7 @@ import io.jmix.flowui.view.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @ViewController("split-theme-variant")
 @ViewDescriptor("split-theme-variant.xml")
@@ -43,6 +44,7 @@ public class SplitThemeVariantSample extends StandardView {
     protected void onInit(InitEvent event) {
         List<String> settingsItems = List.of("Minimal", "Small", "Splitter-spacing");
         settingsCheckboxGroup.setItems(settingsItems);
+        settingsCheckboxGroup.setValue(Set.of("Splitter-spacing"));
     }
 
     @Subscribe("settingsCheckboxGroup")

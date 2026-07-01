@@ -45,15 +45,15 @@
 <div class="ulist">
 <ul>
 <li>
-<p>Either <a href="https://github.com/jmix-framework/jmix-openapi-integration-sample/archive/refs/heads/release_2_8.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+<p>Either <a href="https://github.com/jmix-framework/jmix-openapi-integration-sample/archive/refs/heads/release_3.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
 </li>
 <li>
-<p>Or clone it and switch to the <code>release_2_8</code> branch:</p>
+<p>Or clone it and switch to the <code>release_3</code> branch:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-openapi-integration-sample
 cd jmix-openapi-integration-sample
-git checkout release_2_8</code></pre>
+git checkout release_3</code></pre>
 </div>
 </div>
 </li>
@@ -185,12 +185,12 @@ git checkout release_2_8</code></pre>
 
 plugins {
     // ...
-    id 'org.openapi.generator' version '7.8.0'
+    id 'org.openapi.generator' version '7.23.0'
 }
 // ...
 dependencies {
     // ...
-    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
     implementation 'org.mapstruct:mapstruct:1.6.1'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.1'
 }
@@ -200,8 +200,8 @@ sourceSets {
 }
 // ...
 tasks.register('openApiGeneratePetclinic', GenerateTask) {
-    inputSpec = "$rootDir/src/main/resources/petclinic-openapi.yml"
-    outputDir = "$buildDir/generated/openapi/petclinic/"
+    inputSpec = layout.projectDirectory.file("src/main/resources/petclinic-openapi.yml")
+    outputDir = layout.buildDirectory.dir("generated/openapi/petclinic")
     generatorName = "java"
     library = "restclient"
     packageName = "com.company.vettraining.petclinic"
@@ -213,7 +213,9 @@ tasks.register('openApiGeneratePetclinic', GenerateTask) {
     skipValidateSpec = true
     configOptions.set([
             useRuntimeException: "true",
-            useJakartaEe       : "true"
+            useJakartaEe       : "true",
+            useSpringBoot4     : "true",
+            useJackson3        : "true"
     ])
 }
 compileJava.dependsOn tasks.named("openApiGeneratePetclinic")</code></pre>
@@ -239,14 +241,14 @@ public class PetclinicClientConfiguration {
         return new ApiClient();
     }
 
-    @Bean("petclinicFailingApi")
-    public FailingApi failingApi(ApiClient apiClient) {
-        return new FailingApi(apiClient);
+    @Bean("petclinic_OopsApi")
+    public OopsApi oopsApi(ApiClient apiClient) {
+        return new OopsApi(apiClient);
     }
 
-    @Bean("petclinicOwnerApi")
-    public OwnerApi ownerApi(ApiClient apiClient) {
-        return new OwnerApi(apiClient);
+    @Bean("petclinic_OwnersApi")
+    public OwnersApi ownersApi(ApiClient apiClient) {
+        return new OwnersApi(apiClient);
     }
 
     // ...</code></pre>
@@ -567,32 +569,32 @@ public abstract class VetMapper {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
 public class SpecialtyService {
-    private final SpecialtyApi specialtyApi;
+    private final SpecialtiesApi specialtiesApi;
     private final SpecialtyMapper specialtyMapper;
 
-    public SpecialtyService(SpecialtyApi specialtyApi, SpecialtyMapper specialtyMapper) {
-        this.specialtyApi = specialtyApi;
+    public SpecialtyService(SpecialtiesApi specialtiesApi, SpecialtyMapper specialtyMapper) {
+        this.specialtiesApi = specialtiesApi;
         this.specialtyMapper = specialtyMapper;
     }
 
     public Specialty addSpecialty(Specialty specialty) {
         SpecialtyModel specialtyModel = specialtyMapper.toModel(specialty);
-        SpecialtyModel resultSpecialtyModel = specialtyApi.addSpecialty(specialtyModel);
+        SpecialtyModel resultSpecialtyModel = specialtiesApi.addSpecialty(specialtyModel);
         return specialtyMapper.toEntity(resultSpecialtyModel);
     }
 
     public Specialty deleteSpecialty(Integer specialtyId) {
-        SpecialtyModel specialtyModel = specialtyApi.deleteSpecialty(specialtyId);
+        SpecialtyModel specialtyModel = specialtiesApi.deleteSpecialty(specialtyId);
         return specialtyMapper.toEntity(specialtyModel);
     }
 
     public Specialty getSpecialty(Integer specialtyId) {
-        SpecialtyModel specialtyModel = specialtyApi.getSpecialty(specialtyId);
+        SpecialtyModel specialtyModel = specialtiesApi.getSpecialty(specialtyId);
         return specialtyMapper.toEntity(specialtyModel);
     }
 
     public List&lt;Specialty&gt; listSpecialties() {
-        List&lt;SpecialtyModel&gt; specialtyModels = specialtyApi.listSpecialties();
+        List&lt;SpecialtyModel&gt; specialtyModels = specialtiesApi.listSpecialties();
         List&lt;Specialty&gt; specialties = specialtyModels.stream()
                 .map(specialtyMapper::toEntity)
                 .collect(Collectors.toList());
@@ -619,7 +621,7 @@ public class SpecialtyService {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public Specialty updateSpecialty(Integer specialtyId, Specialty specialty) {
     SpecialtyModel specialtyModel = specialtyMapper.toModel(specialty);
-    SpecialtyModel resultSpecialtyModel = specialtyApi.updateSpecialty(specialtyId, specialtyModel);
+    SpecialtyModel resultSpecialtyModel = specialtiesApi.updateSpecialty(specialtyId, specialtyModel);
     return resultSpecialtyModel != null ?
             specialtyMapper.toEntity(resultSpecialtyModel) :
             getSpecialty(specialtyId); <i class="conum" data-value="1"></i><b>(1)</b>
@@ -642,7 +644,7 @@ public class SpecialtyService {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public Vet updateVet(Integer vetId, Vet vet) {
     VetModel vetModel = vetMapper.toModel(vet);
-    VetModel resultVetModel = vetApi.updateVet(vetId, vetModel);
+    VetModel resultVetModel = vetsApi.updateVet(vetId, vetModel);
     return resultVetModel != null ?
             vetMapper.toEntity(resultVetModel) :
             getVet(vetId);

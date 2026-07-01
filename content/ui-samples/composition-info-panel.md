@@ -247,7 +247,7 @@ order-detail-view.xml
             <textField id="descriptionField" property="description"/>
         </formLayout>
         <h4 text="msg://io.jmix.uisamples.entity/Order.items"/>
-        <hbox id="buttonsPanel" classNames="buttons-panel">
+        <hbox id="buttonsPanel" width="100%" wrap="true">
             <button action="itemsDataGrid.createAction"/>
             <button action="itemsDataGrid.editAction"/>
             <button action="itemsDataGrid.removeAction"/>

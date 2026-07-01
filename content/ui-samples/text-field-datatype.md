@@ -5,7 +5,7 @@ If the field is not connected to an entity attribute (i.e. the dataContainer and
 text-field-datatype.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <textField id="stringTextField" label="String"
                    datatype="string"/>
         <textField id="integerTextField" label="Integer"

@@ -1,14 +1,12 @@
 <Path>Components > RichTextEditor > RichTextEditor with ThemeVariant</Path>
 
-The RichTextEditor component has two theme variants: no-border compact You can set these styles to the RichTextEditor component using the themeNames attribute either in the XML descriptor or in the view controller using constants from RichTextEditorVariant class. ReadOnly and Enabled options have also been added to this sample.
+You can control the availability of the RichTextEditor using the ReadOnly and Enabled attributes.
 
 rich-text-editor-theme-variant.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
-        <hbox classNames="buttons-panel">
-            <checkbox id="noBorderCheckbox" label="No border"/>
-            <checkbox id="compactCheckbox" label="Compact"/>
+        <hbox width="100%" wrap="true">
             <checkbox id="readOnlyCheckbox" label="Read only"/>
             <checkbox id="enabledCheckbox" label="Disabled"/>
         </hbox>
@@ -26,7 +24,6 @@ package io.jmix.uisamples.view.flowui.components.richtexteditor.themevariant;
 import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
 import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.richtexteditor.RichTextEditor;
-import io.jmix.flowui.kit.component.richtexteditor.RichTextEditorVariant;
 import io.jmix.flowui.view.*;
 
 @ViewController("rich-text-editor-theme-variant")
@@ -39,24 +36,6 @@ public class RichTextEditorThemeVariantSample extends StandardView {
     @Subscribe
     protected void onInit(InitEvent event) {
         richTextEditor.setValue("<p><strong>Bold</strong> <em>Italic</em> <u>Underline</u> <s>Strikethrough</s></p>");
-    }
-
-    @Subscribe("noBorderCheckbox")
-    protected void onHighlightCheckboxValueChange(ComponentValueChangeEvent<JmixCheckbox, Boolean> event) {
-        if (event.getValue()) {
-            richTextEditor.addThemeVariants(RichTextEditorVariant.NO_BORDER);
-        } else {
-            richTextEditor.removeThemeVariants(RichTextEditorVariant.NO_BORDER);
-        }
-    }
-
-    @Subscribe("compactCheckbox")
-    protected void onHighlightGutterCheckboxValueChange(ComponentValueChangeEvent<JmixCheckbox, Boolean> event) {
-        if (event.getValue()) {
-            richTextEditor.addThemeVariants(RichTextEditorVariant.COMPACT);
-        } else {
-            richTextEditor.removeThemeVariants(RichTextEditorVariant.COMPACT);
-        }
     }
 
     @Subscribe("readOnlyCheckbox")

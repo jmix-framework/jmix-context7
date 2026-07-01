@@ -27,7 +27,7 @@ url-query-parameters.xml
         <genericFilter id="genericFilter" dataLoader="customersDl">
             <properties include=".*"/>
         </genericFilter>
-        <hbox id="buttonsPanel" classNames="buttons-panel">
+        <hbox id="buttonsPanel" width="100%" wrap="true">
             <simplePagination id="pagination" dataLoader="customersDl" itemsPerPageItems="5"/>
         </hbox>
         <dataGrid id="customersDataGrid"
@@ -78,7 +78,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

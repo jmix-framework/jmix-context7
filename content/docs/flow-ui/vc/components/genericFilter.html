@@ -35,7 +35,7 @@
 <h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>genericFilter</code> component is added by default on some standard views, such as a <a class="xref page" href="../../views/views.html#standard-list-view">list view</a> of an entity. A typical filter is shown below:</p>
+<p>The <code>genericFilter</code> component is added by default on some standard views, such as a <a class="xref page" href="../../views/view-classes.html#standard-list-view">list view</a> of an entity. A typical filter is shown below:</p>
 </div>
 <div class="imageblock text-center">
 <div class="content">
@@ -218,7 +218,7 @@
 <p><strong>Predefined conditions</strong> — conditions specified at design-time by the developer in the <a href="#conditions-element">conditions</a> element.</p>
 </li>
 <li>
-<p><strong>Configurations</strong> — existing filter configurations. They can be created either at <a href="#design-time-configuration">design-time</a> by the developer, or by the user at <a href="#run-time-configuration">run-time</a>.</p>
+<p><strong>Configurations</strong> — existing filter configurations. They can be created either at <a href="#design-time-configuration">design-time</a> by the developer, or by the user at <a href="#runtime-configuration">runtime</a>.</p>
 </li>
 </ul>
 </div>
@@ -468,7 +468,7 @@ Advanced <a class="xref page" href="../../../search/search-in-ui.html#fts-condit
 <p>Configuration is a set of conditions saved for later use. It can include conditions of any type as well as another configuration.</p>
 </div>
 <div class="paragraph">
-<p>Configurations can be created either at <a href="#design-time-configuration">design-time</a> by the developer, or by the user at <a href="#run-time-configuration">run-time</a>.</p>
+<p>Configurations can be created either at <a href="#design-time-configuration">design-time</a> by the developer, or by the user at <a href="#runtime-configuration">runtime</a>.</p>
 </div>
 <div class="sect2">
 <h3 id="design-time-configuration"><a class="anchor" href="#design-time-configuration"></a>Design-time Configuration</h3>
@@ -522,7 +522,7 @@ To add a design-time configuration in Jmix Studio, select the <code>genericFilte
 </table>
 </div>
 <div class="paragraph">
-<p>A design-time configuration does not allow any user customizations at runtime and cannot be removed by the user. However, users can create an identical run-time configuration based on the design-time configuration and modify its parameters. This can be done with the <span class="image"><img alt="generic filter settings button" src="../../_images/visual-components/components/generic-filter-settings-button.png" width="42"/></span> → <strong>Copy</strong> menu action.</p>
+<p>A design-time configuration does not allow any user customizations at runtime and cannot be removed by the user. However, users can create an identical runtime configuration based on the design-time configuration and modify its parameters. This can be done with the <span class="image"><img alt="generic filter settings button" src="../../_images/visual-components/components/generic-filter-settings-button.png" width="42"/></span> → <strong>Copy</strong> menu action.</p>
 </div>
 <div class="paragraph">
 <p>When the application is running, design-time configurations are displayed in the drop-down menu [<a href="#refresh-drop-down-menu">4</a>] among other configurations.</p>
@@ -534,7 +534,7 @@ To add a design-time configuration in Jmix Studio, select the <code>genericFilte
 </div>
 </div>
 <div class="sect2">
-<h3 id="run-time-configuration"><a class="anchor" href="#run-time-configuration"></a>Run-time Configuration</h3>
+<h3 id="runtime-configuration"><a class="anchor" href="#runtime-configuration"></a>Runtime Configuration</h3>
 <div class="paragraph">
 <p>Configurations can be created at runtime in the <strong>Configuration editor</strong>. To open the editor, use <span class="image"><img alt="generic filter settings button" src="../../_images/visual-components/components/generic-filter-settings-button.png" width="42"/></span> → <strong>Edit</strong> menu item.</p>
 </div>
@@ -545,7 +545,7 @@ To add a design-time configuration in Jmix Studio, select the <code>genericFilte
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-To create, edit, or remove a run-time configuration, the user needs to be granted with <code>ui.genericfilter.modifyConfiguration</code> security permission.
+To create, edit, or remove a runtime configuration, the user needs to be granted with <code>ui.genericfilter.modifyConfiguration</code> security permission.
 </td>
 </tr>
 </table>
@@ -556,7 +556,7 @@ To create, edit, or remove a run-time configuration, the user needs to be grante
 </div>
 </div>
 <div class="paragraph">
-<p>To create a run-time configuration:</p>
+<p>To create a runtime configuration:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -626,10 +626,38 @@ To create, edit, or remove a run-time configuration, the user needs to be grante
 </div>
 </div>
 <div class="sect1">
-<h2 id="_creating_filter_programmatically"><a class="anchor" href="#_creating_filter_programmatically"></a>Creating Filter Programmatically</h2>
+<h2 id="creating-filter-programmatically"><a class="anchor" href="#creating-filter-programmatically"></a>Creating Filter Programmatically</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This section provides an example of <code>genericFilter</code> configuration created programmatically.</p>
+<p>You can create and configure a <code>genericFilter</code> in Java using the fluent builder API, which has two entry points:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>filterComponentBuilder()</code> creates filter components – <code>propertyFilter</code>, <code>jpqlFilter</code>, and <code>groupFilter</code>.</p>
+</li>
+<li>
+<p><code>runtimeConfigurationBuilder()</code> assembles a <a href="#runtime-configuration">runtime configuration</a> from those components and registers it with the filter.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The builder performs all the required initialization internally (condition modification delegation, parameter name and value component generation), so a programmatically built component behaves exactly like one declared in XML. The owning <code>genericFilter</code> must have a <code>DataLoader</code>; otherwise the builder methods throw <code>IllegalStateException</code>.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The builder API is currently experimental and may change in a future Jmix release.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following example creates a <code>genericFilter</code>, builds a property condition, and registers a configuration:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -642,40 +670,27 @@ private VerticalLayout programmaticFilterBox;
 @ViewComponent
 private CollectionLoader&lt;Customer&gt; customerDl;
 
-@Autowired
-private SingleFilterSupport singleFilterSupport;
-
 @Subscribe
 public void onInit(final InitEvent event) {
     GenericFilter genericFilter = uiComponents.create(GenericFilter.class); <i class="conum" data-value="1"></i><b>(1)</b>
     genericFilter.setId("programmaticFilter");
     genericFilter.setDataLoader(customerDl);
     genericFilter.loadConfigurationsAndApplyDefault();
+    programmaticFilterBox.add(genericFilter); <i class="conum" data-value="2"></i><b>(2)</b>
 
-    DesignTimeConfiguration javaDefaultConfiguration =
-            genericFilter.addConfiguration("javaDefaultConfiguration",
-                    "Default configuration"); <i class="conum" data-value="2"></i><b>(2)</b>
+    PropertyFilter&lt;Integer&gt; agePropertyFilter = genericFilter.filterComponentBuilder() <i class="conum" data-value="3"></i><b>(3)</b>
+            .&lt;Integer&gt;propertyFilter()
+            .property("age")
+            .operation(PropertyFilter.Operation.LESS_OR_EQUAL)
+            .operationEditable(true)
+            .build();
 
-    PropertyFilter&lt;Integer&gt; agePropertyFilter =
-            uiComponents.create(PropertyFilter.class); <i class="conum" data-value="3"></i><b>(3)</b>
-
-    agePropertyFilter.setConditionModificationDelegated(true);
-    agePropertyFilter.setDataLoader(customerDl);
-    agePropertyFilter.setProperty("age");
-    agePropertyFilter.setOperation(PropertyFilter.Operation.LESS_OR_EQUAL);
-    agePropertyFilter.setOperationEditable(true);
-    agePropertyFilter.setParameterName(PropertyConditionUtils
-            .generateParameterName(agePropertyFilter.getProperty()));
-    agePropertyFilter.setValueComponent(singleFilterSupport.generateValueComponent(
-            customerDl.getContainer().getEntityMetaClass(),
-            agePropertyFilter.getProperty(),
-            agePropertyFilter.getOperation())); <i class="conum" data-value="4"></i><b>(4)</b>
-
-    javaDefaultConfiguration.getRootLogicalFilterComponent().add(agePropertyFilter); <i class="conum" data-value="5"></i><b>(5)</b>
-
-    programmaticFilterBox.add(genericFilter); <i class="conum" data-value="6"></i><b>(6)</b>
-
-    genericFilter.setCurrentConfiguration(javaDefaultConfiguration); <i class="conum" data-value="7"></i><b>(7)</b>
+    genericFilter.runtimeConfigurationBuilder() <i class="conum" data-value="4"></i><b>(4)</b>
+            .id("javaConfiguration")
+            .name("Default configuration")
+            .add(agePropertyFilter)
+            .makeCurrent() <i class="conum" data-value="5"></i><b>(5)</b>
+            .buildAndRegister(); <i class="conum" data-value="6"></i><b>(6)</b>
 }</code></pre>
 </div>
 </div>
@@ -687,30 +702,212 @@ public void onInit(final InitEvent event) {
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Adds a design-time configuration. The method takes two parameters: configuration id and configuration name.</td>
+<td>Puts <code>genericFilter</code> on the view inside the <code>vbox</code> layout declared in the view descriptor and injected into the controller.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Creates a <code>PropertyFilter</code> instance and set its properties.</td>
+<td>Builds a <code>PropertyFilter</code> with <code>filterComponentBuilder()</code>.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Generates a component for this filter based on metaClass, property, and operation.</td>
+<td>Registers a runtime configuration with <code>runtimeConfigurationBuilder()</code> and adds the filter to it.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="5"></i><b>5</b></td>
-<td>Adds the filter to configuration. <code>LogicalFilterComponent</code> is the root element of the configuration.</td>
+<td>Activates the configuration immediately. This is not the persistent default-configuration marker; it simply makes the configuration current.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="6"></i><b>6</b></td>
-<td>Puts <code>genericFilter</code> on the view inside the <code>vbox</code> layout. That layout is declared in the view descriptor and injected to the controller.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="7"></i><b>7</b></td>
-<td>Sets a current configuration.</td>
+<td>Builds and registers the configuration. Each builder instance is single-use.</td>
 </tr>
 </table>
 </div>
+<div class="sect2">
+<h3 id="building-filter-components"><a class="anchor" href="#building-filter-components"></a>Building Filter Components</h3>
+<div class="paragraph">
+<p><code>filterComponentBuilder()</code> returns a dedicated builder for each component type. All builders are single-use and produce a ready-to-add component.</p>
+</div>
+<div class="sect3">
+<h4 id="property-filter"><a class="anchor" href="#property-filter"></a>Property Filter</h4>
+<div class="paragraph">
+<p><code>propertyFilter()</code> filters by an entity attribute, including nested references — <code>property()</code> accepts a path such as <code>customer.city.name</code>. The value editor is generated automatically from the attribute type. The operation is fixed unless you call <code>operationEditable(true)</code>, which lets the user change it at runtime; <code>operationTextVisible(false)</code> hides the operation label shown next to the field. A value passed to <code>defaultValue()</code> pre-fills the field.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">PropertyFilter&lt;Integer&gt; ageFilter = genericFilter.filterComponentBuilder()
+        .&lt;Integer&gt;propertyFilter()
+        .property("age")
+        .operation(PropertyFilter.Operation.GREATER_OR_EQUAL)
+        .operationEditable(true)
+        .build();</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="jpql-filter-checkbox"><a class="anchor" href="#jpql-filter-checkbox"></a>JPQL Filter (Checkbox)</h4>
+<div class="paragraph">
+<p><code>jpqlFilter()</code> (no argument) creates a <strong>void</strong> filter: a checkbox that toggles a fixed <code>WHERE</code> clause on and off. Its value type is <code>Boolean</code>, so <code>defaultValue(true)</code> makes the condition active by default.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">JpqlFilter&lt;Boolean&gt; hasRewardPoints = genericFilter.filterComponentBuilder()
+        .jpqlFilter()
+        .where("{E}.rewardPoints &gt; 0")
+        .label("Has reward points")
+        .defaultValue(true)
+        .build();</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="jpql-filter-typed"><a class="anchor" href="#jpql-filter-typed"></a>JPQL Filter (Typed)</h4>
+<div class="paragraph">
+<p><code>jpqlFilter(Class)</code> creates a <strong>typed</strong> filter: the value the user enters is bound to a query parameter, and its editor matches the given <code>Class</code>. Write the condition in <code>where()</code> using <code>{E}</code> as the entity alias and a named parameter, then declare its name with <code>parameterName()</code>. Add <code>join()</code> to extend the <code>FROM</code> clause, or <code>hasInExpression(true)</code> when the value is a collection (an <code>in</code> condition).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">JpqlFilter&lt;Integer&gt; minAge = genericFilter.filterComponentBuilder()
+        .jpqlFilter(Integer.class)
+        .where("{E}.age &gt;= :minAge")
+        .parameterName("minAge")
+        .label("Minimum age")
+        .build();</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="group-filter"><a class="anchor" href="#group-filter"></a>Group Filter</h4>
+<div class="paragraph">
+<p><code>groupFilter()</code> combines conditions under a single logical operation — <code>AND</code> (the default) or <code>OR</code>. A group is itself a filter component, so groups can be nested to express complex boolean logic. Add children with <code>add()</code> or <code>addAll()</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">GroupFilter orGroup = genericFilter.filterComponentBuilder()
+        .groupFilter()
+        .operation(LogicalFilterComponent.Operation.OR)
+        .addAll(hasRewardPoints, minAge)
+        .build();</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="building-runtime-configuration"><a class="anchor" href="#building-runtime-configuration"></a>Building Runtime Configuration</h3>
+<div class="paragraph">
+<p><code>runtimeConfigurationBuilder()</code> creates a <a href="#runtime-configuration">runtime configuration</a> and registers it with the filter.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">genericFilter.runtimeConfigurationBuilder()
+        .id("dynamicConfiguration")
+        .name("Dynamic configuration")
+        .add(ageFilter, 18) <i class="conum" data-value="1"></i><b>(1)</b>
+        .add(orGroup) <i class="conum" data-value="2"></i><b>(2)</b>
+        .makeCurrent() <i class="conum" data-value="3"></i><b>(3)</b>
+        .allowDeletion() <i class="conum" data-value="4"></i><b>(4)</b>
+        .buildAndRegister();</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Adds a component with a typed default value; the value type is checked at compile time. Use <code>add(component)</code> without a default, or <code>addAll(components…​)</code> to add several at once.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Adds the group built above.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Activates the configuration immediately. This is not the persistent default-configuration marker.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Allows the user to delete this configuration. By default, configurations created with the builder are protected from user deletion.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Keep in mind:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Each builder instance is single-use — calling <code>build()</code> or <code>buildAndRegister()</code> twice throws <code>IllegalStateException</code>.</p>
+</li>
+<li>
+<p>The configuration <code>id</code> must be unique within the filter.</p>
+</li>
+<li>
+<p>The owning <code>genericFilter</code> must have a <code>DataLoader</code>.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The builder creates a <code>RunTimeConfiguration</code>. There is no builder for a <code>DesignTimeConfiguration</code>. To create configurations programmatically at a lower level, use <code>addConfiguration(id, name)</code> (which returns a <code>DesignTimeConfiguration</code>) and create and add the filter components directly, or build a <code>RunTimeConfiguration</code> and register it with <code>addConfiguration(configuration)</code>. This is the lower-level approach that the builder API replaces.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+For runnable examples of every builder feature, see the <strong>GenericFilter</strong> section of the <a href="https://demo.jmix.io/ui-samples" rel="noopener" target="_blank">UI samples</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 66.6666%;"/>
+<col style="width: 16.6668%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variant</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Supported By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>filled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applies a filled background style to the filter header.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>reverse</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Places the toggle indicator before the summary text.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>small</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Makes the filter header more compact.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
@@ -889,13 +1086,13 @@ private boolean genericFilterPropertyFiltersPredicate(final MetaPropertyPath met
 <p><strong>Save as</strong> — saves current configuration under a different name. Implemented by <code>FilterSaveAsAction</code> (<code>type="genericFilter_saveAs"</code> in XML).</p>
 </li>
 <li>
-<p><strong>Edit</strong> — opens editor for current <a href="#run-time-configuration">run-time</a> configuration. Disable for <a href="#design-time-configuration">design-time</a> configurations. Implemented by <code>FilterEditAction</code> (`type="genericFilter_edit" in XML).</p>
+<p><strong>Edit</strong> — opens editor for current <a href="#runtime-configuration">runtime</a> configuration. Disable for <a href="#design-time-configuration">design-time</a> configurations. Implemented by <code>FilterEditAction</code> (`type="genericFilter_edit" in XML).</p>
 </li>
 <li>
-<p><strong>Remove</strong> — removes current <a href="#run-time-configuration">run-time</a> configuration. Disabled for <a href="#design-time-configuration">design-time</a> configurations. Implemented by <code>FilterRemoveAction</code> (`type="genericFilter_remove" in XML).</p>
+<p><strong>Remove</strong> — removes current <a href="#runtime-configuration">runtime</a> configuration. Disabled for <a href="#design-time-configuration">design-time</a> configurations. Implemented by <code>FilterRemoveAction</code> (`type="genericFilter_remove" in XML).</p>
 </li>
 <li>
-<p><strong>Copy</strong> — creates a <a href="#run-time-configuration">run-time</a> copy for the current configuration. Implemented by <code>FilterCopyAction</code> (`type="genericFilter_copy" in XML).</p>
+<p><strong>Copy</strong> — creates a <a href="#runtime-configuration">runtime</a> copy for the current configuration. Implemented by <code>FilterCopyAction</code> (`type="genericFilter_copy" in XML).</p>
 </li>
 <li>
 <p><strong>Clear values</strong> — clears the values in the condition fields [<a href="#condition-field">5</a>]. Implemented by <code>FilterClearValuesAction</code> (`type="genericFilter_clearValues" in XML).</p>

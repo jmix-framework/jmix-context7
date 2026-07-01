@@ -8,7 +8,7 @@ You can use any third-party Vaadin add-ons located in the Vaadin Directory or el
 }
 
 dependencies {
-    implementation 'com.storedobject.chart:so-charts:3.2.4'
+    implementation 'org.vaadin.addons.so:so-charts:6.0.1'
     // ...
 } After that, you can use the add-on components programmatically, see for example ChartsAddonSample.java. To be able to use the add-on components in views XML declaratively, a few more steps are needed: Create an XSD for the components (see chart.xsd) Implement the component loaders (see ChartLoader.java). Register the components and its loaders in the application (see ChartComponentRegistration.java). Note: This example provides only partial support for the add-on components (not all components and properties are described for usage in XML).
 

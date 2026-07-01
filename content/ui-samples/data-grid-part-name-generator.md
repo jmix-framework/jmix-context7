@@ -88,7 +88,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -200,15 +200,15 @@ data-grid-part-name-generator.css
 
 
 vaadin-grid::part(high-grade) {
-    background-color: var(--lumo-success-color-10pct);
+    background-color: color-mix(in srgb, var(--aura-green) 10%, transparent);
 }
 
 vaadin-grid::part(standard-grade) {
-    background-color: var(--lumo-contrast-10pct);
+    background-color: var(--vaadin-background-container-strong);
 }
 
 vaadin-grid::part(premium-grade) {
-    background-color: var(--lumo-primary-color-10pct);
+    background-color: color-mix(in srgb, var(--aura-accent-color) 10%, transparent);
 }
 
 vaadin-grid::part(font-weight-bold) {

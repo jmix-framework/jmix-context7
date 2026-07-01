@@ -6,7 +6,7 @@ slider-usage.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view"
       xmlns:sl="http://io.jmix.uisamples/slider.xsd">
-    <layout classNames="flex" justifyContent="CENTER" alignItems="CENTER">
+    <layout justifyContent="CENTER" alignItems="CENTER">
         <h2 text="Slider"/>
         <sl:slider id="slider"
                    width="15em"
@@ -127,10 +127,12 @@ slider.js
 
 import 'jquery/jquery.js'
 import 'jquery-ui/dist/jquery-ui.js'
-import {PolymerElement} from '@polymer/polymer/polymer-element.js';
+import {LitElement} from 'lit';
 import {ElementMixin} from '@vaadin/component-base/src/element-mixin.js';
+import {defineCustomElement} from '@vaadin/component-base/src/define.js';
+import {PolylitMixin} from '@vaadin/component-base/src/polylit-mixin.js';
 
-class Slider extends ElementMixin(PolymerElement) {
+export class Slider extends ElementMixin(PolylitMixin(LitElement)) {
 
     static get is() {
         return 'demo-slider';
@@ -163,8 +165,14 @@ class Slider extends ElementMixin(PolymerElement) {
         }
     }
 
+    // to disable shadow dom
+    createRenderRoot() {
+        return this;
+    }
+
     ready() {
         super.ready();
+
         let $jQuery = jQuery.noConflict();
         this._slider = $jQuery(this);
         this._slider.slider({
@@ -219,9 +227,8 @@ class Slider extends ElementMixin(PolymerElement) {
     }
 }
 
-customElements.define(Slider.is, Slider);
+defineCustomElement(Slider);
 
-export {Slider};
 
 
 

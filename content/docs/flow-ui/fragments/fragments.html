@@ -56,6 +56,9 @@ Fragments can be used to render items within certain UI components, such as <a c
 <h2 id="fragment-content"><a class="anchor" href="#fragment-content"></a>Fragment Content</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>To create a fragment, create a class that extends <code>io.jmix.flowui.fragment.Fragment</code>. The fragment generic type defines the root component type of the fragment content. The same component must be specified in the XML descriptor as the root component inside the <code>content</code> element.</p>
+</div>
+<div class="paragraph">
 <p>The <code>@FragmentDescriptor</code> annotation specifies a string value that is a path to an XML file which is used for the fragment initialization. If the value contains a file name only (and doesn’t start with <code>/</code>), it is assumed that the file is located in the package of the fragment class.</p>
 </div>
 <div class="paragraph">
@@ -154,6 +157,15 @@ Fragments can be used to render items within certain UI components, such as <a c
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p>Fragment inner components have fragment-specific hidden IDs instead of actual Vaadin component IDs. Jmix stores these IDs separately to avoid conflicts with components defined in host views or in multiple instances of the same fragment.</p>
+</div>
+<div class="paragraph">
+<p>Because of this, use <code>FragmentUtils.getComponentId()</code> to obtain a component ID inside a fragment. Do not use methods that rely on actual component IDs, such as <code>UiComponentUtils</code>, for this purpose.</p>
+</div>
+<div class="paragraph">
+<p>Use <code>findInnerComponent()</code> / <code>getInnerComponent()</code> to access fragment components by ID from the fragment controller. If you need to work with a component instance directly, <code>FragmentUtils.getComponentId()</code> returns its fragment-specific hidden ID.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -166,7 +178,12 @@ Fragments can be used to render items within certain UI components, such as <a c
 <div class="listingblock">
 <div class="title">CustomerListFragment.java</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@FragmentDescriptor("customer-list-fragment.xml")
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import io.jmix.flowui.fragment.Fragment;
+import io.jmix.flowui.fragment.FragmentDescriptor;
+import io.jmix.flowui.view.Subscribe;
+
+@FragmentDescriptor("customer-list-fragment.xml")
 public class CustomerListFragment extends Fragment&lt;VerticalLayout&gt; {
 
     @Subscribe
@@ -197,31 +214,42 @@ public class CustomerListFragment extends Fragment&lt;VerticalLayout&gt; {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
-public JmixButton button; <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.onboarding.entity.Customer;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.data.renderer.Renderer;
+import io.jmix.core.LoadContext;
+import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.model.CollectionContainer;
+import io.jmix.flowui.view.*;
+import java.util.List;
 
-@ViewComponent
-public CollectionContainer&lt;Customer&gt; collectionDc; <i class="conum" data-value="2"></i><b>(2)</b>
+// class declaration and annotations omitted
 
-@Subscribe
-public void onReady(ReadyEvent event) { <i class="conum" data-value="3"></i><b>(3)</b>
-    // ...
-}
+    @ViewComponent
+    public JmixButton button; <i class="conum" data-value="1"></i><b>(1)</b>
 
-@Subscribe(value = "button", subject = "clickListener")
-public void onButtonClick(ClickEvent&lt;JmixButton&gt; event) { <i class="conum" data-value="4"></i><b>(4)</b>
-    // ...
-}
+    @ViewComponent
+    public CollectionContainer&lt;Customer&gt; collectionDc; <i class="conum" data-value="2"></i><b>(2)</b>
 
-@Install(to = "collectionDl", target = Target.DATA_LOADER)
-public List&lt;Customer&gt; collectionDlLoadDelegate(LoadContext&lt;Customer&gt; loadContext) { <i class="conum" data-value="5"></i><b>(5)</b>
-    return loadCustomers(loadContext);
-}
+    @Subscribe
+    public void onReady(ReadyEvent event) { <i class="conum" data-value="3"></i><b>(3)</b>
+        // ...
+    }
 
-@Supply(to = "dataGrid.name", subject = "renderer")
-public Renderer&lt;Customer&gt; dataGridNameRenderer() { <i class="conum" data-value="6"></i><b>(6)</b>
-    return createRenderer();
-}</code></pre>
+    @Subscribe(value = "button", subject = "clickListener")
+    public void onButtonClick(ClickEvent&lt;JmixButton&gt; event) { <i class="conum" data-value="4"></i><b>(4)</b>
+        // ...
+    }
+
+    @Install(to = "collectionDl", target = Target.DATA_LOADER)
+    public List&lt;Customer&gt; collectionDlLoadDelegate(LoadContext&lt;Customer&gt; loadContext) { <i class="conum" data-value="5"></i><b>(5)</b>
+        return loadCustomers(loadContext);
+    }
+
+    @Supply(to = "dataGrid.name", subject = "renderer")
+    public Renderer&lt;Customer&gt; dataGridNameRenderer() { <i class="conum" data-value="6"></i><b>(6)</b>
+        return createRenderer();
+    }</code></pre>
 </div>
 </div>
 <div class="colist arabic">

@@ -20,7 +20,7 @@ simple-pagination-simple.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <simplePagination classNames="self-center" itemsPerPageDefaultValue="5"
+        <simplePagination alignSelf="CENTER" itemsPerPageDefaultValue="5"
                           dataLoader="customersDl"/>
         <dataGrid id="customersDataGrid"
                   dataContainer="customersDc"
@@ -66,7 +66,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

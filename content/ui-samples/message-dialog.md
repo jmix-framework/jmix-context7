@@ -5,7 +5,7 @@ To use a message dialog, simply write: dialogs.createMessageDialog(). The most b
 message-dialog.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <button id="textButton" text="Plain text" icon="COMMENT"/>
         <button id="htmlButton" text="HTML content" icon="FILE_CODE"/>
         <button id="customSettingsButton" text="Custom settings" icon="COGS"/>

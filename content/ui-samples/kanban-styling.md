@@ -20,7 +20,7 @@ kanban-styling.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <hbox classNames="buttons-panel">
+        <hbox width="100%" wrap="true">
             <button id="createBtn" action="kanban.create"/>
             <button id="editBtn" action="kanban.edit"/>
             <button id="removeBtn" action="kanban.remove"/>
@@ -98,7 +98,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -230,7 +230,7 @@ TaskStatus.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum TaskStatus implements EnumClass<String> {
 

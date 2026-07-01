@@ -5,7 +5,7 @@ Notifications are simple informational messages displayed in pop-ups. To show a 
 notification-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <button id="standardNotificationButton" text="Standard"/>
         <button id="messageNotificationButton" text="With message"/>
         <button id="componentNotificationButton" text="With component"/>

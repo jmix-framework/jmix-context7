@@ -22,7 +22,7 @@ data-grid-simple.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <checkboxGroup id="dataGridSettingsGroup" label="Settings"/>
+        <checkboxGroup id="dataGridSettingsGroup" label="Settings" themeNames="horizontal"/>
         <dataGrid id="dataGrid" width="100%" minHeight="20em"
                   dataContainer="ordersDc">
             <columns>
@@ -210,7 +210,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

@@ -37,7 +37,7 @@ custom-filter.xml
                 dataLoader="customersDl">
             <properties include=".*"/>
         </genericFilter>
-        <hbox alignItems="END" classNames="flex-wrap">
+        <hbox alignItems="END" wrap="true">
             <textField id="nameFilterField" label="Custom filter" placeholder="First or last name" width="15em"/>
             <button id="customersDataGridRefreshBtn" action="customersDataGrid.refresh"/>
         </hbox>
@@ -89,7 +89,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

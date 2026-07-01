@@ -11,53 +11,63 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Jmix supports Hot Deploy technology that helps to apply project changes to the running application immediately without restarting the application server.</p>
+<p>Jmix supports Hot Deploy technology that makes it possible to apply project changes to the running application immediately, without restarting the application server.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_supported_classes_and_resources"><a class="anchor" href="#_supported_classes_and_resources"></a>Supported Classes and Resources</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>The following classes and resources are hot deployed:</p>
+<p>The following classes and resources can be hot deployed:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>View descriptors and controllers;</p>
+<p>View descriptors and controllers</p>
 </li>
 <li>
-<p>Classes used by view controllers by instantiating them or via static methods;</p>
+<p>Classes used by view controllers by instantiating them or via static methods. Examples of such classes are described in the subsection <a href="#examples">below</a>.</p>
 </li>
 <li>
-<p>Localized messages;</p>
+<p>Localized messages</p>
 </li>
 <li>
-<p>Menu;</p>
+<p>Menu</p>
 </li>
 <li>
-<p>Fetch plans;</p>
+<p>Fetch plans</p>
 </li>
 <li>
-<p>Resource roles;</p>
+<p>Resource roles</p>
 </li>
 <li>
-<p>Row-level roles.</p>
+<p>Row-level roles</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>Entity classes and Spring beans are not hot deployed.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_hot_deploy_works"><a class="anchor" href="#_how_hot_deploy_works"></a>How Hot Deploy Works</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>The hot deploy works as follows:</p>
+<p>Hot Deploy works as follows:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Studio detects changed source files and</p>
+<p>Studio detects changed source files and:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>if it’s a resource file, Studio copies it to the <code>.jmix/conf</code> directory;</p>
+<p>if the changed file is a resource file, Studio copies it to the <code>.jmix/conf</code> directory;</p>
 </li>
 <li>
-<p>if it’s a Java or Kotlin file, Studio compiles it and copies to the <code>build/classes</code> project directory.</p>
+<p>if the changed file is a Java or Kotlin file, Studio compiles it and copies to the <code>build/classes</code> project directory.</p>
 </li>
 </ul>
 </div>
@@ -67,16 +77,20 @@
 </li>
 </ul>
 </div>
+<div class="sect2">
+<h3 id="_cleanup_of_the_hot_deploy_directory"><a class="anchor" href="#_cleanup_of_the_hot_deploy_directory"></a>Cleanup of the Hot Deploy Directory</h3>
 <div class="paragraph">
-<p>The location of the directory for hot deploying resources is determined by the <a class="xref page" href="../app-properties.html#jmix.core.conf-dir">jmix.core.conf-dir</a> application property. This directory is cleaned on the application start by the <strong>Before launch</strong> task configured in <a class="xref page" href="project.html#run-debug-configuration-settings">Run/Debug Configuration Settings</a>.</p>
+<p>The location of the directory for hot deploying resources is determined by the <a class="xref page" href="../app-properties.html#jmix.core.conf-dir">jmix.core.conf-dir</a> application property. This directory may be cleared automatically before application startup:</p>
 </div>
-<div class="paragraph">
-<p>Additionally, to ensure that the cleanup is more reliable and not dependent on Studio, there is a Gradle task called <code>cleanConf</code>. This task runs every time before launching the application using the <code>bootRun</code> task.</p>
-</div>
-<div class="paragraph">
-<p>If you encounter any issues with this feature, you can disable the <code>cleanConf</code> task in your project by adding the following property to your <code>build.gradle</code> file:</p>
-</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When the application is run from Jmix Studio, the run configuration can include the <code>Clean Hot Deploy Conf Directory</code> <strong>Before launch</strong> step configured in <a class="xref page" href="project.html#run-debug-configuration-settings">Run/Debug Configuration Settings</a>. When enabled, this step deletes the directory before startup.</p>
+</li>
+<li>
+<p>For Gradle-based startup, <code>bootRun</code> depends on the <code>cleanConf</code> task, so running the application with <code>bootRun</code> also deletes the directory before startup. This behavior can be disabled in <code>build.gradle</code>:</p>
 <div class="listingblock">
+<div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-gradle hljs" data-lang="gradle">jmix {
     // ...
@@ -84,20 +98,74 @@
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Studio also sends signals to the application to clear appropriate caches to make it load the changed resources. These are messages cache and the configurations of fetch plans, registered views and menu. Signals are implemented as trigger files created in the <code>.jmix/temp/triggers</code> directory (its location can be changed by the <a class="xref page" href="../app-properties.html#jmix.core.temp-dir">jmix.core.temp-dir</a> property).</p>
+</li>
+</ul>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-The application may require 2-3 seconds to reload classes and resources after saving them in Studio. If you don’t see expected changes after opening a view, try to refresh the web page again.
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>Studio also sends signals to the application to clear the appropriate caches to make it load the changed resources. These include the messages cache and the configurations of fetch plans, registered views and the menu. Signals are implemented as trigger files created in the <code>.jmix/temp/triggers</code> directory. The location of this directory can be changed using the <a class="xref page" href="../app-properties.html#jmix.core.temp-dir">jmix.core.temp-dir</a> property.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="examples"><a class="anchor" href="#examples"></a>Examples of Hot-Deployed Classes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Here are some practical examples of classes that are hot-deployed when used by view controllers. Note that these are only a few common cases; other classes that meet the criteria (instantiated in the view controller or called via static methods) will also be hot-deployed.</p>
+</div>
+<div class="sect2">
+<h3 id="_custom_ui_components"><a class="anchor" href="#_custom_ui_components"></a>Custom UI Components</h3>
+<div class="paragraph">
+<p>If you create a <a class="xref page" href="../flow-ui/vc/creating-components/creating-components.html">custom UI component</a> and use it in a view, changes to that component will be applied without restarting the application.</p>
+</div>
+<div class="paragraph">
+<p>An example of such a component can be found in <a class="xref page" href="../flow-ui/vc/creating-components/using-element-api.html">Using Element API</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_utility_classes_with_static_methods"><a class="anchor" href="#_utility_classes_with_static_methods"></a>Utility Classes with Static Methods</h3>
+<div class="paragraph">
+<p>Utility classes that contain static methods are hot-deployed when called from view controllers.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class DateUtils {
+    public static String formatDate(LocalDate date) {
+        return date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+    }
+
+    private DateUtils(){
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the view controller:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private TypedTextField&lt;String&gt; textField;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    String formattedDate = DateUtils.formatDate(LocalDate.now());
+    textField.setValue(formattedDate);
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_value_description_classes_for_charts"><a class="anchor" href="#_value_description_classes_for_charts"></a>Value Description Classes for Charts</h3>
+<div class="paragraph">
+<p>For example, classes that prepare or transform data for charts are hot-deployed.</p>
+</div>
+<div class="paragraph">
+<p>An example of such a class is <code>ValueDescription</code> in the <a href="https://demo.jmix.io/ui-samples/sample/simple-data-item?tab=SimpleDataItemSample.java" rel="noopener" target="_blank">UI Samples</a>.</p>
+</div>
 </div>
 </div>
 </div>
@@ -111,7 +179,7 @@ The application may require 2-3 seconds to reload classes and resources after sa
 <p>The primary purpose of this indicator is to continuously inform developers about the propagation of their latest source code changes to the running application. The icon’s appearance changes to reflect whether the changes have been successfully deployed, are in the process of being deployed, or if any errors occurred during the deployment process, providing immediate visual feedback on the state of hot deployment.</p>
 </div>
 <div class="paragraph">
-<p>Let’s examine the different states of the hot deploy indicator.</p>
+<p>Let’s examine the different states of the hot-deploy indicator.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -152,6 +220,18 @@ The application may require 2-3 seconds to reload classes and resources after sa
 <img alt="hot deploy ind 4" src="_images/hot-deploy-ind-4.png" width="333"/>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The application may require 2-3 seconds to reload classes and resources. If you don’t see expected changes in the application, try to refresh the web page again.
+</td>
+</tr>
+</table>
+</div>
 </li>
 <li>
 <p><strong>Hot deployment failed</strong>: The indicator turns red, indicating that hot deployment was unsuccessful due to a compilation error or other issue.</p>
@@ -162,6 +242,25 @@ The application may require 2-3 seconds to reload classes and resources after sa
 </div>
 </li>
 </ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="troubleshooting"><a class="anchor" href="#troubleshooting"></a>Troubleshooting</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In some cases, for example, for non-standard multi-module project configurations, Jmix Studio may fail to determine the module compiler output path. This affects hot deploy because Studio cannot properly resolve the classpath needed for the hot-deploy compilation process.</p>
+</div>
+<div class="paragraph">
+<p>If you encounter this issue, you can manually specify the module compiler output path using a special property in your <code>build.gradle</code> script:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-gradle hljs" data-lang="gradle">ext.jmixCompilerOutputPath = "build/classes/java/main"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The path should be specified relative to the folder containing the build script. Jmix Studio will resolve this value during Gradle sync and use it in the hot-deploy compilation process classpath.</p>
 </div>
 </div>
 </div>

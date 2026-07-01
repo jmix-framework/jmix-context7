@@ -5,7 +5,7 @@ Use the enumClass action property to set the enumeration class used as the type 
 value-picker-multi-enum.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row">
+    <layout classNames="horizontal-layout">
         <multiValuePicker id="multiValuePicker">
             <actions>
                 <action id="select" type="multi_value_select">
@@ -43,7 +43,7 @@ CustomerGrade.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum CustomerGrade implements EnumClass<Integer> {
 

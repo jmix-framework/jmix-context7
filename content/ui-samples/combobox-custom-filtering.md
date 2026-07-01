@@ -5,7 +5,7 @@ ComboBox filtering, by default, is configured to show only items that contain th
 combobox-custom-filtering.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <comboBox id="noFilterComboBox"
                   label="No filter"
                   placeholder="Start typing"/>

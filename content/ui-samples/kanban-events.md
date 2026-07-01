@@ -19,8 +19,8 @@ kanban-events.xml
     <facets>
         <dataLoadCoordinator auto="true"/>
     </facets>
-    <layout>
-        <hbox classNames="buttons-panel">
+    <layout classNames="kanban-events">
+        <hbox width="100%" wrap="true">
             <button id="showAllBtn" text="msg://showAllBtn.text" icon="CIRCLE"/>
             <button id="resetExecutedBtn" text="msg://resetExecutedBtn.text" icon="REFRESH"/>
         </hbox>
@@ -212,7 +212,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -344,7 +344,7 @@ TaskStatus.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum TaskStatus implements EnumClass<String> {
 
@@ -375,6 +375,16 @@ public enum TaskStatus implements EnumClass<String> {
         }
         return null;
     }
+}
+
+
+
+
+kanban-events.css
+
+
+.kanban-events .flex-grow {
+    flex-grow: 1;
 }
 
 

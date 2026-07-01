@@ -64,12 +64,12 @@
 <p><a class="xref page" href="../setup.html">Setup</a> the development environment.</p>
 </li>
 <li>
-<p>Clone the <a href="https://github.com/jmix-framework/jmix-restds-oidc-sample" rel="noopener" target="_blank">sample project</a> and switch to <code>release_2_8</code> branch:</p>
+<p>Clone the <a href="https://github.com/jmix-framework/jmix-restds-oidc-sample" rel="noopener" target="_blank">sample project</a> and switch to <code>release_3</code> branch:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-restds-oidc-sample
 cd jmix-restds-oidc-sample
-git checkout release_2_8</code></pre>
+git checkout release_3</code></pre>
 </div>
 </div>
 </li>
@@ -348,6 +348,7 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realm
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.serviceapp.security;
 
+import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
 import io.jmix.oidc.OidcVaadinWebSecurity;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -356,11 +357,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 public class AppSecurityConfiguration extends OidcVaadinWebSecurity {
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        super.configure(http);
-
-        http.oauth2Login(oauth2Login -&gt; oauth2Login
-                .loginPage("/oauth2/authorization/keycloak")
+    protected void configureVaadinSpecifics(HttpSecurity http) {
+        http.with(VaadinSecurityConfigurer.vaadin(), configurer -&gt; configurer
+                .oauth2LoginPage("/oauth2/authorization/keycloak")
                 .defaultSuccessUrl("/", true));
     }
 }</code></pre>
@@ -798,6 +797,7 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realm
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.frontendapp.security;
 
+import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
 import io.jmix.oidc.OidcVaadinWebSecurity;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -806,11 +806,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 public class AppSecurityConfiguration extends OidcVaadinWebSecurity {
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        super.configure(http);
-
-        http.oauth2Login(oauth2Login -&gt; oauth2Login
-                .loginPage("/oauth2/authorization/keycloak")
+    protected void configureVaadinSpecifics(HttpSecurity http) {
+        http.with(VaadinSecurityConfigurer.vaadin(), configurer -&gt; configurer
+                .oauth2LoginPage("/oauth2/authorization/keycloak")
                 .defaultSuccessUrl("/", true));
     }
 }</code></pre>
@@ -831,7 +829,7 @@ public class User extends DefaultJmixOidcUser implements HasTimeZone {</code></p
 <li>
 <p><code>FrontendUserMapper</code> bean maps the user information from Keycloak to the <code>User</code> DTO entity:</p>
 <div class="listingblock">
-<div class="title">integrated-apps/service-app/src/main/java/com/company/serviceapp/security/AppUserMapper.java</div>
+<div class="title">separate-tiers/frontend-app/src/main/java/com/company/frontendapp/security/FrontendUserMapper.java</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.frontendapp.security;
 
@@ -900,7 +898,7 @@ jmix.restds.ui-config-store=backend</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>jmix.restds.ui-config-store property</code> defines the REST data store that will be used for UI filter configuration and user settings and persistence.</p>
+<p>The <code>jmix.restds.ui-config-store</code> property defines the REST data store that will be used for UI filter configuration and user settings and persistence.</p>
 </div>
 </li>
 <li>

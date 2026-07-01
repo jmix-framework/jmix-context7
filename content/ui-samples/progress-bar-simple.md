@@ -9,9 +9,9 @@ progress-bar-simple.xml
         <hbox padding="false">
             <h4 text="ProgressBar with indicator"/>
             <button id="controlButton"
-                    icon="PLAY" themeNames="icon tertiary-inline"/>
+                    icon="PLAY" classNames="link-button"/>
         </hbox>
-        <hbox padding="false" classNames="justify-between" width="100%">
+        <hbox padding="false" justifyContent="BETWEEN" width="100%">
             <span id="labelSpan" text="Ready to start"/>
             <span id="percentSpan" text="0%"/>
         </hbox>

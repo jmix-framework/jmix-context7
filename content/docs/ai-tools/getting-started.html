@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Getting Started</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section shows how to enable the assistant in an application: add the dependencies, connect a model, grant access, and ask the first question.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="prerequisites"><a class="anchor" href="#prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before you continue, install the add-on as described in <a class="xref page" href="index.html#installation">Installation</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configure-model"><a class="anchor" href="#configure-model"></a>Connecting a Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on communicates with the LLM through a Spring AI <code>ChatClient</code>, which requires a configured model provider. Choose one of the <a href="https://docs.spring.io/spring-ai/reference/api/index.html" rel="noopener" target="_blank">Spring AI model starters</a> and add it to your <code>build.gradle</code>. For example, for OpenAI:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'org.springframework.ai:spring-ai-starter-model-openai'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then specify the provider settings in <code>application.properties</code>. These are standard <a href="https://docs.spring.io/spring-ai/reference/" rel="noopener" target="_blank">Spring AI</a> properties, not properties defined by this add-on:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.ai.openai.api-key=${OPENAI_API_KEY}
+spring.ai.openai.chat.options.model=gpt-4o-mini</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Keep secrets such as the API key out of <code>application.properties</code>. Pass them through an environment variable or another externalized configuration source, as shown above.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If no model is configured, the application still starts and the chat UI still renders, but the assistant cannot answer. The composer is disabled, and the user sees a notification. This lets you add the UI before the model configured.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="grant-access"><a class="anchor" href="#grant-access"></a>Granting Access</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Access to the chat is controlled by the <code>aitools-chat-user</code> resource role. Assign it to the users who should be able to use the assistant. See <a class="xref page" href="ui.html#roles">Security Role</a> for details.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="first-question"><a class="anchor" href="#first-question"></a>Asking the First Question</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After you restart the application, a new <strong>Chats</strong> item appears under the <strong>AI</strong> section in the main menu.</p>
+</div>
+<div class="paragraph">
+<p>Open the chat and submit a request in natural language, for example <em>"How many active users are there?"</em>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="AI tools chat" src="_images/ai-tools-chat.png" width="560"/>
+</div>
+</div>
+<div class="paragraph">
+<p>You can configure which data the assistant can access and how much data it includes in responses. See <a class="xref page" href="tools.html">Tools</a> and <a class="xref page" href="properties.html">Application Properties</a> for details.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -28,7 +28,7 @@
 </div>
 </li>
 <li>
-<p><code>CategoryAttribute</code> represents a dynamic attribute associated with a specific category. Each attribute defines a single field with a specific data type. The required <code>code</code> field holds the system identifier of the attribute, while the <code>name</code> field contains the human-readable attribute name.</p>
+<p><code>CategoryAttribute</code> represents a dynamic attribute associated with a specific category. Each attribute defines a single field with a specific data type. The required <code>code</code> field holds the system identifier of the attribute, while the <code>name</code> field contains the human-readable attribute name. The <code>code</code> field is a technical identifier and can contain only Latin letters, digits, and the <code>_</code> symbol. The first character must be a lowercase Latin letter.</p>
 </li>
 <li>
 <p><code>CategoryAttributeValue</code> signifies the value of a dynamic attribute for a specific entity instance. These values are stored in the dedicated <code>SYS_ATTR_VALUE</code> table. Each record in the table is linked to a particular entity through the <code>ENTITY_ID</code> column.</p>
@@ -59,6 +59,18 @@
 </li>
 </ul>
 </div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you use <a class="xref page" href="../data-access/data-repositories.html">data repositories</a>, set the same hint with <code>@QueryHints</code> and <code>@QueryHint</code> annotations on repository methods. See <a class="xref page" href="../data-access/data-repositories.html#jmix-specific-parameters">Jmix-Specific Parameters</a> for an example.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>By default, dynamic attributes are not loaded. At the same time, <code>DataManager</code> always saves dynamic attributes contained in entity instances passed to <code>save()</code>.</p>
 </div>
@@ -86,6 +98,20 @@ public void increaseLoadCapacity(Car car, int value) {
 </div>
 <div class="paragraph">
 <p>In practice, direct access to attribute values in the application code is rarely necessary. Any dynamic attribute can be automatically displayed in any <code>DataGrid</code> or <code>FormLayout</code> component linked to a data container featuring the entity associated with the dynamic attribute. When setting up dynamic attributes, you can define <a class="xref page" href="dynattr-managing.html#visibility">attribute visibility</a> within views and components.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="jmix.dynattr.ui.groovy-enabled"><a class="anchor" href="#jmix.dynattr.ui.groovy-enabled"></a>Disabling Groovy Execution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dynamic attributes can use Groovy scripts for validation, recalculation, and loading options. These scripts execute arbitrary Groovy code. You can disable their execution by setting the <code>jmix.dynattr.ui.groovy-enabled</code> application property to <code>false</code>.</p>
+</div>
+<div class="paragraph">
+<p>When disabled, the scripts are not executed at runtime, a warning is logged, and the corresponding script editors become read-only in the UI.</p>
+</div>
+<div class="paragraph">
+<p>This feature is also controlled by the global <a class="xref page" href="../app-properties.html#jmix.core.unsafe-runtime-features-enabled">jmix.core.unsafe-runtime-features-enabled</a> switch.</p>
 </div>
 </div>
 </div>

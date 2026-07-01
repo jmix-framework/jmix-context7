@@ -14,7 +14,7 @@
 <p>Authentication is the process of verifying the identity of a user or process that interacts with the system. For example, the system can authenticate users by their username and password. For authenticated users, the system can perform <a class="xref page" href="authorization.html">authorization</a>, which is a check of permissions to a particular resource.</p>
 </div>
 <div class="paragraph">
-<p>Jmix directly uses Spring Security <a href="https://docs.spring.io/spring-security/reference/6.5/servlet/authentication/index.html" rel="noopener" target="_blank">servlet authentication</a>, so if you are familiar with this framework, you can easily extend or override the standard authentication mechanism provided by Jmix out-of-the-box.</p>
+<p>Jmix directly uses Spring Security <a href="https://docs.spring.io/spring-security/reference/7.0/servlet/authentication/index.html" rel="noopener" target="_blank">servlet authentication</a>, so if you are familiar with this framework, you can easily extend or override the standard authentication mechanism provided by Jmix out-of-the-box.</p>
 </div>
 </div>
 </div>
@@ -27,10 +27,10 @@
 <div class="ulist">
 <ul>
 <li>
-<p><code>getUser()</code> returns the currently authenticated user as <a href="https://docs.spring.io/spring-security/site/docs/6.5.x/api/org/springframework/security/core/userdetails/UserDetails.html" rel="noopener" target="_blank">UserDetails</a>. You can cast it to the class of <a class="xref page" href="users.html#entity">users</a> defined in your project.</p>
+<p><code>getUser()</code> returns the currently authenticated user as <a href="https://docs.spring.io/spring-security/site/docs/7.0.x/api/org/springframework/security/core/userdetails/UserDetails.html" rel="noopener" target="_blank">UserDetails</a>. You can cast it to the class of <a class="xref page" href="users.html#entity">users</a> defined in your project.</p>
 </li>
 <li>
-<p><code>getAuthentication()</code> returns the <a href="https://docs.spring.io/spring-security/site/docs/6.5.x/api/org/springframework/security/core/Authentication.html" rel="noopener" target="_blank">Authentication</a> object associated with the current execution thread. The <code>Authentication</code> object stores the names of the user’s roles.</p>
+<p><code>getAuthentication()</code> returns the <a href="https://docs.spring.io/spring-security/site/docs/7.0.x/api/org/springframework/security/core/Authentication.html" rel="noopener" target="_blank">Authentication</a> object associated with the current execution thread. The <code>Authentication</code> object stores the names of the user’s roles.</p>
 <div class="paragraph">
 <p>Jmix uses the Spring Security <a href="https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/authority/SimpleGrantedAuthority.html" rel="noopener" target="_blank">SimpleGrantedAuthority</a> class to represent user roles. This class effectively stores a single string representing a role. The format of this string is:</p>
 </div>
@@ -118,10 +118,10 @@ private String getRoleNames(Authentication authentication) {
 </td>
 <td class="content">
 <div class="paragraph">
-<p><code>CurrentAuthentication</code> is just a wrapper around <a href="https://docs.spring.io/spring-security/site/docs/6.5.x/api/org/springframework/security/core/context/SecurityContextHolder.html" rel="noopener" target="_blank">SecurityContextHolder</a>, so it is fully compatible with all Spring Security mechanisms.</p>
+<p><code>CurrentAuthentication</code> is just a wrapper around <a href="https://docs.spring.io/spring-security/site/docs/7.0.x/api/org/springframework/security/core/context/SecurityContextHolder.html" rel="noopener" target="_blank">SecurityContextHolder</a>, so it is fully compatible with all Spring Security mechanisms.</p>
 </div>
 <div class="paragraph">
-<p>For example, you can use <code>DelegatingSecurityContextRunnable</code> to propagate authentication to new threads as described in <a href="https://docs.spring.io/spring-security/reference/6.5/servlet/integrations/concurrency.html" rel="noopener" target="_blank">Spring Security documentation</a>.</p>
+<p>For example, you can use <code>DelegatingSecurityContextRunnable</code> to propagate authentication to new threads as described in <a href="https://docs.spring.io/spring-security/reference/7.0/servlet/integrations/concurrency.html" rel="noopener" target="_blank">Spring Security documentation</a>.</p>
 </div>
 </td>
 </tr>
@@ -252,6 +252,18 @@ public void onValidation(final ValidationEvent event) {
         }
     }</code></pre>
 </div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+See also <a class="xref page" href="users.html#password-change-at-next-login">Password Change at Next Login</a> for how to force users to change an initial or temporary password after login.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -388,7 +400,17 @@ Studio can help you generate listeners to authentication events. Click <strong>N
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.entity.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
+import org.springframework.security.authentication.event.LogoutSuccessEvent;
+import org.springframework.stereotype.Component;
+
+@Component
 public class AuthenticationEventListener {
 
     private static final Logger log =
@@ -488,7 +510,7 @@ Do not use <code>CurrentAuthentication</code> bean to get <a href="#current">cur
 <div class="sect2">
 <h3 id="sessions-in-ui"><a class="anchor" href="#sessions-in-ui"></a>Sessions in UI</h3>
 <div class="paragraph">
-<p>By default, the UI user session is active as long as at least one browser tab with the application is open. If all browser tabs are closed, the user session lasts for the period defined in the <a href="https://docs.spring.io/spring-boot/3.5/appendix/application-properties/index.html#application-properties.server.server.servlet.session.timeout" rel="noopener" target="_blank">server.servlet.session.timeout</a> application property.</p>
+<p>By default, the UI user session is active as long as at least one browser tab with the application is open. If all browser tabs are closed, the user session lasts for the period defined in the <a href="https://docs.spring.io/spring-boot/4.0/appendix/application-properties/index.html#application-properties.server.server.servlet.session.timeout" rel="noopener" target="_blank">server.servlet.session.timeout</a> application property.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -525,7 +547,7 @@ vaadin.heartbeatInterval=90</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>See also <a href="https://vaadin.com/docs/v24/flow/advanced/application-lifecycle#application.lifecycle.session" rel="noopener" target="_blank">Vaadin Documentation: User Session</a> for more information.</p>
+<p>See also <a href="https://vaadin.com/docs/v25/flow/advanced/application-lifecycle#application.lifecycle.session" rel="noopener" target="_blank">Vaadin Documentation: User Session</a> for more information.</p>
 </div>
 </div>
 <div class="sect2">

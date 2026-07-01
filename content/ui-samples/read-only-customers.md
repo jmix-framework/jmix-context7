@@ -20,7 +20,7 @@ read-only-customers.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <hbox id="buttonsPanel" classNames="buttons-panel">
+        <hbox id="buttonsPanel" width="100%" wrap="true">
             <button id="createBtn" action="readOnlyCustomersDataGrid.create"/>
             <button id="editBtn" action="readOnlyCustomersDataGrid.edit"/>
             <button id="removeBtn" action="readOnlyCustomersDataGrid.remove"/>
@@ -137,7 +137,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Release 3.0 :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Release 3.0</h1>
+<div class="sect1">
+<h2 id="upgrade"><a class="anchor" href="#upgrade"></a>How To Upgrade</h2>
+<div class="sectionbody">
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To create new projects with Jmix 3.0 or to upgrade an existing project, you need Studio 3.0 or later, so <a class="xref page" href="../studio/update.html">update</a> your Jmix Studio plugin first.</p>
+</div>
+<div class="paragraph">
+<p>The minimal supported IntelliJ IDEA version is now 2025.3.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Jmix 3.0 requires Java 21 or 25. Update your IDE project settings to use Java 21 JDK before upgrading to Jmix 3.0:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>File → Project Structure → Project → SDK</p>
+</li>
+<li>
+<p>Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JVM</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../studio/project.html#upgrading-project">Upgrading Project</a> section for how to upgrade your project using Studio. The automatic migration procedure makes the following changes in your project:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Updates the version of Jmix BOM which in turn defines versions of all dependencies.</p>
+</li>
+<li>
+<p>Updates the version of Jmix Gradle plugin.</p>
+</li>
+<li>
+<p>Updates Gradle wrapper to 9.5.1</p>
+</li>
+<li>
+<p>Adds dependencies:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>implementation 'com.vaadin:vaadin-dev'</code></p>
+</li>
+<li>
+<p><code>testImplementation 'org.springframework.boot:spring-boot-jdbc-test'</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Adds <code>productionMode = false</code> to the <code>vaadin</code> block in <code>build.gradle</code>.</p>
+</li>
+<li>
+<p>Adds <code>@Stylesheet(Lumo.UTILITY_STYLESHEET)</code> annotation to the application class.</p>
+</li>
+<li>
+<p>Migrates compact theme declaration from <code>@JsModule</code> to <code>@Stylesheet</code>.</p>
+</li>
+<li>
+<p>Removes <code>lumoImports</code> from <code>theme.json</code>.</p>
+</li>
+<li>
+<p>Adds <code>offline=false</code> to <code>@PWA</code> annotation.</p>
+</li>
+<li>
+<p>Migrates signature of <code>@Install loadFromRepositoryDelegate</code> for instance loaders.</p>
+</li>
+<li>
+<p>Sets attribute <code>operationTextVisible</code> to false for <code>propertyFilter</code> in some cases.</p>
+</li>
+<li>
+<p>Migrates imports:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>com.vaadin.flow.component.splitlayout.SplitLayout.SplitterDragendEvent</code></p>
+</li>
+<li>
+<p><code>io.jmix.authserver.service.mapper.JdbcOAuth2AuthorizationServiceObjectMapperCustomizer</code></p>
+</li>
+<li>
+<p><code>io.jmix.flowui.component.validation.group.UiCrossFieldChecks</code></p>
+</li>
+<li>
+<p><code>org.springframework.boot.autoconfigure.jdbc.DataSourceProperties</code></p>
+</li>
+<li>
+<p><code>org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties</code></p>
+</li>
+<li>
+<p><code>org.springframework.boot.autoconfigure.web.ServerProperties</code></p>
+</li>
+<li>
+<p><code>org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Adds a comment for every injected <code>JmixUpload</code> about generic type.</p>
+</li>
+<li>
+<p>Parameterizes <code>FileUploadSucceededEvent</code> generic type depending on the field type: <code>FileUploadField</code> or <code>FileStorageUploadField</code>.</p>
+</li>
+<li>
+<p>Removes <code>DropdownButton</code> <code>icon</code> theme name if the <code>text</code> attribute is set.</p>
+</li>
+<li>
+<p>Removes <code>@io.jmix.maps.Geometry</code> annotation.</p>
+</li>
+<li>
+<p>Migrates <code>JmixUserDetails</code> <code>authorities</code> contract in Kotlin projects.</p>
+</li>
+<li>
+<p>Sets <code>jmix.ui.legacy-monitoring-enabled=true</code>.</p>
+</li>
+<li>
+<p>Sets <code>jmix.reports.use-legacy-date-time-types=true</code> and <code>jmix.reports.client.show-report-table-view-in-menu=true</code> if the Reports add-on is included.</p>
+</li>
+<li>
+<p>Sets <code>com.vaadin.experimental.themeComponentStyles=true</code> in <code>src/main/resources/vaadin-featureflags.properties</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See also the full list of <a href="#breaking-changes">breaking changes</a> that can affect your project after the upgrade.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Execute the following Gradle tasks in the terminal after migration and before building and running the application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">./gradlew clean vaadinClean</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="updated-dependencies"><a class="anchor" href="#updated-dependencies"></a>Updated Dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following major dependencies have been updated:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Spring Boot 4.0</p>
+</li>
+<li>
+<p>Vaadin 25.1</p>
+</li>
+<li>
+<p>EclipseLink 5.0</p>
+</li>
+<li>
+<p>Flowable 8.0</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="spring-boot-4"><a class="anchor" href="#spring-boot-4"></a>Common Spring Boot 4 Migration Notes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Rename Jackson packages: <code>com.fasterxml.jackson.databind</code> → <code>tools.jackson.databind</code></p>
+</li>
+<li>
+<p>Nullability annotations of <code>org.springframework.lang</code> package are now deprecated. Replace them with <code>org.jspecify.annotations</code>, for example:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>org.springframework.lang.Nullable</code> → <code>org.jspecify.annotations.Nullable</code></p>
+</li>
+<li>
+<p><code>org.springframework.lang.NonNullApi</code> → <code>org.jspecify.annotations.NullMarked</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>For distributed tracing, switch to the <code>spring-boot-starter-opentelemetry</code> starter and update the OTLP export properties. See <a class="xref page" href="../features/observability.html#tracing">Observability / Tracing</a> for the updated setup.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See the following resources for more information:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide" rel="noopener" target="_blank">Spring Boot 4.0 Migration Guide</a></p>
+</li>
+<li>
+<p><a href="https://github.com/FasterXML/jackson/blob/main/jackson3/MIGRATING_TO_JACKSON_3.md" rel="noopener" target="_blank">Jackson 3 Migration Guide</a></p>
+</li>
+<li>
+<p><a href="https://docs.spring.io/spring-framework/reference/core/null-safety.html#null-safety-guidelines-jspecify" rel="noopener" target="_blank">Spring Framework / Null-safety / JSpecify</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="new-features"><a class="anchor" href="#new-features"></a>New Features and Improvements</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="studio-improvements"><a class="anchor" href="#studio-improvements"></a>Studio Improvements</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>AI Agents Toolkit</strong> action available in the <strong>Settings</strong> menu of the <strong>Jmix</strong> tool window allows you to automatically install agent skills, instructions, and MCP servers from the <a href="https://github.com/jmix-framework/jmix-agent-guidelines" rel="noopener" target="_blank">Jmix AI Agent Guidelines</a> GitHub repository into the current project. It supports the following agents: Claude Code CLI, Codex, OpenCode, Junie.</p>
+</li>
+<li>
+<p><strong>Do not generate Liquibase drop changesets for unmapped tables</strong> option has been added to the <strong>Data Store Properties</strong> dialog.</p>
+</li>
+<li>
+<p>Inherited attributes can now be displayed in the <a class="xref page" href="../studio/entity-designer.html">entity designer</a>.</p>
+</li>
+<li>
+<p>Studio now helps you create <a class="xref page" href="../data-access/custom-update-services.html">custom update services</a> and use them in views. When you create a JPA entity, select the <strong>Create Update Service</strong> checkbox in the <strong>New JPA Entity</strong> dialog to generate a service class. Later, when you create a view for an entity that has an update service, select the <strong>Use Update Service</strong> checkbox in the <strong>Create Jmix View</strong> dialog to delegate saving and removing to that service automatically.</p>
+</li>
+<li>
+<p>If the <a class="xref page" href="../multitenancy/index.html">Multitenancy</a> add-on is included in the project, the new <strong>Has Tenant ID</strong> trait allows you to add a <code>@TenantId</code> attribute to an entity.</p>
+</li>
+<li>
+<p><a class="xref page" href="../search/index-definitions.html#creating-index-definition">Search</a> index definitions and <a class="xref page" href="../quartz/index.html">Quartz</a> jobs are displayed in the <strong>Jmix</strong> tool window and can be quickly created from templates.</p>
+</li>
+<li>
+<p>Main Jmix features are now available in the context menu of the <strong>Project</strong> tool window:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Jmix Project Properties</strong></p>
+</li>
+<li>
+<p><strong>Jmix Main Data Store</strong></p>
+</li>
+<li>
+<p><strong>Jmix Additional Data Stores</strong></p>
+</li>
+<li>
+<p><strong>Jmix Add-ons</strong></p>
+</li>
+<li>
+<p><strong>New → Jmix → …​</strong></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Studio can now read and update build scripts written in Kotlin DSL (<code>build.gradle.kts</code>).</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="dynamic-model"><a class="anchor" href="#dynamic-model"></a>Dynamic Model Add-on</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../dyn-model/index.html">Dynamic Model</a> add-on lets you extend the data model of a running application without changing source code or restarting: you can add attributes to existing entities and define entirely new entities backed by dedicated database tables. The model is edited in a graphical admin UI, stored as a versioned definition, and can include runtime UI such as views and menu items, along with validation, uniqueness, and security based on resource roles.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ai-tools"><a class="anchor" href="#ai-tools"></a>AI Tools Add-on</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../ai-tools/index.html">AI Tools</a> add-on brings an LLM-powered assistant to Jmix applications. It provides a ready-to-use chat UI, a programmatic API, predefined tools for natural-language data access, and extension points for adding custom tools.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="aura-theme"><a class="anchor" href="#aura-theme"></a>Aura Theme</h3>
+<div class="paragraph">
+<p>With the upgrade to Vaadin 25, Jmix applications now support the new Aura theme. The existing Lumo theme remains available. When creating a project in Studio, you can choose the theme you want to use.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="aura theme" src="_images/aura-theme.png" width="776"/>
+</div>
+<div class="title">Dynamic Model add-on with Aura theme</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="markdown-editor"><a class="anchor" href="#markdown-editor"></a>MarkdownEditor Component</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../flow-ui/vc/components/markdownEditor.html">markdownEditor</a> component allows users to write and preview Markdown content within a single field. It provides a formatting toolbar, mode switching between <strong>Edit</strong> and <strong>Preview</strong>, keyboard shortcuts, and standard field features such as data binding, validation, and theming.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="data-grid-detail-renderers"><a class="anchor" href="#data-grid-detail-renderers"></a>DataGrid and TreeDataGrid Detail Renderers</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a> and <a class="xref page" href="../flow-ui/vc/components/treeDataGrid.html">treeDataGrid</a> components now provide two predefined XML renderers for opening entity detail views directly from a column:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../flow-ui/vc/components/dataGrid.html#detail-link-renderer"><code>detailLinkRenderer</code></a> renders a link to the detail view,</p>
+</li>
+<li>
+<p><a class="xref page" href="../flow-ui/vc/components/dataGrid.html#detail-button-renderer"><code>detailButtonRenderer</code></a> renders a button that opens the detail view by navigation or in a dialog.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This makes it easier to add <strong>Open</strong> or <strong>Edit</strong> actions to a <code>dataGrid</code> or <code>treeDataGrid</code> column without writing a custom renderer.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="application-wide-sorting-customization"><a class="anchor" href="#application-wide-sorting-customization"></a>Application-Wide Sorting Customization</h3>
+<div class="paragraph">
+<p>Jmix Flow UI now provides dedicated extension points for customizing sorting behavior. Developers can register sorting customizations as Spring beans for both <a class="xref page" href="../flow-ui/data/data-examples.html#custom-in-memory-sorting">in-memory sorting</a> and <a class="xref page" href="../flow-ui/data/data-examples.html#jpql-sort-expressions">JPQL sort expressions</a>.</p>
+</div>
+<div class="paragraph">
+<p>Because each customization is defined as a separate bean, applications and add-ons can contribute their own sorting rules while keeping them independent and reusable. This avoids conflicts between rules and removes the need to modify global framework defaults such as <code>SorterFactory</code> or <code>JpqlSortExpressionProvider</code>.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../flow-ui/data/data-examples.html#sorting">Sorting</a> for details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="per-grid-sorting-customization"><a class="anchor" href="#per-grid-sorting-customization"></a>Per-Grid Sorting Customization</h3>
+<div class="paragraph">
+<p>In addition to application-wide sorting customization, developers can now customize sorting for a specific <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a> or <a class="xref page" href="../groupdatagrid/groupdatagrid-component.html">groupDataGrid</a>. These components can use a <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#column-comparator">Column Comparator</a> for in-memory sorting and a <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#sort-builder-delegate">Sort Builder Delegate</a> to map a column to custom comparators and database sort expressions.</p>
+</div>
+<div class="paragraph">
+<p>This approach keeps sorting rules close to the grid configuration. It is useful when sorting requirements are specific to a single view.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="runtime-view-templates"><a class="anchor" href="#runtime-view-templates"></a>Runtime View Templates</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../flow-ui/views/view-templates.html">Runtime View Templates</a> feature lets you generate standard list and detail views from templates declared on entity metadata, instead of creating them manually at design time. You annotate an entity class with <code>@ListViewTemplate</code> and <code>@DetailViewTemplate</code>, and the framework generates the corresponding views, routes, and menu items at startup.</p>
+</div>
+<div class="paragraph">
+<p>Built-in templates render a <code>dataGrid</code> for list views and a <code>formLayout</code> for detail views, with configurable property filtering. Detail views of entities that have composition collections render a <code>tabSheet</code> with a separate editable grid per collection. You can also supply a custom Freemarker template to fully control the generated view content.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="genericfilter-builder-api"><a class="anchor" href="#genericfilter-builder-api"></a>GenericFilter Builder API</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../flow-ui/vc/components/genericFilter.html#creating-filter-programmatically">genericFilter fluent builder API</a> provides a concise way to configure a filter in Java. Use <code>filterComponentBuilder()</code> to create <code>propertyFilter</code>, <code>jpqlFilter</code>, and <code>groupFilter</code> components, and <code>runtimeConfigurationBuilder()</code> to assemble and register a run-time configuration. The builder performs the component initialization — data loader wiring, parameter-name and value-component generation, condition delegation — that previously had to be written explicitly through the low-level API.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="disabling-unsafe-runtime-features"><a class="anchor" href="#disabling-unsafe-runtime-features"></a>Disabling Unsafe Runtime Features</h3>
+<div class="paragraph">
+<p>New application properties let you turn off runtime features that can execute arbitrary code or expose internal information and therefore may be unsafe in production. All properties default to <code>true</code>, so the current behavior is preserved unless a property is explicitly turned off.</p>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../app-properties.html#jmix.core.unsafe-runtime-features-enabled">jmix.core.unsafe-runtime-features-enabled</a> property is a global kill switch: when it is <code>false</code>, all the guarded features below are disabled regardless of their own properties. Each feature can also be turned off individually:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../app-properties.html#jmix.core.hot-deploy-enabled">jmix.core.hot-deploy-enabled</a> – loading classes from the file system by Hot Deploy.</p>
+</li>
+<li>
+<p><a class="xref page" href="../app-properties.html#jmix.core.trigger-files-enabled">jmix.core.trigger-files-enabled</a> – bean invocation through trigger files.</p>
+</li>
+<li>
+<p><a class="xref page" href="../security/row-level-roles.html#jmix.security.data.groovy-enabled">jmix.security.data.groovy-enabled</a> – Groovy execution in predicate row-level policies.</p>
+</li>
+<li>
+<p><a class="xref page" href="../dyn-attr/dynattr-api.html#jmix.dynattr.ui.groovy-enabled">jmix.dynattr.ui.groovy-enabled</a> – Groovy execution in dynamic attribute scripts.</p>
+</li>
+<li>
+<p><a class="xref page" href="../reports/configuration.html#jmix.reports.groovy-enabled">jmix.reports.groovy-enabled</a> – Groovy execution in reports.</p>
+</li>
+<li>
+<p><a class="xref page" href="../jmx-console/index.html#jmix.jmxconsole.write-and-invoke-enabled">jmix.jmxconsole.write-and-invoke-enabled</a> – write and invoke operations in the JMX console.</p>
+</li>
+<li>
+<p><a class="xref page" href="../data-tools/data-model.html#jmix.datatools.data-model-diagram.public-server-enabled">jmix.datatools.data-model-diagram.public-server-enabled</a> – sending the data model to the public PlantUML server.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See <a href="https://github.com/jmix-framework/jmix/issues/5287" rel="noopener" target="_blank">#5287</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="password-change-at-next-login"><a class="anchor" href="#password-change-at-next-login"></a>Password Change at Next Login</h3>
+<div class="paragraph">
+<p>It is now possible to require users to change their password at the next login. You can use this when creating a new user or when assigning a temporary password with the standard <strong>Reset Password</strong> action.</p>
+</div>
+<div class="paragraph">
+<p>Learn more in <a class="xref page" href="../security/users.html#password-change-at-next-login">Password Change at Next Login</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="message-template-preview"><a class="anchor" href="#message-template-preview"></a>Message Template Preview</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../message-templates/message-templates.html">Message Templates</a> add-on now lets users validate templates directly in the UI before using them. The new <strong>Preview</strong> action helps check rendering with actual parameter values, and exposes FreeMarker or missing-parameter problems earlier.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="breaking-changes"><a class="anchor" href="#breaking-changes"></a>Breaking Changes</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="security-breaking-changes"><a class="anchor" href="#security-breaking-changes"></a>Security</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In Vaadin 25 the default authorization rule for requests that don’t match a known view or framework resource changed from "authenticated" to "deny". As a result, being logged in no longer grants access to arbitrary paths the way it did in Jmix 2. Custom static resources (e.g. <code>/icons/**</code>, <code>/images/**</code>) now return HTTP 403 unless their path is explicitly permitted.</p>
+<div class="paragraph">
+<p>When migrating to Jmix 3.0, applications that serve custom static resources must explicitly allow those paths by registering a dedicated <code>SecurityFilterChain</code> as explained in the <a class="xref page" href="../security/custom-endpoints.html">Custom Endpoints</a> section.</p>
+</div>
+</li>
+<li>
+<p>The <code>VaadinWebSecurity</code> class has been removed in Vaadin 25. The <code>FlowuiVaadinWebSecurity</code> class exists, but doesn’t extend the Vaadin’s class anymore. If you have overridden <code>VaadinWebSecurity</code> methods like <code>configure(WebSecurity web)</code>, rewrite your configuration using <code>SecurityFilterChain</code> or <code>WebSecurityCustomizer</code> beans as described in the <a class="xref page" href="../security/custom-endpoints.html">Custom Endpoints</a> section.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>See <a href="https://vaadin.com/docs/v25/upgrading#security-configuration-changes" rel="noopener" target="_blank">Vaadin security configuration migration docs</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="application-settings-tenant-id"><a class="anchor" href="#application-settings-tenant-id"></a>TENANT_ID Column in Application Settings</h3>
+<div class="paragraph">
+<p>The <code>AppSettingsEntity</code> base class of the Application Settings add-on now has <code>tenantId</code> attribute to support multitenancy (see <a href="https://github.com/jmix-framework/jmix/issues/5144" rel="noopener" target="_blank">#5144</a>). If you have application entities extending this base class, you need to create the <code>TENANT_ID</code> column for this attribute in your database.</p>
+</div>
+<div class="paragraph">
+<p>Use the <strong>Data Store</strong> → <strong>Main</strong> → <strong>Generate Liquibase Changelog</strong> action, or, if you don’t have a subscription, create a new changelog using the <strong>Data Stores</strong> → <strong>Main</strong> → <strong>New</strong> → <strong>Liquibase Changelog</strong> action and add a changeset like this (replace <code>MY_SETTINGS</code> with your settings table):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;changeSet author="sample" id="1"&gt;
+    &lt;addColumn tableName="MY_SETTINGS"&gt;
+        &lt;column name="TENANT_ID" type="VARCHAR(255)"/&gt;
+    &lt;/addColumn&gt;
+&lt;/changeSet&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../studio/data-stores.html#data-store-actions">Data Store Actions</a> for more information about data store actions in Studio.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jasperreports-dependencies"><a class="anchor" href="#jasperreports-dependencies"></a>JasperReports Dependencies</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../reports/index.html">Reports</a> add-on does not bring JasperReports dependencies transitively anymore. If you use <a class="xref page" href="../reports/creation/templates.html#template_jasper">JasperReports templates</a>, add the following dependencies to your <code>build.gradle</code> explicitly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'net.sf.jasperreports:jasperreports'
+implementation 'net.sf.jasperreports:jasperreports-fonts'
+implementation 'net.sf.jasperreports:jasperreports-functions'</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="overlays-breaking-changes"><a class="anchor" href="#overlays-breaking-changes"></a>Overlays</h3>
+<div class="paragraph">
+<p>Overlay internals and styling behavior have changed in Vaadin 25. If your application customizes overlays, review the <a href="https://vaadin.com/docs/v25/upgrading#overlays" rel="noopener" target="_blank">Vaadin overlay upgrade notes</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="download-api-breaking-changes"><a class="anchor" href="#download-api-breaking-changes"></a>Download API Changes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>Downloader</code> bean now works through <code>DownloaderExportHandler</code>, which implements Vaadin’s <a href="https://vaadin.com/docs/v25/flow/advanced/downloads" rel="noopener" target="_blank">DownloadHandler API</a>. As a result, generated URLs now have the <code>VAADIN/dynamic/resource/&lt;random_id&gt;</code> format instead of <code>/download/UUID</code>. Previously, the <code>Downloader</code> bean created <code>JmixFileDownloader</code>, which served a <code>StreamResource</code>. <code>JmixFileDownloader</code> will be removed in the next major release, or earlier if Vaadin removes <code>StreamResource</code>.</p>
+</li>
+<li>
+<p><code>UiComponentUtils#createResource()</code> now returns <code>DownloadHandler</code> instead of <code>StreamResource</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="upload-api-breaking-changes"><a class="anchor" href="#upload-api-breaking-changes"></a>Upload API Changes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../flow-ui/vc/components/fileUploadField.html">fileUploadField</a>, <a class="xref page" href="../flow-ui/vc/components/fileStorageUploadField.html">fileStorageUploadField</a>, and <a class="xref page" href="../webdav/ui-components.html#webdav-document-upload-field">WebdavDocumentUploadField</a> were updated internally to use Vaadin’s <code>UploadHandler</code> API.</p>
+</li>
+<li>
+<p><code>FileUploadSucceededEvent</code> now provides direct access to the uploaded file data. To support this, its generic type signature has changed from <code>&lt;FileStorageUploadField&gt;</code> to <code>&lt;FileStorageUploadField, FileInfo&gt;</code>. See the <a class="xref page" href="../flow-ui/vc/components/fileStorageUploadField.html#FileUploadSucceededEvent">example</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="upload-component-api-breaking-changes"><a class="anchor" href="#upload-component-api-breaking-changes"></a>Upload Component API</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../flow-ui/vc/components/upload.html">upload</a> component API has changed:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The component now uses handler-based configuration. Use <a class="xref page" href="../flow-ui/vc/components/upload.html#uploadHandlerType">uploadHandlerType</a> instead of <code>receiverType</code>, and <a class="xref page" href="../flow-ui/vc/components/upload.html#uploadHandlerFqn">uploadHandlerFqn</a> instead of <code>receiverFqn</code>.</p>
+</li>
+<li>
+<p>Vaadin-deprecated listener methods were replaced:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>addFailedListener()</code> → <code>addUploadFailedListener()</code></p>
+</li>
+<li>
+<p><code>addFinishedListener()</code> → <code>addUploadFinishedListener()</code></p>
+</li>
+<li>
+<p><code>addProgressListener()</code> → <code>addUploadProgressListener()</code></p>
+</li>
+<li>
+<p><code>addStartedListener()</code> → <code>addUploadStartedListener()</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>addUploadSucceededListener()</code> now receives <a class="xref page" href="../flow-ui/vc/components/upload.html#UploadSucceededEvent">UploadSucceededEvent&lt;V&gt;</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="dialog-mode-breaking-changes"><a class="anchor" href="#dialog-mode-breaking-changes"></a><code>@DialogMode</code></h3>
+<div class="paragraph">
+<p><code>@DialogMode.modal()</code> is deprecated. Use <a class="xref page" href="../flow-ui/views/opening-views.html#dialog-parameters">modality()</a> instead.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="theme-variants-breaking-changes"><a class="anchor" href="#theme-variants-breaking-changes"></a>Theme Variants Changes</h3>
+<div class="paragraph">
+<p>Theme variants were updated, with some removed, some added, and a few changing in behavior:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>align-start</code> and <code>align-end</code> were added for field components.</p>
+</li>
+<li>
+<p><code>always-float-label</code> is no longer available for field components.</p>
+</li>
+<li>
+<p><code>contained</code> and <code>outlined</code> are no longer available for button components.</p>
+</li>
+<li>
+<p><code>icon-on-top</code> must now be applied to nested <code>tab</code> elements in <a class="xref page" href="../flow-ui/vc/components/tabs.html">tabs</a> and <a class="xref page" href="../flow-ui/vc/layouts/tabSheet.html">tabSheet</a>.</p>
+</li>
+<li>
+<p><code>dropdown-indicators</code> is used internally by <a class="xref page" href="../flow-ui/vc/components/dropdownButton.html#theme-variants">dropdownButton</a> to display the dropdown indicator. In Lumo, use the <code>icon</code> theme name when you want to hide these indicators.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Theme variants support now depends on the application theme. Some available only for Lumo, some only for <a href="#aura-theme">Aura</a>, and most work with both themes. Supported variants are listed in each component’s <strong>Theme Variants</strong> section. See <a class="xref page" href="../flow-ui/vc/components/markdownEditor.html#theme-variants">markdownEditor Theme Variants</a> for an example.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="loadFromRepositoryDelegate"><a class="anchor" href="#loadFromRepositoryDelegate"></a>loadFromRepositoryDelegate</h3>
+<div class="paragraph">
+<p>The <code>loadFromRepositoryDelegate</code> handler signature has been changed. It now accepts <code>JmixDataRepositoryContext</code> as the second parameter. You should replace <code>FetchPlan</code> with <code>JmixDataRepositoryContext</code>, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// before
+@Install(to = "customerDl", target = Target.DATA_LOADER, subject = "loadFromRepositoryDelegate")
+private Optional&lt;Customer&gt; loadDelegate(UUID id, FetchPlan fetchPlan) {
+    return repository.findById(id, fetchPlan);
+}
+
+// after
+@Install(to = "customerDl", target = Target.DATA_LOADER, subject = "loadFromRepositoryDelegate")
+private Optional&lt;Customer&gt; loadDelegate(UUID id, JmixDataRepositoryContext context) {
+    return repository.findById(id, context.fetchPlan());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Studio migrates this code automatically.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="https://github.com/jmix-framework/jmix/issues/5139" rel="noopener" target="_blank">#5139</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="value-load-context-conditions"><a class="anchor" href="#value-load-context-conditions"></a><code>ValueLoadContext</code> Conditions</h3>
+<div class="paragraph">
+<p>When using <code>PropertyCondition</code> with <code>ValueLoadContext</code>, do not include the query alias in the property path anymore. Jmix 3.0 now adds the alias automatically, aligning this behavior with regular entity <code>LoadContext</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// before, worked as a workaround
+PropertyCondition condition = PropertyCondition.equal("e.username", "admin");
+
+// now
+PropertyCondition condition = PropertyCondition.equal("username", "admin");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you keep the manual alias, Jmix generates incorrect JPQL and the query fails.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="https://github.com/jmix-framework/jmix/issues/4371" rel="noopener" target="_blank">#4371</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="BaseAction"><a class="anchor" href="#BaseAction"></a>BaseAction</h3>
+<div class="paragraph">
+<p><code>io.jmix.flowui.kit.action.BaseAction</code> and <code>io.jmix.flowui.action.SecuredBaseAction</code> are now self-typed generics. Replace raw usages with a typed action class where possible or use wildcard types, for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// before
+BaseAction action = getAction();
+action.addActionPerformedListener(this::onAction);
+
+// after
+BaseAction&lt;?&gt; action = getAction();
+action.addActionPerformedListener(this::onAction);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="https://github.com/jmix-framework/jmix/issues/5218" rel="noopener" target="_blank">#5218</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="JmixListMenu"><a class="anchor" href="#JmixListMenu"></a>JmixListMenu</h3>
+<div class="paragraph">
+<p>Menu items that execute bean actions are now rendered as real buttons instead of links without navigation targets.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The base CSS class name for all menu items changed from <code>jmix-menu-item-link</code> to <code>jmix-menu-item</code>.</p>
+</li>
+<li>
+<p>Bean menu items are now rendered as vaadin-button instead of a RouterLink.</p>
+</li>
+<li>
+<p>Styling that targeted <code>jmix-menu-item-link</code> should be updated to use <code>jmix-menu-item</code>, or the item-specific CSS class names <code>jmix-menu-item-view</code> and <code>jmix-menu-item-bean</code> where needed.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See <a href="https://github.com/jmix-framework/jmix/issues/5205" rel="noopener" target="_blank">#5205</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="UserManager"><a class="anchor" href="#UserManager"></a>UserManager</h3>
+<div class="paragraph">
+<p>The <code>io.jmix.core.security.UserManager</code> interface has a new method <code>resetPasswords()</code>. If you have an implementation different from <code>AbstractDatabaseUserRepository</code>, implement this method.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="https://github.com/jmix-framework/jmix/pull/5323" rel="noopener" target="_blank">#5323</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="enum-backed-configuration-properties"><a class="anchor" href="#enum-backed-configuration-properties"></a>Enum-backed Configuration Properties</h3>
+<div class="paragraph">
+<p>Getter return types changed in the following properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>UiViewProperties.getValidationNotificationType()</code> → <code>Notifications.Type</code></p>
+</li>
+<li>
+<p><code>UiViewProperties.getValidationNotificationPosition()</code> → <code>Notification.Position</code></p>
+</li>
+<li>
+<p><code>GridExportProperties.getDefaultColumnsToExport()</code> → <code>ColumnsToExport</code></p>
+</li>
+<li>
+<p><code>GridExportProperties.getDefaultExportModes()</code> → <code>List&lt;ExportMode&gt;</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See <a href="https://github.com/jmix-framework/jmix/issues/5262" rel="noopener" target="_blank">#5262</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="openapi-client-generator-configuration"><a class="anchor" href="#openapi-client-generator-configuration"></a>OpenAPI Client Generator Configuration</h3>
+<div class="paragraph">
+<p>If you use <a class="xref page" href="../studio/openapi-client.html">OpenAPI Client Generation</a>, update the configuration in <code>build.gradle</code> as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">plugins {
+    // ...
+    id 'org.openapi.generator' version '7.23.0'
+}
+
+dependencies {
+    // ...
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
+}
+
+tasks.register('openApiGeneratePetclinic', GenerateTask) {
+    inputSpec = layout.projectDirectory.file("src/main/resources/petclinic-openapi.yml")
+    outputDir = layout.buildDirectory.dir("generated/openapi/petclinic")
+    // ...
+    configOptions.set([
+            useRuntimeException: "true",
+            useJakartaEe       : "true",
+            useSpringBoot4     : "true",
+            useJackson3        : "true"
+    ])
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="removed-orphan-timer-metrics"><a class="anchor" href="#removed-orphan-timer-metrics"></a>Removed Orphan Timer Metrics</h3>
+<div class="paragraph">
+<p>The series <code>jmix_JavaClassLoader_loadClass_*</code> and <code>jmix_AnnotationLockDescriptorProvider_loadConfig_*</code> disappear from <code>/actuator/prometheus</code>. Any external dashboard or alert that references them must be updated.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="https://github.com/jmix-framework/jmix/issues/5290" rel="noopener" target="_blank">#5290</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="removed-dependencies"><a class="anchor" href="#removed-dependencies"></a>Removed Dependencies</h3>
+<div class="paragraph">
+<p>XStream has been removed from dependencies of the Audit and Reports add-ons. If you use it in your project, add the dependency explicitly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">implementation 'com.thoughtworks.xstream:xstream:1.4.21'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="https://github.com/jmix-framework/jmix/issues/5337" rel="noopener" target="_blank">#5337</a> for more information.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="changelog"><a class="anchor" href="#changelog"></a>Changelog</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Resolved issues in Jmix Framework:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/jmix-framework/jmix/issues?q=is%3Aclosed+milestone%3A3.0.0" rel="noopener" target="_blank">3.0.0</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Resolved issues in Jmix Studio:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://youtrack.jmix.io/issues/JST?q=Fixed%20in%20builds:%203.0.0,-2.8.*%20Affected%20versions:%20-SNAPSHOT" rel="noopener" target="_blank">3.0.0</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

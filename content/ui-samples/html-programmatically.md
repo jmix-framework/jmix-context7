@@ -5,7 +5,7 @@ Native HTML components can be described programmatically in a view controller.
 html-programmatically.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout>
+    <layout classNames="html-component">
     </layout>
 </view>
 
@@ -96,9 +96,9 @@ public class HtmlProgrammaticallySample extends StandardView {
     protected ListItem[] createFormattingListItems() {
         return new ListItem[]{
                 new ListItem(
-                        createSpan("Bold text: ", "font-semibold"),
+                        createSpan("Bold text: ", "text-semibold"),
                         createSpan("Use the <b> tag to make text "),
-                        createSpan("bold.", "font-semibold")
+                        createSpan("bold.", "text-semibold")
                 ),
                 new ListItem(
                         createSpan("Italic text: ", "font-italic"),
@@ -142,12 +142,16 @@ public class HtmlProgrammaticallySample extends StandardView {
 html-component.css
 
 
-.highlight {
+.html-component .highlight {
     color: red;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-.font-italic {
+.html-component .font-italic {
     font-style: italic;
+}
+
+.html-component .text-semibold {
+    font-weight: 600;
 }
 

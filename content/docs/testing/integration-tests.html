@@ -31,14 +31,42 @@ Use the <strong>New → Advanced → Integration Test</strong> action in the <st
 <div class="listingblock">
 <div class="title">OrderLineEventListener.java</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@EventListener
-public void recalculateOrderAmount(EntityChangedEvent&lt;OrderLine&gt; event) {
-    Order order = findOrderFromEvent(event);
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.entity.Order;
+import com.company.demo.entity.OrderLine;
+import io.jmix.core.DataManager;
+import io.jmix.core.Id;
+import io.jmix.core.event.EntityChangedEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
-    BigDecimal amount = new OrderAmountCalculation().calculateTotalAmount(order.getLines());
-    order.setAmount(amount);
+@Component
+public class OrderLineEventListener {
 
-    dataManager.save(order);
+    @Autowired
+    private DataManager dataManager;
+
+    @EventListener
+    public void recalculateOrderAmount(EntityChangedEvent&lt;OrderLine&gt; event) {
+        Order order = findOrderFromEvent(event);
+
+        BigDecimal amount = new OrderAmountCalculation().calculateTotalAmount(order.getLines());
+        order.setAmount(amount);
+
+        dataManager.save(order);
+    }
+
+    private Order findOrderFromEvent(EntityChangedEvent&lt;OrderLine&gt; event) {
+        Order order;
+        if (event.getType() == EntityChangedEvent.Type.DELETED) {
+            Id&lt;Order&gt; orderId = event.getChanges().getOldReferenceId("order");
+            order = dataManager.load(orderId).one();
+        } else {
+            OrderLine orderLine = dataManager.load(event.getEntityId()).one();
+            order = orderLine.getOrder();
+        }
+        return order;
+    }
 }</code></pre>
 </div>
 </div>
@@ -167,7 +195,7 @@ void tearDown() {
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>The Spring <code>JdbcTestUtils</code> class provides a convenience method to delete all data from a database table. See more information about it in the <a href="https://docs.spring.io/spring-framework/reference/6.2/testing/support-jdbc.html" rel="noopener" target="_blank">Spring testing documentation</a>.</td>
+<td>The Spring <code>JdbcTestUtils</code> class provides a convenience method to delete all data from a database table. See more information about it in the <a href="https://docs.spring.io/spring-framework/reference/7.0/testing/support-jdbc.html" rel="noopener" target="_blank">Spring testing documentation</a>.</td>
 </tr>
 </table>
 </div>
@@ -298,7 +326,7 @@ import io.jmix.email.Emailer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -307,7 +335,7 @@ import static org.mockito.Mockito.doThrow;
 @SpringBootTest
 class NotificationServiceTest {
 
-    @MockBean
+    @MockitoBean
     Emailer emailer;
 
     @Autowired

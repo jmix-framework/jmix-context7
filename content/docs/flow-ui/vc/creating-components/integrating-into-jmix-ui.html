@@ -42,6 +42,7 @@
                 &lt;xs:extension base="layout:baseComponent"&gt;
                     &lt;xs:attribute name="min" type="xs:integer"/&gt;
                     &lt;xs:attribute name="max" type="xs:integer"/&gt;
+                    &lt;xs:attribute name="value" type="xs:integer"/&gt;
 
                     &lt;xs:attributeGroup ref="layout:hasSize"/&gt;
                 &lt;/xs:extension&gt;
@@ -70,6 +71,7 @@ public class SliderLoader extends AbstractComponentLoader&lt;Slider&gt; {
     public void loadComponent() {
         loadInteger(element, "min", resultComponent::setMin); <i class="conum" data-value="1"></i><b>(1)</b>
         loadInteger(element, "max", resultComponent::setMax);
+        loadInteger(element, "value", resultComponent::setValue);
 
         componentLoader().loadSizeAttributes(resultComponent, element); <i class="conum" data-value="2"></i><b>(2)</b>
     }
@@ -95,7 +97,6 @@ public class SliderLoader extends AbstractComponentLoader&lt;Slider&gt; {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Configuration
 public class ComponentRegistrationConfiguration {
-
     @Bean
     public ComponentRegistration slider() {
         return ComponentRegistrationBuilder.create(Slider.class)
@@ -103,6 +104,13 @@ public class ComponentRegistrationConfiguration {
                 .build();
     }
 
+    @Bean
+    public ComponentRegistration datePicker() {
+        return ComponentRegistrationBuilder.create(ExtendedDatePicker.class)
+                .withComponentLoader("datePicker", DatePickerLoader.class)
+                .replaceComponent(TypedDatePicker.class)
+                .build();
+    }
 }</code></pre>
 </div>
 </div>
@@ -119,7 +127,7 @@ public class ComponentRegistrationConfiguration {
     &lt;layout&gt;
         &lt;app:slider id="slider"
                     width="20em"
-                    min="10" max="100"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+                    min="10" max="100" value="50"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
     &lt;/layout&gt;
 &lt;/view&gt;</code></pre>
 </div>

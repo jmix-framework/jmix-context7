@@ -22,7 +22,7 @@ pivot-table-ui-properties.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <hbox classNames="buttons-panel">
+        <hbox width="100%" wrap="true">
             <checkbox id="showRowTotalsCheckbox" label="msg://showRowTotalsCheckbox.label" value="true"/>
             <checkbox id="showColumnTotalsCheckbox" label="msg://showColumnTotalsCheckbox.label" value="true"/>
             <checkbox id="showUiCheckbox" label="msg://showUiCheckbox.label" value="true"/>
@@ -107,7 +107,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.util.UUID;

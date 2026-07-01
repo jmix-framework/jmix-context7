@@ -23,7 +23,7 @@ geo-map-select-style-provider.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <div classNames="border rounded-s p-s">
+        <div classNames="rounded-panel">
             <span text="msg://sampleDescription.text"/>
         </div>
         <maps:geoMap id="map"

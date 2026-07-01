@@ -35,15 +35,16 @@ EntityPickerActionsSample.java
 
 package io.jmix.uisamples.view.flowui.components.entitypicker.actions;
 
-import com.vaadin.flow.component.icon.VaadinIcon;
 import io.jmix.core.Metadata;
 import io.jmix.flowui.Actions;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.action.entitypicker.EntityClearAction;
 import io.jmix.flowui.component.valuepicker.EntityPicker;
+import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.kit.action.BaseAction;
+import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.model.InstanceContainer;
 import io.jmix.flowui.view.*;
 import io.jmix.uisamples.entity.Customer;
@@ -65,6 +66,8 @@ public class EntityPickerActionsSample extends StandardView {
     protected Notifications notifications;
     @Autowired
     protected Actions actions;
+    @Autowired
+    protected Icons icons;
 
     @Subscribe
     protected void onInit(InitEvent event) {
@@ -97,7 +100,7 @@ public class EntityPickerActionsSample extends StandardView {
 
     protected Action createShowGradeAction() {
         return new BaseAction("showGrade")
-                .withIcon(VaadinIcon.ACADEMY_CAP.create())
+                .withIcon(icons.get(JmixFontIcon.ACADEMY_CAP))
                 .withHandler(actionPerformedEvent -> {
                     Customer customer = entityPicker.getValue();
 
@@ -111,7 +114,7 @@ public class EntityPickerActionsSample extends StandardView {
 
     protected Action createEntityClearAction() {
         Action entityClearAction = actions.create(EntityClearAction.ID);
-        entityClearAction.setIconComponent(VaadinIcon.BAN.create());
+        entityClearAction.setIcon(icons.get(JmixFontIcon.BAN));
 
         return entityClearAction;
     }
@@ -133,7 +136,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

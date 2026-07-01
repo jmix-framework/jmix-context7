@@ -12,6 +12,7 @@ checkbox-group-simple.xml
                        itemsEnum="io.jmix.uisamples.entity.CustomerGrade"/>
         <checkboxGroup id="horizontalCheckboxGroup"
                        label="Horizontal"
+                       themeNames="horizontal"
                        itemsEnum="io.jmix.uisamples.entity.CustomerGrade"/>
     </layout>
 </view>
@@ -40,7 +41,7 @@ CustomerGrade.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum CustomerGrade implements EnumClass<Integer> {
 

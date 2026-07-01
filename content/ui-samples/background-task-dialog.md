@@ -7,7 +7,7 @@ In this example, the **Standard background task dialog** button handler creates 
 background-task-dialog.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <button id="standardBackgroundTaskDialogButton" text="Standard background task dialog"/>
         <button id="customBackgroundTaskDialogButton" text="Custom background task dialog"/>
     </layout>

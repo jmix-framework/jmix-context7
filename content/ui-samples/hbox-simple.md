@@ -6,7 +6,7 @@ hbox-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
-        <hbox alignItems="CENTER" classNames="flex-wrap">
+        <hbox alignItems="CENTER" wrap="true">
             <span text="Span"/>
             <textField placeholder="TextField"/>
             <button text="Button"/>

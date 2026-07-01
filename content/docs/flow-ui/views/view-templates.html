@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runtime View Templates :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Runtime View Templates</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Runtime view templates let you generate standard list and detail views from templates declared on entity metadata instead of creating them manually at design time. You annotate an entity class with <a href="#list-view-template">@ListViewTemplate</a> and/or <a href="#detail-view-template">@DetailViewTemplate</a>, and the framework generates the corresponding views, routes, and menu items when the application starts.</p>
+</div>
+<div class="paragraph">
+<p>This is useful for quickly exposing entities in the UI – for example, lookup or reference data – without writing view classes and XML descriptors for each of them. The generated views are registered just like regular views: they participate in <a class="xref page" href="opening-views.html#view-inference-conventions">view inference</a>, can be opened by id or route, and can serve as primary list and detail views for the entity.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Runtime view templates are currently in the experimental state. The API and the built-in templates can change significantly in the next Jmix release.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="getting-started"><a class="anchor" href="#getting-started"></a>Getting Started</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To generate a list and a detail view for an entity, annotate its class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ListViewTemplate(parentMenu = "application")
+@DetailViewTemplate
+@JmixEntity
+@Entity
+@Table(name = "PRODUCT")
+public class Product {</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With these two annotations, the framework generates at startup:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>a list view with the id <code>Product.list</code>, displaying a <a class="xref page" href="../vc/components/dataGrid.html">dataGrid</a> with the entity properties, a <a class="xref page" href="../vc/components/genericFilter.html">genericFilter</a>, pagination, and <strong>Create</strong>, <strong>Edit</strong>, <strong>Remove</strong> actions;</p>
+</li>
+<li>
+<p>a detail view with the id <code>Product.detail</code>, displaying a <a class="xref page" href="../vc/layouts/formLayout.html">formLayout</a> with editable fields for the entity properties;</p>
+</li>
+<li>
+<p>a menu item under the <code>application</code> menu that opens the list view.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The views use the <a href="#built-in-templates">built-in templates</a>, which decide what to render based on the entity’s properties. No XML descriptors or view classes are created in your project.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="list-view-template"><a class="anchor" href="#list-view-template"></a>@ListViewTemplate</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>@ListViewTemplate</code> declares a generated list view for the annotated entity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ListViewTemplate(
+        path = "io/jmix/flowui/view/template/list-view.ftl",
+        viewId = "Supplier.list",
+        viewRoute = "suppliers",
+        viewTitle = "Suppliers",
+        parentMenu = "application",
+        templateParams = """
+                {
+                    "includeProperties": ["createdBy", "createdDate"], 
+                    "excludeProperties": ["internalNote"]
+                }
+                """
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In addition to the <a href="#common-attributes">common attributes</a>, it supports:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>lookupComponentId</code> – the id of the component used as the <a class="xref page" href="view-annotations.html#lookup-component">lookup component</a>. Defaults to <code>dataGrid</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="detail-view-template"><a class="anchor" href="#detail-view-template"></a>@DetailViewTemplate</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>@DetailViewTemplate</code> declares a generated detail view for the annotated entity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@DetailViewTemplate(
+        viewId = "Supplier.detail",
+        viewRoute = "suppliers",
+        viewTitle = "Supplier",
+        editedEntityContainerId = "entityDc"
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In addition to the <a href="#common-attributes">common attributes</a>, it supports:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>editedEntityContainerId</code> – the id of the data container holding the edited entity, see <a class="xref page" href="view-annotations.html#edited-entity-container">@EditedEntityContainer</a>. Defaults to <code>entityDc</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="common-attributes"><a class="anchor" href="#common-attributes"></a>Common Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Both annotations share the following attributes:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Attribute</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>path</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resource path to a Freemarker XML descriptor template. If omitted, the corresponding <a href="#built-in-templates">built-in template</a> is used.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>templateParams</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A JSON object with additional parameters passed to the template. See <a href="#built-in-templates">Built-in Templates</a> for the parameters the built-in templates support.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>parentMenu</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The id of the parent menu item for the generated menu item. If empty, no menu item is created. If it points to a missing menu item, a new root menu item is created automatically.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The id of the generated view.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewRoute</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The route path of the generated view.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewTitle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The page title of the generated view.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="defaults"><a class="anchor" href="#defaults"></a>Default Values</h3>
+<div class="paragraph">
+<p>When the optional attributes are omitted, the framework derives them from the entity name <code>&lt;entityName&gt;</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;"/>
+<col style="width: 33.3333%;"/>
+<col style="width: 33.3334%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top"><code>@ListViewTemplate</code></th>
+<th class="tableblock halign-left valign-top"><code>@DetailViewTemplate</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;entityName&gt;.list</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;entityName&gt;.detail</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewTitle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;entityName&gt; list</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&lt;entityName&gt;</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="routing"><a class="anchor" href="#routing"></a>Routing</h3>
+<div class="paragraph">
+<p>The route is resolved from <code>viewRoute</code> as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For a list view, <code>viewRoute</code> is used as-is.</p>
+</li>
+<li>
+<p>For a detail view, <code>viewRoute</code> is treated as a base route and always becomes <code>…​/:id</code>.</p>
+</li>
+<li>
+<p>If <code>viewRoute</code> is empty, it is derived from <code>viewId</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the <code>Supplier</code> example above, the list view route is <code>suppliers</code> and the detail view route is <code>suppliers/:id</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="built-in-templates"><a class="anchor" href="#built-in-templates"></a>Built-in Templates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When <code>path</code> is not specified, the framework uses built-in templates that generate the view content from the entity’s properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>the list view template renders a <code>dataGrid</code> with a column per property, a <code>genericFilter</code>, pagination, and list actions;</p>
+</li>
+<li>
+<p>the detail view template renders a <code>formLayout</code> with a field per property.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The built-in templates are located at:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>io/jmix/flowui/view/template/list-view.ftl</code></p>
+</li>
+<li>
+<p><code>io/jmix/flowui/view/template/detail-view.ftl</code></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="property-filtering"><a class="anchor" href="#property-filtering"></a>Property Filtering</h3>
+<div class="paragraph">
+<p>By default, the built-in templates include direct single-value properties and exclude:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>system properties;</p>
+</li>
+<li>
+<p>properties annotated as secret;</p>
+</li>
+<li>
+<p>id, version, and generated properties;</p>
+</li>
+<li>
+<p>audit and soft-deletion properties.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Built-in property filtering supports only direct single-value datatype, enum, association, and composition properties. It does not support collection-valued datatype properties, embedded properties, or dotted property paths such as <code>customer.name</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can adjust the set of displayed properties using two keys in <code>templateParams</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>includeProperties</code> – restores excluded but supported direct properties;</p>
+</li>
+<li>
+<p><code>excludeProperties</code> – removes properties; it is applied last and takes precedence over <code>includeProperties</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the <code>Supplier</code> example, the <code>createdBy</code> and <code>createdDate</code> audit properties are restored, while <code>internalNote</code> is excluded:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ListViewTemplate(
+        path = "io/jmix/flowui/view/template/list-view.ftl",
+        viewId = "Supplier.list",
+        viewRoute = "suppliers",
+        viewTitle = "Suppliers",
+        parentMenu = "application",
+        templateParams = """
+                {
+                    "includeProperties": ["createdBy", "createdDate"], 
+                    "excludeProperties": ["internalNote"]
+                }
+                """
+)</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="composition-collections"><a class="anchor" href="#composition-collections"></a>Composition Collections</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If an entity used in a <code>@DetailViewTemplate</code> has composition <code>*-to-many</code> properties, the generated detail view renders a <a class="xref page" href="../vc/layouts/tabSheet.html">tabSheet</a> instead of a single form:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>the first <strong>General</strong> tab holds the form with the single-value fields;</p>
+</li>
+<li>
+<p>each composition collection gets its own tab with a <code>dataGrid</code> providing <strong>Create</strong>, <strong>Edit</strong>, and <strong>Remove</strong> actions.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <strong>Create</strong> and <strong>Edit</strong> actions open the line entity’s own detail view in a dialog, so line entities are expected to also carry <code>@DetailViewTemplate</code>. The inverse attribute of a composition collection – the child’s reference back to the parent – is excluded by default both from the master’s columns and from the line entity’s detail form. You can restore it with <code>includeProperties</code>.</p>
+</div>
+<div class="paragraph">
+<p>The example below defines a master entity with a composition collection and the corresponding line entity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ListViewTemplate(parentMenu = "application")
+@DetailViewTemplate
+@JmixEntity
+@Entity
+@Table(name = "INVOICE")
+public class Invoice {
+    @Composition
+    @OneToMany(mappedBy = "invoice")
+    private List&lt;InvoiceItem&gt; items;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@DetailViewTemplate
+@JmixEntity
+@Entity
+@Table(name = "INVOICE_ITEM")
+public class InvoiceItem {</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Only composition collections are supported. Association collections, element collections, and embedded attributes are not rendered.</p>
+</div>
+<div class="paragraph">
+<p>Entities without composition collections render a plain <code>formLayout</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-templates"><a class="anchor" href="#custom-templates"></a>Custom Templates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To fully control the generated view content, provide your own Freemarker template in the <code>path</code> attribute. The template is a <code>.ftl</code> file located on the classpath that produces a standard view XML descriptor.</p>
+</div>
+<div class="paragraph">
+<p>The following variables are available in the template model:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>entityMetaClass</code> – the <code>MetaClass</code> of the annotated entity;</p>
+</li>
+<li>
+<p><code>viewTitle</code> – the resolved view title;</p>
+</li>
+<li>
+<p><code>templateHelper</code> – a helper that returns the filtered properties (<code>getProperties</code>) and composition collection properties (<code>getCollectionProperties</code>);</p>
+</li>
+<li>
+<p><code>componentXmlFactory</code> – a factory that produces the XML fragment for a property’s edit component;</p>
+</li>
+<li>
+<p>all keys from <code>templateParams</code>, including <code>includeProperties</code> and <code>excludeProperties</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can use the <a href="#built-in-templates">built-in templates</a> as a starting point.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="menu"><a class="anchor" href="#menu"></a>Menu Integration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If the <code>parentMenu</code> attribute of <code>@ListViewTemplate</code> or <code>@DetailViewTemplate</code> is set, a menu item that opens the generated view is appended to the specified parent menu after the standard XML menu definitions are loaded. If <code>parentMenu</code> is empty, no menu item is created. If it points to a missing menu item, a new root menu item is created automatically.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

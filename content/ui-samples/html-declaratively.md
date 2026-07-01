@@ -5,7 +5,7 @@ Native HTML components can be described declaratively using an XML descriptor.
 html-declaratively.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout>
+    <layout classNames="html-component">
         <div>
             <h1 text="HTML Tags Sample"/>
             <p text="This is a sample text that showcases the usage of different HTML tags."/>
@@ -13,9 +13,9 @@ html-declaratively.xml
             <p text="Here are some formatting tags:"/>
             <unorderedList>
                 <listItem>
-                    <span classNames="font-semibold" text="Bold text: "/>
+                    <span classNames="text-semibold" text="Bold text: "/>
                     <span text="Use the &lt;b&gt; tag to make text "/>
-                    <span classNames="font-semibold" text="bold."/>
+                    <span classNames="text-semibold" text="bold."/>
                 </listItem>
                 <listItem>
                     <span classNames="font-italic" text="Italic text: "/>
@@ -76,12 +76,16 @@ public class HtmlDeclarativelySample extends StandardView {
 html-component.css
 
 
-.highlight {
+.html-component .highlight {
     color: red;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-.font-italic {
+.html-component .font-italic {
     font-style: italic;
+}
+
+.html-component .text-semibold {
+    font-weight: 600;
 }
 

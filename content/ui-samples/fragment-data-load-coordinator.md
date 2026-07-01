@@ -64,28 +64,28 @@ data-load-coordinator-fragment.xml
         </fragmentDataLoadCoordinator>
     </facets>
     <content>
-        <vbox padding="false">
+        <vbox padding="false" classNames="data-load-coordinator">
             <h4 text="CollectionContainer items count:"/>
-            <div classNames="flex flex-row flex-wrap gap-s">
+            <flexLayout flexDirection="ROW" flexWrap="WRAP" classNames="flex-with-gap">
                 <icon icon="COG"/>
                 <span text="onFragmentReady:"/>
                 <span id="onFragmentReadyItemCount"/>
-            </div>
-            <div classNames="flex flex-row flex-wrap gap-s">
+            </flexLayout>
+            <flexLayout flexDirection="ROW" flexWrap="WRAP" classNames="flex-with-gap">
                 <icon icon="HAMMER"/>
                 <span text="onHostInit:"/>
                 <span id="onHostInitItemCount"/>
-            </div>
-            <div classNames="flex flex-row flex-wrap gap-s">
+            </flexLayout>
+            <flexLayout flexDirection="ROW" flexWrap="WRAP" classNames="flex-with-gap">
                 <icon icon="BROWSER"/>
                 <span text="onHostBeforeShow:"/>
                 <span id="onHostBeforeShowItemCount"/>
-            </div>
-            <div classNames="flex flex-row flex-wrap gap-s">
+            </flexLayout>
+            <flexLayout flexDirection="ROW" flexWrap="WRAP" classNames="flex-with-gap">
                 <icon icon="CHECK"/>
                 <span text="onHostReady:"/>
                 <span id="onHostReadyItemCount"/>
-            </div>
+            </flexLayout>
             <dataGrid id="dataGrid" width="100%" minHeight="20em"
                       dataContainer="ordersDc">
                 <columns>
@@ -266,7 +266,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -369,6 +369,16 @@ public class Customer {
     public Integer getAge() {
         return age;
     }
+}
+
+
+
+
+data-load-coordinator.css
+
+
+.data-load-coordinator .flex-with-gap {
+    gap: var(--vaadin-gap-s);
 }
 
 

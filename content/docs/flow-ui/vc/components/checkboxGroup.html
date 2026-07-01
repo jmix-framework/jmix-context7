@@ -235,13 +235,16 @@ public void onInit(final InitEvent event) {
 <h2 id="orientation"><a class="anchor" href="#orientation"></a>Orientation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Items are arranged horizontally by default. To change the layout to vertical, you can use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute:</p>
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to explicitly control the layout of items:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;checkboxGroup itemsEnum="com.company.onboarding.entity.DayOfWeek"
-               label="Select days of week"
-               themeNames="vertical"/&gt;</code></pre>
+               label="Vertical layout"
+               themeNames="vertical"/&gt;
+&lt;checkboxGroup itemsEnum="com.company.onboarding.entity.DayOfWeek"
+               label="Horizontal layout"
+               themeNames="horizontal"/&gt;</code></pre>
 </div>
 </div>
 <div class="imageblock text-center">
@@ -255,24 +258,39 @@ public void onInit(final InitEvent event) {
 <h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To customize the <a href="#orientation">layout of items</a> and where the helper text shows up, use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute.</p>
+<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
 </div>
-<div class="paragraph">
-<p>For example, <code>helper-above-field</code> will position the helper text above the field instead of below it:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;checkboxGroup itemsEnum="com.company.onboarding.entity.OnboardingStatus"
-               label="Select the onboarding status"
-               helperText="Helper text"
-               themeNames="helper-above-field"/&gt;</code></pre>
-</div>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="check box group helper above field" src="../../_images/visual-components/components/check-box-group-helper-above-field.png" width="373"/>
-</div>
-</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 66.6666%;"/>
+<col style="width: 16.6668%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variant</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Supported By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>vertical</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Displays items vertically.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>horizontal</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Displays items horizontally.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>helper-above-field</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Renders the helper text above the field, below the label.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
@@ -299,10 +317,15 @@ private ComponentRenderer&lt;HorizontalLayout, User&gt; userCheckboxGroupRendere
             image.setWidth("30px");
             image.setHeight("30px");
             image.setClassName("user-picture");
-            StreamResource streamResource = new StreamResource(
-                    fileRef.getFileName(),
-                    () -&gt; fileStorage.openStream(fileRef));
-            image.setSrc(streamResource);
+            InputStreamDownloadHandler handler =
+                    DownloadHandler.fromInputStream(event -&gt;
+                            new DownloadResponse(
+                                    fileStorage.openStream(fileRef),
+                                    fileRef.getFileName(),
+                                    fileRef.getContentType(),
+                                    -1
+                            ));
+            image.setSrc(handler);
             row.add(image);
         }
         row.add(new Span(user.getFirstName() + ", " + user.getLastName()));
@@ -325,7 +348,7 @@ private ComponentRenderer&lt;HorizontalLayout, User&gt; userCheckboxGroupRendere
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>See the <a href="https://vaadin.com/docs/latest/components/checkbox" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<p>See the <a href="https://vaadin.com/docs/v25/components/checkbox" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
 </div>
 </div>
 </div>

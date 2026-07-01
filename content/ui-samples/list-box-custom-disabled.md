@@ -7,7 +7,7 @@ list-box-custom-disabled.xml
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
         <listBox id="listBox"/>
-        <span text="Out of stock products are disabled" classNames="text-secondary"/>
+        <span text="Out of stock products are disabled"/>
     </layout>
 </view>
 

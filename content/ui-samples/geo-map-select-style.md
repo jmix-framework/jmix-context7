@@ -13,7 +13,7 @@ geo-map-select-style.xml
 <view xmlns="http://jmix.io/schema/flowui/view"
       xmlns:maps="http://jmix.io/schema/maps/ui">
     <layout>
-        <div classNames="border rounded-s p-s">
+        <div classNames="rounded-panel">
             <span text="msg://sampleDescription.text"/>
         </div>
         <maps:geoMap id="map"

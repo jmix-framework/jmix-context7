@@ -93,10 +93,15 @@ protected HorizontalLayout createUserRenderer(User user) {
     if (fileRef != null) {
         image.setWidth("50px");
         image.setHeight("50px");
-        StreamResource streamResource = new StreamResource(
-                fileRef.getFileName(),
-                () -&gt; fileStorage.openStream(fileRef));
-        image.setSrc(streamResource);
+        InputStreamDownloadHandler handler =
+                DownloadHandler.fromInputStream(event -&gt;
+                new DownloadResponse(
+                        fileStorage.openStream(fileRef),
+                        fileRef.getFileName(),
+                        fileRef.getContentType(),
+                        -1
+                ));
+        image.setSrc(handler);
     }
 
     VerticalLayout infoLayout = new VerticalLayout();
@@ -259,7 +264,7 @@ public void onInit(final InitEvent event) {
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>See <a href="https://vaadin.com/docs/v24/components/virtual-list" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<p>See <a href="https://vaadin.com/docs/v25/components/virtual-list" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
 </div>
 </div>
 </div>

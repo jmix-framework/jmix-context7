@@ -5,10 +5,10 @@ The MultiSelectComboBox component has several theme variants: small align-left a
 multi-select-combo-box-theme-variant.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout justifyContent="BETWEEN" classNames="flex-row flex-wrap">
+    <layout justifyContent="BETWEEN" classNames="horizontal-layout">
         <vbox width="AUTO" padding="false">
             <details summaryText="Size variant" opened="true">
-                <hbox classNames="flex-wrap">
+                <hbox wrap="true">
                     <multiSelectComboBox id="defaultMultiSelectComboBox" label="Default MultiSelectComboBox"
                                          itemsEnum="io.jmix.uisamples.entity.Day"/>
                     <multiSelectComboBox id="smallMultiSelectComboBox" label="Small"
@@ -16,8 +16,8 @@ multi-select-combo-box-theme-variant.xml
                                          itemsEnum="io.jmix.uisamples.entity.Day"/>
                 </hbox>
             </details>
-            <details summaryText="Align variant" opened="true">
-                <hbox classNames="flex-wrap">
+            <details id="alignVariantDetails" summaryText="Align variant" opened="true">
+                <hbox wrap="true">
                     <multiSelectComboBox id="alignLeftMultiSelectComboBox" label="Align left"
                                          themeNames="align-left"
                                          placeholder="Placeholder"
@@ -33,7 +33,7 @@ multi-select-combo-box-theme-variant.xml
                 </hbox>
             </details>
             <details summaryText="Helper variant" opened="true">
-                <hbox classNames="flex-wrap">
+                <hbox wrap="true">
                     <multiSelectComboBox id="defaultHelperMultiSelectComboBox"
                                          label="Default helper"
                                          itemsEnum="io.jmix.uisamples.entity.Day"
@@ -76,17 +76,17 @@ import java.util.List;
 public class MultiSelectComboBoxThemeVariantSample extends StandardView {
 
     @ViewComponent
-    protected JmixMultiSelectComboBox<Day> testMultiSelectComboBox;
+    private JmixMultiSelectComboBox<Day> testMultiSelectComboBox;
     @ViewComponent
-    protected JmixCheckboxGroup<String> settingsCheckboxGroup;
+    private JmixCheckboxGroup<String> settingsCheckboxGroup;
 
     @Subscribe
-    protected void onInit(InitEvent event) {
+    public void onInit(InitEvent event) {
         settingsCheckboxGroup.setItems(getSettingsCheckboxGroupItems());
     }
 
     @Subscribe("settingsCheckboxGroup")
-    protected void onSettingsValueChange(TypedValueChangeEvent<JmixCheckboxGroup<String>, Collection<String>> event) {
+    public void onSettingsValueChange(TypedValueChangeEvent<JmixCheckboxGroup<String>, Collection<String>> event) {
         if (event.getValue() == null) {
             return;
         }
@@ -103,7 +103,7 @@ public class MultiSelectComboBoxThemeVariantSample extends StandardView {
                 .forEach(this::applyTestComboBoxTheme);
     }
 
-    protected void applyTestComboBoxTheme(String command) {
+    private void applyTestComboBoxTheme(String command) {
         switch (command) {
             case "label" -> testMultiSelectComboBox.setLabel("Label");
             case "placeholder" -> testMultiSelectComboBox.setPlaceholder("Placeholder");

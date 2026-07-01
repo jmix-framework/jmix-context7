@@ -153,10 +153,10 @@ management.endpoints.prometheus.enabled=true</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://docs.spring.io/spring-boot/3.5/reference/actuator/metrics.html" rel="noopener" target="_blank">Spring Boot Actuator Metrics</a></p>
+<p><a href="https://docs.spring.io/spring-boot/4.0/reference/actuator/metrics.html" rel="noopener" target="_blank">Spring Boot Actuator Metrics</a></p>
 </li>
 <li>
-<p><a href="https://docs.spring.io/spring-boot/3.5/reference/actuator/observability.html" rel="noopener" target="_blank">Spring Boot Observability</a></p>
+<p><a href="https://docs.spring.io/spring-boot/4.0/reference/actuator/observability.html" rel="noopener" target="_blank">Spring Boot Observability</a></p>
 </li>
 <li>
 <p><a href="https://docs.micrometer.io/micrometer/reference/concepts/meters.html" rel="noopener" target="_blank">Micrometer Meters</a></p>
@@ -272,22 +272,20 @@ jmix.ui.ui-observation-enabled=true</code></pre>
 </ul>
 </div>
 <div class="paragraph">
-<p>For distributed tracing across service boundaries, add the Micrometer tracing bridge and an exporter to the application. Spring Boot Actuator then configures an <code>ObservationRegistry</code> bean and connects it to tracing. A typical setup for a Jmix application is:</p>
+<p>For distributed tracing across service boundaries, add the OpenTelemetry starter to the application. Starting with Spring Boot 4, <code>spring-boot-starter-opentelemetry</code> is the recommended way to integrate OpenTelemetry: it bundles the Micrometer tracing bridge and the OTLP exporter and wires them into Spring Boot’s observability infrastructure. Spring Boot Actuator then configures an <code>ObservationRegistry</code> bean and connects it to tracing. A typical setup for a Jmix application is:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'org.springframework.boot:spring-boot-starter-actuator'
-implementation 'io.micrometer:micrometer-tracing-bridge-otel'
-implementation 'io.opentelemetry:opentelemetry-exporter-otlp'</code></pre>
+implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">application.properties</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">management.tracing.sampling.probability=0.1
-management.otlp.tracing.export.enabled=true
-management.otlp.tracing.endpoint=http://localhost:4318/v1/traces</code></pre>
+management.opentelemetry.tracing.export.otlp.endpoint=http://localhost:4318/v1/traces</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -299,10 +297,13 @@ management.otlp.tracing.endpoint=http://localhost:4318/v1/traces</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://docs.spring.io/spring-boot/3.5/reference/actuator/tracing.html" rel="noopener" target="_blank">Spring Boot Tracing</a></p>
+<p><a href="https://docs.spring.io/spring-boot/4.0/reference/actuator/tracing.html" rel="noopener" target="_blank">Spring Boot Tracing</a></p>
 </li>
 <li>
-<p><a href="https://docs.spring.io/spring-boot/3.5/reference/actuator/observability.html" rel="noopener" target="_blank">Spring Boot Observability</a></p>
+<p><a href="https://docs.spring.io/spring-boot/4.0/reference/actuator/observability.html" rel="noopener" target="_blank">Spring Boot Observability</a></p>
+</li>
+<li>
+<p><a href="https://spring.io/blog/2025/11/18/opentelemetry-with-spring-boot" rel="noopener" target="_blank">OpenTelemetry with Spring Boot</a></p>
 </li>
 <li>
 <p><a href="https://docs.micrometer.io/micrometer/reference/observation.html" rel="noopener" target="_blank">Micrometer Observation</a></p>

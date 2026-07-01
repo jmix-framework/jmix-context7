@@ -86,7 +86,7 @@ custom-login.css
 
 .custom-login {
     width: 100%;
-    background-image: url("./background.png");
+    background-image: url("background.png");
     background-position: center;
     background-size: cover;
     display: flex;
@@ -97,7 +97,7 @@ custom-login.css
     align-items: center;
     display: flex;
     max-width: 25em;
-    background-color: var(--lumo-base-color);
+    background-color: var(--vaadin-background-color);
 }
 
 .custom-login vaadin-login-form-wrapper {

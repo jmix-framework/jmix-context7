@@ -7,14 +7,14 @@ progress-bar-theme-variant.xml
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout classNames="progress-bar-theme-variant-layout">
         <checkbox id="indeterminateCheckbox" label="Indeterminate" value="true"/>
-        <h4 text="Standard"/>
+        <h4 id="standardSpan" text="Standard"/>
         <progressBar id="standardProgressBar" indeterminate="true"/>
-        <h4 text="Success"/>
+        <h4 id="successSpan" text="Success"/>
         <progressBar id="successProgressBar" indeterminate="true" themeNames="success"/>
-        <h4 text="Error"/>
+        <h4 id="warningSpan" text="Warning"/>
+        <progressBar id="warningProgressBar" indeterminate="true" themeNames="warning"/>
+        <h4 id="errorSpan" text="Error"/>
         <progressBar id="errorProgressBar" indeterminate="true" themeNames="error"/>
-        <h4 text="Contrast"/>
-        <progressBar id="contrastProgressBar" indeterminate="true" themeNames="contrast"/>
     </layout>
 </view>
 
@@ -43,30 +43,30 @@ import java.util.concurrent.TimeUnit;
 @ViewDescriptor("progress-bar-theme-variant.xml")
 public class ProgressBarThemeVariantSample extends StandardView {
 
-    protected static final int ITERATIONS = 20;
+    private static final int ITERATIONS = 20;
 
     @ViewComponent
-    protected ProgressBar standardProgressBar;
+    private ProgressBar standardProgressBar;
     @ViewComponent
-    protected ProgressBar successProgressBar;
+    private ProgressBar successProgressBar;
     @ViewComponent
-    protected ProgressBar errorProgressBar;
+    private ProgressBar warningProgressBar;
     @ViewComponent
-    protected ProgressBar contrastProgressBar;
+    private ProgressBar errorProgressBar;
 
     @Autowired
-    protected BackgroundWorker backgroundWorker;
+    private BackgroundWorker backgroundWorker;
 
-    protected BackgroundTaskHandler<Void> taskHandler;
-    protected Collection<ProgressBar> progressBars;
+    private BackgroundTaskHandler<Void> taskHandler;
+    private Collection<ProgressBar> progressBars;
 
     @Subscribe
-    protected void onInit(InitEvent event) {
-        progressBars = List.of(standardProgressBar, successProgressBar, errorProgressBar, contrastProgressBar);
+    public void onInit(InitEvent event) {
+        progressBars = List.of(standardProgressBar, successProgressBar, warningProgressBar, errorProgressBar);
     }
 
     @Subscribe("indeterminateCheckbox")
-    protected void onIndeterminateCheckboxValueChange(ComponentValueChangeEvent<JmixCheckbox, Boolean> event) {
+    public void onIndeterminateCheckboxValueChange(ComponentValueChangeEvent<JmixCheckbox, Boolean> event) {
         Boolean value = event.getValue();
 
         if (value && taskHandler != null && taskHandler.isAlive()) {
@@ -78,12 +78,12 @@ public class ProgressBarThemeVariantSample extends StandardView {
         progressBars.forEach(progressBar -> progressBar.setIndeterminate(value));
     }
 
-    protected void runNewTask() {
+    private void runNewTask() {
         taskHandler = backgroundWorker.handle(createBackgroundTask());
         taskHandler.execute();
     }
 
-    protected BackgroundTask<Integer, Void> createBackgroundTask() {
+    private BackgroundTask<Integer, Void> createBackgroundTask() {
         return new BackgroundTask<>(100, TimeUnit.SECONDS) {
 
             @Override

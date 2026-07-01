@@ -20,7 +20,7 @@ simple-pagination-items-per-page.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <simplePagination classNames="self-center"
+        <simplePagination alignSelf="CENTER"
                           itemsPerPageVisible="true"
                           itemsPerPageItems="5, 10, 15"
                           itemsPerPageDefaultValue="5"
@@ -69,7 +69,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

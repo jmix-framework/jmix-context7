@@ -5,7 +5,7 @@ The list of CheckboxGroup items can be specified using the following methods: se
 checkbox-group-custom-items.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <checkboxGroup id="checkboxGroupWithList"
                        label="Items List"
                        themeNames="vertical"/>
@@ -74,7 +74,7 @@ CustomerGrade.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum CustomerGrade implements EnumClass<Integer> {
 

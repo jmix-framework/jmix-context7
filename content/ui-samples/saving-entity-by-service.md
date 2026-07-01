@@ -370,7 +370,7 @@ contract-list-view.xml
         <action id="discardAction" type="lookup_discard"/>
     </actions>
     <layout>
-        <hbox id="buttonsPanel" classNames="buttons-panel">
+        <hbox id="buttonsPanel" width="100%" wrap="true">
             <button id="createButton" action="contractsDataGrid.createAction"/>
             <button id="editButton" action="contractsDataGrid.editAction"/>
         </hbox>

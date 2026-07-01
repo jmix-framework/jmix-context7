@@ -119,6 +119,10 @@ public class SidePanelLayoutMasterDetailSample extends StandardView {
 
     @Subscribe(id = "sidePanelLayout", subject = "addSidePanelAfterOpenListener")
     public void onSidePanelLayoutAfterOpened(SidePanelAfterOpenEvent event) {
+        if (sidePanelContent.getComponentCount() == 0) {
+            return;
+        }
+
         CustomerMasterDetailFragment fragment = (CustomerMasterDetailFragment) sidePanelContent.getComponentAt(0);
         fragment.focusFirstField();
     }
@@ -298,7 +302,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

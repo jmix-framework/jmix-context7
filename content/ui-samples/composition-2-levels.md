@@ -376,7 +376,7 @@ airport-detail-view.xml
             </entityComboBox>
         </formLayout>
         <h4 text="msg://io.jmix.uisamples.entity/Airport.terminals"/>
-        <hbox id="buttonsPanel" classNames="buttons-panel">
+        <hbox id="buttonsPanel" width="100%" wrap="true">
             <button action="terminalsDataGrid.create"/>
             <button action="terminalsDataGrid.edit"/>
             <button action="terminalsDataGrid.remove"/>
@@ -466,7 +466,7 @@ terminal-detail-view.xml
             <textField id="gateCountField" property="gateCount"/>
         </formLayout>
         <h4 text="msg://io.jmix.uisamples.entity/Terminal.meetingPoints"/>
-        <hbox id="buttonsPanel" classNames="buttons-panel">
+        <hbox id="buttonsPanel" width="100%" wrap="true">
             <button id="createButton" action="meetingPointsDataGrid.create"/>
             <button id="editButton" action="meetingPointsDataGrid.edit"/>
             <button id="removeButton" action="meetingPointsDataGrid.remove"/>

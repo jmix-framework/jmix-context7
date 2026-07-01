@@ -6,7 +6,7 @@ code-editor-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
-        <hbox classNames="buttons-panel">
+        <hbox width="100%" wrap="true">
             <checkbox id="highlightCheckbox" label="Highlight active line" value="true"/>
             <checkbox id="highlightGutterCheckbox" label="Highlight gutter line" value="true"/>
             <checkbox id="gutterCheckbox" label="Show Gutter" value="true"/>

@@ -11,7 +11,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can use the Spring’s <code>ApplcationEvent</code> to respond to events occurred in  different parts of the application.</p>
+<p>You can use the Spring’s <code>ApplicationEvent</code> to respond to events occurred in  different parts of the application.</p>
 </div>
 <div class="paragraph">
 <p>To send application events to UI components including opened <a class="xref page" href="views/views.html">views</a> you need to use the <code>UiEventPublisher</code> bean provided by the framework.</p>
@@ -39,6 +39,7 @@
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Push
 @SpringBootApplication
+@StyleSheet(Lumo.UTILITY_STYLESHEET)
 public class OnboardingApplication implements AppShellConfigurator {</code></pre>
 </div>
 </div>
@@ -77,31 +78,39 @@ public class OnboardingStatusChangedEvent extends ApplicationEvent {
 <p>Create an event listener in the view that should be notified. In the example below it’s the main view:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
-public void onInit(final InitEvent event) {
-    updateOnboardingStatus(); <i class="conum" data-value="1"></i><b>(1)</b>
-}
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.onboarding.event.OnboardingStatusChangedEvent;
+import com.vaadin.flow.component.html.Span;
+import io.jmix.flowui.kit.component.main.ListMenu;
+import io.jmix.flowui.view.Subscribe;
+import org.springframework.context.event.EventListener;
 
-@EventListener
-private void onBoardingStatusChanged(OnboardingStatusChangedEvent event) { <i class="conum" data-value="2"></i><b>(2)</b>
-    updateOnboardingStatus();
-}
+// class declaration and annotations omitted
 
-private void updateOnboardingStatus() {
-    long number = getUncompletedStepsNumber(); <i class="conum" data-value="3"></i><b>(3)</b>
-
-    Span badge = null; <i class="conum" data-value="4"></i><b>(4)</b>
-    if (number &gt; 0) {
-        badge = new Span("" + number);
-        badge.getElement().getThemeList().add("badge warning");
+    @Subscribe
+    public void onInit(final InitEvent event) {
+        updateOnboardingStatus(); <i class="conum" data-value="1"></i><b>(1)</b>
     }
 
-    ListMenu.MenuItem menuItem = menu.getMenuItem("MyOnboardingView");
-    // Can be 'null' if menu item isn't permitted by security
-    if (menuItem != null) {
-        menuItem.setSuffixComponent(badge);
+    @EventListener
+    private void onBoardingStatusChanged(OnboardingStatusChangedEvent event) { <i class="conum" data-value="2"></i><b>(2)</b>
+        updateOnboardingStatus();
     }
-}</code></pre>
+
+    private void updateOnboardingStatus() {
+        long number = getUncompletedStepsNumber(); <i class="conum" data-value="3"></i><b>(3)</b>
+
+        Span badge = null; <i class="conum" data-value="4"></i><b>(4)</b>
+        if (number &gt; 0) {
+            badge = new Span("" + number);
+            badge.getElement().getThemeList().add("badge warning");
+        }
+
+        ListMenu.MenuItem menuItem = menu.getMenuItem("MyOnboardingView");
+        // Can be 'null' if menu item isn't permitted by security
+        if (menuItem != null) {
+            menuItem.setSuffixComponent(badge);
+        }
+    }</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -129,7 +138,16 @@ private void updateOnboardingStatus() {
 <p>Send the event using the <code>UiEventPublisher</code> bean from the <a class="xref page" href="../data-access/entity-events.html#entity-changed-event">EntityChangedEvent</a> listener:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.onboarding.entity.User;
+import com.company.onboarding.entity.UserStep;
+import io.jmix.core.DataManager;
+import io.jmix.core.Id;
+import io.jmix.core.event.EntityChangedEvent;
+import io.jmix.flowui.UiEventPublisher;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
+@Component
 public class UserStepEventListener {
 
     private final DataManager dataManager;

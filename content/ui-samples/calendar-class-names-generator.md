@@ -80,19 +80,19 @@ calendar-class-names-generator.css
  * Base color for day headers.
  */
 .uisamples-day-header {
-    background-color: var(--lumo-primary-color-10pct);
+    background-color: color-mix(in srgb, var(--aura-accent-color) 10%, transparent);
 }
 
 jmix-full-calendar .uisamples-day-header a {
-    color: var(--lumo-primary-text-color);
+    color: var(--aura-accent-text-color);
 }
 
 .uisamples-day-header.uisamples-today {
-    background-color: var(--lumo-primary-color);
+    background-color: var(--aura-accent-color);
 }
 
 jmix-full-calendar .uisamples-day-header.uisamples-today a {
-    color: var(--lumo-primary-contrast-color);
+    color: var(--aura-accent-contrast-color);
 }
 
 jmix-full-calendar .fc-day.fc-daygrid-day.uisamples-today {
@@ -104,38 +104,39 @@ jmix-full-calendar .uisamples-today .fc-daygrid-day-number {
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    color: var(--lumo-primary-text-color);
-    background-color: var(--lumo-primary-color-10pct);
-    border-radius: var(--lumo-border-radius-l);
+    color: var(--aura-accent-text-color);
+    background-color: color-mix(in srgb, var(--aura-accent-color) 10%, transparent);
+    border-radius: var(--vaadin-radius-l);
     line-height: 1;
     font-weight: 500;
-    min-width: calc(var(--lumo-line-height-xs)* 1em + 0.45em);
+    min-width: calc(var(--aura-base-line-height) * 1em + 0.45em);
     flex-shrink: 0;
-    margin-top: var(--lumo-space-xs);
-    margin-inline-end: var(--lumo-space-xs);
+    margin-top: var(--vaadin-padding-xs);
+    margin-inline-end: var(--vaadin-padding-xs);
 }
 
 /*
  * Weekend header day colors.
  */
 .uisamples-day-header.uisamples-weekend {
-    background-color: var(--lumo-error-color-10pct);
+    background-color: color-mix(in srgb, var(--aura-red) 10%, transparent);
 }
 
 jmix-full-calendar .uisamples-day-header.uisamples-weekend a {
-    color: var(--lumo-error-text-color);
+    color: var(--aura-red-text);
 }
 
 .uisamples-day-header.uisamples-weekend.uisamples-today {
-    background-color: var(--lumo-error-color);
+    background-color: var(--aura-red);
 }
 
 jmix-full-calendar .uisamples-day-header.uisamples-weekend.uisamples-today a {
-    color: var(--lumo-error-contrast-color);
+    color: var(--aura-accent-contrast-color);
 }
 
 jmix-full-calendar .uisamples-weekend.uisamples-today .fc-daygrid-day-number {
-    background-color: var(--lumo-error-color-10pct);
-    color: var(--lumo-error-text-color);
+    background-color: color-mix(in srgb, var(--aura-red) 10%, transparent);
+    color: var(--aura-red-text);
 }
+
 

@@ -249,6 +249,100 @@ public void onInit(InitEvent event) {
 </div>
 </div>
 <div class="sect1">
+<h2 id="programmatic-columns"><a class="anchor" href="#programmatic-columns"></a>Programmatic Columns</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>addColumn()</code> and <code>addComponentColumn()</code> let you create columns in Java instead of XML.</p>
+</div>
+<div class="paragraph">
+<p>Use <code>addColumn()</code> with renderer instances such as the <code>LocalDateRenderer</code> shown in <a href="#local-date-renderer">Local Date Renderer</a>. Use <code>addComponentColumn()</code> when each cell should contain a UI component.</p>
+</div>
+<div class="paragraph">
+<p>The following example uses <code>addComponentColumn()</code> to add a column that displays the user’s picture:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.onboarding.entity.User;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.server.streams.DownloadHandler;
+import com.vaadin.flow.server.streams.DownloadResponse;
+import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
+import io.jmix.core.FileRef;
+import io.jmix.core.FileStorageLocator;
+import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.component.grid.DataGrid;
+import java.io.InputStream;
+
+// class declaration and annotations omitted
+
+    @ViewComponent
+    private DataGrid&lt;User&gt; usersDtGr;
+
+    @Autowired
+    private UiComponents uiComponents;
+
+    @Autowired
+    private FileStorageLocator fileStorageLocator;
+
+    @Subscribe
+    public void onInit(InitEvent event) {
+        Grid.Column&lt;User&gt; pictureColumn = usersDtGr.addComponentColumn(user -&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
+            FileRef fileRef = user.getPicture();
+            if (fileRef != null) {
+                Image image = uiComponents.create(Image.class); <i class="conum" data-value="2"></i><b>(2)</b>
+                image.setWidth("30px");
+                image.setHeight("30px");
+                image.setClassName("user-picture");
+                InputStreamDownloadHandler handler = <i class="conum" data-value="3"></i><b>(3)</b>
+                        DownloadHandler.fromInputStream(e -&gt; {
+                            InputStream inputStream = fileStorageLocator.getByName(
+                                    fileRef.getStorageName()).openStream(fileRef);
+                            return new DownloadResponse(
+                                    inputStream, fileRef.getFileName(), fileRef.getContentType(), -1);
+                        });
+                image.setSrc(handler); <i class="conum" data-value="4"></i><b>(4)</b>
+
+                return image; <i class="conum" data-value="5"></i><b>(5)</b>
+            } else {
+                return new Span();
+            }
+        })
+                .setHeader("Picture")
+                .setAutoWidth(true)
+                .setFlexGrow(0);
+        usersDtGr.setColumnPosition(pictureColumn,0);
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Adds a new column that shows the <code>image</code> component.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>Image</code> component instance is created using the <code>UiComponents</code> factory.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Creates a <code>DownloadHandler</code> that opens an input stream for the file referenced by the <code>picture</code> attribute of the <code>User</code> entity.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Sets the <code>DownloadHandler</code> as the source of the <code>Image</code> component.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The <code>addComponentColumn()</code> method returns the visual component to be shown in the column cells.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="multi-select"><a class="anchor" href="#multi-select"></a>Multi-Select Mode</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -323,11 +417,6 @@ The actions column is added relatively to other columns. When <code>includeAll="
 </tr>
 </table>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="data grid editing" src="../../_images/visual-components/components/data-grid-editing.gif"/>
-</div>
-</div>
 <details>
 <summary class="title">Show code</summary>
 <div class="content">
@@ -370,11 +459,6 @@ The actions column is added relatively to other columns. When <code>includeAll="
 <h4 id="_buffered_mode"><a class="anchor" href="#_buffered_mode"></a>Buffered Mode</h4>
 <div class="paragraph">
 <p>With <a href="#editorBuffered">buffered mode</a> on, users will have to confirm or cancel their edits reducing the risk of accidental modifications. Clicking on a different row discards edits.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="data grid buffered editor" src="../../_images/visual-components/components/data-grid-buffered-editor.gif"/>
-</div>
 </div>
 <details>
 <summary class="title">Show code</summary>
@@ -429,11 +513,6 @@ The actions column is added relatively to other columns. When <code>includeAll="
 <h3 id="double-click-editing"><a class="anchor" href="#double-click-editing"></a>Edit on Double Click</h3>
 <div class="paragraph">
 <p>Sometimes it is more convenient to start inline editing by double-clicking the item.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="data grid double click editing" src="../../_images/visual-components/components/data-grid-double-click-editing.gif"/>
-</div>
 </div>
 <details>
 <summary class="title">Show code</summary>
@@ -978,27 +1057,8 @@ private boolean contextMenuDynamicContentHandler(final User user) {
 <div class="sect1">
 <h2 id="renderers"><a class="anchor" href="#renderers"></a>Renderers</h2>
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/components/grid/flow/#using-renderers-in-columns" target="_blank">Vaadin</a>
-</div>
 <div class="paragraph">
-<p>Renderers are used to customize the display of data in a data grid. For example, you could use a renderer to:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Format dates or numbers.</p>
-</li>
-<li>
-<p>Display custom icons or images.</p>
-</li>
-<li>
-<p>Create interactive elements, such as buttons or links.</p>
-</li>
-<li>
-<p>Show different content based on the value of the cell.</p>
-</li>
-</ul>
+<p>Renderers customize how column cells are displayed. This section covers renderer options specific to <code>dataGrid</code> columns. Shared renderer APIs such as <code>ComponentRenderer</code>, <code>LitRenderer</code>, and <code>FragmentRenderer</code> are described in <a class="xref page" href="../miscellaneous/renderers.html">Renderers</a>.</p>
 </div>
 <div class="paragraph">
 <p>Renderers can be defined in the following ways:</p>
@@ -1006,29 +1066,18 @@ private boolean contextMenuDynamicContentHandler(final User user) {
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Declaratively in XML</strong></p>
-<div class="paragraph">
-<p>There are a few pre-built renderers that can be assigned to a column in XML:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>numberRenderer</code></p>
+<p><strong>Declaratively in XML</strong>: use predefined renderers such as <code>numberRenderer</code>, <code>localDateRenderer</code>, <code>localDateTimeRenderer</code>, <code>detailLinkRenderer</code>, and <code>detailButtonRenderer</code> inside a <code>column</code> element.</p>
 </li>
 <li>
-<p><code>localDateRenderer</code></p>
+<p><strong>Using <code>@Supply</code> annotation</strong>: provide a custom renderer from the view controller.</p>
 </li>
 <li>
-<p><code>localDateTimeRenderer</code></p>
-<div class="paragraph">
-<p>They accept a <code>format</code> string. For example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;column property="joiningDate"&gt;
-    &lt;localDateRenderer format="MMM dd, yyyy"/&gt;
-&lt;/column&gt;</code></pre>
-</div>
+<p><strong>Using <code>fragmentRenderer</code></strong>: use the shared fragment-based renderer mechanism described in <a class="xref page" href="../miscellaneous/renderers.html#fragment-renderer">Fragment Renderer</a>.</p>
+</li>
+<li>
+<p><strong>Using <code>addColumn()</code> and <code>addComponentColumn()</code></strong>: create columns in Java and configure renderers programmatically. See <a href="#programmatic-columns">Programmatic Columns</a>.</p>
+</li>
+</ul>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1038,139 +1087,16 @@ private boolean contextMenuDynamicContentHandler(final User user) {
 </td>
 <td class="content">
 <div class="paragraph">
-<p>To add a renderer in Jmix Studio, select the <code>column</code> element in the view descriptor XML or in the <strong>Jmix UI</strong> structure panel and click on the <a class="xref page" href="../../../studio/view-designer.html#component-inspector">Add→&lt;Some&gt;Renderer</a> button in the <strong>Jmix UI</strong> inspector panel.</p>
+<p>To add a renderer in Jmix Studio, select the <code>column</code> element in the view descriptor XML or in the <strong>Jmix UI</strong> structure panel and click <a class="xref page" href="../../../studio/view-designer.html#component-inspector">Add → Renderer</a>.</p>
 </div>
 </td>
 </tr>
 </table>
-</div>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p><strong>Using @Supply Annotation</strong></p>
-<div class="paragraph">
-<p>Renderers can be supplied in a view controller using the <code>@Supply</code> annotation. Methods annotated with <code>@Supply</code> return a value that will be passed as an input parameter to a method defined by <code>subject</code>.</p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>A custom renderer can be assigned to a column using the <code>renderer</code> handler which is available on the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector for any <code>column</code> element.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>The <a href="#column">column</a> element can be defined without the <a href="#property">property</a> attribute, that is without direct binding to an entity attribute. In this case, the <code>column</code> element must have the <a href="#key">key</a> attribute with a unique value.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Check out examples <a href="#text-renderer">here</a> and <a href="#component-renderer">here</a>.</p>
-</div>
-</li>
-</ul>
-</div>
-<div class="ulist" id="fragment-renderer">
-<ul>
-<li>
-<p><strong>Using FragmentRenderer</strong></p>
-<div class="paragraph">
-<p>You can render columns using a nested <code>fragmentRenderer</code> element. Refer to the <a class="xref page" href="../miscellaneous/renderers.html#fragment-renderer">Fragment Renderer</a> section for more information.</p>
-</div>
-</li>
-<li>
-<p><strong>Using addColumn() and addComponentColumn()</strong></p>
-<div class="paragraph">
-<p>The <code>addColumn()</code> and <code>addComponentColumn()</code> methods allow you to add columns to the data grid.</p>
-</div>
-<div class="paragraph">
-<p>You can configure the added columns to use a renderer to show the data.</p>
-</div>
-<div class="paragraph">
-<p>In the following example, we will add a column displaying the user’s picture:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
-private DataGrid&lt;User&gt; usersDtGr;
-
-@Autowired
-private FileStorage fileStorage;
-
-@Subscribe
-public void onInit(InitEvent event) {
-    Grid.Column&lt;User&gt; pictureColumn = usersDtGr.addComponentColumn(user -&gt; { <i class="conum" data-value="1"></i><b>(1)</b>
-        FileRef fileRef = user.getPicture();
-        if (fileRef != null) {
-            Image image = uiComponents.create(Image.class); <i class="conum" data-value="2"></i><b>(2)</b>
-            image.setWidth("30px");
-            image.setHeight("30px");
-            image.setClassName("user-picture");
-
-            StreamResource streamResource = new StreamResource(
-                    fileRef.getFileName(),
-                    () -&gt; fileStorage.openStream(fileRef));
-            image.setSrc(streamResource); <i class="conum" data-value="3"></i><b>(3)</b>
-
-            return image; <i class="conum" data-value="4"></i><b>(4)</b>
-        } else {
-            return new Span();
-        }
-    })
-            .setHeader("Picture")
-            .setAutoWidth(true)
-            .setFlexGrow(0);
-    usersDtGr.setColumnPosition(pictureColumn,0);
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Adds a new column that shows the <code>image</code> component.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>The <code>Image</code> component instance is created using the <code>UiComponents</code> factory.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td><code>image</code> gets its content from the given <code>StreamResource</code> by the reference stored in the <code>picture</code> attribute of the <code>User</code> entity.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>The <code>addComponentColumn()</code> method returns the visual component to be shown in the column cells.</td>
-</tr>
-</table>
-</div>
-</li>
-</ul>
 </div>
 <div class="sect2">
 <h3 id="local-date-renderer"><a class="anchor" href="#local-date-renderer"></a>Local Date Renderer</h3>
 <div class="paragraph">
-<p>The <code>LocalDateRenderer</code> is responsible for presenting dates in the form of <code>LocalDate</code> values.</p>
-</div>
-<div class="paragraph">
-<p>Within the data grid’s <code>column</code> element, there is a <code>localDateRenderer</code> sub-element that includes an optional <code>nullRepresentation</code> attribute and a mandatory <code>format</code> string attribute.</p>
+<p>Renders <code>LocalDate</code> values in a column.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1180,10 +1106,10 @@ public void onInit(InitEvent event) {
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>nullRepresentation</code> attribute is used to specify the textual representation of <code>null</code> values.</p>
+<p>Use the required <code>format</code> attribute to define the output format. Use the optional <code>nullRepresentation</code> attribute to specify how <code>null</code> values are displayed.</p>
 </div>
 <div class="paragraph">
-<p>Below is an example using <code>LocalDateRenderer</code> with the <code>addColumn()</code> method:</p>
+<p>For Java configuration, use <code>LocalDateRenderer</code> with <code>addColumn()</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1204,10 +1130,7 @@ public void onInit(InitEvent event) {
 <div class="sect2">
 <h3 id="local-date-time-renderer"><a class="anchor" href="#local-date-time-renderer"></a>Local Date Time Renderer</h3>
 <div class="paragraph">
-<p>The <code>LocalDateTimeRenderer</code> is responsible for presenting dates in the form of <code>LocalDateTime</code> values.</p>
-</div>
-<div class="paragraph">
-<p>Within the data grid’s <code>column</code> element, there is a <code>localDateTimeRenderer</code> sub-element that includes an optional <code>nullRepresentation</code> attribute and a mandatory <code>format</code> string attribute.</p>
+<p>Renders <code>LocalDateTime</code> values in a column.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1217,16 +1140,13 @@ public void onInit(InitEvent event) {
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>nullRepresentation</code> attribute is used to specify the textual representation of <code>null</code> values.</p>
+<p>Use the required <code>format</code> attribute to define the output format. Use the optional <code>nullRepresentation</code> attribute to specify how <code>null</code> values are displayed.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="number-renderer"><a class="anchor" href="#number-renderer"></a>Number Renderer</h3>
 <div class="paragraph">
-<p>The <code>NumberRenderer</code> allows you to display numbers in a specified format within the grid cells. It is particularly useful for rendering various types of numbers, including floating-point values.</p>
-</div>
-<div class="paragraph">
-<p>Within the data grid’s <code>column</code> element, there is a <code>numberRenderer</code> sub-element that includes an optional <code>nullRepresentation</code> attribute and a mandatory <code>format</code> or <code>numberFormat</code> attribute.</p>
+<p>Renders numeric values in a column.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1236,33 +1156,126 @@ public void onInit(InitEvent event) {
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>nullRepresentation</code> attribute is used to specify the textual representation of <code>null</code> values.</p>
+<p>Specify exactly one of <code>format</code> or <code>numberFormat</code>. If neither is specified, or if both are specified together, the framework throws a <code>GuiDevelopmentException</code>. Use the optional <code>nullRepresentation</code> attribute to specify how <code>null</code> values are displayed. <code>numberFormat</code> uses <code>java.text.DecimalFormat</code> syntax.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="detail-link-renderer"><a class="anchor" href="#detail-link-renderer"></a>Detail Link Renderer</h3>
+<div class="paragraph">
+<p>Renders a link that opens the detail view of the current entity.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid width="100%" dataContainer="usersDc"&gt;
+    &lt;columns&gt;
+        &lt;column property="username"&gt;
+            &lt;detailLinkRenderer viewId="User.detail"
+                                target="BLANK"
+                                classNames="detail-link"
+                                css="font-weight: 600;"/&gt;
+        &lt;/column&gt;
+        &lt;column property="firstName"/&gt;
+        &lt;column property="lastName"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>The <code>numberFormat</code> attribute follows the formatting rules and syntax of the <code>java.text.DecimalFormat</code> class.</p>
+<p>Supported attributes:</p>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
+<div class="ulist">
+<ul>
+<li>
+<p><code>viewClass</code>, <code>viewId</code> specify the target view. The renderer resolves the view in the following order: <code>viewClass</code>, <code>viewId</code>, default detail view.</p>
+</li>
+<li>
+<p><code>text</code> sets the link text. If omitted, the renderer uses the formatted value of the bound column property.</p>
+</li>
+<li>
+<p><code>target</code> sets the link target.</p>
+</li>
+<li>
+<p><code>classNames</code>, <code>css</code> apply styles.</p>
+</li>
+</ul>
+</div>
 <div class="paragraph">
-<p><code>numberRenderer</code> requires only one format attribute. Without any attributes, it will throw a <code>GuiDevelopmentException</code>. Additionally, it is not possible to apply a format from two attributes defined together - a <code>GuiDevelopmenException</code> will be thrown.</p>
+<p>The target view must have a registered route with exactly one route parameter, and the entity instance must already have a non-null id. For routes with zero or multiple route parameters, configure the renderer from Java code and provide a custom URL using <code>DetailLinkRenderer.withHrefProvider()</code>.</p>
 </div>
-</td>
-</tr>
-</table>
+</div>
+<div class="sect2">
+<h3 id="detail-button-renderer"><a class="anchor" href="#detail-button-renderer"></a>Detail Button Renderer</h3>
+<div class="paragraph">
+<p>Renders a button that opens the detail view of the current entity.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid width="100%" dataContainer="stepsDc"&gt;
+    &lt;columns&gt;
+        &lt;column property="name"&gt;
+            &lt;detailButtonRenderer viewId="Step.detail"
+                                  icon="vaadin:edit"
+                                  openMode="DIALOG"
+                                  themeNames="tertiary-inline small"
+                                  classNames="detail-button"
+                                  css="color: var(--lumo-primary-text-color);"/&gt;
+        &lt;/column&gt;
+        &lt;column property="duration"/&gt;
+        &lt;column property="sortValue"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Supported attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>viewClass</code>, <code>viewId</code> specify the target view. The renderer resolves the view in the following order: <code>viewClass</code>, <code>viewId</code>, default detail view.</p>
+</li>
+<li>
+<p><code>openMode</code> controls how the view is opened: <code>NAVIGATION</code> (default) or <code>DIALOG</code>.</p>
+</li>
+<li>
+<p><code>text</code> sets the button text. If omitted, the renderer uses the formatted value of the bound column property. Set it explicitly for key-only columns.</p>
+</li>
+<li>
+<p><code>icon</code> sets the button icon. You can define it through the attribute or a nested <code>icon</code> element.</p>
+</li>
+<li>
+<p><code>themeNames</code>, <code>classNames</code>, <code>css</code> apply styles.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="detail-renderers-key-only-columns"><a class="anchor" href="#detail-renderers-key-only-columns"></a>Detail Renderers in Key-Only Columns</h3>
+<div class="paragraph">
+<p>You can use detail renderers in a column with <code>key</code> instead of the <code>property</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid width="100%" dataContainer="usersDc"&gt;
+    &lt;columns&gt;
+        &lt;column property="username"/&gt;
+        &lt;column key="openUser" header="Open"&gt;
+            &lt;detailButtonRenderer viewId="User.detail"
+                                  text="Edit"
+                                  openMode="DIALOG"/&gt;
+        &lt;/column&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, set the link or button <code>text</code> explicitly, because there is no bound property value.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="text-renderer"><a class="anchor" href="#text-renderer"></a>Text Renderer</h3>
 <div class="paragraph">
-<p><code>TextRenderer</code> is a renderer for presenting simple plain-text string values.</p>
-</div>
-<div class="paragraph">
-<p>In the example below, a custom text is displayed in the column:</p>
+<p>Renders plain text provided from Java code.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1278,11 +1291,29 @@ private Renderer&lt;UserStep&gt; userStepsDataGridStatusRenderer() {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>This renderer is typically supplied from Java code by using the <code>renderer</code> handler or <code>@Supply</code>.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="component-renderer"><a class="anchor" href="#component-renderer"></a>Component Renderer</h3>
 <div class="paragraph">
-<p>The example below shows how to define a column with custom renderer which displays a checkbox:</p>
+<p>Renders a custom component in each cell. Use this renderer when a cell must contain rich or interactive content, such as a checkbox, image, or button.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+See <a class="xref page" href="../miscellaneous/renderers.html#component-renderer">Component Renderer</a> for available constructors, general behavior, and performance considerations.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following example renders a read-only checkbox in the <code>completed</code> column based on whether <code>completedDate</code> is set.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1329,8 +1360,37 @@ private Renderer&lt;UserStep&gt; userStepsDataGridCompletedRenderer() {
 <div class="sect1">
 <h2 id="sorting"><a class="anchor" href="#sorting"></a>Sorting</h2>
 <div class="sectionbody">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+This section demonstrates sorting customization for individual <code>dataGrid</code> component. For application-wide sorting customization, see <a class="xref page" href="../../data/data-examples.html#sorting">Sorting</a>.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Any column can be used for sorting the data displayed. Clicking on the column header activates a special control in the grid that shows which column is currently being sorted and the sorting direction (ascending or descending). Each subsequent click on the same header will toggle the sorting direction.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><a class="xref page" href="../../../data-model/enumerations.html">Enumeration</a> attributes are sorted by their <code>id</code> values, not by localized captions displayed in the UI.</p>
+</div>
+<div class="paragraph">
+<p>As a result, the sorting order can differ from the visible order of enum values in a <code>dataGrid</code>, especially when enum values are localized.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
 <h3 id="multiple-sorting"><a class="anchor" href="#multiple-sorting"></a>Sorting by Multiple Columns</h3>
@@ -1338,7 +1398,7 @@ private Renderer&lt;UserStep&gt; userStepsDataGridCompletedRenderer() {
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/data-grid-multi-sort" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>It is also possible to sort by multiple columns simultaneously. When sorting by multiple columns, the first selected column determines the primary sorting criterion, the second column sets the secondary criterion, and so on. You can configure it using <a href="#multiSort">multiSort</a>, <a href="#multiSortOnShiftClickOnly">multiSortOnShiftClickOnly</a>, and <a href="#multiSortPriority">multiSortPriority</a> attributes.</p>
+<p>It is possible to sort by multiple columns simultaneously. When sorting by multiple columns, the first selected column determines the primary sorting criterion, the second column sets the secondary criterion, and so on. You can configure it using <a href="#multiSort">multiSort</a>, <a href="#multiSortOnShiftClickOnly">multiSortOnShiftClickOnly</a>, and <a href="#multiSortPriority">multiSortPriority</a> attributes.</p>
 </div>
 <div class="paragraph">
 <p>For example:</p>
@@ -1350,6 +1410,130 @@ private Renderer&lt;UserStep&gt; userStepsDataGridCompletedRenderer() {
           multiSort="true"
           multiSortOnShiftClickOnly="true"
           multiSortPriority="APPEND"&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="column-comparator"><a class="anchor" href="#column-comparator"></a>Column Comparator</h3>
+<div class="paragraph">
+<p>Use <code>DataGridColumn#setComparator()</code> to define custom sorting logic for a specific column when sorting is performed in memory. In-memory sorting is used when the container has no loader, or when only the first page is loaded and the number of loaded items is less than the page size.</p>
+</div>
+<div class="paragraph">
+<p>The following example sorts the <code>Department.num</code> attribute as numbers even though the attribute type is <code>String</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="inMemoryDepartmentsDataGrid"
+          width="100%"
+          dataContainer="inMemoryDepartmentsDc"&gt;
+    &lt;columns&gt;
+        &lt;column property="name"/&gt;
+        &lt;column property="num"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void initInMemoryComparator() {
+    inMemoryDepartmentsDc.setItems(dataManager.load(Department.class)
+            .query("select e from Department e")
+            .list());
+
+    inMemoryDepartmentsDataGrid.getColumnByKey("num")
+            .setComparator(Comparator.comparing(
+                    department -&gt; department.getNum() == null ? null : Integer.valueOf(department.getNum()),
+                    Comparator.nullsFirst(Integer::compareTo)));
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="sort-builder-delegate"><a class="anchor" href="#sort-builder-delegate"></a>Sort Builder Delegate</h3>
+<div class="paragraph">
+<p>If the grid reloads data from the database, configure Sort Builder Delegate. The delegate receives sorting instructions from the grid and returns a <code>DataGridSort</code> object, allowing you to override in-memory sorting, database sorting, or both in one place.</p>
+</div>
+<div class="paragraph">
+<p>The following example customizes sorting so that <code>Department.num</code> values are compared as numbers, not strings:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="delegateDepartmentsDataGrid"
+          width="100%"
+          dataContainer="delegateDepartmentsDc"&gt;
+    &lt;columns&gt;
+        &lt;column property="name"/&gt;
+        &lt;column property="num"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void initBoundPropertySortBuilder() {
+    delegateDepartmentsDataGrid.setSortBuilderDelegate(sortContext -&gt;
+            DataGridSortBuilder.create(sortContext)
+                    .replaceSort("num", "CAST({E}.num BIGINT)", <i class="conum" data-value="1"></i><b>(1)</b>
+                            Comparator.comparing(
+                                    department -&gt; department.getNum() == null
+                                            ? null
+                                            : Integer.valueOf(department.getNum()),
+                                    Comparator.nullsFirst(Integer::compareTo))) <i class="conum" data-value="2"></i><b>(2)</b>
+                    .build());
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>If the grid reloads data from the database, the <code>CAST({E}.num BIGINT)</code> expression is added to <code>ORDER BY</code>, so the database also sorts numerically instead of lexicographically.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>If the grid sorts in memory, the comparator converts <code>num</code> to <code>Integer</code> and compares numeric values.</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="sorting-computed-column"><a class="anchor" href="#sorting-computed-column"></a>Sorting a Computed Column</h4>
+<div class="paragraph">
+<p>Sort Builder Delegate is also useful for columns that are not bound to an entity property. In the example below, the <code>fullName</code> column is rendered from <code>firstName</code> and <code>lastName</code>, and the sort builder delegate maps this synthetic column to both JPQL expressions and an in-memory comparator:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="fullNameUsersDataGrid"
+          width="100%"
+          dataContainer="usersDc"&gt;
+    &lt;columns&gt;
+        &lt;column key="fullName" header="Full name" sortable="true"/&gt;
+        &lt;column property="username"/&gt;
+        &lt;column property="department.name"/&gt;
+        &lt;column property="onboardingStatus"/&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void initComputedColumnSortBuilder() {
+    fullNameUsersDataGrid.setSortBuilderDelegate(sortContext -&gt;
+            DataGridSortBuilder.create(sortContext)
+                    .replaceSort("fullName",
+                            List.of("{E}.firstName", "{E}.lastName"),
+                            Comparator.comparing(User::getFirstName,
+                                            Comparator.nullsFirst(String::compareTo))
+                                    .thenComparing(User::getLastName,
+                                            Comparator.nullsFirst(String::compareTo)))
+                    .build());
+}
+@Supply(to = "fullNameUsersDataGrid.fullName", subject = "renderer")
+protected Renderer&lt;User&gt; fullNameUsersDataGridFullNameRenderer() {
+    return new TextRenderer&lt;&gt;(user -&gt;
+            ((user.getFirstName() == null ? "" : user.getFirstName()) + " "
+                    + (user.getLastName() == null ? "" : user.getLastName())).trim());
+}</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -1545,7 +1729,61 @@ Setting this element overrides any empty state text defined using the <code>setE
 </div>
 </div>
 <div class="sect1">
-<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 66.6666%;"/>
+<col style="width: 16.6668%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variant</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Supported By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>column-borders</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds vertical borders between columns.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>compact</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reduces row height and spacing.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>no-border</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Removes the outer border around the grid.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>no-row-borders</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Removes the horizontal borders between rows.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>row-stripes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Alternates row background colors to improve readability.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>wrap-cell-content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Allows cell content to wrap onto multiple lines instead of truncating.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html">Common attributes</a> serve the same purpose for all components.
@@ -1844,7 +2082,7 @@ The following handlers are specific to <code>dataGrid</code>:</p>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#aggregating">Aggregation</a> - <a href="#fragment-renderer">FragmentRenderer</a> - <a href="#local-date-renderer">LocalDateRenderer</a> - <a href="#local-date-time-renderer">LocalDateTimeRenderer</a> - <a href="#number-renderer">NumberRenderer</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#aggregating">Aggregation</a> - <a class="xref page" href="../miscellaneous/renderers.html#fragment-renderer">FragmentRenderer</a> - <a href="#local-date-renderer">LocalDateRenderer</a> - <a href="#local-date-time-renderer">LocalDateTimeRenderer</a> - <a href="#number-renderer">NumberRenderer</a> - <a href="#detail-link-renderer">DetailLinkRenderer</a> - <a href="#detail-button-renderer">DetailButtonRenderer</a></p></td>
 </tr>
 </tbody>
 </table>
@@ -2031,7 +2269,7 @@ The following handlers are specific to <code>dataGrid</code>:</p>
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>See the <a href="https://vaadin.com/docs/latest/components/grid" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<p>See the <a href="https://vaadin.com/docs/v25/components/grid" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
 </div>
 </div>
 </div>

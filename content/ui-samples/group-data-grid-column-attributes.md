@@ -21,7 +21,7 @@ group-data-grid-column-attributes.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <hbox padding="false" classNames="items-center">
+        <hbox padding="false" alignItems="CENTER">
             <comboBox id="groupIconsField" placeholder="msg://groupIconsField.placeholder" clearButtonVisible="true"/>
             <checkbox id="groupIconVisibleField" label="msg://groupIconVisibleField.label"/>
             <checkbox id="displayItemsCountField" label="msg://displayItemsCountField.label"/>
@@ -131,7 +131,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -244,7 +244,7 @@ CustomerGrade.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum CustomerGrade implements EnumClass<Integer> {
 

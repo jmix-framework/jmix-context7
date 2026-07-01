@@ -82,7 +82,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.ThemableLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.component.validation.ValidationErrors;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -170,11 +169,11 @@ public class WizardDialog extends StandardDetailView<Employee> {
         if (isLastTabSelected()) {
             nextButton.setText("Complete");
             nextButton.setIcon(VaadinIcon.CHECK.create());
-            nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            nextButton.addThemeVariants(ButtonVariant.PRIMARY);
         } else {
             nextButton.setText("Next");
             nextButton.setIcon(VaadinIcon.ARROW_CIRCLE_RIGHT_O.create());
-            nextButton.removeThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            nextButton.removeThemeVariants(ButtonVariant.PRIMARY);
         }
     }
 
@@ -189,17 +188,17 @@ public class WizardDialog extends StandardDetailView<Employee> {
     private Tab createTab(WizardStep<?> step, int index) {
         VerticalLayout layout = createLayout(VerticalLayout::new);
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
-        layout.addClassName(LumoUtility.LineHeight.MEDIUM);
+        layout.addClassName("tab-container");
 
         HorizontalLayout horizontalLayout = createLayout(HorizontalLayout::new);
-        horizontalLayout.addClassName(LumoUtility.Gap.XSMALL);
+        horizontalLayout.addClassName("label-container");
 
         Span label = new Span("Step #" + index);
-        label.addClassName(LumoUtility.FontSize.SMALL);
+        label.addClassName("label");
         horizontalLayout.add(step.icon(), label);
 
         Span text = new Span(step.text());
-        text.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.SMALL);
+        text.addClassNames("sublabel");
 
         layout.add(horizontalLayout, text);
 
@@ -229,7 +228,7 @@ wizard-dialog.xml
             <instance id="addressDc" property="address"/>
         </instance>
     </data>
-    <layout>
+    <layout classNames="wizard-dialog">
         <tabSheet id="wizardContent" themeNames="equal-width-tabs"
                   width="100%" height="100%"/>
         <hbox width="100%" justifyContent="END">
@@ -250,6 +249,29 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.icon.Icon;
 
 public record WizardStep<T extends Component & WizardStepFragment>(Icon icon, String text, T content) {
+}
+
+
+
+
+wizard-dialog.css
+
+
+.wizard-dialog .tab-container {
+    line-height: var(--aura-line-height-m);
+}
+
+.wizard-dialog .label-container {
+    gap: var(--vaadin-gap-xs);
+}
+
+.wizard-dialog .label {
+    font-size: var(--aura-font-size-s);
+}
+
+.wizard-dialog .sublabel {
+    font-size: var(--aura-font-size-s);
+    color: var(--vaadin-text-color-secondary);
 }
 
 
@@ -532,33 +554,54 @@ public class ThirdStep extends Fragment<VerticalLayout> implements WizardStepFra
 
 
 
+third-step.css
+
+
+.third-step .reminded {
+    color: var(--vaadin-text-color-secondary);
+}
+
+.third-step .grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    column-gap: var(--vaadin-gap-s);
+}
+
+.third-step .bold {
+    font-weight: 700;
+}
+
+
+
+
 third-step.xml
 
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
     <content>
-        <vbox padding="false" spacing="false">
+        <vbox padding="false" spacing="false" classNames="third-step">
             <h4 text="Employee information confirmation"/>
-            <span text="Please check the information before saving" classNames="text-secondary"/>
+            <span text="Please check the information before saving" classNames="reminder"/>
             <hr width="100%"/>
-            <div id="employeeData" classNames="grid grid-cols-2 grid-rows-2 gap-x-s">
-                <span text="First name:" classNames="font-bold"/>
+            <div id="employeeData" classNames="grid-container">
+                <span text="First name:" classNames="bold"/>
                 <span id="firstName"/>
-                <span text="Last name" classNames="font-bold"/>
+                <span text="Last name" classNames="bold"/>
                 <span id="lastName"/>
-                <span text="Email:" classNames="font-bold"/>
+                <span text="Email:" classNames="bold"/>
                 <span id="email"/>
-                <span text="Department:" classNames="font-bold"/>
+                <span text="Department:" classNames="bold"/>
                 <span id="department"/>
             </div>
             <hr width="100%"/>
-            <div id="addressData" classNames="grid grid-cols-2 grid-rows-2 gap-x-s">
-                <span text="Zip:" classNames="font-bold"/>
+            <div id="addressData" classNames="grid-container">
+                <span text="Zip:" classNames="bold"/>
                 <span id="zip"/>
-                <span text="Country:" classNames="font-bold"/>
+                <span text="Country:" classNames="bold"/>
                 <span id="country"/>
-                <span text="City:" classNames="font-bold"/>
+                <span text="City:" classNames="bold"/>
                 <span id="city"/>
-                <span text="Address Line:" classNames="font-bold"/>
+                <span text="Address Line:" classNames="bold"/>
                 <span id="addressLine"/>
             </div>
         </vbox>

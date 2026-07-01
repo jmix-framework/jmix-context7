@@ -84,6 +84,38 @@ See the <a href="https://github.com/jmix-framework/jmix-samples-2/tree/main/user
 </tr>
 </table>
 </div>
+<div class="sect2">
+<h3 id="password-change-at-next-login"><a class="anchor" href="#password-change-at-next-login"></a>Password Change at Next Login</h3>
+<div class="paragraph">
+<p>Jmix can require a user to change their password immediately after login. This behavior is controlled by a Boolean attribute of the <a href="#entity">User entity</a> annotated with <code>@PasswordChangeRequired</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@PasswordChangeRequired
+@Column(name = "PASSWORD_CHANGE_REQUIRED")
+private Boolean passwordChangeRequired = false;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the authenticated user’s attribute annotated with <code>@PasswordChangeRequired</code> is set to <code>true</code>, Jmix opens the standard change password dialog in forced mode after login. In this mode, the user cannot close the dialog without saving a new password.</p>
+</div>
+<div class="paragraph">
+<p>Use this mechanism in the following cases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Set the annotated attribute to <code>true</code> for newly created users if they must change the initial password at the first login.</p>
+</li>
+<li>
+<p>Use the <strong>Reset Password</strong> action with the <strong>Require change at next logon</strong> option to generate a temporary password and force the user to change it after login.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>After the user successfully changes the password, Jmix automatically resets the annotated attribute to <code>false</code>.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -204,6 +236,23 @@ private String getSubstitutedUserName() {
 <p>The <code>CurrentAuthentication.getAuthentication().getAuthorities()</code> returns authorities of the effective user. That is, in the case of substitution, these authorities differ from the authorities of the authenticated user.</p>
 </li>
 </ul>
+</div>
+<div class="sect2">
+<h3 id="user-substitution-event"><a class="anchor" href="#user-substitution-event"></a>User Substitution Event</h3>
+<div class="paragraph">
+<p>To track user substitution in application code, listen for <code>io.jmix.core.security.event.UserSubstitutedEvent</code>. It is published after the new substituted authentication is installed in the current security context.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @EventListener
+    public void onUserSubstituted(UserSubstitutedEvent event) {
+        UserDetails authenticatedUser = event.getAuthenticatedUser();
+        UserDetails substitutedUser = event.getSubstitutedUser();
+        log.info("User substituted: " + authenticatedUser.getUsername()
+                + " -&gt; " + substitutedUser.getUsername());
+    }</code></pre>
+</div>
+</div>
 </div>
 </div>
 </div>

@@ -6,11 +6,11 @@ notification-position.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
-        <hbox padding="false" classNames="flex-wrap">
+        <hbox padding="false" wrap="true">
             <button id="standardNotificationButton" text="Standard"/>
             <button id="clickAllButton" text="Click all" icon="BOMB"/>
         </hbox>
-        <formLayout id="buttonsLayout">
+        <formLayout id="buttonsLayout" rowSpacing="0.5em">
             <responsiveSteps>
                 <responsiveStep minWidth="0" columns="3"/>
             </responsiveSteps>

@@ -25,23 +25,23 @@ data-load-coordinator.xml
             </refresh>
         </dataLoadCoordinator>
     </facets>
-    <layout>
+    <layout classNames="data-load-coordinator">
         <h4 text="CollectionContainer items count:"/>
-        <div classNames="flex flex-row flex-wrap gap-s">
+        <flexLayout flexDirection="ROW" flexWrap="WRAP" classNames="flex-with-gap">
             <icon icon="HAMMER"/>
             <span text="onInit:"/>
             <span id="onInitItemCount"/>
-        </div>
-        <div classNames="flex flex-row flex-wrap gap-s">
+        </flexLayout>
+        <flexLayout flexDirection="ROW" flexWrap="WRAP" classNames="flex-with-gap">
             <icon icon="BROWSER"/>
             <span text="onBeforeShow:"/>
             <span id="onBeforeShowItemCount"/>
-        </div>
-        <div classNames="flex flex-row flex-wrap gap-s">
+        </flexLayout>
+        <flexLayout flexDirection="ROW" flexWrap="WRAP" classNames="flex-with-gap">
             <icon icon="CHECK"/>
             <span text="onReady:"/>
             <span id="onReadyItemCount"/>
-        </div>
+        </flexLayout>
         <dataGrid id="dataGrid" width="100%" minHeight="20em"
                   dataContainer="ordersDc">
             <columns>
@@ -209,7 +209,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -312,6 +312,16 @@ public class Customer {
     public Integer getAge() {
         return age;
     }
+}
+
+
+
+
+data-load-coordinator.css
+
+
+.data-load-coordinator .flex-with-gap {
+    gap: var(--vaadin-gap-s);
 }
 
 

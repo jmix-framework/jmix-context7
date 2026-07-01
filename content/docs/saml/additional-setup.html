@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Additional Setup :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Additional Setup</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following instructions describe how to extend the <a class="xref page" href="index.html#default-configuration">default Jmix SAML configuration</a>. Use them after completing <a class="xref page" href="keycloak-saml.html">Keycloak SAML Setup</a> or the equivalent basic configuration for another identity provider.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="user-menu-visibility"><a class="anchor" href="#user-menu-visibility"></a>User menu visibility for in-memory SAML users</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>With the default SAML configuration, SAML users exist only in memory. They are not backed by a persistent <code>User</code> entity, so the main view may not be able to show their name or avatar unless you handle SAML assertion attributes explicitly.</p>
+</div>
+<div class="paragraph">
+<p>To make in-memory SAML users visible in the user menu:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Include the <code>FirstName</code> and <code>LastName</code> attributes in the SAML assertion.</p>
+</li>
+<li>
+<p>Adjust the <code>generateUserName</code> method so it can build the display name from either the persistent <code>User</code> entity or SAML assertion attributes for in-memory users:</p>
+<div class="listingblock">
+<div class="title">MainView.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    private String generateUserName(UserDetails userDetails) {
+        if (userDetails instanceof User user) {
+            String userName = String.format("%s %s",
+                            Strings.nullToEmpty(user.getFirstName()),
+                            Strings.nullToEmpty(user.getLastName()))
+                    .trim();
+
+            return userName.isEmpty() ? user.getUsername() : userName;
+        }
+
+        if (userDetails instanceof Saml2AuthenticatedPrincipal samlUser) {
+            String userName = String.format("%s %s",
+                            Strings.nullToEmpty(samlUser.getFirstAttribute("FirstName")),
+                            Strings.nullToEmpty(samlUser.getFirstAttribute("LastName")))
+                    .trim();
+
+            return userName.isEmpty() ? userDetails.getUsername() : userName;
+        }
+
+        return userDetails.getUsername();
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then use that generated name when rendering the user menu button and header:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Install(to = "userMenu", subject = "buttonRenderer")
+    private Component userMenuButtonRenderer(final UserDetails userDetails) {
+
+        String userName = generateUserName(userDetails);
+        Avatar avatar = createAvatar(userName);
+        //...
+    }
+
+    @Install(to = "userMenu", subject = "headerRenderer")
+    private Component userMenuHeaderRenderer(final UserDetails userDetails) {
+
+        String name = generateUserName(userDetails);
+        Avatar avatar = createAvatar(name);
+
+        // ...
+    }</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="mapping-saml-attributes"><a class="anchor" href="#mapping-saml-attributes"></a>Mapping SAML Attributes</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Before you map attributes in the application, make sure they are included in the SAML assertion. See <a class="xref page" href="keycloak-saml.html#add-saml-attributes">Add SAML attributes in Keycloak</a> or the equivalent steps for your identity provider.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If the SAML assertion contains information about the user, such as their name, position, department, or other profile details, you can make it available in your application during the user session.</p>
+</div>
+<div class="paragraph">
+<p>In order to do that:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a class that extends <code>DefaultJmixSamlUserDetails</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class MyUser extends DefaultJmixSamlUserDetails {
+
+    private String position; <i class="conum" data-value="1"></i><b>(1)</b>
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>An extra field that corresponds to an additional SAML attribute.</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Create a Spring bean to convert the incoming SAML assertion into a Jmix user object. The simplest approach is to extend <code>BaseSamlUserMapper</code> and override its methods.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class MySamlUserMapper extends BaseSamlUserMapper&lt;MyUser&gt; {
+
+    @Autowired
+    protected SamlAssertionRolesMapper rolesMapper;
+
+    @Override
+    protected MyUser initJmixUser(Assertion assertion) { <i class="conum" data-value="1"></i><b>(1)</b>
+        return new MyUser();
+    }
+
+    @Override
+    protected void populateUserAttributes(Assertion assertion, OpenSaml4AuthenticationProvider.ResponseToken responseToken, MyUser jmixUser) { <i class="conum" data-value="2"></i><b>(2)</b>
+        Map&lt;String, List&lt;Object&gt;&gt; assertionAttributes = SamlAssertionUtils.getAssertionAttributes(assertion);
+        List&lt;Object&gt; rawValues = assertionAttributes.get("Position");
+        String positionValue = CollectionUtils.isNotEmpty(rawValues) ? rawValues.get(0).toString() : null;
+        jmixUser.setPosition(positionValue);
+        System.out.println(positionValue);
+    }
+
+    @Override
+    protected void populateUserAuthorities(Assertion assertion, MyUser jmixUser) { <i class="conum" data-value="3"></i><b>(3)</b>
+        Collection&lt;? extends GrantedAuthority&gt; grantedAuthorities = rolesMapper.toGrantedAuthorities(assertion);
+        jmixUser.setAuthorities(grantedAuthorities);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>This method creates the Jmix user object that will represent the authenticated user.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Here, values from the SAML <code>Assertion</code> are copied into your user object. In the example, the <code>Position</code> attribute from the <code>Assertion</code> is stored in the <code>position</code> field of <code>MyUser</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>In this method authorities are assigned to the user. Instead of implementing that logic directly, the example delegates it to the <code>SamlAssertionRolesMapper</code> interface and, therefore, to the default implementation, which is <code>DefaultSamlAssertionRolesMapper</code>.</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-different-roles-attribute"><a class="anchor" href="#using-different-roles-attribute"></a>Using Different Roles Attribute</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, <code>DefaultSamlAssertionRolesMapper</code> looks for an attribute named <code>Role</code> in the SAML <code>Assertion</code>. That attribute is expected to contain a collection of role names. For each role name, Jmix searches for matching resource roles and row-level roles. If matching roles are found, the corresponding granted authorities are added to the user.</p>
+</div>
+<div class="paragraph">
+<p>If your identity provider sends roles in an attribute other than <code>Role</code>, you can change the attribute name with the following <a class="xref page" href="saml-properties.html">Jmix SAML property</a>:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre>jmix.saml.default-saml-assertion-roles-mapper.roles-assertion-attribute=MyRole</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This tells the default mapper to read role names from <code>MyRole</code> instead of <code>Role</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-custom-role-mapper"><a class="anchor" href="#creating-custom-role-mapper"></a>Creating Custom Role Mapper</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you need more control, you can create your own role mapper. This is useful when your identity provider does not send Jmix role codes directly, but instead sends some other values that you want to translate into appropriate roles.</p>
+</div>
+<div class="paragraph">
+<p>For example, a value such as <code>Manager</code> might come from <code>Position</code> attribute, and your mapper can use it to assign the appropriate Jmix roles. To implement this, extend <code>BaseSamlAssertionRolesMapper</code> and override its <code>getResourceRolesCodes()</code> and <code>getRowLevelRolesCodes()</code> methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class MySamlAssertionRolesMapper extends BaseSamlAssertionRolesMapper {
+
+    @Override
+    protected Collection&lt;String&gt; getResourceRolesCodes(Assertion assertion) {
+        Map&lt;String, List&lt;Object&gt;&gt; assertionAttributes = SamlAssertionUtils.getAssertionAttributes(assertion);
+        List&lt;Object&gt; rawPositionAttributeValues = assertionAttributes.get("Position");
+
+        Collection&lt;String&gt; jmixRoleCodes = new HashSet&lt;&gt;();
+        rawPositionAttributeValues.stream()
+                .map(Object::toString)
+                .forEach(position -&gt; {
+                    if ("Manager".equals(position)) {
+                        jmixRoleCodes.add("edit-contracts");
+                        jmixRoleCodes.add("view-archive");
+                    } else {
+                        jmixRoleCodes.add("view-contracts");
+                    }
+                });
+
+        return jmixRoleCodes;
+    }
+
+    @Override
+    protected Collection&lt;String&gt; getRowLevelRoleCodes(Assertion assertion) {
+        // Do something for row-level role codes
+        return List.of();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the user’s <code>Position</code> value determines which Jmix resource roles are assigned:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>if <code>Position</code> is <code>Manager</code>, the user receives the <code>edit-contracts</code> and <code>view-archive</code> roles.</p>
+</li>
+<li>
+<p>otherwise, the user receives the <code>view-contracts</code> role.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="persist-users-to-database"><a class="anchor" href="#persist-users-to-database"></a>Persist Users to Database</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, the Jmix SAML setup keeps authenticated users in memory only. If you want SAML users to be stored in the database, complete the following steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Make the <a class="xref page" href="../security/users.html#entity">User</a> entity compatible with the Jmix SAML add-on by extending the <code>JmixSamlUserEntity</code> abstract class:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Entity
+@Table(name = "USER_", indexes = {
+        @Index(name = "IDX_USER__ON_USERNAME", columnList = "USERNAME", unique = true)
+})
+public class User extends JmixSamlUserEntity implements JmixUserDetails, HasTimeZone {
+
+    //...
+
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Register a user mapper based on <code>SynchronizingSamlUserMapper</code>; this superclass stores and updates the user in the database and can synchronize role assignments to the database:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class MySynchronizingSamlUserMapper extends SynchronizingSamlUserMapper&lt;User&gt; {
+
+    public MySynchronizingSamlUserMapper() {
+        super();
+        setSynchronizeRoleAssignments(true); <i class="conum" data-value="1"></i><b>(1)</b>
+    }
+
+    @Override
+    protected Class&lt;User&gt; getApplicationUserClass() {
+        return User.class;
+    }
+
+    @Override
+    protected void populateUserAttributes(Assertion assertion, OpenSaml5AuthenticationProvider.ResponseToken responseToken, User jmixUser) {
+        String username = SamlAssertionUtils.getUsername(assertion);
+        Map&lt;String, List&lt;Object&gt;&gt; assertionAttributes = SamlAssertionUtils.getAssertionAttributes(assertion);
+        String firstNameValue = getStringAttributeValue(assertionAttributes, "FirstName", username);
+        String lastNameValue = getStringAttributeValue(assertionAttributes, "LastName", username);
+
+        jmixUser.setUsername(username);
+        jmixUser.setFirstName(firstNameValue);
+        jmixUser.setLastName(lastNameValue);
+    }
+
+    protected String getStringAttributeValue(Map&lt;String, List&lt;Object&gt;&gt; assertionAttributes, String attributeName, String username) {
+        List&lt;Object&gt; rawValues = assertionAttributes.get(attributeName);
+        return CollectionUtils.isNotEmpty(rawValues)
+                ? rawValues.get(0).toString()
+                : "%s (%s)".formatted(attributeName, username);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>When set to <code>true</code>, role assignments are also stored to the database.</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

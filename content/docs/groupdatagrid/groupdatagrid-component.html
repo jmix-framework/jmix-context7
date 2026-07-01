@@ -196,6 +196,14 @@
 </div>
 </div>
 <div class="sect1">
+<h2 id="sorting"><a class="anchor" href="#sorting"></a>Sorting</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Sorting configuration is the same as in <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#sorting">dataGrid</a>. The <a href="#sortByGroupEnabled">sortByGroupEnabled</a> attribute defines whether sorting affects group order.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="disable-grouping"><a class="anchor" href="#disable-grouping"></a>Disable Grouping</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -254,6 +262,9 @@ Default grouping can still be declared with the <a href="#groupBy">groupBy</a> e
 <div class="paragraph">
 <p>To use a custom grouping value, describe a new grouping property in the view controller. The following example introduces a new grouping property that combines first and last name.</p>
 </div>
+<div class="paragraph">
+<p>Such a synthetic property is not sortable automatically. To make sorting work, specify sort properties in the group property descriptor using <code>.withSortProperties(…​)</code>.</p>
+</div>
 <div class="imageblock text-center">
 <div class="content">
 <img alt="groupdatagrid custom column" src="_images/groupdatagrid-custom-column.png" width="1097"/>
@@ -296,12 +307,12 @@ public void onInit(InitEvent event) {
         items.addGroupPropertyDescriptor( <i class="conum" data-value="1"></i><b>(1)</b>
                 new BaseGroupPropertyDescriptor&lt;Customer&gt;("fullName",
                         context -&gt; context.getItem().getFirstName() + " " + context.getItem().getLastName())
-                        .withSortProperties(List.of("firstName", "lastName")));
+                        .withSortProperties(List.of("firstName", "lastName"))); <i class="conum" data-value="2"></i><b>(2)</b>
 
-        customersGroupDataGrid.groupByKeys("fullName"); <i class="conum" data-value="2"></i><b>(2)</b>
+        customersGroupDataGrid.groupByKeys("fullName"); <i class="conum" data-value="3"></i><b>(3)</b>
     }
 }
-@Supply(to = "customersGroupDataGrid.fullName", subject = "renderer") <i class="conum" data-value="3"></i><b>(3)</b>
+@Supply(to = "customersGroupDataGrid.fullName", subject = "renderer") <i class="conum" data-value="4"></i><b>(4)</b>
 protected Renderer&lt;Customer&gt; supplyRendererToFullNameColumn() {
     return new TextRenderer&lt;&gt;(item -&gt; item.getFirstName() + " " + item.getLastName());
 }</code></pre>
@@ -315,10 +326,14 @@ protected Renderer&lt;Customer&gt; supplyRendererToFullNameColumn() {
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Group by <code>fullName</code> by default.</td>
+<td><code>.withSortProperties(List.of("firstName", "lastName"))</code> tells the component how to sort the synthetic property.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Group by <code>fullName</code> by default.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
 <td>Provide a render fallback for the Full Name column when it is not grouped; without this the column will appear empty.</td>
 </tr>
 </table>

@@ -5,7 +5,7 @@ FlexLayout is a layout component that implements Flexbox. It uses the default fl
 flex-layout-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout>
+    <layout classNames="flex-layout-simple">
         <split width="100%" themeNames="splitter-spacing">
             <flexLayout alignItems="CENTER" flexDirection="COLUMN">
                 <span text="Span"/>
@@ -15,7 +15,7 @@ flex-layout-simple.xml
             </flexLayout>
             <flexLayout alignItems="CENTER" flexDirection="ROW"
                         justifyContent="CENTER" flexWrap="WRAP"
-                        classNames="gap-s">
+                        classNames="flex-with-gap">
                 <span text="Span"/>
                 <textField placeholder="TextField"/>
                 <button text="Button"/>
@@ -39,6 +39,16 @@ import io.jmix.flowui.view.ViewDescriptor;
 @ViewController("flex-layout-simple")
 @ViewDescriptor("flex-layout-simple.xml")
 public class FlexLayoutSimpleSample extends StandardView {
+}
+
+
+
+
+flex-layout-simple.css
+
+
+.flex-layout-simple .flex-with-gap {
+    gap: var(--vaadin-gap-s)
 }
 
 

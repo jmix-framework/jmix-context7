@@ -21,7 +21,7 @@ data-grid-selection-mode.xml
     </facets>
     <layout>
         <select id="selectionModeSelect" label="Selection mode"/>
-        <hbox id="buttonsPanel" classNames="buttons-panel">
+        <hbox id="buttonsPanel" width="100%" wrap="true">
             <button id="greetAllBtn" action="customersDataGrid.greetAll"/>
             <button id="greetOneBtn" action="customersDataGrid.greetOne"/>
         </hbox>
@@ -141,7 +141,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

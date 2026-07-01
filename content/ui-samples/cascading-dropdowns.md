@@ -30,7 +30,7 @@ cascading-dropdowns.xml
     <facets>
         <dataLoadCoordinator auto="true"/>
     </facets>
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <entityComboBox id="planetsComboBox" label="Planets" metaClass="Planet" itemsContainer="planetsDc"/>
         <entityComboBox id="moonsComboBox" label="Moons" metaClass="Moon" itemsContainer="moonsDc"/>
     </layout>

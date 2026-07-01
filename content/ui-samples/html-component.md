@@ -5,7 +5,7 @@ To display native HTML content, use the Html component. The Html component can b
 html-component.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout>
+    <layout classNames="html-component">
         <tabSheet id="tabSheet" width="100%">
             <tab id="declarativeTab" label="Declaratively added component">
                 <html file="META-INF/resources/html/html-component.html"/>
@@ -96,12 +96,16 @@ html-component.html
 html-component.css
 
 
-.highlight {
+.html-component .highlight {
     color: red;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-.font-italic {
+.html-component .font-italic {
     font-style: italic;
+}
+
+.html-component .text-semibold {
+    font-weight: 600;
 }
 

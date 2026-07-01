@@ -7,7 +7,7 @@ context-help-tooltip.xml
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
         <details summaryText="Default tooltip" opened="true" width="AUTO">
-            <hbox classNames="flex-wrap">
+            <hbox wrap="true">
                 <textField label="Field with tooltip">
                     <tooltip text="Tooltip text"/>
                 </textField>
@@ -72,6 +72,7 @@ import io.jmix.flowui.component.select.JmixSelect;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.kit.component.ComponentUtils;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.theme.StyleUtility;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -175,7 +176,8 @@ public class ContextHelpTooltipSample extends StandardView {
     protected JmixButton createHelperButton() {
         JmixButton helperButton = uiComponents.create(JmixButton.class);
         helperButton.setIcon(VaadinIcon.QUESTION_CIRCLE.create());
-        helperButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
+        helperButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        helperButton.addClassName(StyleUtility.Button.LINK_BUTTON);
 
         return helperButton;
     }

@@ -155,7 +155,7 @@ or variables are not used at all, the driver delegate class is resolved automati
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create a class implementing the <code>org.quartz.Job</code> interface. Its <code>execute()</code> method is invoked by the scheduler. For example:</p>
+<p>Create a class implementing the <code>org.quartz.Job</code> interface. You can create it manually or use the <strong>New → Advanced → Quartz Job</strong> action in the <a class="xref page" href="../studio/tool-window.html">Jmix Tool Window</a>.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.demo.quartz;
@@ -178,9 +178,16 @@ public class SampleJob implements Job {
 </div>
 </div>
 <div class="paragraph">
-<p>In the job class, you can inject Spring beans with <code>@Autowired</code>.</p>
+<p>The <code>execute()</code> method of the job class is invoked by the scheduler. In the job class, you can inject Spring beans with <code>@Autowired</code>. Studio provides injection support by code completion inside job classes.</p>
 </div>
 </li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Studio displays Quartz job classes in the <strong>Jobs</strong> section of the <strong>Jmix Tool Window</strong>. The <strong>Jobs</strong> section is shown when the project contains at least one class implementing the <code>org.quartz.Job</code> interface. Job classes are also displayed in the <strong>Beans</strong> section.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
 <li>
 <p>Run the application, open <strong>Quartz → Quartz jobs</strong> view and click <strong>Create</strong>.</p>
 <div class="openblock">
@@ -211,6 +218,76 @@ public class SampleJob implements Job {
 </div>
 </li>
 </ol>
+</div>
+<div class="sect2">
+<h3 id="configure-jobs-programmatically"><a class="anchor" href="#configure-jobs-programmatically"></a>Configuring Jobs and Triggers Programmatically</h3>
+<div class="paragraph">
+<p>Instead of creating Quartz jobs and triggers in the <strong>Quartz jobs</strong> view, you can register them as Spring beans. This approach is useful when the schedule must be defined together with the application code.</p>
+</div>
+<div class="paragraph">
+<p>Declare these beans in a Spring configuration class located in a package scanned by the application.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.quartz.SampleJob;
+import org.quartz.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class QuartzConfiguration {
+
+    @Bean
+    JobDetail sampleJob() {
+        return JobBuilder.newJob()
+                .ofType(SampleJob.class) <i class="conum" data-value="1"></i><b>(1)</b>
+                .storeDurably()
+                .withIdentity("SampleJob") <i class="conum" data-value="2"></i><b>(2)</b>
+                .build();
+    }
+
+    @Bean
+    Trigger sampleJobTrigger() {
+        return TriggerBuilder.newTrigger()
+                .forJob(sampleJob()) <i class="conum" data-value="3"></i><b>(3)</b>
+                .withIdentity("SampleJobTrigger") <i class="conum" data-value="4"></i><b>(4)</b>
+                .startNow()
+                .withSchedule(CronScheduleBuilder.cronSchedule("0/5 * * * * ?")) <i class="conum" data-value="5"></i><b>(5)</b>
+                .build();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Job implementation class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Job identifier.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Associates the trigger with the job.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Trigger identifier. Specify it explicitly to avoid creating duplicate triggers after redeployment.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Cron schedule.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><code>withIdentity()</code> defines the Quartz identifier of the job or trigger. Always specify an identifier for every trigger created in code.</p>
+</div>
+<div class="paragraph">
+<p>If a trigger does not have an explicit identifier, Quartz generates a random one. When the application uses persistent Quartz tables, this can create a new trigger on each redeployment and result in multiple triggers executing the same job according to the same schedule.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="authentication"><a class="anchor" href="#authentication"></a>Authentication in Jobs</h3>

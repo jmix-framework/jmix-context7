@@ -5,7 +5,7 @@ valuePicker displays a value of any type. It consists of the text field and the 
 value-picker-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <valuePicker id="valuePicker1" label="Random string">
             <actions>
                 <action id="generate" icon="REFRESH" description="Generate value"/>

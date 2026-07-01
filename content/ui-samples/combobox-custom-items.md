@@ -13,7 +13,7 @@ combobox-custom-items.xml
                   class="io.jmix.uisamples.entity.Customer"
                   fetchPlan="_local"/>
     </data>
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <comboBox id="amountComboBox"
                   label="Items List"
                   dataContainer="orderDc"
@@ -138,7 +138,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -251,7 +251,7 @@ CustomerGrade.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum CustomerGrade implements EnumClass<Integer> {
 

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keycloak SAML Setup :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Keycloak SAML Setup</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://www.keycloak.org/" rel="noopener" target="_blank">Keycloak</a> is an open-source identity and access management solution supporting user federation, OAuth, SAML, and OpenID Connect protocols. The below instructions explain how to configure Keycloak with Jmix application using SAML for users to log in with their Keycloak credentials.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The instructions were tested with Keycloak 26.5.6. Other, and particularly older, Keycloak versions may use different labels and place certain settings in different locations in the admin console, but the underlying SAML configuration should be the same.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="prerequisites"><a class="anchor" href="#prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>A Jmix application available at stable URL (e.g., <code>https://jmix-app.com</code>). This guide references the application URL using the placeholder <code>your-app-url</code>.</p>
+</li>
+<li>
+<p>A Keycloak server (e.g., <code>https://keycloak.test.com</code>) that you have administrative access to. This guide references the server using the placeholder <code>your-keycloak-server</code>.</p>
+</li>
+<li>
+<p>A Keycloak realm (e.g., <code>master</code>). This guide references the realm using the placeholder <code>your-realm</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configure-jmix-application"><a class="anchor" href="#configure-jmix-application"></a>Configure Jmix Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In your Jmix application:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><a class="xref page" href="index.html#installation">Install the add-on</a>.</p>
+</li>
+<li>
+<p>Configure the application as a SAML server provider using Spring Security properties:</p>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.saml2.relyingparty.registration.keycloak.entity-id=https://&lt;your-app-url&gt;/saml/sp
+spring.security.saml2.relyingparty.registration.keycloak.acs.location=https://&lt;your-app-url&gt;/login/saml2/sso/keycloak
+spring.security.saml2.relyingparty.registration.keycloak.assertingparty.metadata-uri=https://&lt;your-keycloak-server&gt;/realms/&lt;your-realm&gt;/protocol/saml/descriptor
+spring.security.saml2.relyingparty.registration.keycloak.singlelogout.url=https://&lt;your-keycloak-server&gt;/realms/&lt;your-realm&gt;/protocol/saml
+spring.security.saml2.relyingparty.registration.keycloak.singlelogout.response-url=https://&lt;your-app-url&gt;/logout/saml2/slo</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>keycloak</code> in the property key is the provider ID. It can be any value.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configure-keycloak-client"><a class="anchor" href="#configure-keycloak-client"></a>Configure Keycloak Client</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In Keycloak, create or select the realm that will manage authentication for your Jmix application.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select or create the realm that will manage authentication for your Jmix application.</p>
+</li>
+<li>
+<p>In the realm, create a new client with these values:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Client type:</strong> <code>SAML</code>.</p>
+</li>
+<li>
+<p><strong>Client ID:</strong> <code>https://&lt;your-app-url&gt;/saml/sp</code> (the same value as <code>entity-id</code> property).</p>
+</li>
+<li>
+<p><strong>Root URL:</strong> your application base URL, for example <code>https://jmix-app.com</code>.</p>
+</li>
+<li>
+<p><strong>Valid redirect URIs</strong>: your allowed redirect patterns, for example <code>https://jmix-app.com/*</code>.</p>
+</li>
+<li>
+<p><strong>Valid post logout redirect URIs</strong>: your allowed logout redirect patterns, for example <code>https://jmix-app.com/*</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>These values connect the Keycloak client to the Jmix service provider configuration from the previous step.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configure-user-access"><a class="anchor" href="#configure-user-access"></a>Configure User Access to the Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use Keycloak roles and user role mappings to control which users receive access and which Jmix roles they get.</p>
+</div>
+<div class="sect2">
+<h3 id="create-roles"><a class="anchor" href="#create-roles"></a>Create Roles</h3>
+<div class="paragraph">
+<p>Create roles that your users should receive:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <strong>Realm roles</strong> and create a new role.</p>
+</li>
+<li>
+<p>Provide the <strong>Role name</strong>. If you use the default Jmix role mapping it should match the Jmix role code, for example <code>system-full-access</code>.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="create-and-configure-users"><a class="anchor" href="#create-and-configure-users"></a>Create and Configure Users</h3>
+<div class="paragraph">
+<p>Create a Keycloak user:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to <strong>Users</strong> and create a new user.</p>
+</li>
+<li>
+<p>Select the created user and go to the <strong>Credentials</strong> tab to set a password.</p>
+</li>
+<li>
+<p>Go to the <strong>Role Mapping</strong> tab to assign the realm roles created previously.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="add-saml-attributes"><a class="anchor" href="#add-saml-attributes"></a>(Optional) Add SAML Attributes</h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This step only adds attributes to the SAML assertion. The application will not use them automatically. To fill application user attributes from these values, you must also configure <a class="xref page" href="additional-setup.html#mapping-saml-attributes">attribute mapping</a> in the application.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you need to include any extra SAML attributes, add them in Keycloak as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to your <strong>Client</strong> → <strong>Client Scopes</strong> → <code>https://&lt;your-app-url&gt;/saml/sp-dedicated</code> → <strong>Configure a new mapper</strong>.</p>
+</li>
+<li>
+<p>Select appropriate mapper type. For built-in properties, (such as email, firstName, lastName) select <strong>User Property</strong> and provide values:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Name:</strong> descriptive mapper name, such as <code>FirstName mapper</code></p>
+</li>
+<li>
+<p><strong>Property:</strong> property name within IdP: <code>firstName</code></p>
+</li>
+<li>
+<p><strong>SAML Attribute Name:</strong> attribute name in the SAML Assertion: <code>FirstName</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Follow the same steps to add more attributes.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="signing-and-certificates"><a class="anchor" href="#signing-and-certificates"></a>Configure Signing and Certificates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To enable signing you will need a public and a private keys. You can generate them manualy via openssl and then import to IdP. You can also generate those using Keycloak:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Go to your <strong>Client</strong> and open the <strong>Keys</strong> tab.</p>
+</li>
+<li>
+<p>Enable <strong>Client signature required</strong>.</p>
+</li>
+<li>
+<p>Generate new key and export it as pkcs12 keystore. Make note of the store password you set.</p>
+</li>
+<li>
+<p>Extract the private key and certificate:</p>
+<div class="listingblock">
+<div class="content">
+<pre>openssl pkcs12 -in keystore.p12 -nodes -nocerts -out private.key -passin pass:&lt;STORE_PASSWORD&gt;
+openssl pkcs12 -in keystore.p12 -nodes -nokeys -out public.crt -passin pass:&lt;STORE_PASSWORD&gt;</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If extraction fails, add the <code>-legacy</code> parameter to both commands. In this case you will also need to convert extracted private key to pkcs8 format:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in private.key -out private-pkcs8.key</pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Place the files somewhere accessible to the application, such as <code>src/main/resources</code>, and add them through properties:</p>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.saml2.relyingparty.registration.keycloak.signing.credentials[0].private-key-location=classpath:private-pkcs8.key
+spring.security.saml2.relyingparty.registration.keycloak.signing.credentials[0].certificate-location=classpath:public.crt</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="signing-algorithm"><a class="anchor" href="#signing-algorithm"></a>Specify a Signing Algorithm</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If a specific signing algorithm is required, configure it explicitly:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.saml2.relyingparty.registration.keycloak.signing.credentials[0].algorithm=http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="verification-certificate"><a class="anchor" href="#verification-certificate"></a>(Optional) Provide Verification Certificate</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Some environments may also require a verification certificate. To provide a certificate:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the Keycloak metadata descriptor at <code><a class="bare" href="https://&lt;your-keycloak-server&gt;/realms/&lt;your-realm&gt;/protocol/saml/descriptor">https://&lt;your-keycloak-server&gt;/realms/&lt;your-realm&gt;/protocol/saml/descriptor</a></code></p>
+</li>
+<li>
+<p>Copy the value of <code>X509Certificate</code>.</p>
+</li>
+<li>
+<p>Save it to a file such as <code>keycloak-signing.crt</code> using this format:</p>
+<div class="listingblock">
+<div class="content">
+<pre>-----BEGIN CERTIFICATE-----
+&lt;value&gt;
+-----END CERTIFICATE-----</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Place the file somewhere accessible to the application, such as <code>src/main/resources</code>, and add it through the property:</p>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.security.saml2.relyingparty.registration.keycloak.assertingparty.verification.credentials[0].certificate-location=classpath:keycloak-signing.crt</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="test-connection"><a class="anchor" href="#test-connection"></a>Test the Connection</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After the application and Keycloak are configured, start the application and test the SSO flow.</p>
+</div>
+<div class="paragraph">
+<p>Validate that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The user is redirected to the Keycloak login page.</p>
+</li>
+<li>
+<p>Authentication succeeds.</p>
+</li>
+<li>
+<p>Expected attributes are present in the SAML assertion.</p>
+</li>
+<li>
+<p>Expected roles are granted in the application.</p>
+</li>
+<li>
+<p>Logout works correctly, if SLO is configured.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

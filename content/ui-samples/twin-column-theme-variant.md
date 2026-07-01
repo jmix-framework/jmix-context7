@@ -1,6 +1,6 @@
 <Path>Components > TwinColumn > TwinColumn with ThemeVariant</Path>
 
-The TwinColumn component has several theme variants: no-border no-row-border checkmarks no-spaces-between-actions You can set these styles to the TwinColumn component using the themeNames attribute either in the XML descriptor or in the view controller using constants from TwinColumnVariant class.
+The TwinColumn component has several theme variants: no-border no-spaces-between-actions You can set these styles to the TwinColumn component using the themeNames attribute either in the XML descriptor or in the view controller using constants from TwinColumnVariant class.
 
 twin-column-theme-variant.xml
 
@@ -20,8 +20,8 @@ twin-column-theme-variant.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <hbox classNames="buttons-panel">
-            <checkboxGroup id="twinColumnThemeCheckboxGroup" label="ThemeVariants"/>
+        <hbox width="100%" wrap="true">
+            <checkboxGroup id="twinColumnThemeCheckboxGroup" label="ThemeVariants" themeNames="horizontal"/>
         </hbox>
         <twinColumn id="customersTwinColumn" label="Customers TwinColumn" itemsContainer="customersDc"/>
     </layout>
@@ -51,17 +51,17 @@ import java.util.Map;
 public class TwinColumnThemeVariantSample extends StandardView {
 
     @ViewComponent
-    protected JmixCheckboxGroup<TwinColumnVariant> twinColumnThemeCheckboxGroup;
+    private JmixCheckboxGroup<TwinColumnVariant> twinColumnThemeCheckboxGroup;
     @ViewComponent
-    protected TwinColumn<Customer> customersTwinColumn;
+    private TwinColumn<Customer> customersTwinColumn;
 
     @Subscribe
-    protected void onInit(InitEvent event) {
+    public void onInit(InitEvent event) {
         ComponentUtils.setItemsMap(twinColumnThemeCheckboxGroup, getTwinColumnVariantItemsMap());
     }
 
     @Subscribe("twinColumnThemeCheckboxGroup")
-    protected void onTwinColumnThemeCheckboxGroupValueChange(
+    public void onTwinColumnThemeCheckboxGroupValueChange(
             TypedValueChangeEvent<JmixCheckboxGroup<TwinColumnVariant>, Collection<TwinColumnVariant>> event) {
         if (event.getValue() == null) {
             return;
@@ -73,12 +73,10 @@ public class TwinColumnThemeVariantSample extends StandardView {
         event.getValue().forEach(customersTwinColumn::addThemeVariants);
     }
 
-    protected Map<TwinColumnVariant, String> getTwinColumnVariantItemsMap() {
+    private Map<TwinColumnVariant, String> getTwinColumnVariantItemsMap() {
         LinkedHashMap<TwinColumnVariant, String> map = new LinkedHashMap<>();
 
         map.put(TwinColumnVariant.NO_BORDER, "No border");
-        map.put(TwinColumnVariant.NO_ROW_BORDER, "No row borders");
-        map.put(TwinColumnVariant.CHECKMARKS, "Checkmarks");
         map.put(TwinColumnVariant.NO_SPACE_BETWEEN_ACTIONS, "No space between actions");
         return map;
     }

@@ -58,7 +58,7 @@ timer-facet-fragment.xml
                repeating="true"/>
     </facets>
     <content>
-        <vbox classNames="flex-row flex-wrap" alignItems="CENTER" padding="false">
+        <vbox classNames="horizontal-layout" alignItems="CENTER" padding="false">
             <button id="timerStartBtn" text="Start" icon="PLAY" themeNames="primary"/>
             <button id="timerStopBtn" text="Stop" icon="PAUSE" themeNames="primary error" enabled="false"/>
             <span id="timerIndicator" text="Timer is ready to start" themeNames="badge contrast pill"/>
@@ -115,7 +115,7 @@ public class TimerFacetFragment extends Fragment<VerticalLayout> {
 
         notifications.create("Timer started")
                 .withPosition(Notification.Position.BOTTOM_END)
-                .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
+                .withThemeVariant(NotificationVariant.SUCCESS)
                 .show();
 
         timerStartBtn.setEnabled(false);

@@ -5,7 +5,7 @@ The MultiValuePicker component works with a list of values of any type. It consi
 value-picker-multi.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <multiValuePicker id="stringsValuePicker" label="Strings">
             <actions>
                 <action id="select" type="multi_value_select">

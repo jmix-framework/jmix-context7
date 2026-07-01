@@ -51,15 +51,15 @@
 <div class="ulist">
 <ul>
 <li>
-<p>Either <a href="https://github.com/jmix-framework/jmix-social-login-sample/archive/refs/heads/release_2_8.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
+<p>Either <a href="https://github.com/jmix-framework/jmix-social-login-sample/archive/refs/heads/release_3.zip" rel="noopener" target="_blank">download</a> and unzip the source repository</p>
 </li>
 <li>
-<p>Or clone it and switch to the <code>release_2_8</code> branch:</p>
+<p>Or clone it and switch to the <code>release_3</code> branch:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-social-login-sample
 cd jmix-social-login-sample
-git checkout release_2_8</code></pre>
+git checkout release_3</code></pre>
 </div>
 </div>
 </li>
@@ -412,16 +412,16 @@ public class OAuth2SecurityConfiguration extends FlowuiVaadinWebSecurity {
 <p>Let’s take a closer look at the different parts of the configuration.</p>
 </div>
 <div class="paragraph">
-<p>The <code>configure(HttpSecurity http)</code> method is an entry point to the security settings configuration. It defines the OAuth2 login process by setting the login page, handling user data from the authentication provider, and managing the post-login behavior:</p>
+<p>The <code>configureJmixSpecifics(HttpSecurity http)</code> method adds application-specific settings on top of the standard Jmix security configuration. It defines the OAuth2 login process by setting the login page, handling user data from the authentication provider, and managing the post-login behavior:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
-protected void configure(HttpSecurity http) throws Exception {
-    super.configure(http);
+protected void configureJmixSpecifics(HttpSecurity http) throws Exception {
+    super.configureJmixSpecifics(http);
     http.oauth2Login(configurer -&gt;
             configurer
-                    .loginPage(getLoginPath())
+                    .loginPage("/login")
                     .userInfoEndpoint(userInfoEndpointConfig -&gt;
                             userInfoEndpointConfig
                                     .userService(oauth2UserService())
@@ -448,7 +448,7 @@ protected void configure(HttpSecurity http) throws Exception {
 <p>The <code>oauth2UserService()</code> and <code>oidcUserService()</code> methods are responsible for mapping user information returned by the authentication service to your application’s <code>User</code> entity.</p>
 </div>
 <div class="paragraph">
-<p>The <code>oidcUserService()</code> method handles GitHub users:</p>
+<p>The <code>oauth2UserService()</code> method handles GitHub users:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -550,7 +550,7 @@ private Collection&lt;GrantedAuthority&gt; getDefaultGrantedAuthorities() {
 </div>
 </div>
 <div class="sect1">
-<h2 id="_modify_login_view"><a class="anchor" href="#_modify_login_view"></a>Modify Login View</h2>
+<h2 id="modify-login-view"><a class="anchor" href="#modify-login-view"></a>Modify Login View</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Open <code>login-view.xml</code> descriptor and add login buttons below the <code>loginForm</code> element:</p>

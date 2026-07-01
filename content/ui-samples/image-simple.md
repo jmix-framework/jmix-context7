@@ -5,8 +5,8 @@ image component is designed to display images from different sources. The compon
 image-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
-        <vbox classNames="items-center justify-center" padding="false" width="AUTO">
+    <layout classNames="horizontal-layout">
+        <vbox alignItems="CENTER" justifyContent="CENTER" padding="false" width="AUTO">
             <h4 text="Declaratively defined source"/>
             <image resource="icons/jmix-icon.png" height="10em" width="10em"/>
         </vbox>
@@ -21,8 +21,8 @@ ImageSimpleSample.java
 package io.jmix.uisamples.view.flowui.components.image.simple;
 
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.image.JmixImage;
 import io.jmix.flowui.view.StandardView;
@@ -49,8 +49,8 @@ public class ImageSimpleSample extends StandardView {
         VerticalLayout verticalLayout = uiComponents.create(VerticalLayout.class);
         verticalLayout.setPadding(false);
         verticalLayout.setWidth("AUTO");
-        verticalLayout.addClassName(LumoUtility.AlignItems.CENTER);
-        verticalLayout.addClassName(LumoUtility.JustifyContent.CENTER);
+        verticalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        verticalLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
         H4 h4 = uiComponents.create(H4.class);
         h4.setText("Programmatically defined source");

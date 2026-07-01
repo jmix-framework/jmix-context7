@@ -49,7 +49,7 @@
 <p>First, you have to set <a class="xref page" href="bpmn-tasks.html#common-task-properties">general task properties</a>.</p>
 </li>
 <li>
-<p>Then, define a <em>Task type</em> and set the required parameters depending on the selected <a href="#task-types">type</a>.</p>
+<p>Then, define a <em>Task type</em> and set the required parameters depending on the selected <a href="#task-type">type</a>.</p>
 </li>
 <li>
 <p>Set up <a href="#fail-retry">fail retry</a> or leave it default (blank).</p>
@@ -104,6 +104,9 @@ In some cases, it can affect performance.</p>
 </li>
 <li>
 <p><strong>Delegate Expression</strong>: Evaluate an expression that resolves to a delegation object.</p>
+</li>
+<li>
+<p><strong>External Worker</strong>: Create a job that is acquired and executed by an external worker.</p>
 </li>
 </ul>
 </div>
@@ -418,6 +421,28 @@ For example:</p>
 </div>
 <div class="paragraph">
 <p>Result variable <code>greeting</code> will be equal <code>"Hello, World!".</code></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="external-worker-service-task"><a class="anchor" href="#external-worker-service-task"></a>External Worker</h3>
+<div class="paragraph">
+<p>An <strong>External worker</strong> task creates a Flowable external worker job and then pauses the process until some worker acquires and completes that job.
+An external worker acquires jobs over Java API or REST API, performs the work, and reports the result back to Flowable.</p>
+</div>
+<div class="paragraph">
+<p>The external worker task is a <a class="xref page" href="transactions.html#waiting-states">waiting state</a>.
+Once the worker completes the job and notifies Flowable of the completion, the process will continue.</p>
+</div>
+<div class="paragraph">
+<div class="title"><strong>XML Representation</strong></div>
+<p>In BPMN XML, an external worker task is represented as a service task with <code>flowable:type="external-worker"</code> and a topic:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="externalWorkerOrder"
+    flowable:type="external-worker"
+    flowable:topic="orderService" /&gt;</code></pre>
 </div>
 </div>
 </div>

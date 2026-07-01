@@ -8,7 +8,7 @@ badge-icons.xml
     <layout>
         <details summaryText="Simple icon" opened="true">
             <vbox padding="false">
-                <hbox classNames="flex-wrap">
+                <hbox wrap="true">
                     <span themeNames="badge normal">
                         <icon icon="CLOCK" classNames="badged-icon"/>
                         <span text="Pending"/>
@@ -16,6 +16,10 @@ badge-icons.xml
                     <span themeNames="badge success">
                         <icon icon="CHECK" classNames="badged-icon"/>
                         <span text="Confirmed"/>
+                    </span>
+                    <span themeNames="badge warning">
+                        <icon icon="WARNING" classNames="badged-icon"/>
+                        <span text="Warning"/>
                     </span>
                     <span themeNames="badge error">
                         <icon icon="EXCLAMATION_CIRCLE_O" classNames="badged-icon"/>
@@ -26,7 +30,7 @@ badge-icons.xml
                         <span text="On hold"/>
                     </span>
                 </hbox>
-                <hbox classNames="flex-wrap">
+                <hbox wrap="true">
                     <span themeNames="badge normal">
                         <span text="Pending"/>
                         <icon icon="CLOCK" classNames="badged-icon"/>
@@ -34,6 +38,10 @@ badge-icons.xml
                     <span themeNames="badge success">
                         <span text="Confirmed"/>
                         <icon icon="CHECK" classNames="badged-icon"/>
+                    </span>
+                    <span themeNames="badge warning">
+                        <span text="Warning"/>
+                        <icon icon="WARNING" classNames="badged-icon"/>
                     </span>
                     <span themeNames="badge error">
                         <span text="Denied"/>
@@ -47,9 +55,9 @@ badge-icons.xml
             </vbox>
         </details>
         <details summaryText="Icon-Only" opened="true">
-            <hbox classNames="flex-wrap">
-                <icon id="checkIcon" icon="CHECK"/>
-                <icon id="closeIcon" icon="CLOSE_SMALL"/>
+            <hbox wrap="true">
+                <icon id="checkIcon" icon="CHECK" classNames="badged-icon"/>
+                <icon id="closeIcon" icon="CLOSE_SMALL" classNames="badged-icon"/>
             </hbox>
         </details>
     </layout>
@@ -77,10 +85,10 @@ public class BadgeIconsSample extends StandardView {
     @Subscribe
     protected void onInit(InitEvent event) {
         checkIcon.getElement().getThemeList().add("badge success");
-        checkIcon.getStyle().set("padding", "var(--lumo-space-xs)");
+        checkIcon.getStyle().set("padding", "4px");
 
         closeIcon.getElement().getThemeList().add("badge error");
-        closeIcon.getStyle().set("padding", "var(--lumo-space-xs)");
+        closeIcon.getStyle().set("padding", "4px");
     }
 }
 
@@ -91,7 +99,12 @@ badge-icons.css
 
 
 .badged-icon {
-    padding: var(--lumo-space-xs);
+    box-sizing: content-box;
+}
+
+.badged-icon[theme~="badge"] {
+    min-width: 1em;
+    gap: 0;
 }
 
 

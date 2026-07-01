@@ -53,11 +53,11 @@ employee-info-fragment.xml
         <instance id="employeeDc" class="io.jmix.uisamples.entity.Employee"/>
     </data>
     <content>
-        <vbox padding="false" spacing="false" classNames="mb-m">
-            <div classNames="flex flex-row gap-xs">
+        <vbox padding="false" spacing="false" classNames="employee-info">
+            <flexLayout flexDirection="ROW" classNames="employee-name">
                 <h3 dataContainer="employeeDc" property="firstName"/>
                 <h3 dataContainer="employeeDc" property="lastName"/>
-            </div>
+            </flexLayout>
 
             <details summaryText="Address" width="100%">
                 <formLayout dataContainer="employeeDc">
@@ -105,7 +105,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -208,6 +208,20 @@ public class Customer {
     public Integer getAge() {
         return age;
     }
+}
+
+
+
+
+employee-info.css
+
+
+.employee-info {
+    margin-bottom: var(--vaadin-padding-m);
+}
+
+.employee-info .employee-name {
+    gap: var(--vaadin-gap-xs);
 }
 
 

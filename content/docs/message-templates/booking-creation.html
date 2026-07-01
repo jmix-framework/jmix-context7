@@ -3,28 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1. Room Booking Application Creation :: Jmix Documentation</title>
+    <title>1. Setting Up the Booking Application :: Jmix Documentation</title>
 </head>
 <body>
 <article class="doc">
-<h1 class="page">1. Room Booking Application Creation</h1>
+<h1 class="page">1. Setting Up the Booking Application</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this chapter, you will learn how to create and configure the following components for your application:</p>
+<p>In this section, you create a minimal room booking application with an enumeration, an entity, and CRUD views. This application is used later in <a class="xref page" href="message-templates.html">Template Definition</a>.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>The <code>Room</code> enumeration. Define an enumeration to represent the available rooms in your system.</p>
-</li>
-<li>
-<p>The <code>Booking</code> entity. Create a <code>Booking</code> entity to manage reservations.</p>
-</li>
-<li>
-<p>CRUD views for bookings. Develop CRUD views to enable users to interact with the <code>Booking</code> entity.</p>
-</li>
-</ul>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you are new to Jmix, see the <a class="xref page" href="../tutorial/index.html">Tutorial</a>, which explains common operations in greater detail.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -32,28 +31,20 @@
 <h2 id="create-room-enum"><a class="anchor" href="#create-room-enum"></a>Creating Room Enumeration</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To start, you’ll need to generate a <code>Room</code> enumeration consisting of the following values:</p>
+<p>Assume that the office has three rooms of different sizes. Create a <code>Room</code> enumeration with the following values:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>Senior</code></p>
+<p><code>Small</code></p>
 </li>
 <li>
-<p><code>Junior</code></p>
+<p><code>Medium</code></p>
 </li>
 <li>
-<p><code>Middle</code></p>
+<p><code>Large</code></p>
 </li>
 </ul>
-</div>
-<div class="paragraph">
-<p>The detailed instructions for creating enumerations can be found in the <a class="xref page" href="../tutorial/enumerations.html">Using Enumerations</a> section of the Tutorial.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="room enum" src="_images/room-enum.png" width="458"/>
-</div>
 </div>
 </div>
 </div>
@@ -61,7 +52,7 @@
 <h2 id="create-booking-entity"><a class="anchor" href="#create-booking-entity"></a>Creating Booking Entity</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Next, create the <code>Booking</code> entity. You can find detailed instructions for creating entities in the <a class="xref page" href="../tutorial/simple-crud.html">Simple CRUD</a> section of the Tutorial.</p>
+<p>Create the <code>Booking</code> entity.</p>
 </div>
 <div class="paragraph">
 <p>The <code>Booking</code> entity has the following attributes:</p>
@@ -69,16 +60,19 @@
 <div class="ulist">
 <ul>
 <li>
-<p><code>title</code> with <code>String</code> type. A descriptive name for the booking. Select the <strong>Mandatory</strong> checkbox.</p>
+<p><code>title</code> - booking title. Mandatory.</p>
 </li>
 <li>
-<p><code>room</code> - the room selected for the booking (using the <code>Room</code> enumeration). Select the <strong>Mandatory</strong> checkbox.</p>
+<p><code>room</code> with <code>Room</code> enum type - selected room. Mandatory.</p>
 </li>
 <li>
-<p><code>startDate</code> and <code>endDate</code> with <code>DateTime</code> type: the date and time range for the booking. Select the <strong>Mandatory</strong> checkbox.</p>
+<p><code>startDate</code> with <code>LocalDateTime</code> type - booking start time. Mandatory.</p>
 </li>
 <li>
-<p><code>creator</code> - the user who created the booking (linked to the <code>User</code> entity many-to-one cardinality). Select the <strong>Mandatory</strong> checkbox.</p>
+<p><code>endDate</code> with <code>LocalDateTime</code> type - booking end time. Mandatory.</p>
+</li>
+<li>
+<p><code>creator</code> - association with the <code>User</code> entity. Mandatory.</p>
 </li>
 </ul>
 </div>
@@ -88,10 +82,23 @@
 <h2 id="create-crud"><a class="anchor" href="#create-crud"></a>Creating CRUD Views</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Create entity list and detail views for the <code>Booking</code> entity. You’ll find the detailed steps for generating entity list and detail views in the <a class="xref page" href="../tutorial/simple-crud.html">Creating CRUD Views</a> section of the Tutorial. On the <strong>Entity list view fetch plan</strong> step, add the <code>creator</code> attribute to the selection.</p>
+<p>Create list and detail views for the <code>Booking</code> entity:</p>
 </div>
-<div class="paragraph">
-<p>Follow the suggested values at each step of the view creation wizard.</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the view creation wizard for the <code>Booking</code> entity.</p>
+</li>
+<li>
+<p>Select the <strong>List and detail views</strong> template.</p>
+</li>
+<li>
+<p>At the <strong>Entity list view fetch plan</strong> step, select the <code>creator</code> attribute.</p>
+</li>
+<li>
+<p>Accept the default settings for all other steps.</p>
+</li>
+</ol>
 </div>
 </div>
 </div>
@@ -99,49 +106,10 @@
 <h2 id="run-app"><a class="anchor" href="#run-app"></a>Running the Application</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>After creating the entity and CRUD views for it, you can run the application to see the new feature in action.</p>
+<p>Run the application from Studio.</p>
 </div>
 <div class="paragraph">
-<p>You’ll find the detailed steps for running the application in the <a class="xref page" href="../tutorial/project-setup.html#run-app">Running Application from IDE</a> section of the Tutorial.</p>
-</div>
-<div class="paragraph">
-<p>Click the <strong>Debug</strong> button (<span class="image"><img alt="start debugger" src="_images/start-debugger.svg"/></span>) in the main toolbar.</p>
-</div>
-<div class="paragraph">
-<p>Studio will show the warning about the data store and unapplied changelog files:</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="changelog" src="_images/changelog.png" width="750"/>
-</div>
-</div>
-<div class="paragraph">
-<p>Click <strong>Execute and proceed</strong>.</p>
-</div>
-<div class="paragraph">
-<p>Then Studio checks the difference between the project data model and the database schema. As long as you have created a new entity, Studio generates a Liquibase changelog for the corresponding changes in the database (creating the <code>BOOKING</code> table):</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="booking changelog" src="_images/booking-changelog.png" width="1036"/>
-</div>
-</div>
-<div class="paragraph">
-<p>Click <strong>Save and run</strong>.</p>
-</div>
-<div class="paragraph">
-<p>When the application is ready, open <code>http://localhost:8080</code> in your web browser and log in to the application with <code>admin</code> / <code>admin</code> credentials.</p>
-</div>
-<div class="paragraph">
-<p>Choose the <strong>Bookings</strong> item from the <strong>Application</strong> menu. You will see the <code>Booking.list</code> view.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>In this section, you learned how to implement a Room Booking feature within your application. You gained practical experience in creating and configuring a <code>Room</code> enumeration, defining a <code>Booking</code> entity with key attributes, and generating CRUD views to enable users to manage room reservations effectively. You also learned how to run the application, apply database changes, and access the new booking feature through the application menu.</p>
+<p>When the application starts, open <code>http://localhost:8080</code> in a web browser, log in with <code>admin</code> / <code>admin</code>, and select <strong>Bookings</strong> from the main application menu.</p>
 </div>
 </div>
 </div>

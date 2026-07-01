@@ -5,7 +5,7 @@ Scroller - a container that can scroll its content if it does not fit the size o
 scroller.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row">
+    <layout classNames="horizontal-layout">
         <scroller width="25%" height="20em" scrollBarsDirection="VERTICAL">
             <vbox>
                 <h4 text="Vertical scrollbar"/>

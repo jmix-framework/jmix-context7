@@ -74,7 +74,7 @@ url-query-parameters-fragment.xml
             <genericFilter id="genericFilter" dataLoader="customersDl">
                 <properties include=".*"/>
             </genericFilter>
-            <hbox id="buttonsPanel" classNames="buttons-panel">
+            <hbox id="buttonsPanel" width="100%" wrap="true">
                 <simplePagination id="pagination" dataLoader="customersDl" itemsPerPageItems="5"/>
             </hbox>
             <dataGrid id="customersDataGrid"

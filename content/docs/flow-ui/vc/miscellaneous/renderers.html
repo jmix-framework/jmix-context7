@@ -11,7 +11,10 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This section describes how to customize the rendering of UI components like <a class="xref page" href="../components/comboBox.html">comboBox</a>, <a class="xref page" href="../components/dataGrid.html">dataGrid</a>, <a class="xref page" href="../components/checkboxGroup.html">checkboxGroup</a>, <a class="xref page" href="../components/select.html">select</a> and others using custom renderers in Jmix. Custom renderers allow developers to control the visual representation of data within these components, tailoring the UI to specific application requirements. This is particularly useful for:</p>
+<p>This page describes shared renderer APIs such as <code>ComponentRenderer</code>, <code>LitRenderer</code>, and <code>FragmentRenderer</code>, used by UI components. For predefined XML renderers, supported attributes, and component-specific examples, see the corresponding component documentation.</p>
+</div>
+<div class="paragraph">
+<p>Renderers are particularly useful for:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -41,9 +44,6 @@
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p>In essence, renderers in Jmix empower developers to move beyond the basic display capabilities of the default UI components, creating a more tailored and user-friendly interface that effectively communicates data to the end-user.</p>
-</div>
 <div class="admonitionblock tip">
 <table>
 <tr>
@@ -51,52 +51,7 @@
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-If you need to simply format data (for example, change the way a date or number appears), use a <a class="xref page" href="formatter.html">formatter</a>.
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="predefined-renderer"><a class="anchor" href="#predefined-renderer"></a>Predefined XML Renderer</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Jmix provides predefined XML renderers for <a class="xref page" href="../components/dataGrid.html">DataGrid</a> and <a class="xref page" href="../components/treeDataGrid.html">TreeDataGrid</a> columns to simplify common formatting and display table data:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a class="xref page" href="../components/dataGrid.html#number-renderer">numberRenderer</a></p>
-</li>
-<li>
-<p><a class="xref page" href="../components/dataGrid.html#local-date-renderer">localDateRenderer</a></p>
-</li>
-<li>
-<p><a class="xref page" href="../components/dataGrid.html#local-date-time-renderer">localDateTimeRenderer</a></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>They accept a <code>format</code> string. For example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;column property="joiningDate"&gt;
-    &lt;localDateRenderer format="MMM dd, yyyy"/&gt;
-&lt;/column&gt;</code></pre>
-</div>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To add a renderer in Jmix Studio, select the <code>column</code> element in the view descriptor XML or in the <strong>Jmix UI</strong> structure panel and click on the <a class="xref page" href="../../../studio/view-designer.html#component-inspector">Add→&lt;Some&gt;Renderer</a> button in the <strong>Jmix UI</strong> inspector panel.</p>
-</div>
+If you only need to change how a value is displayed, for example how a date or number appears, use a <a class="xref page" href="formatter.html">formatter</a>.
 </td>
 </tr>
 </table>
@@ -107,10 +62,7 @@ If you need to simply format data (for example, change the way a date or number 
 <h2 id="component-renderer"><a class="anchor" href="#component-renderer"></a>Component Renderer</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Component renderers provide a mechanism for rendering data within UI components using other UI components.</p>
-</div>
-<div class="paragraph">
-<p>A component renderer takes data as input and generates a UI component (such as a <a class="xref page" href="../components/checkbox.html">checkBox</a>, or <a class="xref page" href="../html-components/image.html">image</a>) to represent that data. This generated component is then used by the parent UI component (for example, a dataGrid column) to display the data. This approach is particularly useful when you need to visually represent data using more than just simple text formatting.</p>
+<p><code>ComponentRenderer</code> renders items using UI components instead of plain text. Assign it programmatically with <code>setRenderer()</code> or provide it from a controller using <code>@Supply</code>.</p>
 </div>
 <div class="admonitionblock caution">
 <table>
@@ -119,51 +71,69 @@ If you need to simply format data (for example, change the way a date or number 
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-While simple to implement, component renderers can negatively impact performance, especially with large datasets, because they create a separate UI component for each data item.
+<code>ComponentRenderer</code> creates UI components for rendered items and can affect performance on large datasets. If you only need to render HTML-like content, use <a href="#lit-renderer">LitRenderer</a>.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>To create a renderer use the <code>setRenderer()</code> method or <code>@Supply</code> annotation.</p>
+<p><code>ComponentRenderer</code> can be created in different ways, depending on how you want to create and update components. The examples below show the available options.</p>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-To generate a <code>renderer</code> handler method in <strong>Jmix Studio</strong>, select the component or grid column, go to the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel and double-click the relevant row. Also, you can use the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code → Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).
-</td>
-</tr>
-</table>
-</div>
+<div class="sect2">
+<h3 id="component-renderer-single-callback"><a class="anchor" href="#component-renderer-single-callback"></a>Single Callback</h3>
 <div class="paragraph">
-<p>As an example, let’s consider adding a renderer to display a boolean value using a <code>checkBox</code> in a <code>dataGrid</code>.</p>
-</div>
-<div class="paragraph">
-<p>Select the <code>active</code> column, switch to the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector and double-click the <code>renderer</code> handler method:</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="renderer 1" src="../../_images/visual-components/renderer-1.png" width="862"/>
-</div>
-</div>
-<div class="paragraph">
-<p>Implement the <code>dataGridCheckboxActiveRenderer</code> method:</p>
+<p>Use this when a single function can generate a new component instance directly from the model item.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "dataGridCheckbox.active", subject = "renderer")
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "selectWithRenderer", subject = "renderer") <i class="conum" data-value="1"></i><b>(1)</b>
+private ComponentRenderer&lt;Button, Department&gt; selectWithRendererRenderer() {
+    return new ComponentRenderer&lt;&gt;(item -&gt; { <i class="conum" data-value="2"></i><b>(2)</b>
+        Button button = uiComponents.create(Button.class); <i class="conum" data-value="3"></i><b>(3)</b>
+        button.setText(item.getName());
+        button.setIcon(VaadinIcon.DESKTOP.create());
+        return button; <i class="conum" data-value="4"></i><b>(4)</b>
+    });
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>@Supply</code> binds the renderer to <code>selectWithRenderer</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The function receives the current item.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The component instance is created and configured inside the same callback.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The function returns the component for the current item.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="component-renderer-separate-creation-binding"><a class="anchor" href="#component-renderer-separate-creation-binding"></a>Separate Creation And Binding</h3>
+<div class="paragraph">
+<p>Use this when component creation and item binding should be handled separately.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "dataGridCheckbox.active", subject = "renderer") <i class="conum" data-value="1"></i><b>(1)</b>
 private Renderer&lt;User&gt; dataGridCheckboxActiveRenderer() {
     return new ComponentRenderer&lt;&gt;(
             () -&gt; {
-                JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class); <i class="conum" data-value="1"></i><b>(1)</b>
-                checkbox.setReadOnly(true); <i class="conum" data-value="2"></i><b>(2)</b>
-                return checkbox; <i class="conum" data-value="3"></i><b>(3)</b>
+                JmixCheckbox checkbox = uiComponents.create(JmixCheckbox.class); <i class="conum" data-value="2"></i><b>(2)</b>
+                checkbox.setReadOnly(true); <i class="conum" data-value="3"></i><b>(3)</b>
+                return checkbox; <i class="conum" data-value="4"></i><b>(4)</b>
             },
-            (checkbox, user) -&gt; checkbox.setValue(user.getActive()) <i class="conum" data-value="4"></i><b>(4)</b>
+            (checkbox, item) -&gt; checkbox.setValue(item.getActive()) <i class="conum" data-value="5"></i><b>(5)</b>
     );
 }</code></pre>
 </div>
@@ -172,29 +142,88 @@ private Renderer&lt;User&gt; dataGridCheckboxActiveRenderer() {
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The <code>JmixCheckbox</code> component instance is created using the <code>UiComponents</code> factory.</td>
+<td><code>@Supply</code> binds the renderer to the <code>active</code> column of <code>dataGridCheckbox</code>.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Sets <code>checkbox</code> to read-only mode, preventing users from directly changing its state.</td>
+<td>The supplier creates a <code>JmixCheckbox</code> component instance.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>The renderer returns the newly created, read-only checkbox to be shown in the column cells.</td>
+<td>The checkbox is set to read-only mode.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Lambda expression that configures the checkbox’s value. It’s a consumer that takes two parameters: the <code>checkbox</code> component and a <code>User</code> instance. It sets the checkbox’s value based on the <code>active</code> attribute of the <code>User</code> entity.</td>
+<td>The supplier returns the component instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The consumer receives the component and the current item, then sets the checkbox value from <code>item.getActive()</code>.</td>
 </tr>
 </table>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="renderer 4" src="../../_images/visual-components/renderer-4.png" width="662"/>
 </div>
+<div class="sect2">
+<h3 id="component-renderer-explicit-update"><a class="anchor" href="#component-renderer-explicit-update"></a>Explicit Updates</h3>
+<div class="paragraph">
+<p>Use this when item updates require more control than the previous examples provide. The update callback can either reuse the current component instance or replace it with a new one.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "dataGridStatus.status", subject = "renderer")
+private Renderer&lt;User&gt; createUpdatableStatusRenderer() {
+    return new ComponentRenderer&lt;&gt;(
+            item -&gt; {
+                Span span = uiComponents.create(Span.class); <i class="conum" data-value="1"></i><b>(1)</b>
+                updateSpanBadge(span, item); <i class="conum" data-value="2"></i><b>(2)</b>
+                return span; <i class="conum" data-value="3"></i><b>(3)</b>
+            },
+            (component, item) -&gt; {
+                if (item.getOnboardingStatus() == null) { <i class="conum" data-value="4"></i><b>(4)</b>
+                    updateUnknownStatus(component); <i class="conum" data-value="5"></i><b>(5)</b>
+                    return component; <i class="conum" data-value="6"></i><b>(6)</b>
+                } else {
+                    return createStatusBadge(item); <i class="conum" data-value="7"></i><b>(7)</b>
+                }
+            }
+    );
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The creation callback creates the initial <code>Span</code> component instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The initial component is populated and styled as a badge for the current item.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The creation callback returns the component.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The update callback checks whether the current item has a status value.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>If the value is missing, the callback updates the current component instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The current component is returned unchanged.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>If the value is present, the callback creates and returns a new component for that item.</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>Examples of custom rendering for various UI components are provided in the relevant sections of the Jmix documentation:</p>
+<p>More <code>ComponentRenderer</code> examples are available in UI components that support it:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -238,11 +267,12 @@ private Renderer&lt;User&gt; dataGridCheckboxActiveRenderer() {
 </div>
 </div>
 </div>
+</div>
 <div class="sect1">
 <h2 id="lit-renderer"><a class="anchor" href="#lit-renderer"></a>LitRenderer</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><code>LitRenderer</code> renders content using HTML and Lit’s data-binding syntax; it’s more lightweight than component-based renderers.</p>
+<p><code>LitRenderer</code> uses HTML and Lit’s data-binding syntax to render content efficiently. It is a lightweight alternative to component-based renderers and helps preserve performance when many components are rendered or updated frequently.</p>
 </div>
 <div class="paragraph">
 <p><code>LitRenderer</code> allows you to define an HTML template and bind properties from an entity to template variables:</p>
@@ -262,18 +292,6 @@ private Renderer&lt;User&gt; dataGridLitUserInfoRenderer() {
 <div class="content">
 <img alt="renderer 5" src="../../_images/visual-components/renderer-5.png" width="592"/>
 </div>
-</div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-<code>LitRenderer</code> renders efficiently and is ideal for high-performance applications needing frequent updates. Its lightweight design makes it well-suited for applications with many components or dynamic content.
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>You can use <code>LitRenderer</code> in the following UI components:</p>

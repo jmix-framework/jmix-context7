@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Update Services :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Custom Update Services</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A common way to encapsulate business logic that runs when an entity is saved or removed is to put it into a service and call the service from your code. The execution flow is sequential and easy to read and debug. This works well when you call the service yourself, but the framework’s generic mechanisms – such as <a class="xref page" href="../rest/index.html">generic REST</a>, the <a class="xref page" href="../data-tools/entity-inspector.html">entity inspector</a>, and the <a class="xref page" href="../bpm/bpmn/jmix-entity-data-task.html">BPM entity data task</a> – save and remove entities through <a class="xref page" href="data-manager.html">DataManager</a> and don’t know about your service.</p>
+</div>
+<div class="paragraph">
+<p>Custom update services solve this problem. By implementing the <code>SaveDelegate</code> and <code>RemoveDelegate</code> interfaces, a service registers itself as the handler for save and remove operations of a particular entity type. The generic framework mechanisms then call your service instead of <code>DataManager</code>, so your business logic runs consistently regardless of where the operation originates.</p>
+</div>
+<div class="paragraph">
+<p>This is an alternative to using <a class="xref page" href="entity-events.html">entity events</a> for save/remove logic. Compared to event listeners, an update service keeps the whole flow in one place and executes it sequentially, which is easier to follow than a chain of listeners. Simple cross-cutting concerns like auditing or sending notifications are still a good fit for entity events.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+This feature is experimental. The <code>SaveDelegate</code> and <code>RemoveDelegate</code> interfaces are marked as <code>@Experimental</code> and may change in future releases.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="delegate-interfaces"><a class="anchor" href="#delegate-interfaces"></a>Save and Remove Delegates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The framework provides two interfaces in the <code>io.jmix.core</code> package:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>SaveDelegate&lt;E&gt;</code> declares the method called instead of <code>DataManager</code> when an entity of type <code>E</code> is saved:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">E save(E entity, SaveContext saveContext);</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>RemoveDelegate&lt;E&gt;</code> declares the method called instead of <code>DataManager</code> when an entity of type <code>E</code> is removed:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void remove(E entity);</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>A custom service that handles updates of a certain entity implements one or both of these interfaces parameterized with the entity class. The framework resolves the appropriate service by the entity type, so there must be at most one bean implementing <code>SaveDelegate</code> (and one implementing <code>RemoveDelegate</code>) per entity class.</p>
+</div>
+<div class="paragraph">
+<p>If no service is registered for an entity type, the generic mechanisms save and remove it through <code>DataManager</code> as usual.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="creating-update-service"><a class="anchor" href="#creating-update-service"></a>Creating an Update Service</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s create a service that handles saving and removing of the <code>Order</code> entity. When an order is saved, it recalculates the order’s total amount from its lines and, for a new order, increments the number of orders of the related customer. When an order is removed, it decrements that number.</p>
+</div>
+<div class="paragraph">
+<p>To store the number of orders, the <code>Customer</code> entity has an additional attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Column(name = "ORDERS_COUNT")
+private Integer ordersCount;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The service implements both <code>SaveDelegate&lt;Order&gt;</code> and <code>RemoveDelegate&lt;Order&gt;</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class OrderUpdateService implements SaveDelegate&lt;Order&gt;, RemoveDelegate&lt;Order&gt; {
+
+    @Autowired
+    private DataManager dataManager;
+    @Autowired
+    private CustomerRepository customerRepository;
+    @Autowired
+    private EntityStates entityStates;
+
+    @Override
+    @Transactional
+    public Order save(Order order, SaveContext saveContext) {   <i class="conum" data-value="1"></i><b>(1)</b>
+        calculateTotalAmount(order);                            <i class="conum" data-value="2"></i><b>(2)</b>
+        if (entityStates.isNew(order)) {                        <i class="conum" data-value="3"></i><b>(3)</b>
+            incrementCustomerOrdersCount(order);
+        }
+        return dataManager.save(saveContext).get(order);        <i class="conum" data-value="4"></i><b>(4)</b>
+    }
+
+    @Override
+    @Transactional
+    public void remove(Order order) {                          <i class="conum" data-value="5"></i><b>(5)</b>
+        decrementCustomerOrdersCount(order);
+        dataManager.remove(order);
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>save()</code> method is called both explicitly from your own code and implicitly by the framework’s generic mechanisms.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Business logic that updates the entity state before saving.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Use <code>EntityStates</code> to apply logic only for new instances.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Persist the entity. Here we pass the incoming <code>saveContext</code> to <code>DataManager</code> so that the order and its composition lines are saved together. You could also save through a <a class="xref page" href="data-repositories.html">data repository</a>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The <code>remove()</code> method is called both explicitly from your code and implicitly by the framework.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The business logic methods recalculate the amount and maintain the customer’s orders count:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void calculateTotalAmount(Order order) {
+    if (order.getLines() != null) {
+        BigDecimal total = order.getLines().stream()
+                .map(this::getLineTotal)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setAmount(total);
+    }
+}
+
+private BigDecimal getLineTotal(OrderLine line) {
+    if (line.getProduct() == null || line.getQuantity() == null) {
+        return null;
+    }
+    return line.getProduct().getPrice()
+            .multiply(BigDecimal.valueOf(line.getQuantity()));
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void incrementCustomerOrdersCount(Order order) {
+    // the related entity is reloaded because the instance held by
+    // the order can be stale
+    customerRepository.findById(order.getCustomer().getId()).ifPresent(customer -&gt; {
+        customer.setOrdersCount(getCurrentOrdersCount(customer) + 1);
+        customerRepository.save(customer);
+    });
+}
+
+private void decrementCustomerOrdersCount(Order order) {
+    customerRepository.findById(order.getCustomer().getId()).ifPresent(customer -&gt; {
+        customer.setOrdersCount(getCurrentOrdersCount(customer) - 1);
+        customerRepository.save(customer);
+    });
+}
+
+private static int getCurrentOrdersCount(Customer customer) {
+    return customer.getOrdersCount() == null ? 0 : customer.getOrdersCount();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A few points to note:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Annotate the <code>save()</code> and <code>remove()</code> methods with <code>@Transactional</code> so that all data store operations run in a single <a class="xref page" href="transactions.html">transaction</a>.</p>
+</li>
+<li>
+<p>A related entity that you intend to change (the <code>Customer</code> in this example) should be reloaded inside the service, because the instance referenced by the saved entity can be stale.</p>
+</li>
+<li>
+<p>The service uses a <a class="xref page" href="data-repositories.html">data repository</a> to load and save the related <code>Customer</code>, but you can use <code>DataManager</code> directly as well.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="using-in-code"><a class="anchor" href="#using-in-code"></a>Using Update Services in Your Code</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After the service is created, the generic framework mechanisms (generic REST, entity inspector, BPM entity data task) automatically route save and remove operations of the <code>Order</code> entity to it.</p>
+</div>
+<div class="paragraph">
+<p>In your own code, you should consistently use the service to save and remove entities for which it is defined, instead of calling <code>DataManager</code> or a data repository directly. Otherwise, the business logic encapsulated in the service will be bypassed.</p>
+</div>
+<div class="paragraph">
+<p>In views, wire the service to the data components through the standard save and remove delegate handlers, the same way as for <a class="xref page" href="data-repositories.html">data repositories</a>.</p>
+</div>
+<div class="paragraph">
+<p>Studio helps you create update services and use them in views. When you create a JPA entity, select the <strong>Create Update Service</strong> checkbox in the <strong>New JPA Entity</strong> dialog to generate a service class implementing <code>SaveDelegate</code> and <code>RemoveDelegate</code>. Its delegate methods call either <code>DataManager</code> or a data repository, if one is also created. Later, when you create a view for an entity that has an update service, select the <strong>Use Update Service</strong> checkbox in the <strong>Create Jmix View</strong> dialog to delegate saving and removing to that service automatically.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="limitations"><a class="anchor" href="#limitations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Load operations are not delegated. The framework delegates only save and remove operations to custom services. If you need to run logic when an entity is loaded – for example, to initialize non-persistent attributes – use an <code>EntityLoadingEvent</code> listener as described in <a class="xref page" href="entity-events.html">Entity Events</a>. Loading also stays under your control in your own code: use a query, a data repository, or any service method to load entities.</p>
+</li>
+<li>
+<p>Consistency is your responsibility. The framework cannot enforce that application code always goes through the service. Make sure that everywhere in your code, the entity’s service is used for its save and remove operations rather than <code>DataManager</code> or a data repository directly.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

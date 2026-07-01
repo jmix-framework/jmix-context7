@@ -6,7 +6,7 @@ code-editor-mode-theme.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
-        <hbox classNames="buttons-panel">
+        <hbox width="100%" wrap="true">
             <select id="modeComboBox" label="Mode"/>
             <select id="themeComboBox" label="Theme"/>
         </hbox>

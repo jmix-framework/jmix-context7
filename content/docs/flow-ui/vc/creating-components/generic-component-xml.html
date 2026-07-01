@@ -16,27 +16,49 @@
 <div class="paragraph">
 <p>The <code>component</code> XML element enables you to create any UI component by specifying its fully qualified class name (FQN). Component properties are defined using nested <code>property</code> elements, similar to action configuration.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_usage_example"><a class="anchor" href="#_usage_example"></a>Usage Example</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>For example, you can define a <code>Button</code> component this way:</p>
+<p>The simplest use case is defining a regular component instance directly in XML:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;component id="button" class="com.vaadin.flow.component.button.Button"&gt;
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;component id="button" class="io.jmix.flowui.kit.component.button.JmixButton"&gt;
     &lt;properties&gt;
-        &lt;property name="text" value="Button"/&gt;
-        &lt;property name="icon" value="PLUS" type="ICON"/&gt;
+        &lt;property name="text" value="Save"/&gt;
+        &lt;property name="icon" value="ARCHIVE" type="ICON"/&gt;
     &lt;/properties&gt;
 &lt;/component&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Here is an example of defining a custom component:</p>
+<p>The framework instantiates the component class and applies the declared properties through matching setter methods. In this example,
+the <code>text</code> property maps to <code>setText()</code>, and the <code>ICON</code> property parser converts <code>ARCHIVE</code> to an icon instance for <code>setIcon()</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can also subscribe to the generic component in the view controller the same way as for standard declarative components:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+protected Notifications notifications;
+
+@Subscribe(id = "button", subject = "clickListener")
+public void onButtonClick(ClickEvent&lt;JmixButton&gt; event) {
+    notifications.show("Saved!");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same mechanism can be used for a custom component with setters that accept converted values:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;component id="testComponent" class="com.company.onboarding.component.TestComponent"&gt;
     &lt;properties&gt;
-        &lt;property name="text" value="Button"/&gt;
         &lt;property name="stringsList" value="a b ,c"/&gt;
         &lt;property name="stringsSet" value="a b ,c"/&gt;
         &lt;property name="stringsArray" value="a b ,c"/&gt;
@@ -45,6 +67,11 @@
     &lt;/properties&gt;
 &lt;/component&gt;</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>In this example, the <code>TestComponent</code> class defines setters for <code>stringsList</code>, <code>stringsSet</code>, <code>stringsArray</code>,
+<code>strings</code>, and <code>dataContainer</code>. Jmix converts the string values from XML and resolves the <code>productsDc</code>
+data container before invoking the matching setters.</p>
 </div>
 </div>
 </div>
@@ -67,7 +94,7 @@
 </div>
 </li>
 <li>
-<p>The framework searches for the first method with the matching <code>name</code> and a single input parameter to set the value.</p>
+<p>The framework searches for a method with the matching <code>name</code> and a single input parameter to set the value.</p>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -83,6 +110,10 @@ If multiple methods share the same name, there is no guarantee that the intended
 </li>
 <li>
 <p>The found method’s input parameter type is used to convert the string value from the <code>value</code> attribute into the actual value.</p>
+<div class="paragraph">
+<p>Built-in conversion supports <code>String</code>, <code>Class</code>, boolean and numeric types, enums, <code>List</code>, <code>Set</code>, and arrays.
+Varargs setters also work because they are handled as array parameters. Collection and array items are split by spaces or commas before conversion.</p>
+</div>
 </li>
 <li>
 <p>The <code>type</code> attribute indicates that string value must be converted by one of the pluggable <code>PropertyParser</code> beans:</p>

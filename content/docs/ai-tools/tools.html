@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Tools</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The assistant does not access the database or external systems directly. Instead, it works through server-side tools. The add-on includes a set of predefined tools, and you can contribute your own or override the predefined ones.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="predefined"><a class="anchor" href="#predefined"></a>Predefined Tools</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The assistant comes with predefined tools that it can call on the user’s behalf. They are grouped by purpose, and each group is described in its own section below. At the moment, the add-on provides one group: <a href="#data-loading">Data Load tools</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-loading"><a class="anchor" href="#data-loading"></a>Data Load Tools</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Data Load tools let the assistant answer questions about application data.</p>
+</div>
+<div class="sect2">
+<h3 id="data-load-flow"><a class="anchor" href="#data-load-flow"></a>The Data-Load Flow</h3>
+<div class="paragraph">
+<p>The Data Load tools implement a natural-language data loading flow. When a user asks for data, the assistant typically goes through the following steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Discover – list the entities available to the user and inspect the relevant ones, including attributes, relationships, and enums.</p>
+</li>
+<li>
+<p>Generate – produce a read-only JPQL query with named parameters for the request.</p>
+</li>
+<li>
+<p>Validate – check the query against the domain model and a set of rules, including read-only access, syntax, known entities and attributes, supported date/time constructs, and pagination.</p>
+</li>
+<li>
+<p>Repair – if validation fails, ask the model to fix the query and validate it again, up to a configurable number of attempts.</p>
+</li>
+<li>
+<p>Execute – run the query through <code>DataManager</code>, enforce entity and attribute permissions, and return a page of rows.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>All steps run on the server. The query is always a read-only <code>SELECT</code>. Write operations and native SQL escapes are rejected during validation, and execution also enforces the current user’s read permissions. A query over an entity the user cannot read is rejected, while attributes the user cannot read are omitted from the returned rows, just as a data grid hides columns bound to unreadable attributes. In both cases, the user never receives data they are not allowed to see.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="available-tools"><a class="anchor" href="#available-tools"></a>Available Tools</h3>
+<div class="paragraph">
+<p>The flow is exposed to the model as three tools. The tool name is the identifier the model uses to call the tool. It is also the name you reference when <a href="#overriding">overriding</a> a tool.</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Tool name</th>
+<th class="tableblock halign-left valign-top">What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="aitls_getAvailableEntities"></a><code>aitls_getAvailableEntities</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns compact metadata for every entity currently available to the user: entity name, localized names, and property names. Entities hidden by application filtering or security are not returned. The assistant uses this tool to explore the data model and obtain the correct entity names for follow-up calls.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="aitls_getDomainModelForEntities"></a><code>aitls_getDomainModelForEntities</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns detailed metadata for the requested entities: exact attribute names, relationships for joins, property types and constraints, and enum value mappings. The assistant must call this tool for the entities it intends to query before it generates a query.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="aitls_executeQuery"></a><code>aitls_executeQuery</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validates, repairs if needed, and runs a read-only JPQL query, returning the resulting rows. Parameters are passed as a structured request containing query text, named parameters, result column names, and paging information. The result reports the rows, whether more rows are available, and any validation or execution error.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>These three tools are bound together by the <code>DataLoadAiTool</code> marker interface, so the registry can collect them as a group. See <a href="#registry">AiToolRegistry</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="exposed-model"><a class="anchor" href="#exposed-model"></a>Controlling the Exposed Model</h3>
+<div class="paragraph">
+<p>By default, the assistant can see every JPA entity in the application except framework entities, because the <code>io.jmix</code> packages are excluded, and system-level entities. You can narrow or widen this set with the <code>jmix.aitools.dataload.*</code> properties.</p>
+</div>
+<div class="paragraph">
+<p>For example, to hide a specific entity from the assistant and cap the default number of rows per query:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># Hide the User entity from the AI
+jmix.aitools.dataload.exclude-entities[0]=User
+# Default number of rows returned when a generated query does not specify one
+jmix.aitools.dataload.jpql-execution-max-result=50</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inclusion and exclusion rules are evaluated per entity. The <code>exclude-<strong></strong></code> properties hide entities. The <code>include-</code> properties are additive and add entities to the default set, including entities hidden by default, such as framework or system-level entities. <code>exclude-entities</code> still takes precedence over any include. See <a class="xref page" href="properties.html#dataload">Data-load properties</a> for the full list of options, including how to cap the number of rows that a single query can return.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Filtering by configuration changes only which entities are offered to the model. Regardless of configuration, every query still runs under the current user’s <a class="xref page" href="../security/index.html">data access</a> permissions. A query over an entity the user cannot read is rejected, and attributes the user cannot read are removed from the result. A user can never read data they are not allowed to see.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="available-entity-filter"><a class="anchor" href="#available-entity-filter"></a>Customizing Availability</h3>
+<div class="paragraph">
+<p>The set of entities offered to the model is resolved through an <code>AvailableEntityFilter</code> bean. The default implementation hides entities for which the current user has no read access. To change this behavior, for example to apply your own visibility rules, register your own bean that implements <code>io.jmix.aitools.dataload.introspection.AvailableEntityFilter</code>.</p>
+</div>
+<div class="paragraph">
+<p>The configured entities and their metadata are served by the <code>AvailableEntityService</code> bean, which you can also use from your own tools. See the <a href="#overriding">override example</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-tools"><a class="anchor" href="#custom-tools"></a>Custom Tools and the Registry</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Beyond the predefined tools, you can contribute your own tools to the assistant and override the tools provided by the add-on.</p>
+</div>
+<div class="sect2">
+<h3 id="defining-a-tool"><a class="anchor" href="#defining-a-tool"></a>Defining a Tool</h3>
+<div class="paragraph">
+<p>A tool is a Spring bean that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>implements the <code>io.jmix.aitools.tool.JmixAiTool</code> marker interface</p>
+</li>
+<li>
+<p>declares one or more methods annotated with Spring AI’s <code>@Tool</code> annotation</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The add-on discovers all such beans at startup, collects their <code>@Tool</code> methods, and makes them available to the assistant. The following bean adds a tool that returns the catalog of onboarding steps:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class OnboardingTools implements JmixAiTool { <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @Autowired
+    private DataManager dataManager;
+    @Autowired
+    private AiToolStatusPublisher statusPublisher;
+
+    @Tool(name = "getStepCatalog", <i class="conum" data-value="2"></i><b>(2)</b>
+            description = "Returns the catalog of onboarding steps with their duration in days.")
+    public String getStepCatalog(ToolContext toolContext) { <i class="conum" data-value="3"></i><b>(3)</b>
+        String message = "Loading the onboarding step catalog";
+        statusPublisher.update(message, toolContext); <i class="conum" data-value="4"></i><b>(4)</b>
+
+        List&lt;Step&gt; steps = dataManager.load(Step.class).all().list(); <i class="conum" data-value="5"></i><b>(5)</b>
+
+        statusPublisher.complete(message, steps.size() + " steps", toolContext);
+
+        return steps.stream()
+                .sorted(Comparator.comparing(Step::getSortValue))
+                .map(step -&gt; step.getName() + " — " + step.getDuration() + " day(s)")
+                .collect(Collectors.joining("\n"));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Implementing <code>JmixAiTool</code> marks the bean as a source of tools.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>@Tool</code> <code>name</code> and <code>description</code> are what the model sees. The description should explain when and how to use the tool.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>A <code>ToolContext</code> parameter is supplied by the framework and is not exposed to the model. It is required only to publish status updates. See <a href="#status-updates">Publishing Status Updates</a>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Publishes an in-progress status update before the long-running work starts.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Loads the <code>Step</code> entities through <code>DataManager</code> under the current user’s data access permissions.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The method parameters become the tool’s input schema. Annotate them with <code>@ToolParam</code> to add descriptions. The return value is sent back to the model as the tool result.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Declaring <code>@Tool</code> methods requires Spring AI’s model API on the application classpath. The Spring AI model starter that you add in <a class="xref page" href="getting-started.html#configure-model">Connecting a Model</a> already provides it.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="registry"><a class="anchor" href="#registry"></a>AiToolRegistry</h3>
+<div class="paragraph">
+<p><code>io.jmix.aitools.tool.AiToolRegistry</code> is the central registry of all tools available in the application. It is built once at startup from every <code>JmixAiTool</code> bean, after override resolution is applied. Its methods are:</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>getAll()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns all resolved tools in registration order.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>findByName(String name)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns the tool registered under the given name, or an empty result.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>findByMarker(Class&lt;? extends JmixAiTool&gt; marker)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns the tools whose source bean implements the given marker sub-interface of <code>JmixAiTool</code>, for example <code>DataLoadAiTool.class</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>getAllCallbacks()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns the Spring AI <code>ToolCallback</code> objects of all resolved tools, ready to pass to a <code>ChatClient</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The assistant passes <code>getAllCallbacks()</code> to the model, so any tool you contribute becomes available automatically. Nothing else must be registered.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="overriding"><a class="anchor" href="#overriding"></a>Overriding a Predefined Tool</h3>
+<div class="paragraph">
+<p>To replace an existing tool, including a predefined one, annotate your <code>@Tool</code> method with <code>@ToolOverride</code> and pass the name of the tool you want to replace. The method must still carry <code>@Tool</code> and be declared on a <code>JmixAiTool</code> bean.</p>
+</div>
+<div class="paragraph">
+<p>The following bean overrides <a href="#aitls_getAvailableEntities"><code>aitls_getAvailableEntities</code></a> and returns the available entities ordered by their localized name:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class SortedEntitiesTool implements DataLoadAiTool { <i class="conum" data-value="1"></i><b>(1)</b>
+
+    @Autowired
+    private AvailableEntityService availableEntityService;
+
+    @Tool(description = "Returns entities available to the user, ordered by localized name.")
+    @ToolOverride("aitls_getAvailableEntities") <i class="conum" data-value="2"></i><b>(2)</b>
+    public List&lt;EntitySummary&gt; getAvailableEntities() {
+        return availableEntityService.getEntitySummaries().stream() <i class="conum" data-value="3"></i><b>(3)</b>
+                .sorted(Comparator.comparing(this::firstLocalizedName))
+                .toList();
+    }
+
+    private String firstLocalizedName(EntitySummary summary) {
+        return summary.getLocalizedNames().isEmpty()
+                ? summary.getEntityName()
+                : summary.getLocalizedNames().get(0);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Implementing <code>DataLoadAiTool</code> keeps the override in the data-load tool group. For a tool unrelated to data loading, implement <code>JmixAiTool</code> directly.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>@ToolOverride</code> names the tool being replaced. The override is exposed under that name, so the override method’s own <code>@Tool</code> name is irrelevant.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The default <code>AvailableEntityService</code> is reused, so the override still honors entity filtering and security and changes only the ordering.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>How override resolution works:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When several <code>@Tool</code> methods produce the same tool name, the one annotated with <code>@ToolOverride</code> wins and the original tool is excluded from the registry.</p>
+</li>
+<li>
+<p>The override inherits the marker interfaces of the tool it replaces, so registry lookups by marker continue to work.</p>
+</li>
+<li>
+<p>If the named tool does not exist, a warning is logged and the override is registered as a regular new tool under its own <code>@Tool</code> name. This fails with an exception if that name is already used by another tool, to avoid silently replacing an unrelated tool.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="status-updates"><a class="anchor" href="#status-updates"></a>Publishing Status Updates</h3>
+<div class="paragraph">
+<p>Long-running tools can surface progress to the UI through the <code>io.jmix.aitools.tool.AiToolStatusPublisher</code> bean shown in the <a href="#defining-a-tool">example above</a>. It implements a two-phase contract:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>update(message, toolContext)</code> – the step has started, and the UI shows an in-progress indicator.</p>
+</li>
+<li>
+<p><code>complete(message, snippet, toolContext)</code> – the step has finished, and the UI folds the result snippet into the same entry. The <code>message</code> must match the one passed to <code>update</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Both methods take the tool method’s <code>ToolContext</code>. When the tool is invoked outside the chat UI, for example through the <a class="xref page" href="programmatic-api.html">programmatic API</a>, no status callback is present and the methods are silent no-ops, so it is always safe to call them.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

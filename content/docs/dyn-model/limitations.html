@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limitations :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Limitations</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes the current limitations and constraints of the Dynamic Model add-on. See <a class="xref page" href="concepts.html">Concepts</a> for an explanation of the terms used below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="storage"><a class="anchor" href="#storage"></a>Storage and Data Stores</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>The side tables that store dynamic attributes of a static entity are always created in the same data store as the owning static entity.</p>
+</li>
+<li>
+<p>Only JPA-based data stores are supported: main and additional ones with <code>JpaDataStore</code> type.</p>
+</li>
+<li>
+<p>Dynamic references and dynamic collections are allowed only between entities that belong to the same data store.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ids"><a class="anchor" href="#ids"></a>Identifier Constraints</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Dynamic reference attributes do not support composite identifiers: the target entity must have a simple ID.</p>
+</li>
+<li>
+<p>Dynamic collection attributes are not supported for static owners that have a composite identifier.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="collections"><a class="anchor" href="#collections"></a>Collections</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dynamic collection attributes are supported as ordered <code>List</code> compositions only.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="queries"><a class="anchor" href="#queries"></a>Query Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dynamic filtering and sorting in the database do not support every kind of condition.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For both static-root and dynamic-root loads, the following are not supported:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Date/time macro conditions.</p>
+</li>
+<li>
+<p>Conditions over collection-valued dynamic attribute paths.</p>
+</li>
+<li>
+<p>Filtering and sorting by calculated attributes (they are computed on access and not stored in the database).</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>For dynamic-root loads (where the queried entity is a dynamic entity), the following are additionally not supported:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>JPQL conditions.</p>
+</li>
+<li>
+<p>Collection-member operations.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="admin-ui"><a class="anchor" href="#admin-ui"></a>Admin UI Model Editing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Admin UI preserves the semantics of the Dynamic Model configuration, but converting the model to and from the graphical editor does not preserve the original YAML formatting, comments, anchors, aliases, or key ordering of the <code>model</code> section.</p>
+</div>
+<div class="paragraph">
+<p>Arbitrary nested object values, such as validation <code>parameters</code> and view <code>templateParams</code>, are edited as raw YAML fragments. This keeps their value types intact but does not provide a typed graphical editor for such nested objects.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="apply-atomicity"><a class="anchor" href="#apply-atomicity"></a>Apply Atomicity Scope</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Publication of the new metadata is atomic, and destructive cleanup of removed metadata and schema objects is deferred until the previous model generation is no longer in use by in-flight work. However, additive work performed before publication is not transactional and is not rolled back if the apply fails:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A failed apply may leave additive tables, columns, or unique constraints in the database. They contain no data and are never populated until a published model generation references them. They are reused on the next apply.</p>
+</li>
+<li>
+<p>A failed apply may leave generated entity and enum classes loaded in memory for the lifetime of the JVM. This has no impact on the database or on correctness and is overwritten by the next successful apply.</p>
+</li>
+<li>
+<p>Dynamic view deployment runs after metadata publication, not as part of the atomic apply. View declarations are validated before the apply, but if the deployment fails afterwards, the new model generation is already live while some dynamic views may be missing or stale. Re-applying the model recovers the views.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="clustering"><a class="anchor" href="#clustering"></a>Application Cluster</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The current implementation does not support running in an application cluster. Only a single application server instance can work with the dynamic model, because a model applied on one instance is not propagated to the others at runtime. Cluster support is planned for the next Jmix release.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -1,15 +1,15 @@
 <Path>Components > Tabs > Tabs with ThemeVariant</Path>
 
-The Tabs component has several theme variants: icon-on-top centered small minimal hide-scroll-buttons equal-width-tabs You can set these styles to the Tabs component using the themeNames attribute either in the XML descriptor or in the view controller using constants from TabsVariant class.
+The Tabs component has several theme variants: small hide-scroll-buttons You can set these styles to the Tabs component using the themeNames attribute either in the XML descriptor or in the view controller using constants from TabsVariant class.
 
 tabs-theme-variant.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout>
-        <hbox padding="false" classNames="flex-wrap">
-            <checkboxGroup id="tabsSettingsCheckboxGroup" label="Tabs themes"/>
-            <vbox padding="false" width="AUTO" classNames="gap-s justify-end">
-                <label text="Tabs count" classNames="text-secondary text-s font-medium"
+    <layout classNames="tabs-theme-variant">
+        <hbox padding="false" wrap="true">
+            <checkboxGroup id="tabsSettingsCheckboxGroup" label="Tabs themes" themeNames="horizontal"/>
+            <vbox padding="false" width="AUTO" justifyContent="END" classNames="tabs-count-control-box">
+                <nativeLabel text="Tabs count" classNames="control-label"
                        setFor="controlButtonPlaceholder"/>
                 <hbox id="controlButtonPlaceholder" padding="false"/>
             </vbox>
@@ -47,9 +47,11 @@ import com.vaadin.flow.component.tabs.Tabs;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.checkboxgroup.JmixCheckboxGroup;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.theme.StyleUtility;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -58,26 +60,23 @@ import java.util.List;
 public class TabsThemeVariantSample extends StandardView {
 
     @ViewComponent
-    protected Tabs tabs;
+    private Tabs tabs;
     @ViewComponent
-    protected JmixCheckboxGroup<String> tabsSettingsCheckboxGroup;
+    private JmixCheckboxGroup<String> tabsSettingsCheckboxGroup;
     @ViewComponent
-    protected HorizontalLayout controlButtonPlaceholder;
+    private HorizontalLayout controlButtonPlaceholder;
 
     @Autowired
-    protected UiComponents uiComponents;
+    private UiComponents uiComponents;
 
     @Subscribe
-    protected void onInit(InitEvent event) {
-        List<String> tabsSettingsItems = List.of("Centered", "Small", "Minimal", "Hide-scroll-buttons",
-                "Equal-width-tabs");
-        tabsSettingsCheckboxGroup.setItems(tabsSettingsItems);
-
+    public void onInit(InitEvent event) {
+        tabsSettingsCheckboxGroup.setItems(getTabsThemes());
         controlButtonPlaceholder.add(createRemoveTabButton(), createAddTabButton());
     }
 
     @Subscribe("tabsSettingsCheckboxGroup")
-    protected void onTabsSettingsCheckboxGroupValueChange(
+    public void onTabsSettingsCheckboxGroupValueChange(
             AbstractField.ComponentValueChangeEvent<JmixCheckboxGroup<String>, Collection<String>> event) {
         if (event.getValue() == null) {
             return;
@@ -86,7 +85,7 @@ public class TabsThemeVariantSample extends StandardView {
         applyTabsThemes(event.getValue());
     }
 
-    protected void applyTabsThemes(Collection<String> themes) {
+    private void applyTabsThemes(Collection<String> themes) {
         tabs.getElement().getThemeList().clear();
 
         themes.stream()
@@ -94,10 +93,11 @@ public class TabsThemeVariantSample extends StandardView {
                 .forEach(tabs::addThemeName);
     }
 
-    protected Component createAddTabButton() {
+    private Component createAddTabButton() {
         JmixButton button = uiComponents.create(JmixButton.class);
         button.setIcon(VaadinIcon.PLUS.create());
-        button.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.addClassName(StyleUtility.Button.LINK_BUTTON);
 
         button.addClickListener(event -> {
             long newTabIndex = tabs.getChildren().count() + 1;
@@ -108,10 +108,11 @@ public class TabsThemeVariantSample extends StandardView {
         return button;
     }
 
-    protected Component createRemoveTabButton() {
+    private Component createRemoveTabButton() {
         JmixButton button = uiComponents.create(JmixButton.class);
         button.setIcon(VaadinIcon.MINUS.create());
-        button.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.addClassName(StyleUtility.Button.LINK_BUTTON);
 
         button.addClickListener(event -> {
             long currentTabsSize = tabs.getChildren().count();
@@ -123,6 +124,24 @@ public class TabsThemeVariantSample extends StandardView {
 
         return button;
     }
+
+    private List<String> getTabsThemes() {
+        return List.of("Small", "Hide-scroll-buttons");
+    }
 }
 
+
+
+
+tabs-theme-variant.css
+
+
+.tabs-theme-variant .tabs-count-control-box {
+    gap: var(--vaadin-gap-s)
+}
+
+.tabs-theme-variant .control-label {
+    font-size: var(--aura-font-size-s);
+    font-weight: 500;
+}
 

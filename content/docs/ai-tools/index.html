@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tools :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">AI Tools</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The AI Tools add-on brings a Large Language Model (LLM)-powered assistant to your Jmix application. Out of the box, it provides a ready-to-use chat UI where users ask questions in natural language and the assistant answers them by calling <a class="xref page" href="tools.html">tools</a>. The add-on includes predefined tools tailored to Jmix applications and lets you add your own.</p>
+</div>
+<div class="paragraph">
+<p>The add-on is built on top of <a href="https://docs.spring.io/spring-ai/reference/" rel="noopener" target="_blank">Spring AI</a>. It does not bundle a specific model provider. Instead, you choose and configure a Spring AI model such as OpenAI, Anthropic, Azure OpenAI, or Ollama, and the add-on uses it through the standard Spring AI <code>ChatClient</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="overview"><a class="anchor" href="#overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on offers three groups of functionality:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Predefined tools. The add-on includes ready-made tools that the assistant can call. The current group, Data Load tools, lets the assistant inspect the available entities and their attributes, then generate, validate, and run a read-only JPQL query to load the requested data. See <a class="xref page" href="tools.html">Tools</a>.</p>
+</li>
+<li>
+<p>Extensible tool registry. Any Spring bean can contribute its own tools, and you can override the predefined ones. The <code>AiToolRegistry</code> collects all application tools. See <a class="xref page" href="tools.html#custom-tools">Custom Tools and the Registry</a>.</p>
+</li>
+<li>
+<p>Chat UI. Ready-made views and reusable fragments let you embed a complete chat experience into your application, including a chat hub with conversation history and a single-conversation view. Chat history is persisted. See <a class="xref page" href="ui.html">User Interface</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In addition, you can use the assistant <a class="xref page" href="programmatic-api.html">programmatically</a> from your own beans without the UI.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="modules"><a class="anchor" href="#modules"></a>Add-on Structure</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on is split into layers, so you can include only what you need:</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Starter</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix-aitools-starter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Core layer: the tool registry, predefined tools, and the programmatic assistant API. It has no UI and no persistence.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix-aitools-flowui-starter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Flow UI layer: chat views, fragments, and the security role. By itself, it provides the UI shell but leaves the chat services as no-op stubs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix-aitools-flowui-data-starter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persistence layer: stores conversations and messages in the database and provides working implementations of the chat services.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The starters build on each other: <code>jmix-aitools-flowui-data-starter</code> → <code>jmix-aitools-flowui-starter</code> → <code>jmix-aitools-starter</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For automatic installation through Jmix Marketplace, follow the instructions in <a class="xref page" href="../add-ons.html#installation">Add-ons</a>.</p>
+</div>
+<div class="paragraph">
+<p>For manual installation, add the following dependencies to your <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.aitools:jmix-aitools-starter'
+implementation 'io.jmix.aitools:jmix-aitools-flowui-starter'
+implementation 'io.jmix.aitools:jmix-aitools-flowui-data-starter'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The add-on also requires a configured Spring AI model. See <a class="xref page" href="getting-started.html">Getting Started</a> for the complete setup.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Important Note for Single Menu Mode Applications</strong></p>
+</div>
+<div class="paragraph">
+<p>If your application uses <a class="xref page" href="../studio/menu-designer.html#menu-modes">Single menu mode</a>, you should manually add menu items after installing an add-on.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open <a class="xref page" href="../studio/menu-designer.html">Menu Designer</a> in Jmix Studio.</p>
+</li>
+<li>
+<p>Navigate to the <strong>Structure</strong> tab.</p>
+</li>
+<li>
+<p>Available menu items are displayed in the left panel.</p>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="add menu items" src="../_images/addons/add-menu-items.png" width="958"/>
+</div>
+</div>
+</li>
+<li>
+<p>To add items:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Select the desired items and click the <code>&gt;</code> (<strong>Add Selected</strong>) button.</p>
+</li>
+<li>
+<p>Or, drag-and-drop them from the left panel into the current menu structure on the right.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This step is required because applications in <strong>Single</strong> menu mode do not automatically merge add-on menus with the existing structure.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

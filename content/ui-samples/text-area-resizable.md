@@ -5,7 +5,7 @@ To enable resizing for TextArea, use CSS styles. Available variants: both vertic
 text-area-resizable.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <textArea id="textArea" label="Standard TextArea"/>
         <textArea id="resizableBothTextArea" label="Resizeable TextArea"
                   classNames="resizable-both"

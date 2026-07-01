@@ -5,7 +5,7 @@ Image component can handle click event.
 image-click.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="items-center">
+    <layout alignItems="CENTER">
         <h4 text="Image to click"/>
         <image id="image" resource="icons/jmix-icon.png" height="15em" width="15em"/>
     </layout>

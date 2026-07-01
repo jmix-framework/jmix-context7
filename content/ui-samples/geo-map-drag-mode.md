@@ -22,7 +22,7 @@ geo-map-drag-mode.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <div classNames="border rounded-s p-s">
+        <div classNames="rounded-panel">
             <span text="msg://sampleDescription.text"/>
         </div>
         <maps:geoMap id="map"

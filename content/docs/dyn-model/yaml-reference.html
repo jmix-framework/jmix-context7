@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAML Reference :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">YAML Reference</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The dynamic model is serialized as YAML under a <code>model:</code> root key. This page documents the schema in full: every field, its type, whether it is required, its default value, and the rules that govern it. For task-oriented guidance, see <a class="xref page" href="defining-model.html">Defining the Model</a> and <a class="xref page" href="views.html">Views and Menu Items</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="model"><a class="anchor" href="#model"></a>Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>model</code> root contains these top-level fields:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>basePackage</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Java package for generated dynamic entity, enum, and view classes. If omitted or blank, the effective value is the last Jmix module base package plus <code>.dynmod</code>. The field is omitted on serialization when it equals the default.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>enumerations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic enum definitions. Missing or <code>null</code> becomes an empty list.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>entities</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Static entity extensions and dynamic entity definitions. Missing or <code>null</code> becomes an empty list.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="names-and-resolution"><a class="anchor" href="#names-and-resolution"></a>Names and Resolution</h3>
+<div class="paragraph">
+<p>Entity definitions are matched by Jmix entity name:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If an entity with <code>name</code> already exists in metadata, the definition extends that static entity with dynamic attributes, validation, uniqueness, or view overrides.</p>
+</li>
+<li>
+<p>If no metadata entity exists, Dynamic Model creates a dynamic entity with the same Jmix entity name and a generated Java class named <code>&lt;effective basePackage&gt;.&lt;name&gt;</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Use Java-like names for dynamic entities, attributes, enum classes, and enum values. Generated database identifiers are normalized automatically:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>camel case is split to upper underscore names, for example <code>loyaltyLevel</code> becomes <code>LOYALTY_LEVEL</code>;</p>
+</li>
+<li>
+<p>unsupported characters are replaced with underscores;</p>
+</li>
+<li>
+<p>reserved words receive a trailing underscore, for example <code>user</code> becomes <code>USER_</code>;</p>
+</li>
+<li>
+<p>identifiers exceeding the DBMS limit are shortened with an 8-character hash.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="localization-values"><a class="anchor" href="#localization-values"></a>Localization Values</h3>
+<div class="paragraph">
+<p>Most captions use a plain locale-to-message map:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">messages:
+  en: "Loyalty level"
+  de: "Treuestufe"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Some fields are <strong>localized values</strong> and accept either a plain string:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">viewTitle: "Benefit"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or a locale map:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">viewTitle:
+  en: "Loyalty levels"
+  de: "Treuestufen"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Locale keys must be non-blank and map to strings. At runtime, the exact locale is preferred, then the language-only locale, then the first map value.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="enumerations"><a class="anchor" href="#enumerations"></a>Enumerations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dynamic enumerations are declared in <code>model.enumerations</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">enumerations:
+  - name: "CustomerGrade"
+    messages:
+      en: "Customer grade"
+    values:
+      - name: "PLATINUM"
+        id: "30"
+        messages:
+          en: "Platinum"
+      - name: "GOLD"
+        id: "20"
+        messages:
+          en: "Gold"
+      - name: "BRONZE"
+        id: "10"
+        messages:
+          en: "Bronze"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Enum fields:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Short class name or fully qualified class name. Short names are resolved against <code>basePackage</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>values</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Must contain at least one value.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>messages</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">map</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Captions for the enum class.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Enum value fields:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Java enum constant name.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Stored enum ID. All IDs in one dynamic enum must be homogeneous: either all parse as 32-bit integers or all are non-integer strings.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>messages</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">map</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Captions for this enum value.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Dynamic enums implement <code>EnumClass&lt;Integer&gt;</code> when all IDs are integer strings, otherwise <code>EnumClass&lt;String&gt;</code>.</p>
+</div>
+<div class="paragraph">
+<p>Attribute references to enums use the <code>enumeration</code> field:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "grade"
+  enumeration: "CustomerGrade" # short name, resolved via base package
+  messages:
+    en: "Grade"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Static enums are also supported if the class implements <code>EnumClass</code>. Use a fully qualified class name, or a short name when the enum class is in <code>basePackage</code>. Enum DB mapping supports both integer IDs and string IDs.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entities"><a class="anchor" href="#entities"></a>Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Entity definitions are declared in <code>model.entities</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "Benefit"
+  messages:
+    en: "Benefit"
+  attributes:
+    - name: "name"
+      javaClass: "java.lang.String"
+      instanceName: true
+      messages:
+        en: "Name"
+  views:
+    - type: "detail"
+      viewId: "Benefit.detail"
+      viewTitle: "Benefit"
+      descriptor:
+        template: "default"</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Jmix entity name. An existing metadata name means a static entity extension; otherwise a dynamic entity is created.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>store</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Physical JPA data store for dynamic entities. Blank and <code>main</code> are serialized as omitted. Static entity definitions may declare a store only if it matches the entity metadata store. An existing dynamic entity store cannot be changed.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>attributes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic attributes. Missing or <code>null</code> becomes an empty list.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>uniqueConstraints</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Named entity-level unique constraints.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>views</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity-owned UI views.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>resourceRoles</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity CRUD role grants. Supported only for dynamic entities.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>validation</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity-level validation constraints.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>messages</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">map</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entity captions.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Dynamic entity tables use the configurable <a class="xref page" href="app-properties.html#jmix.dynmodel.dynamic-entity-table-prefix">jmix.dynmodel.dynamic-entity-table-prefix</a> prefix, default <code>DYN_</code>. Static entity dynamic attributes are stored in side tables using <a class="xref page" href="app-properties.html#jmix.dynmodel.static-entity-table-prefix">jmix.dynmodel.static-entity-table-prefix</a>, default <code>DYN_</code>. Static side tables are created in the same physical store as the static owner entity.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every attribute must define exactly one kind:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>datatype: <code>javaClass</code>;</p>
+</li>
+<li>
+<p>reference: <code>entityName</code>;</p>
+</li>
+<li>
+<p>enum: <code>enumeration</code>.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "Customer"
+  attributes:
+    - name: "taxId"
+      javaClass: "java.lang.String"
+      length: 20
+      required: true
+      unique: true
+      validation:
+        constraints:
+          - annotation: "Pattern"
+            parameters:
+              regexp: "^[A-Z0-9-]+$"
+            message:
+              en: "Tax ID can contain uppercase letters, digits and dashes only"
+      messages:
+        en: "Tax ID"</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Attribute name.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>javaClass</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">kind</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Java class for datatype attributes. See <a href="#javaclass">supported values</a> below.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>entityName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">kind</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Target Jmix entity name for references and collections.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>enumeration</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">kind</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic or static enum name. Short names are resolved through <code>basePackage</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>length</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">integer</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length for strings, URI values, byte arrays, and string-ID enums.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lob</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LOB indicator. Supported only for <code>java.lang.String</code> and <code>byte[]</code> attributes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>required</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds mandatory metadata and a default-group <code>NotNull</code> validation rule. Does not create a DB <code>NOT NULL</code> constraint.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>unique</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shorthand for a single-attribute unique constraint named <code>&lt;attributeName&gt;Unique</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>instanceName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Marks the attribute as an instance-name property. If several attributes are marked, the first one is used and later ones are ignored with a warning.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>collection</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Makes an <code>entityName</code> reference an ordered composition list.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>calculated</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Makes the attribute read-only and non-persistent.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>validation</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Attribute-level constraints. Not allowed on calculated attributes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>resourceRoles</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Attribute view/modify grants.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>messages</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">map</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Attribute captions.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="javaclass"><a class="anchor" href="#javaclass"></a>Supported javaClass Values</h3>
+<div class="paragraph">
+<p>Persistent datatype attributes are mapped to SQL types by the framework. Use these values when writing YAML manually:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 28.5714%;"/>
+<col style="width: 42.8572%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">YAML value</th>
+<th class="tableblock halign-left valign-top">Java type</th>
+<th class="tableblock halign-left valign-top">Default SQL mapping</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar(255)</code>; <code>length</code> overrides size</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.net.URI</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>URI</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar(1024)</code>; <code>length</code> overrides size</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>[B</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>byte[]</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varbinary(255)</code>; <code>length</code> overrides size</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.Boolean</code> or <code>boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>boolean</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.Character</code> or <code>char</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Character</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>char(1)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.Integer</code> or <code>int</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Integer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>integer</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.Long</code> or <code>long</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Long</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bigint</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.Short</code> or <code>short</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Short</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>smallint</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.Double</code> or <code>double</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Double</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>double</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.Float</code> or <code>float</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Float</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>real</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.math.BigDecimal</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BigDecimal</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>decimal(38, 18)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.math.BigInteger</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BigInteger</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>decimal(38, 0)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.time.LocalDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LocalDate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>date</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.time.LocalTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LocalTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>time</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.time.LocalDateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LocalDateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.time.OffsetTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OffsetTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>time with time zone</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.time.OffsetDateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OffsetDateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp with time zone</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.util.UUID</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>UUID</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DB-specific UUID type</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Notes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The serializer stores Java <code>Class#getName()</code> values. For a byte array this is <code>[B</code>; copy the serialized value if unsure.</p>
+</li>
+<li>
+<p>Other Java classes are not supported by Dynamic Model storage unless DB type mapping is extended.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>DB-specific deviations:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.667%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">HSQLDB / H2</th>
+<th class="tableblock halign-left valign-top">PostgreSQL</th>
+<th class="tableblock halign-left valign-top">MySQL / MariaDB</th>
+<th class="tableblock halign-left valign-top">SQL Server</th>
+<th class="tableblock halign-left valign-top">Oracle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>UUID</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>uuid</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>uuid</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>char(32)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>uniqueidentifier</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>char(32)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>nvarchar(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar2(n)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>byte[]</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varbinary(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bytea</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varbinary(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varbinary(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>raw(min(n, 2000))</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bit</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bit</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>char(1)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OffsetTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>time with time zone</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>time with time zone</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>time</code> stored in UTC</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>datetimeoffset</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp with time zone</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OffsetDateTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp with time zone</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp with time zone</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>datetime</code> stored in UTC</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>datetimeoffset</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp with time zone</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code> + <code>lob: true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>clob</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>text</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>longtext</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>nvarchar(max)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>clob</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>byte[]</code> + <code>lob: true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>blob</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bytea</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>longblob</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varbinary(max)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>blob</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="references"><a class="anchor" href="#references"></a>References</h3>
+<div class="paragraph">
+<p>Single-valued references use <code>entityName</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "loyaltyLevel"
+  entityName: "LoyaltyLevel"
+  messages:
+    en: "Loyalty level"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The target must resolve to a dynamic entity declared in the model or to an existing static entity.</p>
+</li>
+<li>
+<p>Dynamic references store the target primary key value.</p>
+</li>
+<li>
+<p>Static targets with composite primary keys are not supported.</p>
+</li>
+<li>
+<p>Owner and target must be in the same physical store.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="collections"><a class="anchor" href="#collections"></a>Collections</h3>
+<div class="paragraph">
+<p>Collection attributes are ordered composition lists:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "benefits"
+  entityName: "Benefit"
+  collection: true
+  messages:
+    en: "Benefits"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>entityName</code> is required.</p>
+</li>
+<li>
+<p>The target must be a dynamic entity.</p>
+</li>
+<li>
+<p><code>javaClass</code>, <code>enumeration</code>, <code>lob</code>, and <code>instanceName</code> are not supported.</p>
+</li>
+<li>
+<p>Collections cannot participate in unique constraints.</p>
+</li>
+<li>
+<p>Owner and target must be in the same physical store.</p>
+</li>
+<li>
+<p>Static owners with composite primary keys are not supported.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Dynamic Model creates internal child properties for the inverse owner reference and order column. They are not written to YAML.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="calculated-attributes"><a class="anchor" href="#calculated-attributes"></a>Calculated Attributes</h3>
+<div class="paragraph">
+<p>Calculated attributes are read-only, non-persistent properties evaluated on access:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "publicSummary"
+  javaClass: "java.lang.String"
+  calculated:
+    evaluator: "spel"
+    expression: "(name ?: '') + ': ' + (description ?: '')"
+    dependsOn:
+      - "name"
+      - "description"
+  messages:
+    en: "Public summary"</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>evaluator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Evaluator name returned by a <code>DynamicCalculatedAttributeEvaluator</code> bean from <code>getName()</code>. If omitted or blank, <a class="xref page" href="app-properties.html#jmix.dynmodel.calculated-attributes.default-evaluator">jmix.dynmodel.calculated-attributes.default-evaluator</a> is used, then <code>spel</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expression</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Evaluator-specific expression. The built-in <code>spel</code> evaluator uses a restricted <code>SimpleEvaluationContext</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dependsOn</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Immediate property names to load with the calculated attribute. Dotted paths are rejected. Missing or <code>null</code> becomes an empty list.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A calculated attribute must declare exactly one result type using <code>javaClass</code> or <code>enumeration</code>.</p>
+</li>
+<li>
+<p><code>entityName</code>, <code>collection</code>, <code>required</code>, <code>validation</code>, and uniqueness are not supported.</p>
+</li>
+<li>
+<p><code>lob: true</code> is only a UI metadata hint and still requires <code>javaClass</code> to be <code>java.lang.String</code> or <code>byte[]</code>.</p>
+</li>
+<li>
+<p>Dependencies must exist on the same entity, either in the current model or in existing metadata.</p>
+</li>
+<li>
+<p>Cycles between calculated attributes in one entity are rejected.</p>
+</li>
+<li>
+<p>Changing an existing stored attribute to calculated, or an existing calculated attribute to stored, is not supported. Changing the calculated result type is also not supported.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The built-in SpEL evaluator allows metadata-aware property reads and registered <code>DynamicCalculatedAttributeFunction</code> functions. It does not expose Spring beans, <code>T(…​)</code>, constructors, arbitrary method calls, reflection, classloader access, or infrastructure APIs.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attribute-validation"><a class="anchor" href="#attribute-validation"></a>Attribute Validation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Attribute validation is declared under <code>attributes[].validation.constraints</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">validation:
+  constraints:
+    - annotation: "Pattern"
+      parameters:
+        regexp: "^[A-Z0-9-]+$"
+      message:
+        en: "Tax ID can contain uppercase letters, digits and dashes only"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Constraint fields:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>annotation</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Constraint alias. See supported aliases below.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>parameters</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">map</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">YAML scalar/list/object values. Parameter names depend on the constraint. Missing becomes an empty map.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>groups</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Group aliases or fully qualified validation group class names. Missing means <code>Default</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">localized value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Plain string or locale map.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Supported groups:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Default</code>;</p>
+</li>
+<li>
+<p><code>UiComponentChecks</code>;</p>
+</li>
+<li>
+<p><code>UiCrossFieldChecks</code>;</p>
+</li>
+<li>
+<p><code>RestApiChecks</code>;</p>
+</li>
+<li>
+<p>fully qualified class names resolvable by <code>Class.forName()</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Supported attribute constraints:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 33.3333%;"/>
+<col style="width: 50.0001%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Alias</th>
+<th class="tableblock halign-left valign-top">Applies to</th>
+<th class="tableblock halign-left valign-top">Parameters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NotNull</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">any attribute</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NotEmpty</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">strings, collections, arrays</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NotBlank</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">strings</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">strings, collections, arrays</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>min</code> optional, default <code>0</code>; <code>max</code> optional, default <code>Integer.MAX_VALUE</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Length</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">strings</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>min</code> optional, default <code>0</code>; <code>max</code> optional, default <code>Integer.MAX_VALUE</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Min</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">numeric</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>value</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Max</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">numeric</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>value</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DecimalMin</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">numeric</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>value</code>; <code>inclusive</code> optional boolean, default <code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DecimalMax</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">numeric</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>value</code>; <code>inclusive</code> optional boolean, default <code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Digits</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">numeric</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>integer</code>; <code>fraction</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Positive</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">numeric</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PositiveOrZero</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">numeric</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Negative</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">numeric</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NegativeOrZero</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">numeric</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Past</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">date/time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PastOrPresent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">date/time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Future</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">date/time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FutureOrPresent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">date/time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Pattern</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">strings</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>regexp</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Email</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">strings</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AssertTrue</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">booleans</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AssertFalse</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">booleans</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Validation uses Bean Validation null semantics: <code>null</code> is valid unless the rule is <code>NotNull</code>, <code>NotEmpty</code>, <code>NotBlank</code>, <code>AssertTrue</code>, or <code>AssertFalse</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>required: true</code> is equivalent to mandatory UI metadata plus a default-group <code>NotNull</code> rule. Validation metadata does not create DB constraints.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="entity-validation"><a class="anchor" href="#entity-validation"></a>Entity Validation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Entity-level validation is declared under <code>entities[].validation.constraints</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">validation:
+  constraints:
+    - name: "discountDescriptionRequired"
+      target: "entity"
+      type: "expression"
+      evaluator: "spel"
+      expression: "discount == null || description != null"
+      attributes:
+        - "discount"
+        - "description"
+      path: "description"
+      groups:
+        - "UiCrossFieldChecks"
+        - "RestApiChecks"
+      message:
+        en: "Description is required when discount is specified"</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Constraint name for diagnostics.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>target</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Must be <code>entity</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expression</code> or <code>bean</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>evaluator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expression</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Built-in expression evaluator is <code>spel</code>. Blank also resolves to <code>spel</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expression</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expression</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Must evaluate to <code>true</code> for valid entities.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>validator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name returned by a <code>DynamicModelConstraintValidator</code> bean.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>attributes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Participating attribute names. Each name must exist in the model or metadata.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>path</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Violation property path. Blank means a bean-level violation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>groups</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Same group aliases as attribute validation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">localized value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Plain string or locale map.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Expression constraints use the same restricted SpEL property access approach as calculated attributes. Bean constraints delegate to application <code>DynamicModelConstraintValidator</code> beans.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="unique-constraints"><a class="anchor" href="#unique-constraints"></a>Unique Constraints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Single-attribute uniqueness:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">unique: true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Composite uniqueness:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">uniqueConstraints:
+  - name: "customerCountryTaxIdUnique"
+    attributes:
+      - "countryCode"
+      - "taxId"
+    message:
+      en: "Tax ID must be unique within a country"</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Logical constraint name. Must be non-blank and unique within the entity. The physical DB name is generated from the table name plus this value.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>attributes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">At least one direct dynamic attribute. Duplicate names are rejected.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">localized value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Violation message.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>attributes[].unique: true</code> is normalized to a named entity-level constraint before comparison and DDL planning.</p>
+</li>
+<li>
+<p>Only direct persistent single-valued dynamic attributes can participate.</p>
+</li>
+<li>
+<p>Calculated attributes, collections, and LOB attributes are rejected.</p>
+</li>
+<li>
+<p>Static soft-deletable owners are not supported.</p>
+</li>
+<li>
+<p>Applying a new unique constraint fails if existing rows already contain duplicates.</p>
+</li>
+<li>
+<p>Nullable uniqueness follows the target DBMS behavior.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="resource-roles"><a class="anchor" href="#resource-roles"></a>Resource Roles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dynamic <code>resourceRoles</code> declarations create additive resource policies at runtime. Omitted declarations do not grant access. Roles listed in <a class="xref page" href="app-properties.html#jmix.dynmodel.security.full-access-roles">jmix.dynmodel.security.full-access-roles</a> grant full access to all dynamic model resources; the default is <code>system-full-access</code>.</p>
+</div>
+<div class="paragraph">
+<p>Role codes must be non-blank. Missing role codes are logged and do not grant access.</p>
+</div>
+<div class="paragraph">
+<p>Entity-level CRUD grants are supported only for dynamic entities:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">resourceRoles:
+  read:
+    - "employee"
+    - "manager"
+  create:
+    - "manager"
+  update:
+    - "manager"
+  delete:
+    - "manager"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Attribute grants are supported on dynamic attributes of both static and dynamic entities:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "countryCode"
+  javaClass: "java.lang.String"
+  length: 2
+  resourceRoles:
+    view:
+      - "employee"
+      - "manager"
+    modify:
+      - "manager"
+  messages:
+    en: "Country code"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>View and menu grants are lists:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">views:
+  - type: "list"
+    viewId: "LoyaltyLevel.list"
+    viewRoute: "loyalty-levels"
+    viewTitle:
+      en: "Loyalty levels"
+      de: "Treuestufen"
+    templateParams:
+      includeProperties: ["name", "discount"]
+      excludeProperties: ["publicSummary"]
+    resourceRoles:
+      - "employee"
+      - "manager"
+    menuItem:
+      parentMenu: "application"
+      insertBefore: "Customer.list"
+      title:
+        en: "Loyalty levels"
+      resourceRoles:
+        - "employee"
+        - "manager"
+    descriptor:
+      template: "default"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="views"><a class="anchor" href="#views"></a>Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Views are declared under <code>entities[].views</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">views:
+  - type: "list"
+    viewId: "LoyaltyLevel.list"
+    viewRoute: "loyalty-levels"
+    viewTitle:
+      en: "Loyalty levels"
+      de: "Treuestufen"
+    templateParams:
+      includeProperties: ["name", "discount"]
+      excludeProperties: ["publicSummary"]
+    resourceRoles:
+      - "employee"
+      - "manager"
+    menuItem:
+      parentMenu: "application"
+      insertBefore: "Customer.list"
+      title:
+        en: "Loyalty levels"
+      resourceRoles:
+        - "employee"
+        - "manager"
+    descriptor:
+      template: "default"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>View fields:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">dynamic entities</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>list</code> or <code>detail</code>. Case-insensitive during deserialization. Required for dynamic entity views. Static entity views can infer it from the registered base view.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unique view ID. Dynamic and static view declarations should set it explicitly.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewRoute</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic entity route segment. Defaults to a slug made from <code>viewId</code>; detail views append <code>/:id</code>. Static entity views do not support this field.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewTitle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">localized value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic entity view title. Static entity views do not support this field.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>templateParams</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">map</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic entity template parameters. Static entity views do not support this field.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>resourceRoles</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Role codes that can open the view. Static entity views do not support this field.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>menuItem</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic entity menu item. Static entity views do not support this field.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>descriptor</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">static entities</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Descriptor declaration. Dynamic entity views can omit it to use the default template. Static entity views must provide <code>descriptor.source</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lookupComponentId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic list view lookup component ID. Default is <code>dataGrid</code>. Static entity views do not support this field.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>editedEntityContainerId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic detail view edited entity container ID. Default is <code>entityDc</code>. Static entity views do not support this field.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="_dynamic_entity_views"><a class="anchor" href="#_dynamic_entity_views"></a>Dynamic Entity Views</h3>
+<div class="paragraph">
+<p>Rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>type</code> must be <code>list</code> or <code>detail</code>.</p>
+</li>
+<li>
+<p><code>viewId</code> must be set explicitly and must be unique.</p>
+</li>
+<li>
+<p>If <code>viewRoute</code> is omitted, it is generated from <code>viewId</code> by lowercasing and replacing non-alphanumeric sequences with <code>-</code>.</p>
+</li>
+<li>
+<p>Detail routes automatically append <code>/:id</code>; therefore <code>viewRoute</code> itself must not end with <code>/:id</code>.</p>
+</li>
+<li>
+<p>The first declared list view becomes the primary list view for the dynamic entity. The first declared detail view becomes the primary detail view.</p>
+</li>
+<li>
+<p><code>descriptor</code> may be omitted, use <code>template: "default"</code>, use a custom template resource path, or provide literal <code>source</code>.</p>
+</li>
+<li>
+<p>If <code>descriptor.source</code> is used, it must be valid XML with root <code>&lt;view xmlns="http://jmix.io/schema/flowui/view"&gt;</code>.</p>
+</li>
+<li>
+<p>Explicit list descriptors must contain the lookup component ID, default <code>dataGrid</code>.</p>
+</li>
+<li>
+<p>Explicit detail descriptors must contain the edited entity container ID, default <code>entityDc</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Default templates are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>io/jmix/flowui/view/template/list-view.ftl</code> for list views;</p>
+</li>
+<li>
+<p><code>io/jmix/flowui/view/template/detail-template.ftl</code> for detail views.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>templateParams</code> is a YAML object passed to descriptor template rendering. Dynamic Model does not define a fixed schema for it; supported keys depend on the selected template. For example, a template can consume list-of-string property filters:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">templateParams:
+  includeProperties: ["name", "discount"]
+  excludeProperties: ["publicSummary"]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_static_entity_view_overrides"><a class="anchor" href="#_static_entity_view_overrides"></a>Static Entity View Overrides</h3>
+<div class="paragraph">
+<p>Static entity view declarations override the XML descriptor of an already registered view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- viewId: "Customer.list"
+  descriptor:
+    source: |
+      &lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+      &lt;view xmlns="http://jmix.io/schema/flowui/view"
+            extends="com/company/sample/view/customer/customer-list-view.xml"&gt;
+          &lt;layout&gt;
+              &lt;dataGrid id="customersDataGrid"&gt;
+                  &lt;columns&gt;
+                      &lt;column property="taxId"/&gt;
+                  &lt;/columns&gt;
+              &lt;/dataGrid&gt;
+          &lt;/layout&gt;
+      &lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>viewId</code> is required and must reference a registered static view.</p>
+</li>
+<li>
+<p><code>type</code> may be omitted; it is inferred from the controller class.</p>
+</li>
+<li>
+<p>Only <code>descriptor.source</code> is supported.</p>
+</li>
+<li>
+<p><code>descriptor.template</code>, <code>viewRoute</code>, <code>viewTitle</code>, <code>templateParams</code>, <code>resourceRoles</code>, <code>menuItem</code>, <code>lookupComponentId</code>, and <code>editedEntityContainerId</code> are rejected.</p>
+</li>
+<li>
+<p>The generated controller subclasses the current registered controller and preserves its route.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_descriptor"><a class="anchor" href="#_descriptor"></a>Descriptor</h3>
+<div class="paragraph">
+<p><code>descriptor</code> must contain exactly one of:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">descriptor:
+  template: "default"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">descriptor:
+  source: |
+    &lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+    &lt;view xmlns="http://jmix.io/schema/flowui/view"
+          extends="com/company/sample/view/customer/customer-list-view.xml"&gt;
+        &lt;layout&gt;
+            &lt;dataGrid id="customersDataGrid"&gt;
+                &lt;columns&gt;
+                    &lt;column property="taxId"/&gt;
+                &lt;/columns&gt;
+            &lt;/dataGrid&gt;
+        &lt;/layout&gt;
+    &lt;/view&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="menu"><a class="anchor" href="#menu"></a>Menu</h3>
+<div class="paragraph">
+<p><code>menuItem</code> fields:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>parentMenu</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Existing or new parent menu ID. If not found, a root menu with this ID is created.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>insertBefore</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Insert before a sibling menu ID when found; otherwise append.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>title</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">localized value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Defaults to the view title when omitted.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>resourceRoles</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Role codes that can access the menu item.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Detail view menu items receive the route parameter <code>id=new</code>.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

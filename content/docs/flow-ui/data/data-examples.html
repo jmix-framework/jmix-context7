@@ -447,35 +447,48 @@ The <a class="xref page" href="../facets/dataLoadCoordinator.html">DataLoadCoord
 </div>
 </div>
 <div class="sect1">
-<h2 id="custom-sorting"><a class="anchor" href="#custom-sorting"></a>Custom Sorting</h2>
+<h2 id="sorting"><a class="anchor" href="#sorting"></a>Sorting</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Sorting of UI tables by entity attributes is performed by <code>CollectionContainerSorter</code> which is set for a <a class="xref page" href="collection-container.html">CollectionContainer</a>. The standard implementation sorts data in memory if it fits in one page of loaded data, otherwise it sends a new request to the database with the appropriate "order by" clause. The "order by" clause is created by the <code>JpqlSortExpressionProvider</code> bean.</p>
+<p>UI components that are bound to a collection, such as <a class="xref page" href="../vc/components/dataGrid.html">dataGrid</a>, use the sort order defined by the underlying <a class="xref page" href="collection-container.html">CollectionContainer</a>. Jmix handles both in-memory sorting and JPQL-based sorting using default behavior and provides extension points for customization.</p>
+</div>
+<div class="sect2">
+<h3 id="default-sorting-behavior"><a class="anchor" href="#default-sorting-behavior"></a>Default Behavior</h3>
+<div class="paragraph">
+<p>Sorting works as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The visual component invokes the <code>Sorter</code> associated with the collection container.</p>
+</li>
+<li>
+<p>The framework obtains this sorter from <code>CollectionContainerSortManager</code>.</p>
+</li>
+<li>
+<p>If no provider returns a sorter, the manager uses <code>SorterFactory</code> to create a standard <code>CollectionContainerSorter</code> or <code>CollectionPropertyContainerSorter</code>.</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
-<p>Some entity attributes can require a special implementation of sorting. Below we explain how to customize sorting on a simple example: suppose there is the <code>Department</code> entity with a <code>num</code> attribute of type <code>String</code>, but we know that the attribute actually stores only numeric values. So we want the sort order to be <code>1</code>, <code>2</code>, <code>3</code>, <code>10</code>, <code>11</code>. With the default behavior, the order would be <code>1</code>, <code>10</code>, <code>11</code>, <code>2</code>, <code>3</code>.</p>
+<p>The standard sorter sorts data in memory when the container has no loader, or when only the first page is loaded and the number of loaded items is less than the page size. Otherwise, it reloads the data from the database with the requested sort. See <a href="#jpql-sort-expressions">Customizing JPQL Sort Expressions</a> for details on JPQL sorting.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="custom-in-memory-sorting"><a class="anchor" href="#custom-in-memory-sorting"></a>Custom In-Memory Sorting</h3>
+<div class="paragraph">
+<p>Some entity attributes can require custom sorting logic. For example, the <code>Department</code> entity may have a <code>num</code> attribute of type <code>String</code>, while the stored values represent numbers. Sorting it as a string would produce <code>1</code>, <code>10</code>, <code>11</code>, <code>2</code>, <code>3</code>, while sorting it numerically gives the more natural order: <code>1</code>, <code>2</code>, <code>3</code>, <code>10</code>, <code>11</code>.</p>
 </div>
 <div class="paragraph">
-<p>First, create a subclass of the <code>CollectionContainerSorter</code> class for sorting in memory:</p>
+<p>To customize in-memory sorting for this particular entity:</p>
 </div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a subclass of <code>CollectionContainerSorter</code> (alternatively, provide a completely custom <code>Sorter</code> implementation):</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.app;
-
-import com.company.onboarding.entity.Department;
-import io.jmix.core.Sort;
-import io.jmix.core.comparator.EntityValuesComparator;
-import io.jmix.core.metamodel.model.MetaClass;
-import io.jmix.core.metamodel.model.MetaPropertyPath;
-import io.jmix.flowui.model.BaseCollectionLoader;
-import io.jmix.flowui.model.CollectionContainer;
-import io.jmix.flowui.model.impl.CollectionContainerSorter;
-import org.springframework.beans.factory.BeanFactory;
-
-import java.util.Comparator;
-import java.util.Objects;
-
-public class CustomCollectionContainerSorter extends CollectionContainerSorter {
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class CustomCollectionContainerSorter extends CollectionContainerSorter {
 
     public CustomCollectionContainerSorter(CollectionContainer&lt;?&gt; container,
                                            BaseCollectionLoader loader,
@@ -500,82 +513,237 @@ public class CustomCollectionContainerSorter extends CollectionContainerSorter {
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Create the sorter in the required view:</p>
-</div>
+</li>
+<li>
+<p>Create a bean that implements <code>CollectionContainerSortProvider</code> and returns the custom sorter only for supported containers:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class DepartmentListView2 extends StandardListView&lt;Department&gt; {
-
-    @ViewComponent
-    private CollectionContainer&lt;Department&gt; departmentsDc;
-
-    @ViewComponent
-    private CollectionLoader&lt;Department&gt; departmentsDl;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+@Order(100)
+public class CustomCollectionContainerSortProvider implements CollectionContainerSortProvider {
 
     @Autowired
     private BeanFactory beanFactory;
 
-    @Subscribe
-    public void onInit(final InitEvent event) {
-        Sorter sorter = new CustomCollectionContainerSorter(departmentsDc, departmentsDl, beanFactory);
-        departmentsDc.setSorter(sorter);
-    }</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If your sorter defines some global behavior, create your own factory that instantiates sorters system-wide:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.app;
-
-import io.jmix.flowui.model.BaseCollectionLoader;
-import io.jmix.flowui.model.CollectionContainer;
-import io.jmix.flowui.model.Sorter;
-import io.jmix.flowui.model.SorterFactory;
-import jakarta.annotation.Nullable;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-
-@Primary
-@Component
-public class CustomSorterFactory extends SorterFactory {
-
+    @Nullable
     @Override
-    public Sorter createCollectionContainerSorter(CollectionContainer container,
-                                                  @Nullable BaseCollectionLoader loader) {
-        return new CustomCollectionContainerSorter(container, loader, beanFactory);
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Also, you can create own implementation of <code>JpqlSortExpressionProvider</code> for sorting at the database level:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.onboarding.app;
-
-import com.company.onboarding.entity.Department;
-import io.jmix.core.metamodel.model.MetaPropertyPath;
-import io.jmix.data.impl.DefaultJpqlSortExpressionProvider;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-
-@Primary
-@Component
-public class CustomSortExpressionProvider extends DefaultJpqlSortExpressionProvider {
-
-    @Override
-    public String getDatatypeSortExpression(MetaPropertyPath metaPropertyPath, boolean sortDirectionAsc) {
-        if (metaPropertyPath.getMetaClass().getJavaClass().equals(Department.class)
-                &amp;&amp; "num".equals(metaPropertyPath.toPathString())) {
-            return String.format("CAST({E}.%s BIGINT)", metaPropertyPath);
+    public Sorter getSorter(CollectionContainerSortContext context) {
+        if (supports(context)) {
+            return new CustomCollectionContainerSorter(context.container(), context.loader(), beanFactory);
         }
-        return String.format("{E}.%s", metaPropertyPath);
+
+        return null;
+    }
+
+    private boolean supports(CollectionContainerSortContext context) {
+        return context.container().getEntityMetaClass().getJavaClass().equals(Department.class);
     }
 }</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Bind the container to a table component such as <a class="xref page" href="../vc/components/dataGrid.html">DataGrid</a>. When the user sorts the table, the framework uses the sorter returned for the current container.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This approach customizes in-memory sorting. If the container is backed by a loader and sorting should work when data is reloaded from the database, also configure <a href="#jpql-sort-expressions">JPQL sort expressions</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jpql-sort-expressions"><a class="anchor" href="#jpql-sort-expressions"></a>Custom JPQL Sort Expressions</h3>
+<div class="paragraph">
+<p>When a container is backed by a data loader, sorting is translated to JPQL. To customize the generated JPQL sort expressions, register a bean that implements <code>JpqlSortExpressionSupplier</code>.</p>
+</div>
+<div class="paragraph">
+<p>Return a JPQL sort expression if the supplier supports the property, or <code>null</code> to let the next supplier handle it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+@Order(100)
+public class CustomSortExpressionSupplier implements JpqlSortExpressionSupplier {
+
+    @Override
+    @Nullable
+    public String getDatatypeSortExpression(SortExpressionContext context) {
+        if (context.metaPropertyPath().getMetaClass().getJavaClass().equals(Department.class)
+                &amp;&amp; "num".equals(context.metaPropertyPath().toPathString())) {
+            return String.format("CAST({E}.%s BIGINT)", context.metaPropertyPath());
+        }
+        return null;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A supplier can implement the following methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>getDatatypeSortExpression(SortExpressionContext context)</code></p>
+</li>
+<li>
+<p><code>getLobSortExpression(SortExpressionContext context)</code></p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="expression-order"><a class="anchor" href="#expression-order"></a>ExpressionOrder</h4>
+<div class="paragraph">
+<p>Use <code>Sort.ExpressionOrder</code> when sorting cannot be expressed as an entity attribute path and should be based on a JPQL expression instead.</p>
+</div>
+<div class="paragraph">
+<p>Unlike regular <code>Sort.Order</code>, which sorts by an entity attribute such as <code>name</code> or <code>customer.name</code>, <code>ExpressionOrder</code> uses the given JPQL expression directly in <code>ORDER BY</code>. This is useful when sorting depends on a function, type conversion, or another custom expression.</p>
+</div>
+<div class="paragraph">
+<p>For example, the JPQL expression can be:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>function('calc_total_sum', {E}.id)</code></p>
+</li>
+<li>
+<p><code>length({E}.firstName)</code></p>
+</li>
+<li>
+<p><code>{E}.firstName</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following example sorts departments by the length of the <code>name</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data readOnly="true"&gt;
+    &lt;collection id="departmentsDc"
+                class="com.company.onboarding.entity.Department"&gt;
+        &lt;fetchPlan extends="_base"/&gt;
+        &lt;loader id="departmentsDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Department e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;dataGrid id="departmentsDataGrid"
+              width="100%"
+              dataContainer="departmentsDc"&gt;
+        &lt;columns&gt;
+            &lt;column property="name"/&gt;
+            &lt;column property="num"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionLoader&lt;Department&gt; departmentsDl;
+
+@Subscribe
+public void onBeforeShow(final BeforeShowEvent event) {
+    departmentsDl.setSort(Sort.by(
+            Sort.ExpressionOrder.asc("length({E}.name)"), <i class="conum" data-value="1"></i><b>(1)</b>
+            Sort.Order.asc("name")
+    ));
+    departmentsDl.load(); <i class="conum" data-value="2"></i><b>(2)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>Sort.ExpressionOrder.asc("length({E}.name)")</code> adds the JPQL expression directly to sorting and uses the <code>{E}</code> alias of the root entity from the query.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>After the sort is configured, the loader is executed explicitly.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><code>ExpressionOrder</code> does not resolve <code>MetaPropertyPath</code> and bypasses <code>JpqlSortExpressionSupplier</code> and the framework default <code>JpqlSortExpressionProvider</code>. Therefore, you must provide a valid JPQL sort expression yourself.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When the query returns <code>KeyValueEntity</code>, the <code>{E}</code> alias is not supported in <code>ExpressionOrder</code>. Use the same alias as in the query. For example, for <code>select e.name, e.startTime, e.endTime from CarService e</code>, use <code>length(e.name)</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="multiple-sorting-providers"><a class="anchor" href="#multiple-sorting-providers"></a>Multiple Sorting Providers</h3>
+<div class="paragraph">
+<p>Jmix supports multiple sorting providers for both in-memory sorting and JPQL sort expressions and resolves them in Spring order:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For in-memory sorting, you can register multiple beans that implement <code>CollectionContainerSortProvider</code>. If no provider returns a sorter, it falls back to the framework default – <code>SorterFactory</code>.</p>
+</li>
+<li>
+<p>For JPQL sort expressions, you can register multiple beans that implement <code>JpqlSortExpressionSupplier</code>. If no supplier supports the property, it falls back to the framework default – <code>JpqlSortExpressionProvider</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example, an add-on can contribute one provider and the application can contribute another:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+@Order(100)
+public class AddonSortProvider implements CollectionContainerSortProvider {
+    ...
+}
+
+@Component
+@Order(200)
+public class AppSortProvider implements CollectionContainerSortProvider {
+    ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, <code>AddonSortProvider</code> is checked first because it has a lower order value.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+A bean with low precedence can act as an application-wide fallback while still allowing more specific beans to override it.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>

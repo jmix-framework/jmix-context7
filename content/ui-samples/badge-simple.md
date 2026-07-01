@@ -5,9 +5,10 @@ badge is a special theme variant available to all HTML container components.
 badge-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <span text="Pending" themeNames="badge normal"/>
         <span text="Confirmed" themeNames="badge success"/>
+        <span text="Warning" themeNames="badge warning"/>
         <span text="Denied" themeNames="badge error"/>
         <span text="On hold" themeNames="badge contrast"/>
     </layout>

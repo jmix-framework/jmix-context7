@@ -39,7 +39,7 @@ theme-toggle-usage.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view"
       xmlns:tt="http://io.jmix.uisamples/theme-toggle.xsd">
-    <layout classNames="flex" justifyContent="CENTER" alignItems="CENTER">
+    <layout justifyContent="CENTER" alignItems="CENTER">
         <h2 text="Theme Toggle"/>
         <tt:themeToggle id="themeToggle"
                         text="Click to switch theme"/>
@@ -98,7 +98,7 @@ import com.vaadin.flow.component.shared.HasTooltip;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.shared.Registration;
 import io.jmix.flowui.kit.component.HasTitle;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 import java.util.function.Predicate;
@@ -328,27 +328,11 @@ public class ThemeToggle extends Component implements ClickNotifier<ThemeToggle>
 
 theme-toggle.js
 
-import {html} from "@polymer/polymer";
+import {html} from 'lit';
 import {Button} from "@vaadin/button";
-import {css, registerStyles} from "@vaadin/vaadin-themable-mixin";
+import {defineCustomElement} from '@vaadin/component-base/src/define.js';
 
-/**
- * Use registerStyles instead of the `<style>` tag to make sure
- * that this CSS will override core styles of `vaadin-button`.
- */
-registerStyles(
-    'theme-toggle',
-    css`
-      :host {
-        background: transparent;
-
-        color: var(--lumo-text-color);
-      }
-    `,
-    {moduleId: 'theme-toggle-styles'},
-);
-
-class ThemeToggle extends Button {
+export class ThemeToggle extends Button {
 
     static get is() {
         return 'theme-toggle';
@@ -439,9 +423,8 @@ class ThemeToggle extends Button {
     }
 }
 
-customElements.define(ThemeToggle.is, ThemeToggle);
+defineCustomElement(ThemeToggle);
 
-export {ThemeToggle};
 
 
 

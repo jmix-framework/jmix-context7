@@ -30,6 +30,7 @@ import io.jmix.core.MetadataTools;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.theme.StyleUtility;
 import io.jmix.flowui.view.StandardView;
 import io.jmix.flowui.view.Supply;
 import io.jmix.flowui.view.ViewController;
@@ -62,7 +63,8 @@ public class VirtualListCustomItemsSample extends StandardView {
         H3 label = new H3(dayValue);
 
         JmixButton button = uiComponents.create(JmixButton.class);
-        button.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.addClassName(StyleUtility.Button.LINK_BUTTON);
         button.addClickListener(__ -> showNotification(dayValue));
 
         Icon icon = switch (day) {
@@ -94,7 +96,7 @@ Day.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum Day implements EnumClass<String> {
 

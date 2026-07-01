@@ -14,8 +14,8 @@
 <div class="sect2">
 <h3 id="jmix.core.anonymous-authentication-token-key"><a class="anchor" href="#jmix.core.anonymous-authentication-token-key"></a>jmix.core.anonymous-authentication-token-key</h3>
 <div class="paragraph">
-<p>A key that is used in Spring Security’s <a href="https://docs.spring.io/spring-security/site/docs/6.5.x/api/org/springframework/security/authentication/AnonymousAuthenticationProvider.html" rel="noopener" target="_blank">AnonymousAuthenticationProvider</a> and
-<a href="https://docs.spring.io/spring-security/site/docs/6.5.x/api/org/springframework/security/web/authentication/AnonymousAuthenticationFilter.html" rel="noopener" target="_blank">AnonymousAuthenticationFilter</a>.</p>
+<p>A key that is used in Spring Security’s <a href="https://docs.spring.io/spring-security/site/docs/7.0.x/api/org/springframework/security/authentication/AnonymousAuthenticationProvider.html" rel="noopener" target="_blank">AnonymousAuthenticationProvider</a> and
+<a href="https://docs.spring.io/spring-security/site/docs/7.0.x/api/org/springframework/security/web/authentication/AnonymousAuthenticationFilter.html" rel="noopener" target="_blank">AnonymousAuthenticationFilter</a>.</p>
 </div>
 <div class="paragraph">
 <p>Default value: <code>de72c623-6d3d-458c-a187-c526de515ecd</code></p>
@@ -38,19 +38,22 @@
 <div class="sect2">
 <h3 id="jmix.core.conf-dir"><a class="anchor" href="#jmix.core.conf-dir"></a>jmix.core.conf-dir</h3>
 <div class="paragraph">
-<p>Indicates the directory for configuration files that can be changed at runtime. Used by the default implementation of the <code>Resources</code> interface to load resource files from the directory before searching in the classpath.</p>
+<p>Indicates the directory for configuration files that can be changed at runtime. It is used by the default implementation of the <code>Resources</code> interface to load resource files from the directory before searching in the classpath.</p>
 </div>
 <div class="paragraph">
-<p>Default value: <code>${user.dir}/.jmix/conf</code></p>
+<p>Default value: <code>${user.dir}/.jmix/conf</code>, where`${user.dir}` is the user working directory, that is, the directory where the JVM was started.</p>
 </div>
-<div class="admonitionblock tip">
+<div class="admonitionblock important">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
+<i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-<code>${user.dir}</code> is the user working directory (where JVM was started).
+<div class="paragraph">
+<p>This directory is used by Hot Deploy and may be cleaned before startup by Jmix Studio or Gradle.
+For details, see <a class="xref page" href="studio/hot-deploy.html">Hot Deploy</a>.</p>
+</div>
 </td>
 </tr>
 </table>
@@ -100,6 +103,21 @@
 </div>
 </div>
 <div class="sect2">
+<h3 id="jmix.core.hot-deploy-enabled"><a class="anchor" href="#jmix.core.hot-deploy-enabled"></a>jmix.core.hot-deploy-enabled</h3>
+<div class="paragraph">
+<p>Enables loading classes from the file system by the <a class="xref page" href="studio/hot-deploy.html">Hot Deploy</a> mechanism.</p>
+</div>
+<div class="paragraph">
+<p>When set to <code>false</code>, the application does not load classes from the file system at runtime.</p>
+</div>
+<div class="paragraph">
+<p>This feature is also controlled by the global <a href="#jmix.core.unsafe-runtime-features-enabled">jmix.core.unsafe-runtime-features-enabled</a> switch: if that property is <code>false</code>, Hot Deploy is disabled regardless of this property.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code></p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="jmix.core.temp-dir"><a class="anchor" href="#jmix.core.temp-dir"></a>jmix.core.temp-dir</h3>
 <div class="paragraph">
 <p>Defines the directory where the application can store temporary files.</p>
@@ -132,6 +150,9 @@
 <p>The trigger file is a file that is placed in the <code>triggers</code> subdirectory of the application’s <a href="#jmix.core.temp-dir">temporary directory</a>. The file name consists of two parts separated with the <code>#</code> symbol: the first part is the bean class, the second part is the method name of the bean to invoke. For example: <code>io.jmix.core.Messages#clearCache</code>. The trigger files handler monitors the folder for new trigger files, invokes the appropriate methods and then removes the files.</p>
 </div>
 <div class="paragraph">
+<p>This feature is also controlled by the global <a href="#jmix.core.unsafe-runtime-features-enabled">jmix.core.unsafe-runtime-features-enabled</a> switch: if that property is <code>false</code>, trigger file processing is disabled regardless of this property.</p>
+</div>
+<div class="paragraph">
 <p>Default value: <code>true</code></p>
 </div>
 </div>
@@ -142,6 +163,46 @@
 </div>
 <div class="paragraph">
 <p>Default value: <code>5000</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.core.unsafe-runtime-features-enabled"><a class="anchor" href="#jmix.core.unsafe-runtime-features-enabled"></a>jmix.core.unsafe-runtime-features-enabled</h3>
+<div class="paragraph">
+<p>A global kill switch for runtime features that can execute arbitrary code or expose internal information and therefore may be unsafe in production.</p>
+</div>
+<div class="paragraph">
+<p>When set to <code>false</code>, all the following features are disabled regardless of their own module-specific properties:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#jmix.core.hot-deploy-enabled">jmix.core.hot-deploy-enabled</a> – loading classes from the file system.</p>
+</li>
+<li>
+<p><a href="#jmix.core.trigger-files-enabled">jmix.core.trigger-files-enabled</a> – bean invocation through trigger files.</p>
+</li>
+<li>
+<p><a class="xref page" href="security/row-level-roles.html#jmix.security.data.groovy-enabled">jmix.security.data.groovy-enabled</a> – Groovy execution in predicate row-level policies.</p>
+</li>
+<li>
+<p><a class="xref page" href="dyn-attr/dynattr-api.html#jmix.dynattr.ui.groovy-enabled">jmix.dynattr.ui.groovy-enabled</a> – Groovy execution in dynamic attribute scripts.</p>
+</li>
+<li>
+<p><a class="xref page" href="reports/configuration.html#jmix.reports.groovy-enabled">jmix.reports.groovy-enabled</a> – Groovy execution in reports.</p>
+</li>
+<li>
+<p><a class="xref page" href="jmx-console/index.html#jmix.jmxconsole.write-and-invoke-enabled">jmix.jmxconsole.write-and-invoke-enabled</a> – write and invoke operations in the JMX console.</p>
+</li>
+<li>
+<p><a class="xref page" href="data-tools/data-model.html#jmix.datatools.data-model-diagram.public-server-enabled">jmix.datatools.data-model-diagram.public-server-enabled</a> – sending the data model to the public PlantUML server.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Each feature can also be turned off individually using its own property while keeping the others enabled.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code></p>
 </div>
 </div>
 <div class="sect2">
@@ -274,7 +335,7 @@ The special value "*" allows all methods.</p>
 <p>Maximum number of <a class="xref page" href="security/authentication.html#user-session">sessions</a> per user.</p>
 </div>
 <div class="paragraph">
-<p>This property affects the Spring Security’s <a href="https://docs.spring.io/spring-security/site/docs/6.5.x/api/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.html#maximumSessions(int)" rel="noopener" target="_blank">SessionManagementConfigurer.maximumSessions</a> parameter.</p>
+<p>This property affects the Spring Security’s <a href="https://docs.spring.io/spring-security/site/docs/7.0.x/api/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.html#maximumSessions(int)" rel="noopener" target="_blank">SessionManagementConfigurer.maximumSessions</a> parameter.</p>
 </div>
 <div class="paragraph">
 <p>Default value: <code>100</code></p>

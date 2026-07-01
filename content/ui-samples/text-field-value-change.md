@@ -5,7 +5,7 @@ The ValueChangeEvent defines the way the changes are transmitted to the server t
 text-field-value-change.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout justifyContent="BETWEEN" classNames="flex-row flex-wrap">
+    <layout justifyContent="BETWEEN" classNames="horizontal-layout">
         <details summaryText="Default value change" opened="true" width="AUTO">
             <textField id="textField" placeholder="Start typing"/>
         </details>

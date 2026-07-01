@@ -373,7 +373,7 @@ airport-detail-view.xml
         <hbox width="100%">
             <vbox padding="false">
                 <h4 text="msg://io.jmix.uisamples.entity/Airport.terminals"/>
-                <hbox id="buttonsPanel" classNames="buttons-panel">
+                <hbox id="buttonsPanel" width="100%" wrap="true">
                     <button action="terminalsDataGrid.create"/>
                     <button action="terminalsDataGrid.edit"/>
                     <button action="terminalsDataGrid.remove"/>
@@ -403,7 +403,7 @@ airport-detail-view.xml
             </vbox>
             <vbox padding="false">
                 <h4 text="msg://io.jmix.uisamples.entity/Terminal.meetingPoints"/>
-                <hbox id="meetingPointsButtonsPanel" classNames="buttons-panel">
+                <hbox id="meetingPointsButtonsPanel" width="100%" wrap="true">
                     <button action="meetingPointsDataGrid.create"/>
                     <button action="meetingPointsDataGrid.edit"/>
                     <button action="meetingPointsDataGrid.remove"/>

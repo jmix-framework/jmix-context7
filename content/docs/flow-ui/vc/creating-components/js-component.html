@@ -29,11 +29,12 @@
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-javascript hljs" data-lang="javascript">import 'jquery/jquery.js'
 import 'jquery-ui/dist/jquery-ui.js'
-import {PolymerElement} from '@polymer/polymer/polymer-element.js';
-import {defineCustomElement} from '@vaadin/component-base/src/define.js';
+import {LitElement} from 'lit';
 import {ElementMixin} from '@vaadin/component-base/src/element-mixin.js';
+import {defineCustomElement} from '@vaadin/component-base/src/define.js';
+import {PolylitMixin} from '@vaadin/component-base/src/polylit-mixin.js';
 
-class Slider extends ElementMixin(PolymerElement) { <i class="conum" data-value="1"></i><b>(1)</b>
+export class Slider extends ElementMixin(PolylitMixin(LitElement)) { <i class="conum" data-value="1"></i><b>(1)</b>
 
     static get is() {
         return 'demo-slider'; <i class="conum" data-value="2"></i><b>(2)</b>
@@ -66,10 +67,15 @@ class Slider extends ElementMixin(PolymerElement) { <i class="conum" data-value=
         }
     }
 
+    createRenderRoot() {
+        return this;
+    }
+
     ready() {
         super.ready();
 
-        this._slider = $(this); <i class="conum" data-value="5"></i><b>(5)</b>
+        let $jQuery = jQuery.noConflict();
+        this._slider = $jQuery(this); <i class="conum" data-value="5"></i><b>(5)</b>
         this._slider.slider({ <i class="conum" data-value="6"></i><b>(6)</b>
             min: this.min,
             max: this.max,
@@ -122,9 +128,7 @@ class Slider extends ElementMixin(PolymerElement) { <i class="conum" data-value=
     }
 }
 
-defineCustomElement(Slider); <i class="conum" data-value="9"></i><b>(9)</b>
-
-export {Slider};</code></pre>
+defineCustomElement(Slider); <i class="conum" data-value="9"></i><b>(9)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -190,9 +194,10 @@ import com.vaadin.flow.shared.Registration;
 @JsModule("./src/component/slider/slider.js") <i class="conum" data-value="3"></i><b>(3)</b>
 public class Slider extends Component implements HasSize {
 
-    private static final String VALUE_PROPERTY = "value";
-    private static final String MIN_PROPERTY = "min";
-    private static final String MAX_PROPERTY = "max";
+    public static final String VALUE_PROPERTY = "value";
+    public static final String MIN_PROPERTY = "min";
+    public static final String MAX_PROPERTY = "max";
+    public static final String SLIDE_CHANGED_EVENT = "custom-slide-changed";
 
     public Slider() {
     }
@@ -213,7 +218,7 @@ public class Slider extends Component implements HasSize {
         getElement().setProperty(MAX_PROPERTY, max);
     }
 
-    @Synchronize("custom-slide-changed") <i class="conum" data-value="4"></i><b>(4)</b>
+    @Synchronize(property = VALUE_PROPERTY, value = SLIDE_CHANGED_EVENT) <i class="conum" data-value="4"></i><b>(4)</b>
     public int getValue() {
         return getElement().getProperty(VALUE_PROPERTY, 0);
     }
@@ -241,7 +246,7 @@ public class Slider extends Component implements HasSize {
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Adding the <code>@Synchronize</code> annotation to the getter ensures that the browser sends property changes to the server. The annotation defines the name of the DOM event that triggers synchronization, in this case a <code>custom-slide-changed</code> event.</td>
+<td>Adding the <code>@Synchronize</code> annotation to the getter tells Flow to synchronize the property from the client when the <code>custom-slide-changed</code> event is fired. In this example, the event is dispatched from the slider when its value changes.</td>
 </tr>
 </table>
 </div>
@@ -262,7 +267,7 @@ public class Slider extends Component implements HasSize {
     return addListener(SlideChangedEvent.class, listener);
 }
 
-@DomEvent("custom-slide-changed") <i class="conum" data-value="1"></i><b>(1)</b>
+@DomEvent(SLIDE_CHANGED_EVENT) <i class="conum" data-value="1"></i><b>(1)</b>
 public static class SlideChangedEvent extends ComponentEvent&lt;Slider&gt; {
 
     protected int value;
@@ -298,7 +303,7 @@ public static class SlideChangedEvent extends ComponentEvent&lt;Slider&gt; {
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-More information about creating custom components can be found in Vaadin documentation: <a href="https://vaadin.com/docs/latest/flow/advanced/loading-resources#using-annotations" rel="noopener" target="_blank">Importing JavaScript &amp; CSS</a>, <a href="https://vaadin.com/docs/latest/flow/create-ui/web-components" rel="noopener" target="_blank">Integrating Web Components</a>, <a href="https://vaadin.com/docs/latest/flow/create-ui/element-api" rel="noopener" target="_blank">Element API</a>.
+More information about creating custom components can be found in Vaadin documentation: <a href="https://vaadin.com/docs/v25/flow/advanced/loading-resources#using-annotations" rel="noopener" target="_blank">Importing JavaScript &amp; CSS</a>, <a href="https://vaadin.com/docs/v25/flow/create-ui/web-components" rel="noopener" target="_blank">Integrating Web Components</a>, <a href="https://vaadin.com/docs/v25/flow/create-ui/element-api" rel="noopener" target="_blank">Element API</a>.
 </td>
 </tr>
 </table>
@@ -309,8 +314,37 @@ More information about creating custom components can be found in Vaadin documen
 <h2 id="usage-example"><a class="anchor" href="#usage-example"></a>Usage Example</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>After a component is implemented it can be used in views, for example:</p>
+<p>After a component is implemented it can be used in views either in XML descriptors or programmatically.</p>
 </div>
+<div class="sect2">
+<h3 id="_xml_descriptor"><a class="anchor" href="#_xml_descriptor"></a>XML Descriptor</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:app="http://company.com/schema/app-ui-components"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;layout&gt;
+        &lt;app:slider id="slider"
+                    width="20em"
+                    min="10" max="100" value="50"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Defines a namespace with the same value as in the <code>xmlns</code> and <code>targetNamespace</code> attributes of the component’s XSD.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Adds the <code>slider</code> element with the <code>app</code> namespace prefix.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_programmatic_usage"><a class="anchor" href="#_programmatic_usage"></a>Programmatic Usage</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
@@ -322,6 +356,7 @@ public void onInit(final InitEvent event) {
     slider.setWidth("20em");
     slider.setMin(10);
     slider.setMax(100);
+    slider.setValue(50);
 
     slider.addValueChangeListener(changedEvent -&gt;
             notifications.create("New value is : " + changedEvent.getValue())
@@ -331,10 +366,6 @@ public void onInit(final InitEvent event) {
     getContent().add(slider);
 }</code></pre>
 </div>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="slider usage" src="../../_images/visual-components/creating-components/slider-usage.gif" width="350"/>
 </div>
 </div>
 </div>

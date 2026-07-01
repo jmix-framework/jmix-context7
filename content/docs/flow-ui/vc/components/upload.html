@@ -50,8 +50,8 @@
 <a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
 <a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
 <a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
-<a href="#receiverFqn">receiverFqn</a> -
-<a href="#receiverType">receiverType</a> -
+<a href="#uploadHandlerFqn">uploadHandlerFqn</a> -
+<a href="#uploadHandlerType">uploadHandlerType</a> -
 <a class="xref page" href="fileStorageUploadField.html#uploadIcon">uploadIcon</a> -
 <a class="xref page" href="fileStorageUploadField.html#uploadText">uploadText</a> -
 <a class="xref page" href="../common-attributes.html#visible">visible</a> -
@@ -64,11 +64,11 @@
 <a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
 <a href="#FailedEvent">FailedEvent</a> -
 <a href="#FileRejectedEvent">FileRejectedEvent</a> -
+<a href="#FileRemovedEvent">FileRemovedEvent</a> -
 <a href="#FinishedEvent">FinishedEvent</a> -
 <a href="#ProgressUpdateEvent">ProgressUpdateEvent</a> -
 <a href="#StartedEvent">StartedEvent</a> -
-<a href="#SucceededEvent">SucceededEvent</a> -
-<a href="#receiver">receiver</a></p></td>
+<a href="#UploadSucceededEvent">UploadSucceededEvent</a></p></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
@@ -178,60 +178,6 @@ public void onUploadFileRejected(final FileRejectedEvent event) {
 </div>
 </div>
 <div class="sect1">
-<h2 id="receivers"><a class="anchor" href="#receivers"></a>Receivers</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The <code>receiverFqn</code> attribute specifies the fully qualified name of the Java class that will handle the uploaded files. This class must implement the <code>Receiver</code> interface.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-If the receiver doesn’t implement <code>MultiFileReceiver</code> then the <code>upload</code> will be automatically set to only accept one file.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>The <code>receiverType</code> attribute specifies the type of receiver used for handling uploaded files. It determines how the uploaded files will be processed and stored. Possible values are:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>MemoryBuffer</code></p>
-<div class="paragraph">
-<p>Handles a single file upload at once. Writes the file data into an in-memory buffer. Using <code>MemoryBuffer</code> automatically configures the component so that only a single file can be selected.</p>
-</div>
-</li>
-<li>
-<p><code>MultiFileMemoryBuffer</code></p>
-<div class="paragraph">
-<p>Handles multiple file uploads at once. Writes the file data into a set of in-memory buffers.</p>
-</div>
-</li>
-<li>
-<p><code>FileTemporaryStorageBuffer</code></p>
-<div class="paragraph">
-<p>Handles a single file upload at once. Saves a file to the <a class="xref page" href="../../../files/file-storage.html">temporary storage</a>. Using <code>FileTemporaryStorageBuffer</code> automatically configures the component so that only a single file can be selected.</p>
-</div>
-</li>
-<li>
-<p><code>MultiFileTemporaryStorageBuffer</code></p>
-<div class="paragraph">
-<p>Handles multiple file uploads at once. For each, it saves a file to the <a class="xref page" href="../../../files/file-storage.html">temporary storage</a>.</p>
-</div>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>The default receive type is <code>MemoryBuffer</code>.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -242,45 +188,76 @@ If the receiver doesn’t implement <code>MultiFileReceiver</code> then the <cod
 </div>
 <table class="tableblock frame-none grid-rows stretch">
 <colgroup>
-<col style="width: 14.2857%;"/>
-<col style="width: 71.4285%;"/>
-<col style="width: 14.2858%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 66.6666%;"/>
+<col style="width: 16.6668%;"/>
 </colgroup>
 <tbody>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><strong>Description</strong></p>
+</div></div></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Default</strong></p></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="autoUpload"></a>autoUpload</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether the component allows uploads to start immediately after selecting files. See <a href="#auto-upload">Auto-Upload</a>.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Sets whether the component allows uploads to start immediately after selecting files. See <a href="#auto-upload">Auto-Upload</a>.</p>
+</div></div></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="dropLabel"></a>dropLabel</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the drop label to show as a message to the user to drop files in the <code>upload</code> component. See <a href="#drag-drop">Drag &amp; Drop</a>.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Specifies the drop label to show as a message to the user to drop files in the <code>upload</code> component. See <a href="#drag-drop">Drag &amp; Drop</a>.</p>
+</div></div></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="dropLabelIcon"></a>dropLabelIcon</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the icon for the drop label. The icon is visible when the user can drop files to this <code>upload</code> component. See <a href="#drag-drop">Drag &amp; Drop</a>.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Sets the icon for the drop label. The icon is visible when the user can drop files to this <code>upload</code> component. See <a href="#drag-drop">Drag &amp; Drop</a>.</p>
+</div></div></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="maxFiles"></a>maxFiles</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the maximum number of files to upload. See <a href="#file-count">File Count</a>.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Specifies the maximum number of files to upload. See <a href="#file-count">File Count</a>.</p>
+</div></div></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">unlimited</p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="receiverFqn"></a>receiverFqn</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the receiver implementation that should be used for this <code>upload</code> component. See <a href="#receiver">Receivers</a>.</p></td>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="uploadHandlerFqn"></a>uploadHandlerFqn</p></th>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Sets the fully qualified name of a custom upload handler implementation for this <code>upload</code> component. The class must implement Vaadin’s <code>UploadHandler</code> interface. Example value:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>com.company.app.upload.CustomUploadHandler</code></p>
+</li>
+</ul>
+</div></div></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="receiverType"></a>receiverType</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the type of the <code>Receiver</code> implementations. See <a href="#receiver">Receivers</a>.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MemoryBuffer</code></p></td>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="uploadHandlerType"></a>uploadHandlerType</p></th>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Specifies the type of the built-in upload handler. Possible values are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>IN_MEMORY</code> – Stores uploaded data in memory using <code>InMemoryUploadHandler</code>. In <code>UploadSucceededEvent&lt;V&gt;</code>, the uploaded data is available as <code>byte[]</code>.</p>
+</li>
+<li>
+<p><code>FILE_TEMPORARY_STORAGE</code> Stores uploaded files in the <a class="xref page" href="../../../files/uploading-files.html#using-temporary-storage">temporary storage</a>.</p>
+</li>
+</ul>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>IN_MEMORY</code></p></td>
 </tr>
 </tbody>
 </table>
@@ -317,39 +294,72 @@ If the receiver doesn’t implement <code>MultiFileReceiver</code> then the <cod
 <tbody>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><strong>Description</strong></p>
+</div></div></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="AllFinishedEvent"></a>AllFinishedEvent</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.vaadin.flow.component.upload.AllFinishedEvent</code> is sent when <code>upload</code> has processed all the files in its upload queue, regardless of whether all the receptions were successful or not.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><code>com.vaadin.flow.component.upload.AllFinishedEvent</code> is sent when <code>upload</code> has processed all the files in its upload queue, regardless of whether all the receptions were successful or not.</p>
+</div></div></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="FailedEvent"></a>FailedEvent</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.vaadin.flow.component.upload.FailedEvent</code> is sent when <code>upload</code> is received, but the reception is interrupted for some reason.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><code>com.vaadin.flow.component.upload.FailedEvent</code> is sent when <code>upload</code> is received, but the reception is interrupted for some reason. Use <code>addUploadFailedListener()</code> in Java code.</p>
+</div></div></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="FileRejectedEvent"></a>FileRejectedEvent</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.vaadin.flow.component.upload.FileRejectedEvent</code> is sent when the file selected for upload doesn’t meet the constraints specified on <code>upload</code>, for example, <a class="xref page" href="fileStorageUploadField.html#maxFileSize">file size limit</a> or <a href="#maxFiles">file count limit</a>. See <a href="#file-count">File Count</a>.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><code>com.vaadin.flow.component.upload.FileRejectedEvent</code> is sent when the selected file doesn’t meet the constraints specified on <code>upload</code>, for example, <a class="xref page" href="fileStorageUploadField.html#maxFileSize">file size limit</a> or <a href="#maxFiles">file count limit</a>. See <a href="#file-count">File Count</a>.</p>
+</div></div></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="FileRemovedEvent"></a>FileRemovedEvent</p></th>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><code>com.vaadin.flow.component.upload.FileRemovedEvent</code> is sent when a file is removed from the upload queue.</p>
+</div></div></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="FinishedEvent"></a>FinishedEvent</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.vaadin.flow.component.upload.FinishedEvent</code> is sent when <code>upload</code> receives a file, regardless of whether the reception was successful or failed. If you wish to distinguish between the two cases, use either <a href="#SucceededEvent">SucceededEvent</a> or <a href="#FailedEvent">FailedEvent</a>, which are both subclasses of <code>FinishedEvent</code>.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><code>com.vaadin.flow.component.upload.FinishedEvent</code> is sent when <code>upload</code> receives a file, regardless of whether the reception was successful or failed. Use <code>addUploadFinishedListener()</code> in Java code.</p>
+</div></div></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="ProgressUpdateEvent"></a>ProgressUpdateEvent</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.vaadin.flow.component.upload.ProgressUpdateEvent</code> is sent to track progress of upload.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><code>com.vaadin.flow.component.upload.ProgressUpdateEvent</code> is sent to track progress of upload. Use <code>addUploadProgressListener()</code> in Java code.</p>
+</div></div></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="StartedEvent"></a>StartedEvent</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.vaadin.flow.component.upload.StartedEvent</code> is sent when <code>upload</code> is started to receive.</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><code>com.vaadin.flow.component.upload.StartedEvent</code> is sent when <code>upload</code> is started to receive. Use <code>addUploadStartedListener()</code> in Java code or subscribe to the component event in a view controller.</p>
+</div></div></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="SucceededEvent"></a>SucceededEvent</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.vaadin.flow.component.upload.SucceededEvent</code> is sent when <code>upload</code> is received successfully. Our Samples demo application includes an <a href="https://demo.jmix.io/ui-samples/sample/upload" rel="noopener" target="_blank">example</a> that utilizes a <code>MultiFileMemoryBuffer</code> to manage multiple files in <code>com.vaadin.flow.component.upload.SucceededEvent</code>.</p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="receiver"></a>receiver</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the receiver implementation that should be used for this <code>upload</code> component. See the <a href="#receiverFqn">receiverFqn</a> and <a href="#receiverType">receiverType</a> attributes.</p></td>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="UploadSucceededEvent"></a>UploadSucceededEvent</p></th>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><code>io.jmix.flowui.component.upload.UploadSucceededEvent&lt;V&gt;</code> is sent when <code>upload</code> is received successfully. The event provides uploaded data through <code>getData()</code>. In a Jmix view controller, subscribe to this event with <code>@Subscribe("upload")</code>. You can also use <code>addUploadSucceededListener()</code> in Java code.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
+
+@Subscribe("upload")
+public void onUploadUploadSucceeded(final UploadSucceededEvent&lt;?&gt; event) {
+    notifications.create(
+                    "Your file %s has been uploaded successfully.".formatted(
+                            event.getFileName()))
+            .withThemeVariant(NotificationVariant.LUMO_PRIMARY)
+            .show();
+}</code></pre>
+</div>
+</div></div></td>
 </tr>
 </tbody>
 </table>
@@ -359,7 +369,7 @@ If the receiver doesn’t implement <code>MultiFileReceiver</code> then the <cod
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>See <a href="https://vaadin.com/docs/v24/components/upload" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<p>See <a href="https://vaadin.com/docs/v25/components/upload" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
 </div>
 </div>
 </div>

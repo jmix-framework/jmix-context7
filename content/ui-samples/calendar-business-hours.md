@@ -8,7 +8,7 @@ calendar-business-hours.xml
 <view xmlns="http://jmix.io/schema/flowui/view"
       xmlns:calendar="http://jmix.io/schema/fullcalendar/ui">
     <layout>
-        <div classNames="border rounded-s p-s">
+        <div classNames="rounded-panel">
             <span text="msg://sampleDescription.text"/>
         </div>
         <tabSheet width="100%" height="100%">

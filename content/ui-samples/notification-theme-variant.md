@@ -1,24 +1,24 @@
 <Path>Dialogs and notifications > Notifications > Notification with ThemeVariant</Path>
 
-The Notifications component has several theme variants and types. Theme Variants: primary success error contrast Types: default success warning error system You can also configure the duration of the notification, or the ability to close. All these settings are available by the fluent Notifications API.
+The Notifications component has several theme variants and types. Theme Variants: info success warning error Types: default success warning error system You can also configure the duration of the notification, or the ability to close. All these settings are available by the fluent Notifications API.
 
 notification-theme-variant.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout justifyContent="BETWEEN" classNames="flex-row flex-wrap">
+    <layout justifyContent="BETWEEN" classNames="horizontal-layout">
         <vbox width="AUTO" padding="false">
             <details summaryText="Theme Variant" opened="true">
-                <hbox classNames="flex-wrap">
+                <hbox wrap="true">
                     <button id="standardNotificationButton" text="Standard"/>
-                    <button id="primaryNotificationButton" text="Primary" themeNames="primary"/>
+                    <button id="infoNotificationButton" text="Info" themeNames="primary"/>
                     <button id="successNotificationButton" text="Success" themeNames="success"/>
+                    <button id="warningNotificationButton" text="Warning" themeNames="warning"/>
                     <button id="errorNotificationButton" text="Error" themeNames="error"/>
-                    <button id="contrastNotificationButton" text="Contrast" themeNames="contrast"/>
                 </hbox>
             </details>
 
             <details summaryText="Type" opened="true">
-                <hbox classNames="flex-wrap">
+                <hbox wrap="true">
                     <button id="defaultTypeNotificationButton" text="Default" icon="COMMENT"/>
                     <button id="successTypeNotificationButton" text="Success" icon="CHECK"/>
                     <button id="warningTypeNotificationButton" text="Warning" icon="WARNING"/>
@@ -28,7 +28,7 @@ notification-theme-variant.xml
             </details>
 
             <details summaryText="Duration and cloesable" opened="true">
-                <hbox classNames="flex-wrap">
+                <hbox wrap="true">
                     <button id="durationNotificationButton" text="With duration" icon="CLOCK"/>
                     <button id="closeableNotificationButton" text="Closeable" icon="CLOSE"/>
                 </hbox>
@@ -59,7 +59,7 @@ notification-theme-variant.xml
                     <comboBox id="themeVariantField" label="ThemeVariant" clearButtonVisible="true"/>
                     <comboBox id="typeField" label="Type" clearButtonVisible="true"/>
                 </formLayout>
-                <span text="Be attentive. Some of the settings overlap each other."/>
+                <span text="Be attentive. Some of the settings overlap each other." themeNames="badge"/>
             </vbox>
         </details>
     </layout>
@@ -94,25 +94,25 @@ import java.util.Map;
 public class NotificationThemeVariantSample extends StandardView {
 
     @ViewComponent
-    protected TypedTextField<String> titleField;
+    private TypedTextField<String> titleField;
     @ViewComponent
-    protected TypedTextField<String> messageField;
+    private TypedTextField<String> messageField;
     @ViewComponent
-    protected JmixCheckbox closeableField;
+    private JmixCheckbox closeableField;
     @ViewComponent
-    protected JmixIntegerField durationField;
+    private JmixIntegerField durationField;
     @ViewComponent
-    protected JmixComboBox<Notification.Position> positionField;
+    private JmixComboBox<Notification.Position> positionField;
     @ViewComponent
-    protected JmixComboBox<NotificationVariant> themeVariantField;
+    private JmixComboBox<NotificationVariant> themeVariantField;
     @ViewComponent
-    protected JmixComboBox<Notifications.Type> typeField;
+    private JmixComboBox<Notifications.Type> typeField;
 
     @Autowired
-    protected Notifications notifications;
+    private Notifications notifications;
 
     @Subscribe
-    protected void onInit(InitEvent event) {
+    public void onInit(InitEvent event) {
         ComponentUtils.setItemsMap(positionField, getPositionItemsMap());
         ComponentUtils.setItemsMap(themeVariantField, getThemeVariantItemsMap());
         ComponentUtils.setItemsMap(typeField, getTypeItemsMap());
@@ -122,89 +122,89 @@ public class NotificationThemeVariantSample extends StandardView {
     }
 
     @Subscribe("standardNotificationButton")
-    protected void onStandardNotificationButtonClick(ClickEvent<JmixButton> event) {
+    public void onStandardNotificationButtonClick(ClickEvent<JmixButton> event) {
         notifications.show("ThemeVariant: Standard");
     }
 
-    @Subscribe("primaryNotificationButton")
-    protected void onPrimaryNotificationButtonClick(ClickEvent<JmixButton> event) {
-        notifications.create("ThemeVariant: Primary")
-                .withThemeVariant(NotificationVariant.LUMO_PRIMARY)
+    @Subscribe("infoNotificationButton")
+    public void onInfoNotificationButtonClick(ClickEvent<JmixButton> event) {
+        notifications.create("ThemeVariant: Info")
+                .withThemeVariant(NotificationVariant.INFO)
                 .show();
     }
 
     @Subscribe("successNotificationButton")
-    protected void onSuccessNotificationButtonClick(ClickEvent<JmixButton> event) {
+    public void onSuccessNotificationButtonClick(ClickEvent<JmixButton> event) {
         notifications.create("ThemeVariant: Success")
-                .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
+                .withThemeVariant(NotificationVariant.SUCCESS)
+                .show();
+    }
+    
+    @Subscribe("warningNotificationButton")
+    public void onWarningNotificationButtonClick(ClickEvent<JmixButton> event) {
+        notifications.create("ThemeVariant: Warning")
+                .withThemeVariant(NotificationVariant.WARNING)
                 .show();
     }
 
     @Subscribe("errorNotificationButton")
-    protected void onErrorNotificationButtonClick(ClickEvent<JmixButton> event) {
+    public void onErrorNotificationButtonClick(ClickEvent<JmixButton> event) {
         notifications.create("ThemeVariant: Error")
-                .withThemeVariant(NotificationVariant.LUMO_ERROR)
-                .show();
-    }
-
-    @Subscribe("contrastNotificationButton")
-    protected void onContrastNotificationButtonClick(ClickEvent<JmixButton> event) {
-        notifications.create("ThemeVariant: Contrast")
-                .withThemeVariant(NotificationVariant.LUMO_CONTRAST)
+                .withThemeVariant(NotificationVariant.ERROR)
                 .show();
     }
 
     @Subscribe("defaultTypeNotificationButton")
-    protected void onDefaultTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
+    public void onDefaultTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
         notifications.create("Type: Default")
                 .withType(Notifications.Type.DEFAULT)
                 .show();
     }
 
     @Subscribe("successTypeNotificationButton")
-    protected void onSuccessTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
+    public void onSuccessTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
         notifications.create("Type: Success")
                 .withType(Notifications.Type.SUCCESS)
                 .show();
     }
 
     @Subscribe("warningTypeNotificationButton")
-    protected void onWarningTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
+    public void onWarningTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
         notifications.create("Type: Warning")
                 .withType(Notifications.Type.WARNING)
                 .show();
     }
 
     @Subscribe("errorTypeNotificationButton")
-    protected void onErrorTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
+    public void onErrorTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
         notifications.create("Type: Error")
                 .withType(Notifications.Type.ERROR)
                 .show();
     }
 
     @Subscribe("systemTypeNotificationButton")
-    protected void onSystemTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
+    public void onSystemTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
         notifications.create("Type: System")
                 .withType(Notifications.Type.SYSTEM)
                 .show();
     }
 
     @Subscribe("durationNotificationButton")
-    protected void onDurationTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
+    public void onDurationTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
         notifications.create("Duration: 5 sec")
                 .withDuration(5000)
                 .show();
     }
 
     @Subscribe("closeableNotificationButton")
-    protected void onCloseableTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
+    public void onCloseableTypeNotificationButtonClick(ClickEvent<JmixButton> event) {
         notifications.create("Closeable: true")
                 .withCloseable(true)
                 .show();
     }
 
     @Subscribe("testButton")
-    protected void onTestButtonClick(ClickEvent<JmixButton> event) {
+    public void onTestButtonClick(ClickEvent<JmixButton> event) {
         Notifications.NotificationBuilder notificationBuilder;
 
         String title = titleField.getTypedValue();
@@ -245,7 +245,7 @@ public class NotificationThemeVariantSample extends StandardView {
         notificationBuilder.show();
     }
 
-    protected Map<Notification.Position, String> getPositionItemsMap() {
+    private Map<Notification.Position, String> getPositionItemsMap() {
         LinkedHashMap<Notification.Position, String> map = new LinkedHashMap<>();
         map.put(Notification.Position.TOP_STRETCH, "Top Stretch");
         map.put(Notification.Position.TOP_START, "Top Start");
@@ -259,16 +259,16 @@ public class NotificationThemeVariantSample extends StandardView {
         return map;
     }
 
-    protected Map<NotificationVariant, String> getThemeVariantItemsMap() {
+    private Map<NotificationVariant, String> getThemeVariantItemsMap() {
         LinkedHashMap<NotificationVariant, String> map = new LinkedHashMap<>();
-        map.put(NotificationVariant.LUMO_PRIMARY, "Primary");
-        map.put(NotificationVariant.LUMO_SUCCESS, "Success");
-        map.put(NotificationVariant.LUMO_ERROR, "Error");
-        map.put(NotificationVariant.LUMO_CONTRAST, "Contrast");
+        map.put(NotificationVariant.INFO, "Info");
+        map.put(NotificationVariant.SUCCESS, "Success");
+        map.put(NotificationVariant.WARNING, "Warning");
+        map.put(NotificationVariant.ERROR, "Error");
         return map;
     }
 
-    protected Map<Notifications.Type, String> getTypeItemsMap() {
+    private Map<Notifications.Type, String> getTypeItemsMap() {
         LinkedHashMap<Notifications.Type, String> map = new LinkedHashMap<>();
         map.put(Notifications.Type.DEFAULT, "Default");
         map.put(Notifications.Type.SUCCESS, "Success");

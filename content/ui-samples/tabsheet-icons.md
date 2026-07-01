@@ -1,12 +1,11 @@
 <Path>Layouts > TabSheet > TabSheet with icons</Path>
 
-Icons for the tab component can be set programmatically. You can change the position of the icons using the ThemeVariant.
+Icons for the tab component can be set programmatically.
 
 tabsheet-icons.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
-        <checkbox id="iconControlCheckbox" label="Icon on top"/>
         <tabSheet id="tabSheet" width="100%"/>
     </layout>
 </view>
@@ -18,14 +17,11 @@ TabSheetIconsSample.java
 
 package io.jmix.uisamples.view.flowui.containers.tabsheet.icons;
 
-import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.component.tabs.TabVariant;
 import io.jmix.flowui.UiComponents;
-import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,15 +45,6 @@ public class TabSheetIconsSample extends StandardView {
         tabSheet.add(createProfileTab(), new Span("Profile tab content"));
         tabSheet.add(createNotificationsTab(), new Span("Notifications tab content"));
         tabSheet.add(createSettingsTab(), new Span("Settings tab content"));
-    }
-
-    @Subscribe("iconControlCheckbox")
-    protected void onIconControlCheckboxValueChane(ComponentValueChangeEvent<JmixCheckbox, Boolean> event) {
-        if (event.getValue()) {
-            tabSheet.getChildren().forEach(tab -> ((Tab) tab).addThemeVariants(TabVariant.LUMO_ICON_ON_TOP));
-        } else {
-            tabSheet.getChildren().forEach(tab -> tab.getElement().getThemeList().clear());
-        }
     }
 
     protected Tab createProfileTab() {

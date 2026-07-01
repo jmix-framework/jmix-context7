@@ -5,7 +5,7 @@ It is possible to customize the render of elements. You can use the setRenderer(
 list-box-custom-renderer.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout>
+    <layout classNames="list-box-custom-renderer">
         <listBox id="listBox"/>
     </layout>
 </view>
@@ -24,7 +24,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.streams.DownloadHandler;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.jmix.core.Resources;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.listbox.JmixListBox;
@@ -63,16 +62,16 @@ public class ListBoxCustomRendererSample extends StandardView {
             avatar.setImageHandler(getSimpsonImageHandler(simpson));
 
             Span name = new Span(simpson.name());
-            Span profession = new Span(simpson.shortName());
-            profession.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.SMALL);
+            Span shortName = new Span(simpson.shortName());
+            shortName.addClassNames("short-name");
 
             VerticalLayout column = uiComponents.create(VerticalLayout.class);
-            column.add(name, profession);
+            column.add(name, shortName);
             column.setPadding(false);
             column.setSpacing(false);
 
             row.add(avatar, column);
-            row.addClassName(LumoUtility.LineHeight.MEDIUM);
+            row.addClassName("row");
             return row;
         });
     }
@@ -101,4 +100,18 @@ package io.jmix.uisamples.record;
 public record Simpson(String name, String shortName, String picture) {
 }
 
+
+
+
+list-box-custom-renderer.css
+
+
+.list-box-custom-renderer .short-name {
+    color: var(--vaadin-text-color-secondary);
+    font-size: var(--aura-font-size-s);
+}
+
+.list-box-custom-renderer .row {
+    line-height: var(--aura-line-height-m);
+}
 

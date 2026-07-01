@@ -1,23 +1,23 @@
 <Path>Components > Button > Button with ThemeVariant</Path>
 
-The Button component has several theme variants: primary success error contrast large small icon tertiary tertiary-inline You can set these styles to the Button component using the themeNames attribute either in the XML descriptor or in the view controller using constants from ButtonVariant class.
+The Button component has several theme variants: primary success warning error large small icon tertiary You can set these styles to the Button component using the themeNames attribute either in the XML descriptor or in the view controller using constants from ButtonVariant class.
 
 button-theme-variant.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout justifyContent="BETWEEN" classNames="flex-row flex-wrap">
+    <layout justifyContent="BETWEEN" classNames="horizontal-layout">
         <vbox width="AUTO" padding="false">
             <details summaryText="Style variant" opened="true">
-                <hbox classNames="flex-wrap">
+                <hbox wrap="true">
                     <button id="primaryButton" text="Primary button" themeNames="primary"/>
                     <button id="successButton" text="Success button" themeNames="success"/>
+                    <button id="warningButton" text="Warning button" themeNames="warning"/>
                     <button id="errorButton" text="Error button" themeNames="error"/>
-                    <button id="contrastButton" text="Contrast button" themeNames="contrast"/>
                 </hbox>
             </details>
 
             <details summaryText="Size variant" opened="true">
-                <hbox classNames="flex-wrap">
+                <hbox wrap="true">
                     <button id="largeButton" text="Large button" themeNames="large"/>
                     <button id="medium" text="Medium button"/>
                     <button id="smallButton" text="Small button" themeNames="small"/>
@@ -25,10 +25,9 @@ button-theme-variant.xml
             </details>
 
             <details summaryText="Visual variant" opened="true">
-                <hbox classNames="flex-wrap">
+                <hbox wrap="true">
                     <button id="iconButton" themeNames="icon" icon="SMILEY_O"/>
                     <button id="tertiaryButton" text="Tertiary button" themeNames="tertiary"/>
-                    <button id="tertiaryInlineButton" text="Tertiary-inline button" themeNames="tertiary-inline"/>
                 </hbox>
             </details>
         </vbox>
@@ -62,17 +61,17 @@ import java.util.List;
 public class ButtonThemeVariantSample extends StandardView {
 
     @ViewComponent
-    protected JmixButton testButton;
+    private JmixButton testButton;
     @ViewComponent
-    protected JmixCheckboxGroup<String> settingsCheckboxGroup;
+    private JmixCheckboxGroup<String> settingsCheckboxGroup;
 
     @Subscribe
-    protected void onInit(InitEvent event) {
+    public void onInit(InitEvent event) {
         settingsCheckboxGroup.setItems(getSettingsCheckboxGroupItems());
     }
 
     @Subscribe("settingsCheckboxGroup")
-    protected void onSettingsValueChange(TypedValueChangeEvent<JmixCheckboxGroup<String>, Collection<String>> event) {
+    public void onSettingsValueChange(TypedValueChangeEvent<JmixCheckboxGroup<String>, Collection<String>> event) {
         if (event.getValue() == null) {
             return;
         }
@@ -87,7 +86,7 @@ public class ButtonThemeVariantSample extends StandardView {
                 .forEach(this::applyTestButtonTheme);
     }
 
-    protected void applyTestButtonTheme(String command) {
+    private void applyTestButtonTheme(String command) {
         if ("text".equalsIgnoreCase(command)) {
             testButton.setText("Button text");
         } else if ("icon".equalsIgnoreCase(command)) {
@@ -98,9 +97,9 @@ public class ButtonThemeVariantSample extends StandardView {
         }
     }
 
-    protected List<String> getSettingsCheckboxGroupItems() {
-        return List.of("Text", "Primary", "Success", "Error", "Contrast",
-                "Large", "Small", "Icon", "Tertiary", "Tertiary-inline");
+    private List<String> getSettingsCheckboxGroupItems() {
+        return List.of(
+                    "Text", "Primary", "Success", "Warning", "Error", "Large", "Small", "Icon", "Tertiary");
     }
 }
 

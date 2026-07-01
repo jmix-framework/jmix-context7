@@ -13,7 +13,7 @@ calendar-url-query-parameters.xml
         </urlQueryParameters>
     </facets>
     <layout>
-        <div classNames="border rounded-s p-s">
+        <div classNames="rounded-panel">
             <span text="msg://sampleDescription.text"/>
         </div>
         <hbox padding="false">

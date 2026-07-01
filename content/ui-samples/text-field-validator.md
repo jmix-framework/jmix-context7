@@ -5,7 +5,7 @@ Text field can be assigned a validator - a class implementing Validator interfac
 text-field-validator.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <textField id="integerTextField" label="Positive TextField"
                    helperText="Value must be positive"
                    datatype="int">

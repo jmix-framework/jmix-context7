@@ -5,7 +5,7 @@ multiSelectComboBox allows users to choose one or more items from a drop-down li
 multi-select-combo-box-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <multiSelectComboBox id="multiSelectComboBox"/>
         <multiSelectComboBox itemsEnum="io.jmix.uisamples.entity.Day" clearButtonVisible="true" width="17em"/>
     </layout>
@@ -43,7 +43,7 @@ Day.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum Day implements EnumClass<String> {
 

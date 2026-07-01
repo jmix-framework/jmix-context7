@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defining the Model :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Defining the Model</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <strong>Dynamic model</strong> → <strong>Dynamic model settings</strong> view provides an admin UI for editing the dynamic model. You add entities, attributes, enumerations, and other elements through the visual editor, then <strong>Apply</strong> the changes to validate them and publish a new model version.</p>
+</div>
+<div class="paragraph">
+<p>Each topic below shows the YAML that the editor produces for the corresponding element — this is the same definition you can view and edit directly in the editor’s YAML view.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="concepts.html">Concepts</a> for how applying a model works and how versions are managed, and <a class="xref page" href="yaml-reference.html">YAML Reference</a> for the full reference of every element.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="model-editor"><a class="anchor" href="#model-editor"></a>Using the Model Editor</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Open the <strong>Dynamic model settings</strong> view. The <strong>Visual</strong> editor presents the current model as a structure of linked tables with entities, attributes, enumerations, views. You can add and edit elements using dialogs.</p>
+</div>
+<div class="paragraph">
+<p>You can switch to the <strong>Code</strong> presentation at any time to inspect or edit the raw YAML definition directly; the two presentations stay in sync.</p>
+</div>
+<div class="paragraph">
+<p>When the model is ready, click <strong>Apply</strong>. The framework compares the edited model with the currently active one and opens the intermediate <strong>Dynamic model changes</strong> view, which shows what will be applied before anything is committed. Under <strong>Model migrations</strong> it lists each individual change — such as creating an entity, adding or removing an attribute, or adding a unique constraint. If any views are affected, they are listed under <strong>Changed views</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Review the list and click <strong>Apply changes</strong> to confirm. The model is validated and, if valid, the changes are applied and published as a new model version that becomes active immediately. Closing the <strong>Dynamic model changes</strong> view without applying discards the pending changes and leaves the active model unchanged.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="extending-static-entities"><a class="anchor" href="#extending-static-entities"></a>Extending Static Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To add dynamic attributes to an entity that already exists in your application (a static entity such as <code>Customer</code>), select that entity in the editor and add attributes to it. The dynamic attributes are stored separately from the entity’s own table and become available alongside the static attributes at runtime.</p>
+</div>
+<div class="paragraph">
+<p>The example below adds a <code>taxId</code> string attribute to <code>Customer</code>, with length <code>20</code>, a required flag, uniqueness, and a validation rule:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "Customer"
+  attributes:
+    - name: "taxId"
+      javaClass: "java.lang.String"
+      length: 20
+      required: true
+      unique: true
+      validation:
+        constraints:
+          - annotation: "Pattern"
+            parameters:
+              regexp: "^[A-Z0-9-]+$"
+            message:
+              en: "Tax ID can contain uppercase letters, digits and dashes only"
+      messages:
+        en: "Tax ID"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dynamic-entities"><a class="anchor" href="#dynamic-entities"></a>Defining Dynamic Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A dynamic entity is a brand-new entity that exists only at runtime — it has no Java class or table in your source code. To create one, add an entity in the editor whose name does not match any existing entity, then define its attributes and, optionally, its views. See <a class="xref page" href="views.html">Views and Menu Items</a> for generating views and menu items for dynamic entities.</p>
+</div>
+<div class="paragraph">
+<p>The example below defines the <code>LoyaltyLevel</code> dynamic entity with several attributes, validation constraints, and a couple of generated views:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "LoyaltyLevel"
+  resourceRoles:
+    read:
+      - "employee"
+      - "manager"
+    create:
+      - "manager"
+    update:
+      - "manager"
+    delete:
+      - "manager"
+  messages:
+    en: "Loyalty level"
+    de: "Treuestufe"
+  validation:
+    constraints:
+      - name: "discountDescriptionRequired"
+        target: "entity"
+        type: "expression"
+        evaluator: "spel"
+        expression: "discount == null || description != null"
+        attributes:
+          - "discount"
+          - "description"
+        path: "description"
+        groups:
+          - "UiCrossFieldChecks"
+          - "RestApiChecks"
+        message:
+          en: "Description is required when discount is specified"
+  attributes:
+    - name: "name"
+      javaClass: "java.lang.String"
+      instanceName: true
+      messages:
+        en: "Name"
+    - name: "description"
+      javaClass: "java.lang.String"
+      lob: true
+      messages:
+        en: "Description"
+    - name: "publicSummary"
+      javaClass: "java.lang.String"
+      calculated:
+        evaluator: "spel"
+        expression: "(name ?: '') + ': ' + (description ?: '')"
+        dependsOn:
+          - "name"
+          - "description"
+      messages:
+        en: "Public summary"
+    - name: "discount"
+      javaClass: "java.math.BigDecimal"
+      validation:
+        constraints:
+          - annotation: "DecimalMin"
+            parameters:
+              value: "0"
+          - annotation: "DecimalMax"
+            parameters:
+              value: "100"
+      messages:
+        en: "Discount"
+  views:
+    - type: "list"
+      viewId: "LoyaltyLevel.list"
+      viewRoute: "loyalty-levels"
+      viewTitle:
+        en: "Loyalty levels"
+        de: "Treuestufen"
+      templateParams:
+        includeProperties: ["name", "discount"]
+        excludeProperties: ["publicSummary"]
+      resourceRoles:
+        - "employee"
+        - "manager"
+      menuItem:
+        parentMenu: "application"
+        insertBefore: "Customer.list"
+        title:
+          en: "Loyalty levels"
+        resourceRoles:
+          - "employee"
+          - "manager"
+      descriptor:
+        template: "default"
+    - type: "detail"
+      viewId: "LoyaltyLevel.detail"
+      viewTitle:
+        en: "Loyalty level"
+      descriptor:
+        template: "default"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every attribute is one of the following kinds, distinguished by which field it defines: a datatype attribute, a reference attribute, a collection attribute, or an enumeration attribute.</p>
+</div>
+<div class="sect2">
+<h3 id="_datatype_attributes"><a class="anchor" href="#_datatype_attributes"></a>Datatype Attributes</h3>
+<div class="paragraph">
+<p>A datatype attribute holds a simple value such as a string, number, date, or boolean. You define it by selecting its type, which is stored as a <code>javaClass</code>. For string and byte-array attributes you can also set a <code>length</code> and mark them as large objects with <code>lob</code>. The <code>taxId</code> attribute shown in <a href="#extending-static-entities">Extending Static Entities</a> is a datatype attribute.</p>
+</div>
+<div class="paragraph">
+<p>For the full list of supported types, see <a class="xref page" href="yaml-reference.html#javaclass">supported types</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_reference_attributes"><a class="anchor" href="#_reference_attributes"></a>Reference Attributes</h3>
+<div class="paragraph">
+<p>A reference attribute is a single-valued link to another entity. You select the target entity, and at runtime the attribute stores a reference to one instance of it.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "loyaltyLevel"
+  entityName: "LoyaltyLevel"
+  messages:
+    en: "Loyalty level"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_collection_attributes"><a class="anchor" href="#_collection_attributes"></a>Collection Attributes</h3>
+<div class="paragraph">
+<p>A collection attribute holds an ordered list of child instances (a composition). The target entity must be a dynamic entity. Mark the attribute as a collection in the editor to make a reference hold multiple ordered values:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "benefits"
+  entityName: "Benefit"
+  collection: true
+  messages:
+    en: "Benefits"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_enumeration_attributes"><a class="anchor" href="#_enumeration_attributes"></a>Enumeration Attributes</h3>
+<div class="paragraph">
+<p>An enumeration attribute stores one of the values of a dynamic enumeration. You select the enumeration that the attribute refers to:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "grade"
+  enumeration: "CustomerGrade" # short name, resolved via base package
+  messages:
+    en: "Grade"</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="enumerations"><a class="anchor" href="#enumerations"></a>Enumerations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A dynamic enumeration defines a fixed set of named values that can then be used by enumeration attributes. Add an enumeration in the editor, give it a name, and define its values with their stored ids and captions.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">enumerations:
+  - name: "CustomerGrade"
+    messages:
+      en: "Customer grade"
+    values:
+      - name: "PLATINUM"
+        id: "30"
+        messages:
+          en: "Platinum"
+      - name: "GOLD"
+        id: "20"
+        messages:
+          en: "Gold"
+      - name: "BRONZE"
+        id: "10"
+        messages:
+          en: "Bronze"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All value ids within one enumeration must be of the same kind: either all integer ids (as in the example above) or all string ids.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="calculated-attributes"><a class="anchor" href="#calculated-attributes"></a>Calculated Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A calculated attribute is read-only and is computed on access from an expression rather than stored. You write the expression in <a href="https://docs.spring.io/spring-framework/reference/7.0/core/expressions.html">Spring Expression Language (SpEL)</a> and list the attributes it <code>dependsOn</code> so they are loaded together with it.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "publicSummary"
+  javaClass: "java.lang.String"
+  calculated:
+    evaluator: "spel"
+    expression: "(name ?: '') + ': ' + (description ?: '')"
+    dependsOn:
+      - "name"
+      - "description"
+  messages:
+    en: "Public summary"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Because their values are not stored in the database, calculated attributes cannot be used for filtering or sorting at the database level.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="validation"><a class="anchor" href="#validation"></a>Validation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can attach validation constraints to an attribute to restrict the values it accepts. Each constraint has a type (such as <code>Pattern</code>, <code>Size</code>, or <code>DecimalMax</code>), optional parameters, and an optional message.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">validation:
+  constraints:
+    - annotation: "Pattern"
+      parameters:
+        regexp: "^[A-Z0-9-]+$"
+      message:
+        en: "Tax ID can contain uppercase letters, digits and dashes only"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Entity-level validation is also supported, allowing a constraint to span several attributes of an entity. See <a class="xref page" href="yaml-reference.html">YAML Reference</a> for the full list of constraints and for entity-level validation.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="unique-constraints"><a class="anchor" href="#unique-constraints"></a>Unique Constraints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To require that an attribute’s value is unique across all instances, mark it as unique. This is a shorthand for a single-attribute unique constraint:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">unique: true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To require that a combination of several attributes is unique, define a composite unique constraint on the entity:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">uniqueConstraints:
+  - name: "customerCountryTaxIdUnique"
+    attributes:
+      - "countryCode"
+      - "taxId"
+    message:
+      en: "Tax ID must be unique within a country"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Uniqueness is enforced by database constraints. It is not supported for soft-deletable static entities.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="security"><a class="anchor" href="#security"></a>Security</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can restrict access to dynamic entities and attributes using resource roles. Grants are additive — listing a role grants it the corresponding access, and access that is not granted is denied. The referenced roles must already exist in the application; the examples below use illustrative <code>employee</code> and <code>manager</code> roles.</p>
+</div>
+<div class="paragraph">
+<p>At the entity level, you grant <code>read</code>, <code>create</code>, <code>update</code>, and <code>delete</code> access. This is supported for dynamic entities:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">resourceRoles:
+  read:
+    - "employee"
+    - "manager"
+  create:
+    - "manager"
+  update:
+    - "manager"
+  delete:
+    - "manager"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>At the attribute level, you grant <code>view</code> and <code>modify</code> access:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "countryCode"
+  javaClass: "java.lang.String"
+  length: 2
+  resourceRoles:
+    view:
+      - "employee"
+      - "manager"
+    modify:
+      - "manager"
+  messages:
+    en: "Country code"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more about resource roles, see <a class="xref page" href="../security/resource-roles.html">resource roles</a>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

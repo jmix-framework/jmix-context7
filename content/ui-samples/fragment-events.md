@@ -65,7 +65,7 @@ events-fragment.xml
 
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
     <content>
-        <hbox padding="false" classNames="flex-row flex-wrap"/>
+        <hbox padding="false" classNames="horizontal-layout"/>
     </content>
 </fragment>
 

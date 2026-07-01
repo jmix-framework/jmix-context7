@@ -5,18 +5,18 @@ The image component can display images from different resources Static - an imag
 image-resources.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout justifyContent="BETWEEN" classNames="flex-row flex-wrap">
-        <vbox padding="false" width="AUTO" classNames="items-center">
+    <layout justifyContent="BETWEEN" classNames="horizontal-layout">
+        <vbox padding="false" width="AUTO" alignItems="CENTER">
             <h4 text="Static resource"/>
             <image resource="icons/image-sample.svg"
                    height="15em" width="15em"/>
         </vbox>
-        <vbox padding="false" width="AUTO" classNames="items-center">
+        <vbox padding="false" width="AUTO" alignItems="CENTER">
             <h4 text="URL resource"/>
             <image resource="https://www.jmix.io/uploads/framework_image_9efadbc372.svg"
                    height="15em" width="15em"/>
         </vbox>
-        <vbox padding="false" width="AUTO" classNames="items-center">
+        <vbox padding="false" width="AUTO" alignItems="CENTER">
             <h4 text="Programmatic resource"/>
             <image id="imageProgrammaticResource"
                    height="15em" width="15em"/>

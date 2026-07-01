@@ -107,7 +107,7 @@ public class KanbanDataSavingSample extends StandardView {
     @Install(to = "kanban", subject = "saveDelegate")
     public void kanbanSaveDelegate(final KanbanTask kanbanTask) {
         notifications.create("Task '%s' saved!".formatted(kanbanTask.getName()))
-                .withThemeVariant(NotificationVariant.LUMO_SUCCESS)
+                .withThemeVariant(NotificationVariant.SUCCESS)
                 .withPosition(Notification.Position.TOP_END)
                 .show();
     }
@@ -127,7 +127,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -266,7 +266,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -321,7 +321,7 @@ TaskStatus.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum TaskStatus implements EnumClass<String> {
 
@@ -362,8 +362,7 @@ TaskPriority.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
-
+import org.jspecify.annotations.Nullable;
 
 public enum TaskPriority implements EnumClass<String> {
 

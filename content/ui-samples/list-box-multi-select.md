@@ -5,7 +5,7 @@ ListBox supports both single and multiple selection.
 list-box-multi-select.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <vbox width="AUTO">
             <h4 text="Single-select ListBox"/>
             <listBox id="listBox"/>

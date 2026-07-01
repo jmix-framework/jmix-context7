@@ -17,7 +17,7 @@
 <p>A theme consists of CSS files and other resources like images and fonts.</p>
 </div>
 <div class="paragraph">
-<p>Jmix provides <strong>jmix-lumo</strong> theme built on top of Vaadin’s <a href="https://vaadin.com/docs/latest/styling/lumo" rel="noopener" target="_blank">Lumo</a> theme.</p>
+<p>Jmix provides <strong>jmix-lumo</strong> theme built on top of Vaadin’s <a href="https://vaadin.com/docs/v25/styling/lumo" rel="noopener" target="_blank">Lumo</a> theme.</p>
 </div>
 </div>
 </div>
@@ -53,7 +53,7 @@ public class MyProjectApplication implements AppShellConfigurator {
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Themes cannot be switched at runtime. Although a project may have multiple themes, only one can be applied for the UI. However, there are ways to <a href="https://vaadin.com/docs/latest/styling/advanced/runtime-theme-switching" rel="noopener" target="_blank">switch between variants</a> of the same theme and <a href="https://vaadin.com/docs/latest/styling/advanced/loading-styles-dynamically" rel="noopener" target="_blank">load dynamically additional styles</a> on top of a theme.
+Themes cannot be switched at runtime. Although a project may have multiple themes, only one can be applied for the UI. However, there are ways to <a href="https://vaadin.com/docs/v25/styling/advanced/runtime-theme-switching" rel="noopener" target="_blank">switch between variants</a> of the same theme and <a href="https://vaadin.com/docs/v25/styling/advanced/loading-styles-dynamically" rel="noopener" target="_blank">load dynamically additional styles</a> on top of a theme.
 </td>
 </tr>
 </table>
@@ -142,7 +142,7 @@ Themes cannot be switched at runtime. Although a project may have multiple theme
 <h2 id="reusable-theme"><a class="anchor" href="#reusable-theme"></a>Reusable Theme</h2>
 <div class="sectionbody">
 <div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/latest/styling/advanced/multi-app-themes" target="_blank">Vaadin</a>
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/styling/advanced/multi-app-themes" target="_blank">Vaadin</a>
 </div>
 <div class="paragraph">
 <p>An application theme can be used in multiple applications by packaging it as a JAR dependency.</p>
@@ -374,13 +374,84 @@ public void onThemeSwitcherDarkThemeItemDarkThemeAction(final ActionPerformedEve
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JsModule("./src/theme/color-scheme-switching-support.js")
 @SpringBootApplication
+@StyleSheet(Lumo.UTILITY_STYLESHEET)
 public class OnboardingApplication implements AppShellConfigurator {</code></pre>
 </div>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="theme switcher" src="../_images/themes/theme-switcher.gif" width="1169"/>
 </div>
+</div>
+<div class="sect1">
+<h2 id="customize-lumo-theme-variants"><a class="anchor" href="#customize-lumo-theme-variants"></a>Customizing Component Styles for Theme Variants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you allow users to switch between light and dark theme variants at runtime (as described above), you may need to define specific styles for each variant to ensure proper contrast and visual appearance.</p>
+</div>
+<div class="paragraph">
+<p>To apply styles conditionally based on the active theme variant, use the theme attribute on the <code>html</code> element in your CSS. When a theme variant is applied, Jmix adds a corresponding theme attribute to the root <code>html</code> element.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For the light variant, the attribute is <code>theme="light"</code>.</p>
+</li>
+<li>
+<p>For the dark variant, the attribute is <code>theme="dark"</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can use these selectors in your theme’s CSS files (for example, in <code>my-project.css</code> or <code>styles.css</code>) to override component styles for a specific variant.</p>
+</div>
+<div class="paragraph">
+<p>Suppose you have a button with the custom style name <code>my-button</code> and you want it to have different text colors in light and dark modes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">/* Default style for light mode */
+vaadin-button.my-button {
+    color: navy;
+}
+
+/* Override for dark mode */
+html[theme='dark'] vaadin-button.my-button {
+    color: lightskyblue;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also override Lumo’s built-in CSS properties (variables) for specific variants. This provides a way to consistently change the appearance of many components at once.</p>
+</div>
+<div class="paragraph">
+<p>For example, to change the primary color for the dark variant only:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html[theme='dark'] {
+    --lumo-primary-color: rgb(100, 200, 255);
+    --lumo-primary-text-color: rgb(100, 200, 255);
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Place these variant-specific styles in your theme’s main CSS file (for example, <code>my-project.css</code>). The <code>html[theme='dark']</code> selector will only match when the dark variant is active.</p>
+</li>
+<li>
+<p>Ensure that your styles for the dark variant do not conflict with or unintentionally override styles in the light variant.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>

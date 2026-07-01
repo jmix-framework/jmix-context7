@@ -360,7 +360,7 @@ airport-list-view.xml
         <hbox width="100%">
             <vbox padding="false">
                 <h4 text="msg://airports"/>
-                <hbox id="buttonsPanel" classNames="buttons-panel">
+                <hbox id="buttonsPanel" width="100%" wrap="true">
                     <button id="createButton" action="airportsDataGrid.create"/>
                     <button id="editButton" action="airportsDataGrid.edit"/>
                     <button id="removeButton" action="airportsDataGrid.remove"/>
@@ -393,7 +393,7 @@ airport-list-view.xml
             </vbox>
             <vbox padding="false">
                 <h4 text="msg://terminals"/>
-                <hbox id="terminalsButtonsPanel" classNames="buttons-panel">
+                <hbox id="terminalsButtonsPanel" width="100%" wrap="true">
                     <button id="terminalsCreateButton" action="terminalsDataGrid.create"/>
                     <button id="terminalsEditButton" action="terminalsDataGrid.edit"/>
                     <button id="terminalsRemoveButton" action="terminalsDataGrid.remove"/>
@@ -571,7 +571,7 @@ terminal-detail-view.xml
             <textField id="gateCountField" property="gateCount"/>
         </formLayout>
         <h4 text="msg://io.jmix.uisamples.entity/Terminal.meetingPoints"/>
-        <hbox id="buttonsPanel" classNames="buttons-panel">
+        <hbox id="buttonsPanel" width="100%" wrap="true">
             <button id="createButton" action="meetingPointsDataGrid.create"/>
             <button id="editButton" action="meetingPointsDataGrid.edit"/>
             <button id="removeButton" action="meetingPointsDataGrid.remove"/>

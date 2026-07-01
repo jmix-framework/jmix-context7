@@ -5,9 +5,9 @@ The auto responsive mode provides flexible configuration to make layout adapt sm
 form-layout-auto-responsive.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout>
+    <layout classNames="form-layout-auto-responsive">
         <split height="100%" width="100%" splitterPosition="60">
-            <formLayout id="formLayout" width="100%" classNames="p-m" autoResponsive="true">
+            <formLayout id="formLayout" width="100%" classNames="form-layout" autoResponsive="true">
                 <formRow>
                     <formItem label="msg://firstName.label">
                         <textField/>
@@ -44,7 +44,7 @@ form-layout-auto-responsive.xml
             </formLayout>
 
             <formLayout id="managementLayout" autoResponsive="true" autoRows="true"
-                        classNames="p-m"
+                        classNames="form-layout"
                         expandColumns="true"
                         expandFields="true"
                         rowSpacing="0">
@@ -56,7 +56,7 @@ form-layout-auto-responsive.xml
                     <textField id="labelSpacingField" placeholder="msg://labelSpacingField.placeholder"
                                datatype="string" label="msg://labelSpacingField.label" width="100%">
                         <suffix>
-                            <button id="labelSpacingHelpButton" icon="INFO_CIRCLE" themeNames="tertiary-inline"/>
+                            <button id="labelSpacingHelpButton" icon="INFO_CIRCLE" classNames="link-button"/>
                         </suffix>
                     </textField>
                     <checkbox id="expandColumnsField" label="msg://expandColumnsField.label"/>
@@ -66,18 +66,18 @@ form-layout-auto-responsive.xml
                 <vbox spacing="false" padding="false">
                     <integerField id="maxColumnsField" label="msg://maxColumnsField.label" width="100%" themeNames="align-center">
                         <prefix>
-                            <button id="maxColumnsFieldMinus" icon="lumo:minus"/>
+                            <button id="maxColumnsFieldMinus" icon="lumo:minus" classNames="link-button"/>
                         </prefix>
                         <suffix>
-                            <button id="maxColumnsFieldPlus" icon="lumo:plus"/>
+                            <button id="maxColumnsFieldPlus" icon="lumo:plus" classNames="link-button"/>
                         </suffix>
                     </integerField>
                     <integerField id="minColumnsField" label="msg://minColumnsField.label" width="100%" themeNames="align-center">
                         <prefix>
-                            <button id="minColumnsFieldMinus" icon="lumo:minus"/>
+                            <button id="minColumnsFieldMinus" icon="lumo:minus" classNames="link-button"/>
                         </prefix>
                         <suffix>
-                            <button id="minColumnsFieldPlus" icon="lumo:plus"/>
+                            <button id="minColumnsFieldPlus" icon="lumo:plus" classNames="link-button"/>
                         </suffix>
                     </integerField>
                 </vbox>
@@ -189,4 +189,13 @@ public class FormLayoutAutoResponsiveSample extends StandardView {
     }
 }
 
+
+
+
+form-layout-auto-responsive.css
+
+
+.form-layout-auto-responsive .form-layout {
+    padding: var(--vaadin-padding-m);
+}
 

@@ -27,14 +27,24 @@
 <div class="sect2">
 <h3 id="before-commit"><a class="anchor" href="#before-commit"></a>Handling Changes Before Commit</h3>
 <div class="paragraph">
-<p>To handle <code>EntityChangedEvent</code> in the current transaction, create a bean method annotated with <code>@EventListener</code>. The method will be called by the framework right after saving the entity to the database but before the transaction commit. In the listener method, you can make any changes to data and they will be committed together with the initial changes. If an exception occurs, everything will be rolled back.</p>
+<p>To handle <code>EntityChangedEvent</code> in the current transaction, create a bean method annotated with <code>@EventListener</code>. The method will be called by the framework right after saving the entity to the database but before the transaction commit. In the listener method, you can make any changes to data, and they will be committed together with the initial changes. If an exception occurs, everything will be rolled back.</p>
 </div>
 <div class="paragraph">
 <p>In the example below, we create a linked entity to register the change of an attribute. Both the changed <code>Customer</code> and the created <code>CustomerGradeChange</code> instances will be committed in the same transaction:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.entity.Customer;
+import com.company.demo.entity.CustomerGrade;
+import com.company.demo.entity.CustomerGradeChange;
+import io.jmix.core.DataManager;
+import io.jmix.core.Id;
+import io.jmix.core.event.EntityChangedEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
+@Component
 public class CustomerEventListener {
 
     @Autowired
@@ -92,7 +102,16 @@ public class CustomerEventListener {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.entity.Order;
+import com.company.demo.entity.OrderLine;
+import io.jmix.core.DataManager;
+import io.jmix.core.Id;
+import io.jmix.core.event.EntityChangedEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
+@Component
 public class OrderLineEventListener {
 
     @Autowired
@@ -148,7 +167,18 @@ public class OrderLineEventListener {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.entity.Customer;
+import com.company.demo.entity.CustomerGrade;
+import io.jmix.core.DataManager;
+import io.jmix.core.event.EntityChangedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
+
+@Component
 public class CustomerEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(CustomerEventListener.class);
@@ -198,7 +228,12 @@ public class CustomerEventListener {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.entity.Order;
+import io.jmix.core.event.EntitySavingEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
+@Component
 public class OrderEventListener {
 
     @EventListener
@@ -254,7 +289,15 @@ public class Customer {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.demo.bean.EncryptionService;
+import com.company.demo.entity.Customer;
+import io.jmix.core.event.EntityLoadingEvent;
+import io.jmix.core.event.EntitySavingEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
+@Component
 public class CustomerEventListener {
 
     @Autowired

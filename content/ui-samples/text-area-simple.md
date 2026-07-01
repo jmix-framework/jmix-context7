@@ -5,7 +5,7 @@ Text Area is an input field component for multi-line text input. To limit user i
 text-area-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <textArea id="textArea" value="Great job. This is excellent!" label="Comment"
                   valueChangeMode="EAGER" maxLength="140" helperText="29/140"/>
         <textArea id="textArea2" value="Everything you do works great!" label="Additional comment"/>

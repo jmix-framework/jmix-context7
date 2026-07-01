@@ -421,16 +421,36 @@ private String departmentSelectTextRenderer(final Department t) {
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
 private UiComponents uiComponents;
 
-@Supply(to = "selectWithRenderer", subject = "renderer")
+@Supply(to = "selectWithRenderer", subject = "renderer") <i class="conum" data-value="1"></i><b>(1)</b>
 private ComponentRenderer&lt;Button, Department&gt; selectWithRendererRenderer() {
-    return new ComponentRenderer&lt;&gt;(department -&gt; {
-        Button button = uiComponents.create(Button.class);
-        button.setText(department.getName());
+    return new ComponentRenderer&lt;&gt;(item -&gt; { <i class="conum" data-value="2"></i><b>(2)</b>
+        Button button = uiComponents.create(Button.class); <i class="conum" data-value="3"></i><b>(3)</b>
+        button.setText(item.getName());
         button.setIcon(VaadinIcon.DESKTOP.create());
-        return button;
+        return button; <i class="conum" data-value="4"></i><b>(4)</b>
     });
 }</code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>@Supply</code> binds the renderer to <code>selectWithRenderer</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The lambda receives the current <code>Department</code> item.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The component is created and configured inside the same callback.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The lambda returns the component for the current item.</td>
+</tr>
+</table>
 </div>
 <div class="paragraph" id="fragment-renderer">
 <p>Alternatively, you can render items using a nested <code>fragmentRenderer</code> element. Refer to the <a class="xref page" href="../miscellaneous/renderers.html#fragment-renderer">Fragment Renderer</a> section for more information.</p>
@@ -469,89 +489,59 @@ private ComponentRenderer&lt;Button, Department&gt; selectWithRendererRenderer()
 <h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to adjust text alignment, helper text placement, and component size.</p>
+<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
 </div>
-<div class="paragraph" id="alignment">
-<p><strong>Alignment</strong></p>
-</div>
-<div class="paragraph">
-<p>Choose among three alignment options: <code>align-left</code> (default), <code>align-right</code>, <code>align-center</code>.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="select alignment" src="../../_images/visual-components/components/select-alignment.png" width="621"/>
-</div>
-</div>
-<details>
-<summary class="title">XML code</summary>
-<div class="content">
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;select itemsEnum="com.company.onboarding.entity.OnboardingStatus"
-        themeNames="align-left"
-        helperText="The align-left alignment"/&gt;
-&lt;select itemsEnum="com.company.onboarding.entity.OnboardingStatus"
-        themeNames="align-center"
-        helperText="The align-center alignment"/&gt;
-&lt;select itemsEnum="com.company.onboarding.entity.OnboardingStatus"
-        themeNames="align-right"
-        helperText="The align-right alignment"/&gt;</code></pre>
-</div>
-</div>
-</div>
-</details>
-<div class="paragraph" id="helper-text-position">
-<p><strong>Helper Text Position</strong></p>
-</div>
-<div class="paragraph">
-<p>Setting <code>helper-above-field</code> will move the helper text from its default position below the field to above it.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="select helper above field" src="../../_images/visual-components/components/select-helper-above-field.png" width="411"/>
-</div>
-</div>
-<details>
-<summary class="title">XML code</summary>
-<div class="content">
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;select itemsEnum="com.company.onboarding.entity.OnboardingStatus"
-        label="Onboarding status"
-        helperText="Helper text with helper-above-field"
-        themeNames="helper-above-field"/&gt;
-&lt;select itemsEnum="com.company.onboarding.entity.OnboardingStatus"
-        label="Onboarding status"
-        helperText="Helper text without helper-above-field"/&gt;</code></pre>
-</div>
-</div>
-</div>
-</details>
-<div class="paragraph" id="size">
-<p><strong>Size</strong></p>
-</div>
-<div class="paragraph">
-<p>Two size options are available: the default size and <code>small</code>.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="select size" src="../../_images/visual-components/components/select-size.png" width="395"/>
-</div>
-</div>
-<details>
-<summary class="title">XML code</summary>
-<div class="content">
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;select itemsEnum="com.company.onboarding.entity.OnboardingStatus"
-        helperText="Default size"/&gt;
-&lt;select itemsEnum="com.company.onboarding.entity.OnboardingStatus"
-        themeNames="small"
-        helperText="Small size"/&gt;</code></pre>
-</div>
-</div>
-</div>
-</details>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 66.6666%;"/>
+<col style="width: 16.6668%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variant</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Supported By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>align-left</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aligns the field value to the left side.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>align-center</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Centers the field value.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>align-right</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aligns the field value to the right side.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>align-start</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aligns the field value to the start side, taking the current text direction into account.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>align-end</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aligns the field value to the end side, taking the current text direction into account.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>helper-above-field</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Renders the helper text above the field, below the label.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>small</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Makes the component smaller.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
@@ -597,7 +587,7 @@ private ComponentRenderer&lt;Button, Department&gt; selectWithRendererRenderer()
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="noVerticalOverlap"></a>noVerticalOverlap</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>false</code>, the overlay is shown on top of the input field. When <code>true</code>, the overlay does not cover the input field. See this in <a href="https://vaadin.com/docs/latest/components/select#overlay-position" rel="noopener" target="_blank">Vaadin documentation</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>false</code>, the overlay is shown on top of the input field. When <code>true</code>, the overlay does not cover the input field. See this in <a href="https://vaadin.com/docs/v25/components/select#overlay-position" rel="noopener" target="_blank">Vaadin documentation</a>.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
 </tr>
 <tr>
@@ -607,7 +597,7 @@ private ComponentRenderer&lt;Button, Department&gt; selectWithRendererRenderer()
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="overlayWidth"></a>overlayWidth</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the overlay’s width. If omitted (default), the overlay automatically adjusts its width to match the widest option or at least the input field’s width. See this in <a href="https://vaadin.com/docs/latest/components/select#overlay-width" rel="noopener" target="_blank">Vaadin documentation</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the overlay’s width. If omitted (default), the overlay automatically adjusts its width to match the widest option or at least the input field’s width. See this in <a href="https://vaadin.com/docs/v25/components/select#overlay-width" rel="noopener" target="_blank">Vaadin documentation</a>.</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 </tbody>
@@ -679,7 +669,7 @@ private ComponentRenderer&lt;Button, Department&gt; selectWithRendererRenderer()
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>See the <a href="https://vaadin.com/docs/v24/components/select" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<p>See the <a href="https://vaadin.com/docs/v25/components/select" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
 </div>
 </div>
 </div>

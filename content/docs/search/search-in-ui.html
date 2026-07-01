@@ -182,12 +182,12 @@ public class CustomOpenSearchSearchStrategy implements OpenSearchSearchStrategy 
     }
 
     @Override
-    public void configureRequest(SearchRequest.Builder requestBuilder, SearchContext searchContext) {
+    public void configureRequest(SearchRequestContext&lt;SearchRequest.Builder&gt; searchRequestContext) {
         //configure your request
-        requestBuilder.query(queryBuilder -&gt;
+        searchRequestContext.getRequestBuilder().query(queryBuilder -&gt;
                 queryBuilder.multiMatch(multiMatchQueryBuilder -&gt;
                         multiMatchQueryBuilder.fields("*")
-                                .query(searchContext.getSearchText())
+                                .query(searchRequestContext.getSearchContext().getSearchText())
                 )
         );
     }

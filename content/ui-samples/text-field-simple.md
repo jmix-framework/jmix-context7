@@ -5,7 +5,7 @@ TextField can be used both for working with entity attributes and entering/displ
 text-field-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <textField id="textField" label="TextField"/>
         <textField id="textLengthField" label="MaxLength = 10" maxLength="10"/>
     </layout>

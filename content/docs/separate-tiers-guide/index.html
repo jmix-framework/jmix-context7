@@ -60,12 +60,12 @@
 <p><a class="xref page" href="../setup.html">Setup</a> the development environment.</p>
 </li>
 <li>
-<p>Clone the <a href="https://github.com/jmix-framework/jmix-separate-tiers-sample" rel="noopener" target="_blank">sample project</a> and switch to <code>release_2_8</code> branch:</p>
+<p>Clone the <a href="https://github.com/jmix-framework/jmix-separate-tiers-sample" rel="noopener" target="_blank">sample project</a> and switch to <code>release_3</code> branch:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">git clone https://github.com/jmix-framework/jmix-separate-tiers-sample
 cd jmix-separate-tiers-sample
-git checkout release_2_8</code></pre>
+git checkout release_3</code></pre>
 </div>
 </div>
 </li>
@@ -232,7 +232,7 @@ spring.security.oauth2.authorizationserver.client.frontend.token.refresh-token-t
 </div>
 </div>
 <div class="paragraph">
-<p>To support serialization of <code>User</code> entity to JSON for storing OAuth2 tokens in the database, the backend application defines a mixin class and uses it in the <code>JdbcOAuth2AuthorizationServiceObjectMapperCustomizer</code> bean:</p>
+<p>To support serialization of <code>User</code> entity to JSON for storing OAuth2 tokens in the database, the backend application defines a mixin class and uses it in the <code>JdbcOAuth2AuthorizationServiceJsonMapperCustomizer</code> bean:</p>
 </div>
 <div class="listingblock">
 <div class="title">backend-app/src/main/java/com/company/backend/security/OAuth2TokenUserMixin.java</div>
@@ -264,7 +264,7 @@ public class OAuth2TokenUserMixin extends DefaultOAuth2TokenUserMixin {
 <div class="title">backend-app/src/main/java/com/company/backend/BackendAppApplication.java</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
-JdbcOAuth2AuthorizationServiceObjectMapperCustomizer tokenObjectMapperCustomizer() {
+JdbcOAuth2AuthorizationServiceJsonMapperCustomizer tokenObjectMapperCustomizer() {
     return objectMapper -&gt;
             objectMapper.addMixIn(User.class, OAuth2TokenUserMixin.class);
 }</code></pre>
@@ -471,7 +471,7 @@ public interface HrManagerRole extends RestMinimalRole {
 <p><code>MyOnboardingView</code> defines the query in the JSON format of the REST API instead of JPQL:</p>
 </div>
 <div class="listingblock">
-<div class="title">frontend-app/src/main/resources/com/company/frontend/</div>
+<div class="title">frontend-app/src/main/resources/com/company/frontend/view/myonboarding/my-onboarding-view.xml</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
     &lt;collection class="com.company.frontend.entity.UserStep" id="userStepsDc"&gt;
@@ -518,7 +518,7 @@ private List&lt;UserStep&gt; userStepsDlLoadDelegate(final LoadContext&lt;UserSt
 <p>The <code>RestLoginViewSupport</code> bean in the Frontend application overrides the standard <code>LoginViewSupport</code> and creates a <code>RestAuthenticationToken</code> instead of <code>UsernamePasswordAuthenticationToken</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">frontend-app/src/main/java/com/company/frontend/view/myonboarding/MyOnboardingView.java</div>
+<div class="title">frontend-app/src/main/java/com/company/frontend/security/RestLoginViewSupport.java</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Primary
 @Component

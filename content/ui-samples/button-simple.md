@@ -5,7 +5,7 @@ A button can contain a text, an icon, or both. The icon attribute defines an ico
 button-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <button id="helloButton"
                 text="Say hello!"
                 title="Click me!"/>

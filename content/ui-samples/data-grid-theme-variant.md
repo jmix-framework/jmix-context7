@@ -1,6 +1,6 @@
 <Path>Components > DataGrid > DataGrid with ThemeVariant</Path>
 
-The DataGrid component has several theme variants: column-borders compact no-border no-row-borders row-stripes wrap-cell-content You can set these styles to the DataGrid component using the themeNames attribute either in the XML descriptor or in the view controller using constants from GridVariant class.
+The DataGrid component has several theme variants: column-borders no-border no-row-borders row-stripes wrap-cell-content You can set these styles to the DataGrid component using the themeNames attribute either in the XML descriptor or in the view controller using constants from GridVariant class.
 
 data-grid-theme-variant.xml
 
@@ -22,8 +22,8 @@ data-grid-theme-variant.xml
         <dataLoadCoordinator auto="true"/>
     </facets>
     <layout>
-        <hbox classNames="buttons-panel">
-            <checkboxGroup id="gridSettingsCheckboxGroup" label="ThemeVariants"/>
+        <hbox width="100%" wrap="true">
+            <checkboxGroup id="gridSettingsCheckboxGroup" label="ThemeVariants" themeNames="horizontal"/>
         </hbox>
         <dataGrid id="ordersDataGrid"
                   width="100%"
@@ -65,17 +65,17 @@ import java.util.Map;
 public class DataGridThemeVariantSample extends StandardView {
 
     @ViewComponent
-    protected JmixCheckboxGroup<GridVariant> gridSettingsCheckboxGroup;
+    private JmixCheckboxGroup<GridVariant> gridSettingsCheckboxGroup;
     @ViewComponent
-    protected DataGrid<Customer> ordersDataGrid;
+    private DataGrid<Customer> ordersDataGrid;
 
     @Subscribe
-    protected void onInit(InitEvent event) {
+    public void onInit(InitEvent event) {
         ComponentUtils.setItemsMap(gridSettingsCheckboxGroup, getGridThemeVariantItemsMap());
     }
 
     @Subscribe("gridSettingsCheckboxGroup")
-    protected void onGridSettingsCheckboxGroupValueChange(
+    public void onGridSettingsCheckboxGroupValueChange(
             TypedValueChangeEvent<JmixCheckboxGroup<GridVariant>, Collection<GridVariant>> event) {
         if (event.getValue() == null) {
             return;
@@ -87,15 +87,14 @@ public class DataGridThemeVariantSample extends StandardView {
         event.getValue().forEach(ordersDataGrid::addThemeVariants);
     }
 
-    protected Map<GridVariant, String> getGridThemeVariantItemsMap() {
+    private Map<GridVariant, String> getGridThemeVariantItemsMap() {
         LinkedHashMap<GridVariant, String> map = new LinkedHashMap<>();
 
-        map.put(GridVariant.LUMO_NO_BORDER, "No border");
-        map.put(GridVariant.LUMO_NO_ROW_BORDERS, "No row borders");
-        map.put(GridVariant.LUMO_COLUMN_BORDERS, "Column borders");
-        map.put(GridVariant.LUMO_ROW_STRIPES, "Row stripes");
-        map.put(GridVariant.LUMO_COMPACT, "Compact");
-        map.put(GridVariant.LUMO_WRAP_CELL_CONTENT, "Wrap cell content");
+        map.put(GridVariant.NO_BORDER, "No border");
+        map.put(GridVariant.NO_ROW_BORDERS, "No row borders");
+        map.put(GridVariant.COLUMN_BORDERS, "Column borders");
+        map.put(GridVariant.ROW_STRIPES, "Row stripes");
+        map.put(GridVariant.WRAP_CELL_CONTENT, "Wrap cell content");
         return map;
     }
 }
@@ -116,7 +115,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 

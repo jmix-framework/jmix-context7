@@ -43,18 +43,8 @@
 <div class="paragraph">
 <p>When some inspection has detected a problem in your code, you can quickly apply a fix in the editor. Place the caret at the highlighted piece of code and press <code>Alt+Enter</code>.</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="red bulb" src="_images/red-bulb.gif"/>
-</div>
-</div>
 <div class="paragraph">
 <p>Another way is to place the caret at the highlighted piece of code and click the <span class="image"><img alt="yellow-bulb" src="_images/icons/intentionBulb.svg"/></span>/<span class="image"><img alt="red-bulb" src="_images/icons/quickfixBulb.svg"/></span> icon. After that, you can view intention actions available in the current context.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="yellow light" src="_images/yellow-light.gif"/>
-</div>
 </div>
 </div>
 </div>
@@ -64,18 +54,8 @@
 <div class="paragraph">
 <p>A line marker is an icon in the gutter of an editor window. For example, line markers can provide navigation targets to related code:</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="line markers" src="_images/line-markers.gif"/>
-</div>
-</div>
 <div class="paragraph">
 <p>Using line marker, you can edit the fetch plan in the XML descriptor:</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="line markers fetch plan" src="_images/line-markers-fetch-plan.gif"/>
-</div>
 </div>
 </div>
 </div>
@@ -85,11 +65,6 @@
 <div class="paragraph">
 <p>For example, you can navigate to the injected component or the localized message in the message bundle. Hold <code>Ctrl</code> and left-click the component id or a message key.</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="references" src="_images/references.gif"/>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -97,11 +72,6 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>You can make changes easily and safely. In the example below, we will change the name of the button.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="refactorings" src="_images/refactorings.gif"/>
-</div>
 </div>
 <div class="paragraph">
 <p>Using refactorings, you can rename or remove enumerations and entity classes, components, and views.</p>
@@ -134,6 +104,9 @@
 <p>Detect incorrect using of <code>LAZY</code> fetch type for datatype fields , and <code>@OneToOne</code>, <code>@OneToMany</code>, <code>@ManyToMany</code> and <code>@ManyToOne</code> with the <code>EAGER</code> fetch type.</p>
 </li>
 <li>
+<p>Detect collection field initializers in <code>@OneToMany</code> and <code>@ManyToMany</code> attributes that can cause performance issues. Studio suggests replacing regular collection initializers with <code>NotInstantiatedList</code> or <code>NotInstantiatedSet</code>.</p>
+</li>
+<li>
 <p>Check for the presence of the JPA annotations for every entity field.</p>
 </li>
 <li>
@@ -150,6 +123,12 @@
 </li>
 <li>
 <p>Check for the presence of a primary key attribute of the entity.</p>
+</li>
+<li>
+<p>Detect entities with the UUID trait that do not use <code>@JmixGeneratedValue</code> for their identifier. Studio warns about a possible constant <code>hashCode()</code> problem.</p>
+</li>
+<li>
+<p>Detect <code>@Lob</code> entity attributes annotated with <code>@Basic(fetch = FetchType.LAZY)</code>. In Jmix, lazy loading is not applied to basic attributes and such fields are forced to <code>EAGER</code>; Studio suggests removing the annotation and excluding the LOB attribute from fetch plans where it is not needed.</p>
 </li>
 </ul>
 </div>
@@ -218,6 +197,9 @@ They should reference the existing data container in the current view or in one 
 </li>
 <li>
 <p>Check the <code>hierarchyProperty</code> attribute. This attribute should be of the same type as an entity in the data container.</p>
+</li>
+<li>
+<p>Detect list views where a collection container uses the <code>_base</code> fetch plan while the view uses only a small subset of loaded local attributes. Studio suggests defining an explicit fetch plan to reduce unnecessary database load.</p>
 </li>
 </ul>
 </div>
@@ -304,10 +286,19 @@ Reports if the injected field does not have a generic type, like <code>DataGrid<
 </div>
 </li>
 <li>
+<p>Detect <code>DataManager</code> and data repository load calls inside grid column renderers in Java and Kotlin view controllers. Such calls can cause performance issues because renderers are executed repeatedly for grid rows.</p>
+</li>
+<li>
+<p>Detect grids with more than three <code>ComponentRenderer</code> columns. Too many component renderers can affect grid performance because each rendered cell creates server-side components.</p>
+</li>
+<li>
 <p>Highlight suspicious assignments to fields that are assumed to be injected by the container.</p>
 </li>
 <li>
 <p>Check that GUI components are created by using <code>ComponentsFactory.createComponent()</code>.</p>
+</li>
+<li>
+<p>Detect <code>DataManager.save()</code> calls whose result is not assigned or otherwise used. Studio suggests using <code>DataManager.saveWithoutReload()</code> to avoid unnecessary entity reloading.</p>
 </li>
 </ul>
 </div>
@@ -388,6 +379,9 @@ Reports if the injected field does not have a generic type, like <code>DataGrid<
 </li>
 <li>
 <p>Check entity attribute policy in resource roles.</p>
+</li>
+<li>
+<p>Detect <code>DataManager.load()</code> calls inside row-level predicates. Such calls can cause performance issues because predicates can be evaluated many times while checking access to entity instances.</p>
 </li>
 </ul>
 </div>

@@ -16,17 +16,17 @@ will be displayed.
 card-header.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout>
+    <layout classNames="card-header">
         <card id="card" width="30em"
               themeNames="cover-media elevated outlined">
             <headerPrefix>
                 <avatar image="icons/jmix-icon.png"/>
             </headerPrefix>
             <header>
-                <div classNames="flex flex-col-reverse leading-xs">
+                <flexLayout flexDirection="COLUMN_REVERSE" classNames="header">
                     <h2 text="Jmix"/>
-                    <div text="Modern Dev platform" classNames="uppercase text-xs text-secondary"/>
-                </div>
+                    <div text="Modern Dev platform" classNames="subtitle"/>
+                </flexLayout>
             </header>
             <headerSuffix>
                 <span text="Fullstack" themeNames="badge success"/>
@@ -49,6 +49,22 @@ import io.jmix.flowui.view.ViewDescriptor;
 @ViewController("card-header")
 @ViewDescriptor("card-header.xml")
 public class CardHeaderSample extends StandardView {
+}
+
+
+
+
+card-header.css
+
+
+.card-header .header {
+    line-height: var(--aura-line-height-xs);
+}
+
+.card-header .subtitle {
+    text-transform: uppercase;
+    color: var(--vaadin-text-color-secondary);
+    font-size: var(--aura-font-size-xs);
 }
 
 

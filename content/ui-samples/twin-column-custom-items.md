@@ -5,7 +5,7 @@ The list of TwinColumn items can be specified using the following methods: setIt
 twin-column-custom-items.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
-    <layout classNames="flex-row flex-wrap">
+    <layout classNames="horizontal-layout">
         <twinColumn id="twinColumnWithList"
                     label="Items List"/>
         <twinColumn id="twinColumnWithMap"
@@ -71,7 +71,7 @@ CustomerGrade.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum CustomerGrade implements EnumClass<Integer> {
 

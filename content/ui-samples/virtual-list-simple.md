@@ -19,7 +19,7 @@ virtual-list-simple.xml
     <facets>
         <dataLoadCoordinator auto="true"/>
     </facets>
-    <layout alignItems="CENTER">
+    <layout alignItems="CENTER" classNames="virtual-list-simple">
         <virtualList id="virtualList" width="30em"
                      itemsContainer="customersDc"
                      alignSelf="CENTER"/>
@@ -37,12 +37,12 @@ import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.dom.ThemeList;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.jmix.core.MetadataTools;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.details.JmixDetails;
@@ -52,8 +52,8 @@ import io.jmix.flowui.view.ViewController;
 import io.jmix.flowui.view.ViewDescriptor;
 import io.jmix.uisamples.entity.Customer;
 import io.jmix.uisamples.entity.CustomerGrade;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.Nullable;
 
 @ViewController("virtual-list-simple")
 @ViewDescriptor("virtual-list-simple.xml")
@@ -68,14 +68,14 @@ public class VirtualListSimpleSample extends StandardView {
     protected Renderer<Customer> virtualListRenderer() {
         return new ComponentRenderer<>(customer -> {
             VerticalLayout infoLayout = createVerticalLayout();
-            infoLayout.addClassNames(LumoUtility.Padding.Vertical.SMALL, LumoUtility.Gap.SMALL);
+            infoLayout.addClassNames("info-layout");
 
             H4 customerName = new H4(customer.getInstanceName());
             Span gradeSpan = createGradeSpan(customer.getGrade());
             infoLayout.add(customerName, gradeSpan);
 
             HorizontalLayout infoLine = createHorizontalLayout();
-            infoLine.addClassName(LumoUtility.AlignItems.CENTER);
+            infoLine.setAlignItems(FlexComponent.Alignment.CENTER);
 
             H5 emailLabel = new H5("Email:");
             Span email = new Span(customer.getEmail());
@@ -146,7 +146,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -259,7 +259,7 @@ CustomerGrade.java
 package io.jmix.uisamples.entity;
 
 import io.jmix.core.metamodel.datatype.EnumClass;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum CustomerGrade implements EnumClass<Integer> {
 
@@ -286,6 +286,18 @@ public enum CustomerGrade implements EnumClass<Integer> {
         }
         return null;
     }
+}
+
+
+
+
+virtual-list-simple.css
+
+
+.virtual-list-simple .info-layout {
+    padding-bottom: var(--vaadin-padding-s);
+    padding-top: var(--vaadin-padding-s);
+    gap: var(--vaadin-gap-s);
 }
 
 

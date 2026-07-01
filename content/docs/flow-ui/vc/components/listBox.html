@@ -182,10 +182,15 @@ private ComponentRenderer&lt;HorizontalLayout, User&gt; listBoxRenderer() {
             image.setWidth("30px");
             image.setHeight("30px");
             image.setClassName("user-picture");
-            StreamResource streamResource = new StreamResource(
-                    fileRef.getFileName(),
-                    () -&gt; fileStorage.openStream(fileRef));
-            image.setSrc(streamResource);
+            InputStreamDownloadHandler handler =
+                    DownloadHandler.fromInputStream(event -&gt;
+                            new DownloadResponse(
+                                    fileStorage.openStream(fileRef),
+                                    fileRef.getFileName(),
+                                    fileRef.getContentType(),
+                                    -1
+                            ));
+            image.setSrc(handler);
             row.add(image);
         }
         row.add(new Span(user.getFirstName() + ", " + user.getLastName()));
@@ -203,7 +208,7 @@ private ComponentRenderer&lt;HorizontalLayout, User&gt; listBoxRenderer() {
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>See the <a href="https://vaadin.com/docs/v24/components/list-box" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<p>See the <a href="https://vaadin.com/docs/v25/components/list-box" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
 </div>
 </div>
 </div>

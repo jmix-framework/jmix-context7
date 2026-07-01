@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Interface :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">User Interface</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>jmix-aitools-flowui-starter</code> provides a complete chat UI with ready-to-use views, reusable fragments that you can embed into your own views, and the supporting services. Access to the UI is governed by the <a href="#roles">chat user role</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="views"><a class="anchor" href="#views"></a>Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on registers two views out of the box.</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">View</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AiChatHubView</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The chat hub: a landing view with the message composer, the user’s recent conversations, and a searchable, date-grouped history. It is added to the main menu automatically.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AiChatView</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A single conversation view. It is opened from the hub for a selected conversation, or without one to start a new chat.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Because the add-on contributes a menu item for <code>AiChatHubView</code>, users with the chat role get an entry point without any additional configuration. The menu item is added through the <a class="xref page" href="../flow-ui/menu-config.html">composite menu</a> mechanism.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fragments"><a class="anchor" href="#fragments"></a>Fragments</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When the built-in views do not fit your layout, you can embed the chat UI into your own views by using fragments. Add a fragment to a view descriptor with the <code>&lt;fragment&gt;</code> element and reference its class.</p>
+</div>
+<div class="sect2">
+<h3 id="ai-chat-hub-fragment"><a class="anchor" href="#ai-chat-hub-fragment"></a>AiChatHubFragment</h3>
+<div class="paragraph">
+<p><code>io.jmix.aitoolsflowui.view.chathub.AiChatHubFragment</code> is the self-contained chat hub used by <code>AiChatHubView</code>. Add it to any view to get the composer, recent chats, and history in one component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment id="chatHubFragment"
+          class="io.jmix.aitoolsflowui.view.chathub.AiChatHubFragment"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Its public API:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>setRecentChatsCount(int)</code> – overrides how many recent chats are shown next to the composer. When unset, the value comes from the <a class="xref page" href="properties.html#jmix.aitools.ui.chat-hub-recent-chats-count"><code>jmix.aitools.ui.chat-hub-recent-chats-count</code></a> application property.</p>
+</li>
+<li>
+<p><code>setMarkIconSupplier(SerializableSupplier&lt;Component&gt;)</code> – replaces the brand mark icon shown on the hub and on conversation cards.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ai-chat-fragment"><a class="anchor" href="#ai-chat-fragment"></a>AiChatFragment</h3>
+<div class="paragraph">
+<p><code>io.jmix.aitoolsflowui.view.chat.AiChatFragment</code> is the conversation panel used by <code>AiChatView</code>. It contains a title row, the message timeline, and the composer, all bound to one conversation. Embed it and bind a conversation programmatically:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment id="chatFragment"
+          class="io.jmix.aitoolsflowui.view.chat.AiChatFragment"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private AiChatFragment chatFragment;
+
+@Autowired
+private AiConversationService conversationService;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    AiConversation conversation = conversationService.create();
+    chatFragment.setConversation(conversation);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Key methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>setConversation(AiConversation)</code> / <code>setConversationId(UUID)</code> – binds the panel to a conversation.</p>
+</li>
+<li>
+<p><code>sendMessage(String)</code> – submits a user message programmatically.</p>
+</li>
+<li>
+<p><code>setReadOnly(boolean)</code> – hides the composer and the title edit button.</p>
+</li>
+<li>
+<p><code>setMessageInputEnabled(boolean)</code> / <code>focusMessageInput()</code> – controls the composer.</p>
+</li>
+<li>
+<p><code>isAwaitingResponse()</code> – indicates whether a reply is currently being generated.</p>
+</li>
+<li>
+<p><code>setAiAvatarIconSupplier(SerializableSupplier&lt;Component&gt;)</code> – customizes the assistant avatar.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ai-chat-input-fragment"><a class="anchor" href="#ai-chat-input-fragment"></a>AiChatInputFragment</h3>
+<div class="paragraph">
+<p><code>io.jmix.aitoolsflowui.view.input.AiChatInputFragment</code> is the reusable message composer: a text area plus a send button. Press Enter to submit the message. Press Shift+Enter to insert a newline. It is used inside the two fragments above, and you can also embed it on its own when you build a custom chat layout. Configure it with <code>setSubmitHandler(Consumer&lt;String&gt;)</code>, <code>setPlaceholder(String)</code>, <code>setInputEnabled(boolean)</code>, <code>focus()</code>, and <code>clear()</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="services"><a class="anchor" href="#services"></a>Services</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The UI is backed by three services. They operate on the UI models <code>AiConversation</code> and <code>AiChatMessage</code> and are implicitly scoped to the current user.</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AiChatService</code></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Generates the assistant’s reply to a user message.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>processMessage(message)</code> – returns the reply.</p>
+</li>
+<li>
+<p><code>processMessage(message, statusCallback)</code> – same as above, but reports progress through a <code>Consumer&lt;AiToolStatusUpdate&gt;</code>.</p>
+</li>
+<li>
+<p><code>isAvailable()</code> – whether replies can be produced, that is, whether a model is configured.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AiConversationService</code></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Manages the current user’s conversations.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>loadConversations()</code> – loads the user’s conversations, newest first.</p>
+</li>
+<li>
+<p><code>loadConversation(id)</code> – loads one conversation by ID.</p>
+</li>
+<li>
+<p><code>create()</code> – creates a new conversation.</p>
+</li>
+<li>
+<p><code>save(conversation)</code> – persists a conversation.</p>
+</li>
+<li>
+<p><code>remove(conversation)</code> – deletes a conversation and its messages.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AiChatMessageService</code></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Manages the messages of a conversation.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>createMessage(…​)</code> – adds a message of a given type.</p>
+</li>
+<li>
+<p><code>loadMessages(conversation)</code> – loads all messages, oldest first.</p>
+</li>
+<li>
+<p><code>loadLatestMessage(…​)</code> – loads the most recent message, optionally by type.</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="persistence"><a class="anchor" href="#persistence"></a>Persistence and Empty Implementations</h3>
+<div class="paragraph">
+<p>Where these services store data depends on which starter is present:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>With <code>jmix-aitools-flowui-data-starter</code>, the services are backed by JPA entities, and conversations and messages are persisted in the database.</p>
+</li>
+<li>
+<p>With only <code>jmix-aitools-flowui-starter</code>, the services are no-op stubs. <code>AiChatService.isAvailable()</code> returns <code>false</code>, nothing is persisted, and the chat is effectively disabled. This lets the UI render before persistence is in place.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To use the chat with non-default storage, provide your own beans that implement <code>AiChatService</code>, <code>AiConversationService</code>, and <code>AiChatMessageService</code> instead of adding the data starter.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="icon-provider"><a class="anchor" href="#icon-provider"></a>Icon Provider</h3>
+<div class="paragraph">
+<p>The brand icon shown on the hub and the assistant avatar is supplied by the <code>AiIconProvider</code> bean. Replace this bean to change the add-on’s iconography globally, or override it per fragment with the icon supplier setters shown above.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="roles"><a class="anchor" href="#roles"></a>Security Role</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on provides one predefined <a class="xref page" href="../security/resource-roles.html">resource role</a>.</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AI Tools: chat user</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Code</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aitools-chat-user</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Scope</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UI</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>It grants an end user access to the chat: the chat hub and the conversation view, plus management of their own conversations and messages, including starting, continuing, renaming, and deleting chats. Specifically, the role grants:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>view access to <code>AiChatHubView</code> and <code>AiChatView</code>, and to the menu item for the chat hub</p>
+</li>
+<li>
+<p>full access to the user’s own conversations, and create/read access to their messages</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Assign this role to every user who should be able to use the assistant. See <a class="xref page" href="../security/users.html">Users</a> for how to assign roles to users.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The role grants access only to the chat UI. It does not widen data access. When the assistant loads business data through the predefined <a class="xref page" href="tools.html#data-loading">data-load tools</a>, the queries run under the current user’s own <a class="xref page" href="../security/index.html">data access</a> permissions, so the role does not let a user read anything they could not otherwise read. Any custom tools you add are responsible for their own access control.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

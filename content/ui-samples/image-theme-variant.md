@@ -7,7 +7,7 @@ image-theme-variant.xml
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout>
         <select id="themeSelect" label="ThemeName"/>
-        <vbox classNames="items-center justify-center bordered-panel"
+        <vbox alignItems="CENTER" justifyContent="CENTER" classNames="bordered-panel"
               height="15em" width="20em">
             <image id="image" resource="icons/jmix-icon.png" height="10em" width="15em"
                    themeNames="contain"/>
