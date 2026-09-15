@@ -252,7 +252,7 @@
 <div class="ulist">
 <ul>
 <li>
-<p>The <strong>AI Agents Toolkit</strong> action available in the <strong>Settings</strong> menu of the <strong>Jmix</strong> tool window allows you to automatically install agent skills, instructions, and MCP servers from the <a href="https://github.com/jmix-framework/jmix-agent-guidelines" rel="noopener" target="_blank">Jmix AI Agent Guidelines</a> GitHub repository into the current project. It supports the following agents: Claude Code CLI, Codex, OpenCode, Junie.</p>
+<p>The <strong>AI Agents Toolkit</strong> action available in the <strong>Settings</strong> menu of the <strong>Jmix</strong> tool window allows you to automatically install agent skills, instructions, and MCP servers from the <a href="https://github.com/jmix-framework/jmix-agent-toolkit" rel="noopener" target="_blank">Jmix Agent Toolkit</a> GitHub repository into the current project. It supports the following agents: Claude Code CLI, Codex, OpenCode, Junie.</p>
 </li>
 <li>
 <p><strong>Do not generate Liquibase drop changesets for unmapped tables</strong> option has been added to the <strong>Data Store Properties</strong> dialog.</p>
@@ -264,7 +264,7 @@
 <p>Studio now helps you create <a class="xref page" href="../data-access/custom-update-services.html">custom update services</a> and use them in views. When you create a JPA entity, select the <strong>Create Update Service</strong> checkbox in the <strong>New JPA Entity</strong> dialog to generate a service class. Later, when you create a view for an entity that has an update service, select the <strong>Use Update Service</strong> checkbox in the <strong>Create Jmix View</strong> dialog to delegate saving and removing to that service automatically.</p>
 </li>
 <li>
-<p>If the <a class="xref page" href="../multitenancy/index.html">Multitenancy</a> add-on is included in the project, the new <strong>Has Tenant ID</strong> trait allows you to add a <code>@TenantId</code> attribute to an entity.</p>
+<p>If the <a class="xref page" href="../multitenancy/index.html">Multitenancy</a> add-on is included in the project, the new <a class="xref page" href="../data-model/entities.html#tenant-id-trait">Has Tenant ID</a> trait allows you to add a <code>@TenantId</code> attribute to an entity.</p>
 </li>
 <li>
 <p><a class="xref page" href="../search/index-definitions.html#creating-index-definition">Search</a> index definitions and <a class="xref page" href="../quartz/index.html">Quartz</a> jobs are displayed in the <strong>Jmix</strong> tool window and can be quickly created from templates.</p>
@@ -361,7 +361,7 @@
 <div class="sect2">
 <h3 id="per-grid-sorting-customization"><a class="anchor" href="#per-grid-sorting-customization"></a>Per-Grid Sorting Customization</h3>
 <div class="paragraph">
-<p>In addition to application-wide sorting customization, developers can now customize sorting for a specific <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a> or <a class="xref page" href="../groupdatagrid/groupdatagrid-component.html">groupDataGrid</a>. These components can use a <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#column-comparator">Column Comparator</a> for in-memory sorting and a <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#sort-builder-delegate">Sort Builder Delegate</a> to map a column to custom comparators and database sort expressions.</p>
+<p>In addition to application-wide sorting customization, developers can now customize sorting for a specific <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a> or <a class="xref page" href="../flow-ui/vc/components/groupDataGrid.html">groupDataGrid</a>. These components can use a <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#column-comparator">Column Comparator</a> for in-memory sorting and a <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#sort-builder-delegate">Sort Builder Delegate</a> to map a column to custom comparators and database sort expressions.</p>
 </div>
 <div class="paragraph">
 <p>This approach keeps sorting rules close to the grid configuration. It is useful when sorting requirements are specific to a single view.</p>
@@ -718,6 +718,28 @@ action.addActionPerformedListener(this::onAction);</code></pre>
 </div>
 </div>
 <div class="sect2">
+<h3 id="search-api"><a class="anchor" href="#search-api"></a>Search API</h3>
+<div class="paragraph">
+<p>The search strategy API and helper classes deprecated in 2.7 have been removed:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>configureRequest(SearchRequest.Builder, SearchContext)</code> method of <code>ElasticsearchSearchStrategy</code> / <code>OpenSearchSearchStrategy</code>. Implement <code>configureRequest(SearchRequestContext)</code> instead and build the query through the platform-specific <code>ElasticSearchQueryConfigurer</code> / <code>OpenSearchQueryConfigurer</code>.</p>
+</li>
+<li>
+<p>The <code>SearchUtils</code> class. Use <code>SearchRequestScopeProvider</code>, <code>SearchFieldsProvider</code>, and <code>SearchSecurityDecorator</code> instead.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you implemented a custom search strategy, migrate it to the new API: see <a class="xref page" href="../search/search-in-ui.html#custom-search-strategies">Custom Search Strategies</a>.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="https://github.com/jmix-framework/jmix/issues/4866" rel="noopener" target="_blank">#4866</a> for more information.</p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="openapi-client-generator-configuration"><a class="anchor" href="#openapi-client-generator-configuration"></a>OpenAPI Client Generator Configuration</h3>
 <div class="paragraph">
 <p>If you use <a class="xref page" href="../studio/openapi-client.html">OpenAPI Client Generation</a>, update the configuration in <code>build.gradle</code> as follows:</p>
@@ -783,6 +805,12 @@ tasks.register('openApiGeneratePetclinic', GenerateTask) {
 <div class="ulist">
 <ul>
 <li>
+<p><a href="https://github.com/jmix-framework/jmix/issues?q=is%3Aclosed+milestone%3A3.0.2" rel="noopener" target="_blank">3.0.2</a></p>
+</li>
+<li>
+<p><a href="https://github.com/jmix-framework/jmix/issues?q=is%3Aclosed+milestone%3A3.0.1" rel="noopener" target="_blank">3.0.1</a></p>
+</li>
+<li>
 <p><a href="https://github.com/jmix-framework/jmix/issues?q=is%3Aclosed+milestone%3A3.0.0" rel="noopener" target="_blank">3.0.0</a></p>
 </li>
 </ul>
@@ -792,6 +820,15 @@ tasks.register('openApiGeneratePetclinic', GenerateTask) {
 <p>Resolved issues in Jmix Studio:</p>
 <div class="ulist">
 <ul>
+<li>
+<p><a href="https://youtrack.jmix.io/issues/JST?q=Fixed%20in%20builds:%203.0.3" rel="noopener" target="_blank">3.0.3</a></p>
+</li>
+<li>
+<p><a href="https://youtrack.jmix.io/issues/JST?q=Fixed%20in%20builds:%203.0.2" rel="noopener" target="_blank">3.0.2</a></p>
+</li>
+<li>
+<p><a href="https://youtrack.jmix.io/issues/JST?q=Fixed%20in%20builds:%203.0.1" rel="noopener" target="_blank">3.0.1</a></p>
+</li>
 <li>
 <p><a href="https://youtrack.jmix.io/issues/JST?q=Fixed%20in%20builds:%203.0.0,-2.8.*%20Affected%20versions:%20-SNAPSHOT" rel="noopener" target="_blank">3.0.0</a></p>
 </li>

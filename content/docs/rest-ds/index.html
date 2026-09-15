@@ -359,6 +359,12 @@ public class Customer {
 <div class="paragraph">
 <p>The <code>EntityStates.isLoaded(entity, property)</code> method correctly returns information about whether a particular attribute of a REST entity is loaded.</p>
 </div>
+<div class="paragraph">
+<p>The rules above apply to saving entities through <code>DataManager</code>. The REST data store sends all loaded attributes, including those with null values, and the service application updates only the received attributes of the existing entity. The attributes that were not sent keep their values in the database.</p>
+</div>
+<div class="paragraph">
+<p>Passing an entity to a <code>@RemoteService</code> method works differently: attributes with null values are not sent at all, and the service receives a detached instance in the new state. See the <a href="#passing-entities-to-services">Passing Entities to Services</a> section for details.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -644,7 +650,7 @@ private void processCustomers(String name) {
 <p>Simple type: primitive (<code>int</code>, <code>double</code>, etc.), wrapper (<code>Integer</code>, <code>Double</code>, etc.), <code>String</code>.</p>
 </li>
 <li>
-<p><a class="xref page" href="../data-model/entities.html">Entity</a></p>
+<p><a class="xref page" href="../data-model/entities.html">Entity</a> - see <a href="#passing-entities-to-services">below</a> for important restrictions.</p>
 </li>
 <li>
 <p><a class="xref page" href="../data-model/enumerations.html">Enumeration</a></p>
@@ -659,6 +665,78 @@ private void processCustomers(String name) {
 <p><code>java.util.List</code> parameterized with all above types.</p>
 </li>
 </ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="passing-entities-to-services"><a class="anchor" href="#passing-entities-to-services"></a>Passing Entities to Services</h3>
+<div class="paragraph">
+<p>An entity received by a service method is not the same as an entity loaded from the database. When the client application invokes a remote service with an entity parameter, the following happens:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The client sends only non-null attributes that are <a href="#loaded-state">loaded</a> in the client entity. Attributes that are absent in the client entity or were not loaded by the fetch plan are not sent. So the service cannot distinguish between an attribute that was not loaded and an attribute that the user has cleared.</p>
+</li>
+<li>
+<p>The service application creates a new entity instance and fills it with the received attributes. <code>EntityStates.isNew()</code> returns <code>true</code> for this instance even if an entity with the same identifier exists in the database. <code>EntityStates.isLoaded()</code> returns <code>true</code> for all attributes of such an instance, so it cannot be used to find out which attributes were actually sent.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Therefore, a service method should use an entity parameter only for reading, for example to obtain its identifier or to perform a calculation. Do not save such an entity.</p>
+</div>
+<div class="paragraph">
+<p>For example, the following method looks natural but doesn’t work as expected:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestMethod
+public void updateCustomer(Customer customer) {
+    // Wrong: DataManager will try to insert a new record
+    // instead of updating the existing one
+    dataManager.save(customer);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Instead, define the method so that it accepts the identifier of the entity and the values that should be changed:</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerService.java in the service application</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestMethod
+public void updateCustomerName(UUID customerId, String name) {
+    Customer customer = dataManager.load(Customer.class).id(customerId).one();
+    customer.setName(name);
+    dataManager.save(customer);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The corresponding method of the client interface:</p>
+</div>
+<div class="listingblock">
+<div class="title">CustomerService.java in the client application</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">void updateCustomerName(UUID customerId, String name);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If a method needs many values, use a Java record or a POJO as a parameter type instead of an entity.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To save changes made by users in the client application UI, use <code>DataManager</code>. It sends all loaded attributes including their null values, and the service application updates only the received attributes of the existing entity. See the <a href="#loaded-state">Loaded State</a> section for details.</p>
 </div>
 </td>
 </tr>

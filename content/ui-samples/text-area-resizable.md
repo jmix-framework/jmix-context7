@@ -43,7 +43,6 @@ public class TextAreaResizableSample extends StandardView {
 
 text-area-resizable.css
 
-
 .resizable-both {
     resize: both;
     overflow: auto;

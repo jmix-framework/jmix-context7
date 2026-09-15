@@ -10,51 +10,56 @@
 <h1 class="page">loginForm</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/custom-login" target="_blank">LIVE DEMO</a>
-</div>
 <div class="paragraph">
-<p>A form for entering authentication credentials.</p>
+<p>The <code>loginForm</code> component collects credentials and related authentication options.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML element: <code>loginForm</code></p>
-</li>
-<li>
-<p>Java class: <code>JmixLoginForm</code></p>
-</li>
-</ul>
-</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>loginForm</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JmixLoginForm</code></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-none fit-content">
+<colgroup>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="imageblock text-center">
+<div class="content">
+<img alt="Login form" src="../../_images/visual-components/components/login-form.png" width="320"/>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Basic <code>loginForm</code> includes username and password fields and a button that the user clicks to attempt logging in. The form can also include optional elements such as a locales combobox, <strong>Remember me</strong> checkbox and <strong>Forgot password</strong> button.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="login form" src="../../_images/visual-components/components/login-form.png" width="320"/>
-</div>
+<p>A basic <code>loginForm</code> contains username and password fields and a login button. It can also show a locale selector, a <strong>Remember me</strong> checkbox, and a <strong>Forgot password</strong> button.</p>
 </div>
 <div class="sect2">
 <h3 id="labels-messages"><a class="anchor" href="#labels-messages"></a>Labels and Messages</h3>
 <div class="paragraph">
-<p>Include the <code>form</code> element to specify the form’s title, input field labels, and button text.</p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-Values in the form can be strings of text or keys in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>.
-</td>
-</tr>
-</table>
+<p>Use the nested <code>form</code> element to set the form title, field labels, and button text. Its values can be literal text or <a class="xref page" href="../../../localization/message-bundles.html">message-bundle</a> keys. The example also defines <code>errorMessage</code> content for failed authentication and <code>additionalInformation</code> content below the form:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -71,14 +76,11 @@ Values in the form can be strings of text or keys in the <a class="xref page" hr
 &lt;/loginForm&gt;</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>The example above also adds an optional <code>errorMessage</code> element to display a message when login fails and an <code>additionalInformation</code> element to provide relevant details about the login process.</p>
-</div>
 </div>
 <div class="sect2">
-<h3 id="_optional_elements"><a class="anchor" href="#_optional_elements"></a>Optional Elements</h3>
+<h3 id="_optional_controls"><a class="anchor" href="#_optional_controls"></a>Optional Controls</h3>
 <div class="paragraph">
-<p>Show or hide optional elements such as a locales combobox, <strong>Remember me</strong> checkbox and <strong>Forgot password</strong> button by using the appropriate attributes:</p>
+<p>The visibility attributes let you show or hide the locale selector, <strong>Remember me</strong> checkbox, and <strong>Forgot password</strong> button without changing the nested form content:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -91,18 +93,12 @@ Values in the form can be strings of text or keys in the <a class="xref page" hr
 </div>
 </div>
 <div class="sect2">
-<h3 id="remember-me"><a class="anchor" href="#remember-me"></a>Remember Me Functionality</h3>
+<h3 id="remember-me"><a class="anchor" href="#remember-me"></a>Remember Me</h3>
 <div class="paragraph">
-<p>The <strong>Remember me</strong> checkbox allows the user to maintain their login state for a long period of time, longer than the lifespan of an HTTP session. This state remains even after the server restarts.</p>
+<p>The <strong>Remember me</strong> option stores a persistent browser token so that an authenticated session can survive beyond the HTTP session and application restart. Read the selected state from <code>LoginEvent</code> when authenticating, and use <a href="#RememberMeChangedEvent">RememberMeChangedEvent</a> when other UI behavior must react immediately to checkbox changes.</p>
 </div>
 <div class="paragraph">
-<p>When the user selects the <strong>Remember me</strong> checkbox during login, the system stores a persistent token in a browser cookie. On subsequent visits, the user is automatically authenticated without entering credentials again.</p>
-</div>
-<div class="paragraph">
-<p>To handle the <code>Remember me</code> state in your login logic, use the <a href="#RememberMeChangedEvent">RememberMeChangedEvent</a>.</p>
-</div>
-<div class="paragraph">
-<p>See <a href="https://docs.spring.io/spring-security/reference/servlet/authentication/rememberme.html" rel="noopener" target="_blank">Spring Security Remember-Me documentation</a> for more information.</p>
+<p>See <a href="https://docs.spring.io/spring-security/reference/servlet/authentication/rememberme.html" rel="noopener" target="_blank">Spring Security Remember-Me documentation</a> for details about the underlying authentication mechanism.</p>
 </div>
 </div>
 </div>
@@ -111,7 +107,7 @@ Values in the form can be strings of text or keys in the <a class="xref page" hr
 <h2 id="authentication"><a class="anchor" href="#authentication"></a>Authentication</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The standard login view will include the necessary logic for authenticating the user with the application:</p>
+<p>The standard login view subscribes to <code>LoginEvent</code>, applies the selected locale, and passes the entered credentials and remember-me state to <code>AuthenticationManager</code>. It reports authentication failures through the form’s error state:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -137,25 +133,25 @@ public void onLogin(final LoginEvent event) {
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Inject the <code>loginForm</code> to access it by id in the controller class.</td>
+<td>Injects the form so the controller can update its state.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Applies the selected locale for the application.</td>
+<td>Applies the locale selected in the form.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Checks whether to remember the user between sessions based on the checkbox value.</td>
+<td>Passes the checkbox value to the authentication token.</td>
 </tr>
 </table>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exceptions_handling"><a class="anchor" href="#_exceptions_handling"></a>Exceptions Handling</h2>
+<h2 id="_authentication_error_handling"><a class="anchor" href="#_authentication_error_handling"></a>Authentication Error Handling</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To help users identify login issues, extend the default logic to include informative messages for each exception type:</p>
+<p>Extend the login handler when users need a more specific explanation than a general authentication failure. This example detects a locked account, displays an appropriate message, and records the failed attempt:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -187,66 +183,66 @@ public void onLogin(final AbstractLogin.LoginEvent event) {
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Displays the error message for a login failure based on the exception, specifically a <code>LockedException</code>, which indicates that the account is temporarily locked.</td>
+<td>Chooses the error message for a <code>LockedException</code>.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Logs a warning message indicating that a login attempt failed for a specific user.</td>
+<td>Logs the failed login attempt.</td>
 </tr>
 </table>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="locale"><a class="anchor" href="#locale"></a>Locale</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The login form can include a combobox that allows the user to select their preferred locale. To make the preferred option available, you need to <a class="xref page" href="../../../localization/message-bundles.html#setting-locales">set up the locale</a> in your application. Once an additional locale is set up, it will appear in the list.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="login form locales" src="../../_images/visual-components/components/login-form-locales.png" width="480"/>
-</div>
-</div>
-<div class="paragraph">
-<p>Whenever the user selects a new locale from the list, the <a href="#LocaleChangedEvent">LocaleChangedEvent</a> is fired. By creating a handler for this event, you can ensure that the login form messages will update immediately without requiring a page reload. This is how it is done on the standard login view:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
-public void localeChange(final LocaleChangeEvent event) {
-    UI.getCurrent().getPage().setTitle(messageBundle.getMessage("LoginView.title"));
-
-    final JmixLoginI18n loginI18n = JmixLoginI18n.createDefault();
-
-    final JmixLoginI18n.JmixForm form = new JmixLoginI18n.JmixForm();
-    form.setTitle(messageBundle.getMessage("loginForm.headerTitle"));
-    form.setUsername(messageBundle.getMessage("loginForm.username"));
-    form.setPassword(messageBundle.getMessage("loginForm.password"));
-    form.setSubmit(messageBundle.getMessage("loginForm.submit"));
-    form.setForgotPassword(messageBundle.getMessage("loginForm.forgotPassword"));
-    form.setRememberMe(messageBundle.getMessage("loginForm.rememberMe"));
-    loginI18n.setForm(form);
-
-    final LoginI18n.ErrorMessage errorMessage = new LoginI18n.ErrorMessage();
-    errorMessage.setTitle(messageBundle.getMessage("loginForm.errorTitle"));
-    errorMessage.setMessage(messageBundle.getMessage("loginForm.badCredentials"));
-    loginI18n.setErrorMessage(errorMessage);
-
-    login.setI18n(loginI18n);
-}</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_styling_the_login_view"><a class="anchor" href="#_styling_the_login_view"></a>Styling the Login View</h2>
+<h2 id="_styled_login_view"><a class="anchor" href="#_styled_login_view"></a>Styled Login View</h2>
 <div class="sectionbody">
 <div class="jmix-ui-live-demo-container">
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/custom-login" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>You can use CSS styles to enhance the appearance and layout of the login view in your application. One way to improve the view is by adding a background image. This image will visually confirm to the user that they are logging into the right app.</p>
+<p>The sample combines the form descriptor with component-scoped CSS. XML provides the login content and CSS controls the surrounding layout, background image, and form positioning:</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;div classNames="custom-login"&gt;
+    &lt;loginForm id="login"
+               rememberMeVisible="false"
+               forgotPasswordButtonVisible="false"
+               localesVisible="false"&gt;
+        &lt;form title="Custom Login Sample"
+              username="Username"
+              password="Password"
+              rememberMe="Remember me"
+              submit="Log in"
+              forgotPassword="Forgot password"/&gt;
+    &lt;/loginForm&gt;
+&lt;/div&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">CSS</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.custom-login {
+    width: 100%;
+    background-image: url("background.png");
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    height: 25em;
+}
+
+.custom-login jmix-login-form {
+    align-items: center;
+    display: flex;
+    max-width: 25em;
+    background-color: var(--lumo-base-color);
+}
+
+.custom-login vaadin-login-form-wrapper {
+    background-image: none;
+}</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -254,37 +250,50 @@ public void localeChange(final LocaleChangeEvent event) {
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following attributes are specific to <code>loginForm</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="forgotPasswordButtonVisible"></a><code>forgotPasswordButtonVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows the <strong>Forgot password</strong> button.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="localesVisible"></a><code>localesVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows the locale selector.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="rememberMeVisible"></a><code>rememberMeVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows the <strong>Remember me</strong> checkbox.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>loginForm</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
-<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
-<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
-<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
-<a class="xref page" href="../common-attributes.html#css">css</a> -
 <a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
-<a href="#forgotPasswordButtonVisible">forgotPasswordButtonVisible</a> -
-<a href="#localesVisible">localesVisible</a> -
-<a href="#rememberMeVisible">rememberMeVisible</a> -
-<a class="xref page" href="../common-attributes.html#visible">visible</a></p>
-</div>
-<div class="sect2">
-<h3 id="forgotPasswordButtonVisible"><a class="anchor" href="#forgotPasswordButtonVisible"></a>forgotPasswordButtonVisible</h3>
-<div class="paragraph">
-<p>Sets the visibility of the <strong>Forgot password</strong> button.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="localesVisible"><a class="anchor" href="#localesVisible"></a>localesVisible</h3>
-<div class="paragraph">
-<p>Sets the visibility of the locales combobox.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="rememberMeVisible"><a class="anchor" href="#rememberMeVisible"></a>rememberMeVisible</h3>
-<div class="paragraph">
-<p>Sets the visibility of the <strong>Remember me</strong> checkbox. When <code>true</code>, users can choose to stay logged in across browser sessions.</p>
-</div>
-<div class="paragraph">
-<p>Default value is <code>false</code>.</p>
-</div>
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a></p>
 </div>
 </div>
 </div>
@@ -292,65 +301,48 @@ public void localeChange(final LocaleChangeEvent event) {
 <h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
-<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
-<a href="#ForgotPasswordEvent">ForgotPasswordEvent</a> -
-<a href="#LocaleChangedEvent">LocaleChangedEvent</a> -
-<a href="#LoginEvent">LoginEvent</a> -
-<a href="#RememberMeChangedEvent">RememberMeChangedEvent</a> -
-<a href="#localeItemLabelGenerator">localeItemLabelGenerator</a></p>
+<p>The following handlers are specific to <code>loginForm</code>:</p>
 </div>
-<div class="admonitionblock tip">
-<table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
 <tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
 </tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="ForgotPasswordEvent"></a>ForgotPasswordEvent</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the user clicks <strong>Forgot password</strong>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="LocaleChangedEvent"></a>LocaleChangedEvent</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the user selects a different locale.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="LoginEvent"></a>LoginEvent</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the user submits the entered credentials.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="RememberMeChangedEvent"></a>RememberMeChangedEvent</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the <strong>Remember me</strong> checkbox state changes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="localeItemLabelGenerator"></a><code>localeItemLabelGenerator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Provides the label displayed for each locale in the selector.</p></td>
+</tr>
+</tbody>
 </table>
-</div>
-<div class="sect2">
-<h3 id="ForgotPasswordEvent"><a class="anchor" href="#ForgotPasswordEvent"></a>ForgotPasswordEvent</h3>
 <div class="paragraph">
-<p><code>ForgotPasswordEvent</code> is sent when the <strong>Forgot password</strong> button is clicked. Add a handler to this event to provide users with password recovery instructions.</p>
+<p>The following shared handlers are supported by <code>loginForm</code>:</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="LocaleChangedEvent"><a class="anchor" href="#LocaleChangedEvent"></a>LocaleChangedEvent</h3>
 <div class="paragraph">
-<p><code>LocaleChangedEvent</code> is sent when a different locale is selected. A handler for this event may be used to update labels and messages in the form to be of selected locale.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="LoginEvent"><a class="anchor" href="#LoginEvent"></a>LoginEvent</h3>
-<div class="paragraph">
-<p><code>LoginEvent</code> is sent whe the user attempts to log in.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="RememberMeChangedEvent"><a class="anchor" href="#RememberMeChangedEvent"></a>RememberMeChangedEvent</h3>
-<div class="paragraph">
-<p><code>RememberMeChangedEvent</code> is sent when the state of the <strong>Remember me</strong> checkbox changes.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="localeItemLabelGenerator"><a class="anchor" href="#localeItemLabelGenerator"></a>localeItemLabelGenerator</h3>
-<div class="paragraph">
-<p>Customizes names for locales in the list. For example, instead of using the full language name for each locale, you can use a three-letter uppercase abbreviation.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "login", subject = "localeItemLabelGenerator")
-private String loginLocaleItemLabelGenerator(final Locale locale) {
-    return locale.getISO3Language().toUpperCase();
-}</code></pre>
-</div>
-</div>
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
 </div>
 </div>
 </div>
@@ -358,15 +350,19 @@ private String loginLocaleItemLabelGenerator(final Locale locale) {
 <h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="#labels-messages">additionalInformation</a> - <a href="#labels-messages">form</a> - <a href="#labels-messages">errorMessage</a></p>
+<p>A <code>loginForm</code> can contain <code>form</code>, <code>errorMessage</code>, and <code>additionalInformation</code> elements. The <code>form</code> element defines labels and button text, <code>errorMessage</code> defines the authentication-failure content, and <code>additionalInformation</code> adds supporting content below the form.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>See <a href="https://vaadin.com/docs/v25/components/login" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/login" rel="noopener" target="_blank">Vaadin Login documentation</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

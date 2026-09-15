@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>spreadsheet :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">spreadsheet</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="admonitionblock note addon-component">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This component requires the commercial <a class="xref page" href="../../../vaadin-spreadsheet/index.html#installation">Vaadin Spreadsheet add-on</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>spreadsheet</code> component embeds an Excel-compatible spreadsheet into a view. It renders an <a href="https://poi.apache.org" rel="noopener" target="_blank">Apache POI</a> workbook in the browser, lets the user edit it, and gives the view full programmatic access to the underlying POI model.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spreadsheet</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Spreadsheet</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Declare the <code>sprd</code> namespace and add the <code>spreadsheet</code> component in the view descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:sprd="http://jmix.io/schema/vaadin-spreadsheet/ui"
+      title="msg://spreadsheetBasicsView.title"&gt;
+    &lt;layout expand="spreadsheet"&gt;
+        &lt;sprd:spreadsheet id="spreadsheet" width="100%"/&gt;
+    &lt;/layout&gt;
+&lt;/view&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Studio adds the namespace automatically when you add the component using the <strong>Add Component</strong> action in the top actions panel. See <a class="xref page" href="../../../studio/view-designer.html#component-palette">Component Palette</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The component is injected into the view controller as usual:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private Spreadsheet spreadsheet;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The spreadsheet is not bound to a <a class="xref page" href="../../data/data-containers.html">data container</a>. Its content is either an <a href="#loading">XLSX file</a> that you load into it, or cells that you fill from <a href="#filling-from-data">entity data</a>. In both cases the workbook is kept in memory, and edits are lost on a page refresh unless they are saved explicitly.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="loading"><a class="anchor" href="#loading"></a>Loading XLSX</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>read()</code> method loads a workbook into the component, replacing its current content. It takes an <code>InputStream</code>, so the file can come from anywhere: the application resources as in the example below, a <a class="xref page" href="../../../files/file-storage.html">file storage</a>, or an upload made with <a class="xref page" href="fileStorageUploadField.html">fileStorageUploadField</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onInit(final InitEvent event) {
+    try (InputStream inputStream =
+                 resources.getResourceAsStream("com/company/vaadinspreadsheetex1/budget.xlsx")) {
+        spreadsheet.read(inputStream);
+    } catch (IOException e) {
+        throw new RuntimeException("Unable to read the budget template", e);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>write()</code> method does the opposite and returns the workbook with all the edits made by the user. Pass the bytes to the <a class="xref page" href="../../../files/downloading-files.html#downloader">Downloader</a> so that the user can save the current document:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("downloadBtn")
+public void onDownloadBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    try {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        spreadsheet.write(outputStream);
+        downloader.download(outputStream.toByteArray(), "budget.xlsx", DownloadFormat.XLSX);
+    } catch (IOException e) {
+        throw new RuntimeException("Unable to write the spreadsheet", e);
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="filling-from-data"><a class="anchor" href="#filling-from-data"></a>Filling XLSX from Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A spreadsheet can be built from entities instead of a file. Cells and attributes are not bound to each other, so the view fills the sheet when it opens and reads the values back when the user saves.</p>
+</div>
+<div class="paragraph">
+<p>To fill the sheet, create cells from the items of a <a class="xref page" href="../../data/collection-container.html">collection container</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private CollectionContainer&lt;User&gt; usersDc;
+
+@Subscribe
+public void onBeforeShow(final BeforeShowEvent event) {
+    spreadsheet.createCell(0, 0, "Username");
+    spreadsheet.createCell(0, 1, "First name");
+    spreadsheet.createCell(0, 2, "Last name");
+
+    List&lt;User&gt; users = usersDc.getItems();
+    for (int i = 0; i &lt; users.size(); i++) {
+        User user = users.get(i);
+        int row = i + 1;
+        spreadsheet.createCell(row, 0, user.getUsername());
+        spreadsheet.createCell(row, 1, user.getFirstName());
+        spreadsheet.createCell(row, 2, user.getLastName());
+    }
+
+    spreadsheet.createFreezePane(1, 0);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To save, go through the rows, take the value of each cell, and assign it to the corresponding attribute. The entities come from a container, so the view’s <a class="xref page" href="../../data/data-context.html">data context</a> already tracks them, and <code>save()</code> stores all the changes made in the loop:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("saveBtn")
+public void onSaveBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    List&lt;User&gt; users = usersDc.getItems();
+    for (int i = 0; i &lt; users.size(); i++) {
+        User user = users.get(i);
+        int row = i + 1;
+        user.setFirstName(getCellValue(row, 1));
+        user.setLastName(getCellValue(row, 2));
+    }
+    dataContext.save();
+}
+
+@Nullable
+private String getCellValue(int row, int column) {
+    Cell cell = spreadsheet.getCell(row, column);
+    return cell != null
+            // DataFormatter returns the text of a cell whatever its type
+            ? spreadsheet.getDataFormatter().formatCellValue(cell)
+            : null;
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Only the values are saved this way. Changes to the sheet itself, such as a new column, formatting, or formula, are lost when the view is closed.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="cells"><a class="anchor" href="#cells"></a>Configuring Cells</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Create cells through the component rather than through POI, so that the component knows what to render. Row and column indexes start with zero, so the code below fills the range <code>A1:B2</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">spreadsheet.createCell(0, 0, "Product");
+spreadsheet.createCell(0, 1, "Amount");
+spreadsheet.createCell(1, 0, "Widget");
+spreadsheet.createCell(1, 1, 1200);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The value can be a <code>String</code>, <code>Double</code>, <code>Boolean</code>, <code>Date</code>, or <code>Calendar</code>.</p>
+</div>
+<div class="paragraph">
+<p>Existing cells are obtained with <code>getCell()</code>, by indexes or by an address in the A1 notation. If you change a cell through the POI API, refresh it so that the browser shows the new value. <code>refreshCells()</code> takes several cells or a collection:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Cell cell = spreadsheet.getCell("B2");
+cell.setCellValue(1500);
+spreadsheet.refreshCells(cell);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Formulas are created by a separate method and evaluated on the server. Write them without the leading <code>=</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">spreadsheet.createFormulaCell(3, 1, "SUM(B2:B3)");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To recalculate all formulas at once, for example after replacing a block of values, call <code>refreshAllCellValues()</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styles"><a class="anchor" href="#styles"></a>Styling Cells</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Fonts, colors, borders, and number formats belong to the workbook, so they are created through the POI API. Create a style, apply it to a cell, and refresh the cell:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Workbook workbook = spreadsheet.getWorkbook();
+
+CellStyle headerStyle = workbook.createCellStyle();
+Font boldFont = workbook.createFont();
+boldFont.setBold(true);
+headerStyle.setFont(boldFont);
+
+CellStyle amountStyle = workbook.createCellStyle();
+DataFormat dataFormat = workbook.createDataFormat();
+amountStyle.setDataFormat(dataFormat.getFormat("#,##0.00"));
+
+Cell headerCell = spreadsheet.getCell(0, 0);
+headerCell.setCellStyle(headerStyle);
+
+Cell amountCell = spreadsheet.getCell(1, 1);
+amountCell.setCellStyle(amountStyle);
+
+spreadsheet.refreshCells(headerCell, amountCell);</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+A workbook allows a limited number of cell styles, so create each style once and reuse it instead of creating one per cell.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="working-with-selection"><a class="anchor" href="#working-with-selection"></a>Selection</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The initially selected cell or range is set by the <a href="#selection">selection</a> attribute in the A1 notation, for example <code>A1</code> or <code>B2:D8</code>. The component notifies the view every time the user selects something else:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("spreadsheet")
+public void onSpreadsheetSelectionChange(final Spreadsheet.SelectionChangeEvent event) {
+    CellReference reference = event.getSelectedCellReference();
+    selectionLabel.setText(reference.formatAsString());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The event also reports the whole selection: <code>getIndividualSelectedCells()</code> returns the separately selected cells, and <code>getCellRangeAddresses()</code> returns the selected ranges.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="embedded-components"><a class="anchor" href="#embedded-components"></a>Adding Components to Cells</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A cell can show a UI component instead of a value, for example a checkbox for a boolean column. The component asks a factory what to put in a cell, so supply a <a href="#spreadsheetComponentFactory">spreadsheetComponentFactory</a> and return a component for the cells that need one:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "spreadsheet", subject = "spreadsheetComponentFactory")
+private SpreadsheetComponentFactory spreadsheetComponentFactory() {
+    return new SpreadsheetComponentFactory() {
+
+        @Override
+        public Component getCustomComponentForCell(Cell cell, int rowIndex, int columnIndex,
+                                                   Spreadsheet spreadsheet, Sheet sheet) {
+            if (columnIndex == 3 &amp;&amp; rowIndex &gt; 0) {
+                Checkbox checkbox = uiComponents.create(Checkbox.class);
+                checkbox.setValue(cell != null &amp;&amp; cell.getBooleanCellValue());
+                return checkbox;
+            }
+            return null; // leave the cell as it is
+        }
+
+        @Override
+        public Component getCustomEditorForCell(Cell cell, int rowIndex, int columnIndex,
+                                                Spreadsheet spreadsheet, Sheet sheet) {
+            return null;
+        }
+
+        @Override
+        public void onCustomEditorDisplayed(Cell cell, int rowIndex, int columnIndex,
+                                            Spreadsheet spreadsheet, Sheet sheet,
+                                            Component customEditor) {
+        }
+    };
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>getCustomComponentForCell()</code> is called first, and <code>getCustomEditorForCell()</code> only if it returns <code>null</code>.</p>
+</div>
+<div class="paragraph">
+<p>Rows that contain components are never lower than the <a href="#minimumRowHeightForComponents">minimumRowHeightForComponents</a> value, so the components remain visible.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="sheets"><a class="anchor" href="#sheets"></a>Add &amp; Delete Sheets</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A workbook contains one or more sheets, and the component shows one of them at a time. A new sheet is created with a name, a number of rows, and a number of columns:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">spreadsheet.createNewSheet("Summary", 100, 20); // name, rows, columns
+spreadsheet.setSheetName(1, "Details");
+spreadsheet.setActiveSheetIndex(1);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The active sheet is deleted in the same way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">if (spreadsheet.getNumberOfSheets() &gt; 1) {
+    spreadsheet.deleteSheet(spreadsheet.getActiveSheetIndex());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Sheets are addressed by index, and there are two kinds of index. Methods without the <code>POIIndex</code> suffix count only visible sheets, which is what the user sees in the sheet selection bar. Methods with the suffix, such as <code>setActiveSheetWithPOIIndex()</code> and <code>deleteSheetWithPOIIndex()</code>, count all sheets of the workbook, including hidden ones. The <a href="#activeSheetIndex">activeSheetIndex</a> and <a href="#activeSheetWithPOIIndex">activeSheetWithPOIIndex</a> attributes work the same way.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="freeze-panes"><a class="anchor" href="#freeze-panes"></a>Frozen Panes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Frozen rows and columns stay in place while the rest of the sheet scrolls, which keeps a header row visible in a long table:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">spreadsheet.createFreezePane(1, 0); // the first row, no columns</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The arguments are the number of frozen rows and then the number of frozen columns. The POI <code>Sheet.createFreezePane()</code> method takes them in the opposite order.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="grouping"><a class="anchor" href="#grouping"></a>Grouping Rows and Columns</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If the loaded document uses grouping, it is preserved in the application. The groups are shown with outline controls next to the headings, and the user collapses and expands them in the browser as in Excel.</p>
+</div>
+<div class="paragraph">
+<p>The example below loads a document in which countries are grouped by region:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe
+public void onInit(final InitEvent event) {
+    try (InputStream inputStream =
+                 resources.getResourceAsStream("com/company/vaadinspreadsheetex1/countries.xlsx")) {
+        spreadsheet.read(inputStream);
+    } catch (IOException e) {
+        throw new RuntimeException("Unable to read the countries document", e);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Groups can also be created from code. The component has no API of its own for this, so use the POI API and then reload the component. The reload is what makes the outline controls appear:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("groupBtn")
+public void onGroupBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    Sheet sheet = spreadsheet.getActiveSheet();
+    sheet.groupColumn(1, 2); // columns B and C
+
+    spreadsheet.reload();
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Grouping works only with XLSX documents.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="report-style"><a class="anchor" href="#report-style"></a>Report Mode</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a href="#reportStyle">reportStyle</a> attribute hides the two toolbars of the component: the function bar above the sheet and the sheet selection bar below it.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;sprd:spreadsheet id="spreadsheet"
+                  width="100%"
+                  reportStyle="true"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Gridlines and row and column headings are not part of the report mode. They belong to the sheet and are taken from the loaded document. The component applies them again every time a workbook is loaded or another sheet is activated. Call <code>setGridlinesVisible(false)</code> and <code>setRowColHeadingsVisible(false)</code> after loading the document to turn them off, and protect the sheet if the user should not change it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">spreadsheet.setGridlinesVisible(false);
+spreadsheet.setRowColHeadingsVisible(false);
+spreadsheet.setActiveSheetProtected("");</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="charts-within-spreadsheet"><a class="anchor" href="#charts-within-spreadsheet"></a>Charts within Spreadsheet</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>spreadsheet</code> component renders charts that are already included in a loaded Excel workbook. Charts are displayed by default. Set the <a href="#chartsEnabled">chartsEnabled</a> attribute to <code>false</code> to hide them. The component can reflect changes to the chart’s data points, but it does not support changing the chart configuration, source cell range, or position. Make such changes in the original Excel file.</p>
+</div>
+<div class="paragraph">
+<p>For more information, see <a href="https://vaadin.com/docs/latest/components/spreadsheet#charts-within-spreadsheets" rel="noopener" target="_blank">Charts Within Spreadsheets</a> in the Vaadin documentation.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>spreadsheet</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="activeSheetIndex"></a><code>activeSheetIndex</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The index of the sheet shown initially, counting only visible sheets.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="activeSheetWithPOIIndex"></a><code>activeSheetWithPOIIndex</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The index of the sheet shown initially, counting all sheets of the underlying POI workbook, including hidden ones.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="chartsEnabled"></a><code>chartsEnabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, the charts contained in the loaded workbook are rendered.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="colBufferSize"></a><code>colBufferSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The size, in pixels, of the horizontal buffer rendered to the left and right of the visible area. A larger buffer makes scrolling smoother at the cost of a larger payload.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>200</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="defaultColumnCount"></a><code>defaultColumnCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The number of columns in a newly created sheet.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>52</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="defaultColumnWidth"></a><code>defaultColumnWidth</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The default width of a column, in pixels.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="defaultPercentageFormat"></a><code>defaultPercentageFormat</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The format applied to cells whose value is entered as a percentage.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0.00%</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="defaultRowCount"></a><code>defaultRowCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The number of rows in a newly created sheet.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>200</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="defaultRowHeight"></a><code>defaultRowHeight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The default height of a row, in points.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="functionBarVisible"></a><code>functionBarVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, the formula bar is shown above the sheet.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="invalidFormulaErrorMessage"></a><code>invalidFormulaErrorMessage</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The message shown when the user enters a formula that cannot be parsed. Accepts a message key.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maxColumns"></a><code>maxColumns</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The number of columns rendered in the active sheet.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maxRows"></a><code>maxRows</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The number of rows rendered in the active sheet.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="minimumRowHeightForComponents"></a><code>minimumRowHeightForComponents</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The minimum height, in points, applied to rows that contain embedded components, so that the components remain visible. See <a href="#embedded-components">Adding Components to Cells</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>30</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="reportStyle"></a><code>reportStyle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, the function bar and the sheet selection bar are hidden. See <a href="#report-style">Report Mode</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="rowBufferSize"></a><code>rowBufferSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The size, in pixels, of the vertical buffer rendered above and below the visible area.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>200</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="selection"></a><code>selection</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The initially selected cell or range in the A1 notation, for example <code>A1</code> or <code>B2:D8</code>. See <a href="#working-with-selection">Selection</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="sheetSelectionBarVisible"></a><code>sheetSelectionBarVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, the sheet tabs are shown at the bottom of the component.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="statusLabelValue"></a><code>statusLabelValue</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The text shown in the status area of the component. Accepts a message key.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="theme"></a><code>theme</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The theme of the spreadsheet. Possible values: <code>LUMO</code>, <code>VALO</code>. <code>LUMO</code> aligns the component with the rest of the application; <code>VALO</code> is the classic spreadsheet look.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VALO</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>spreadsheet</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following handlers are specific to <code>spreadsheet</code>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="CellValueChangeEvent"></a><code>CellValueChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when the user has changed the value of one or more cells.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="cellValueHandler"></a><code>cellValueHandler</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Spreadsheet.CellValueHandler</code> invoked when the user updates a cell through the default text editor. Use it to customize how entered values are applied to cells. Return <code>true</code> to continue with the component’s default value parsing, or <code>false</code> if the handler has processed the value itself.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="cellDeletionHandler"></a><code>cellDeletionHandler</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Spreadsheet.CellDeletionHandler</code> deciding whether a cell may be cleared by the user. Use it to protect computed or reference cells from being emptied.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="FormulaValueChangeEvent"></a><code>FormulaValueChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when the user has changed a formula in one or more cells.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="hyperlinkCellClickHandler"></a><code>hyperlinkCellClickHandler</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Spreadsheet.HyperlinkCellClickHandler</code> defining what happens when the user clicks a cell containing a hyperlink. Use it to navigate to an application view instead of opening an external URL.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="ProtectedEditEvent"></a><code>ProtectedEditEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when the user has attempted to edit a locked cell on a protected sheet.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="RowHeaderDoubleClickEvent"></a><code>RowHeaderDoubleClickEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when the user has double-clicked a row header. The event provides the index of the row through <code>getRowIndex()</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="SelectionChangeEvent"></a><code>SelectionChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when the selected cell or range has changed. See <a href="#working-with-selection">Selection</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="SheetChangeEvent"></a><code>SheetChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when the user has switched to another sheet.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="spreadsheetComponentFactory"></a><code>spreadsheetComponentFactory</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SpreadsheetComponentFactory</code> supplying a component to be rendered inside a cell, either for display or for editing. See <a href="#embedded-components">Adding Components to Cells</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="spreadsheetHandler"></a><code>spreadsheetHandler</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SpreadsheetHandlerImpl</code> handling the client-server protocol of the component. Override it only when the required behavior cannot be achieved through any other extension point.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>spreadsheet</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/spreadsheet" rel="noopener" target="_blank">Vaadin Spreadsheet documentation</a></p>
+</li>
+<li>
+<p><a href="https://poi.apache.org/components/spreadsheet/" rel="noopener" target="_blank">Apache POI Spreadsheet documentation</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

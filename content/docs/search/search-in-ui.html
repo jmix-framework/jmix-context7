@@ -12,7 +12,7 @@
 <h2 id="visual-components"><a class="anchor" href="#visual-components"></a>Visual Components</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Search add-on provides two UI components: <a class="xref page" href="search-field-component.html">SearchField</a> and <a class="xref page" href="full-text-filter-component.html">FullTextFilter</a>.</p>
+<p>The Search add-on provides two UI components: <a class="xref page" href="../flow-ui/vc/components/searchField.html">SearchField</a> and <a class="xref page" href="../flow-ui/vc/components/fullTextFilter.html">FullTextFilter</a>.</p>
 </div>
 </div>
 </div>
@@ -23,7 +23,7 @@
 <p>A search strategy defines how the search term is processed. Basically, it configures a search request with a query.</p>
 </div>
 <div class="paragraph">
-<p>The <a class="xref page" href="search-field-component.html">SearchField</a> and <a class="xref page" href="full-text-filter-component.html">FullTextFilter</a> components support the following built-in search strategies:</p>
+<p>The <a class="xref page" href="../flow-ui/vc/components/searchField.html">SearchField</a> and <a class="xref page" href="../flow-ui/vc/components/fullTextFilter.html">FullTextFilter</a> components support the following built-in search strategies:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -146,56 +146,95 @@ Terms shorter than <code>jmix.search.min-prefix-length</code> always return empt
 <div class="sect2">
 <h3 id="custom-search-strategies"><a class="anchor" href="#custom-search-strategies"></a>Custom Search Strategies</h3>
 <div class="paragraph">
-<p>Additionally, you can create a custom search strategy. For that purpose, you need to create a new Spring bean implementing one of the platform-specific interfaces:</p>
+<p>Additionally, you can create a custom search strategy. Create a Spring bean that extends one of the platform-specific base classes:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>OpenSearchSearchStrategy</code> - if you use OpenSearch.</p>
+<p><code>AbstractOpenSearchStrategy</code> - if you use OpenSearch.</p>
 </li>
 <li>
-<p><code>ElasticsearchSearchStrategy</code> - if you use Elasticsearch.</p>
+<p><code>AbstractElasticSearchStrategy</code> - if you use Elasticsearch.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Then you need to implement 2 methods:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>String getName()</code> - should return a unique strategy name.</p>
-</li>
-<li>
-<p><code>void configureRequest(SearchRequest.Builder requestBuilder, SearchContext searchContext)</code> - configure your search request using the provided builder according to your requirements.</p>
-</li>
-</ul>
+<p>Implement <code>getName()</code> and <code>configureRequest(SearchRequestContext)</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
-public class CustomOpenSearchSearchStrategy implements OpenSearchSearchStrategy {
+public class CustomOpenSearchSearchStrategy extends AbstractOpenSearchStrategy {
 
-    @Override
-    public String getName() {
-        return "CustomStrategy";
+    public CustomOpenSearchSearchStrategy(OpenSearchQueryConfigurer queryConfigurer) {
+        super(queryConfigurer); <i class="conum" data-value="1"></i><b>(1)</b>
     }
 
     @Override
-    public void configureRequest(SearchRequestContext&lt;SearchRequest.Builder&gt; searchRequestContext) {
-        //configure your request
-        searchRequestContext.getRequestBuilder().query(queryBuilder -&gt;
-                queryBuilder.multiMatch(multiMatchQueryBuilder -&gt;
-                        multiMatchQueryBuilder.fields("*")
-                                .query(searchRequestContext.getSearchContext().getSearchText())
-                )
+    public String getName() {
+        return "CustomStrategy"; <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+
+    @Override
+    public void configureRequest(SearchRequestContext&lt;SearchRequest.Builder&gt; requestContext) { <i class="conum" data-value="3"></i><b>(3)</b>
+        queryConfigurer.configureRequest( <i class="conum" data-value="4"></i><b>(4)</b>
+                requestContext,
+                (queryBuilder, scope) -&gt; <i class="conum" data-value="5"></i><b>(5)</b>
+                        queryBuilder.multiMatch(multiMatchQueryBuilder -&gt;
+                                multiMatchQueryBuilder
+                                        .fields(scope.getFieldList()) <i class="conum" data-value="6"></i><b>(6)</b>
+                                        .query(requestContext.getSearchContext().getEscapedSearchText())
+                                        .operator(Operator.Or)
+                        )
         );
     }
 }</code></pre>
 </div>
 </div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The base class is initialized with the platform-specific query configurer (<code>OpenSearchQueryConfigurer</code> or <code>ElasticSearchQueryConfigurer</code>), available as the <code>queryConfigurer</code> field.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>getName()</code> returns a unique strategy name used to select the strategy.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>configureRequest(SearchRequestContext)</code> is the method the search engine invokes for the strategy — implement it to build the search request.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Build the query through <code>queryConfigurer.configureRequest()</code>. The configurer resolves the search scope - the target indexes and the fields the current user is permitted to read - and applies security policies.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The lambda receives the platform-specific query builder and the resolved <code>IndexSearchRequestScope</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Use <code>scope.getFieldList()</code> to search only the permitted fields.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
 <div class="paragraph">
-<p>After that, you can assign your custom strategy to the <a class="xref page" href="search-field-component.html">SearchField</a> or <a class="xref page" href="full-text-filter-component.html">FullTextFilter</a> component using the strategy name.</p>
+<p>Always build the query through <code>queryConfigurer</code>. If you configure the request builder directly (for example, with <code>fields("*")</code>), the search scope is not resolved and <a class="xref page" href="../security/resource-roles.html#entity-attribute-policy">attribute policies</a> are not applied, which can make the search return no results.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After that, you can assign your custom strategy to the <a class="xref page" href="../flow-ui/vc/components/searchField.html">SearchField</a> or <a class="xref page" href="../flow-ui/vc/components/fullTextFilter.html">FullTextFilter</a> component using the strategy name.</p>
 </div>
 </div>
 </div>

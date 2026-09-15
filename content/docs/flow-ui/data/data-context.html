@@ -61,6 +61,9 @@ private void loadDepartment(Id&lt;Department&gt; departmentId) {
 <div class="paragraph">
 <p><a class="xref page" href="data-loaders.html">Data loaders</a> defined in XML automatically merge loaded entities into the <code>DataContext</code> if they don’t have the <code>readOnly="true"</code> attribute. By default, data loaders in <a class="xref page" href="../views/view-classes.html#standard-list-view">entity list views</a> scaffolded by Studio include this attribute, so if you need to track changes and save dirty entities in a list view, remove the <code>readOnly="true"</code> XML attribute for respective loaders.</p>
 </div>
+<div class="paragraph">
+<p>If the <code>&lt;data&gt;</code> element itself has the <code>readOnly="true"</code> attribute, the view receives a no-op implementation of <code>DataContext</code>: <code>merge()</code> returns the passed instance unchanged, nothing is tracked, and <code>save()</code> does nothing except writing a log message. If you add editable components to such a view, changes are silently not saved — remove <code>readOnly="true"</code> from the <code>&lt;data&gt;</code> element first.</p>
+</div>
 <div class="admonitionblock caution">
 <table>
 <tr>
@@ -133,6 +136,36 @@ private DataContext dataContext;</code></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="removing-and-evicting"><a class="anchor" href="#removing-and-evicting"></a>Removing and Evicting Entities</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>remove(entity)</code> registers the entity for deletion and stops tracking it. The entity is deleted from the data store on the next <code>save()</code>. The context also removes the instance from all tracked to-many collections.</p>
+</li>
+<li>
+<p><code>evict(entity)</code> just stops tracking the entity without registering a deletion. Use it when an entity was saved or deleted by other means and the context must forget it.</p>
+</li>
+<li>
+<p><code>evictModified()</code> evicts all entities registered as modified or removed; <code>clear()</code> evicts everything.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When a detail view saves to a parent <code>DataContext</code>, nothing is written to the database: modified instances are merged into the parent context and are saved only when the root view saves. Removed instances are registered for removal in the parent the same way.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="data-context-events"><a class="anchor" href="#data-context-events"></a>Events and Handlers</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -178,6 +211,18 @@ private Set&lt;Object&gt; saveDelegate(final SaveContext saveContext) {
 </div>
 <div class="paragraph">
 <p>See the <a class="xref page" href="entities-in-ui.html">Working with Entities in UI</a> section for more information on saving entities using custom services.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The instances in <code>saveContext.getEntitiesToSave()</code> are copies created by <code>DataContext</code>, not the instances your view works with. In particular, the object returned by <code>getEditedEntity()</code> is not the object passed to the save delegate. If your delegate needs to modify and save the edited instance itself, copy it first using <code>io.jmix.core.Copier</code> as described in <a class="xref page" href="entities-in-ui.html">Working with Entities in UI</a>, otherwise a failed save can leave the edited instance with an inconsistent optimistic-lock version.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -236,6 +281,29 @@ public void onPostSave(final DataContext.PostSaveEvent event) {
 }</code></pre>
 </div>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="implementation-details"><a class="anchor" href="#implementation-details"></a>Implementation Details</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An entity is tracked as a whole: the context records that the entity is modified, not which attributes changed. Setting an attribute back to its original value does not reset the modified flag. Use <code>hasChanges()</code> to check whether the context contains any modified or removed entities, and <code>setModified(entity, false)</code> to reset the flag for a particular entity manually.</p>
+</div>
+<div class="paragraph">
+<p>When <code>merge()</code> receives an instance whose id already exists in the context, the incoming state wins: loaded attribute values of the passed instance are copied onto the tracked instance. Such changes are considered a result of loading a fresher state from the database, so they do not mark the tracked instance as modified.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The context cannot distinguish a freshly loaded instance from a stale copy of an entity you have already edited. If you merge an outdated copy of an entity (for example, one selected in a lookup view and loaded with a different fetch plan), its attribute values overwrite unsaved changes on the tracked instance without any warning. Load entities right before merging them, and avoid keeping detached copies of entities that are being edited.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>

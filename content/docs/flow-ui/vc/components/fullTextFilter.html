@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fullTextFilter :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">fullTextFilter</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="admonitionblock note addon-component">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This component requires the free <a class="xref page" href="../../../search/index.html#installation">Search add-on</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><code>fullTextFilter</code> functions similarly to <a class="xref page" href="propertyFilter.html">propertyFilter</a> but performs full-text search across indexed entity fields.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>fullTextFilter</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FullTextFilter</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph" id="basic">
+<p>Declare the <code>search</code> namespace in the view’s XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:search="http://jmix.io/schema/search/ui"
+      title="msg://searchView.title"&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Studio adds the namespace automatically when you add the component using the <strong>Add Component</strong> action in the top actions panel. See <a class="xref page" href="../../../studio/view-designer.html#component-palette">Component Palette</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Bind <code>fullTextFilter</code> to a collection data loader using the required <a href="#dataLoader">dataLoader</a> attribute. The following example declares the data, filter, and results grid:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="ordersDc"
+                class="com.company.demo.entity.Order"&gt;
+        &lt;loader id="ordersDl"
+                readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Order_ e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+        &lt;fetchPlan extends="_base"&gt;
+            &lt;property name="customer"
+                      fetchPlan="_base"/&gt;
+        &lt;/fetchPlan&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;search:fullTextFilter dataLoader="ordersDl"
+                           autoApply="true"/&gt;
+    &lt;dataGrid id="ordersDataGrid"
+              width="100%"
+              dataContainer="ordersDc"&gt;
+        &lt;columns&gt;
+            &lt;column property="number"/&gt;
+            &lt;column property="date"/&gt;
+            &lt;column property="amount"/&gt;
+            &lt;column property="product"/&gt;
+            &lt;column property="customer"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>FullTextFilter</code> component operates as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Performs a full-text search to find entity identifiers matching the search criteria.</p>
+</li>
+<li>
+<p>Appends a condition containing these identifiers to the associated <code>dataLoader</code>.</p>
+</li>
+<li>
+<p>When a <code>DataGrid</code> (or other listing component) is linked to this data loader, it displays only those records that match the full-text search criteria.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The full-text condition combines with any other filters applied to the data loader, providing refined result sets.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="validation"><a class="anchor" href="#validation"></a>Validation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To check values entered into the <code>fullTextFilter</code> component, you can use a <a class="xref page" href="../miscellaneous/validator.html">validator</a> in a nested <code>validators</code> element.</p>
+</div>
+<div class="paragraph">
+<p>The following predefined validators are available for <code>fullTextFilter</code>:</p>
+</div>
+<table class="tableblock frame-all grid-none stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>validators</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">elements</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../miscellaneous/validator.html#custom-validator">custom</a> - <a class="xref page" href="../miscellaneous/validator.html#DecimalMaxValidator">decimalMax</a> - <a class="xref page" href="../miscellaneous/validator.html#DecimalMinValidator">decimalMin</a> - <a class="xref page" href="../miscellaneous/validator.html#DigitsValidator">digits</a> - <a class="xref page" href="../miscellaneous/validator.html#DoubleMaxValidator">doubleMax</a> - <a class="xref page" href="../miscellaneous/validator.html#DoubleMinValidator">doubleMin</a> - <a class="xref page" href="../miscellaneous/validator.html#EmailValidator">email</a> -
+<a class="xref page" href="../miscellaneous/validator.html#FutureValidator">future</a> -
+<a class="xref page" href="../miscellaneous/validator.html#FutureOrPresentValidator">futureOrPresent</a> - <a class="xref page" href="../miscellaneous/validator.html#MaxValidator">max</a> - <a class="xref page" href="../miscellaneous/validator.html#MinValidator">min</a> - <a class="xref page" href="../miscellaneous/validator.html#NegativeValidator">negative</a> -
+<a class="xref page" href="../miscellaneous/validator.html#NegativeOrZeroValidator">negativeOrZero</a> - <a class="xref page" href="../miscellaneous/validator.html#NotBlankValidator">notBlank</a> - <a class="xref page" href="../miscellaneous/validator.html#NotEmptyValidator">notEmpty</a> - <a class="xref page" href="../miscellaneous/validator.html#NotNullValidator">notNull</a> -
+<a class="xref page" href="../miscellaneous/validator.html#PastValidator">past</a> -
+<a class="xref page" href="../miscellaneous/validator.html#PastOrPresentValidator">pastOrPresent</a> -
+<a class="xref page" href="../miscellaneous/validator.html#PositiveValidator">positive</a> - <a class="xref page" href="../miscellaneous/validator.html#PositiveOrZeroValidator">positiveOrZero</a> - <a class="xref page" href="../miscellaneous/validator.html#RegexpValidator">regexp</a> - <a class="xref page" href="../miscellaneous/validator.html#SizeValidator">size</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>fullTextFilter</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="autoApply"></a><code>autoApply</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When set to <code>true</code>, <code>fullTextFilter</code> automatically applies itself to the data loader when its value changes.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../../ui-properties.html#jmix.ui.component.filter-auto-apply">jmix.ui.component.filter-auto-apply</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="dataLoader"></a><code>dataLoader</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the required <a class="xref page" href="../../data/data-loaders.html">data loader</a> filtered by this component. It must be a collection loader.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="labelPosition"></a><code>labelPosition</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the position of the label relative to the filter value component. See <a class="xref page" href="propertyFilter.html#labelPosition">propertyFilter label position</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="labelWidth"></a><code>labelWidth</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the label width as a CSS length. See <a class="xref page" href="propertyFilter.html#labelWidth">propertyFilter label width</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="searchStrategy"></a><code>searchStrategy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Determines the search strategy applied. See <a class="xref page" href="../../../search/search-in-ui.html#search-strategies">Search Strategies</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../../../search/search-properties.html#jmix.search.defaultSearchStrategy">jmix.search.default-search-strategy</a></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>fullTextFilter</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="propertyFilter.html#defaultValue">defaultValue</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#errorMessage">errorMessage</a> -
+<a class="xref page" href="../common-attributes.html#focusShortcut">focusShortcut</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
+<a class="xref page" href="../common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../common-attributes.html#label">label</a> -
+<a class="xref page" href="propertyFilter.html#labelVisible">labelVisible</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="propertyFilter.html#parameterName">parameterName</a> -
+<a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
+<a class="xref page" href="../common-attributes.html#required">required</a> -
+<a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
+<a class="xref page" href="../common-attributes.html#tabIndex">tabIndex</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following handlers are specific to <code>fullTextFilter</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="validator"></a><code>validator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validates the component value.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>fullTextFilter</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
+<a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <code>fullTextFilter</code> can include <a class="xref page" href="tooltip.html">tooltip</a> and <a class="xref page" href="../miscellaneous/validator.html">validator</a> as its nested elements.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

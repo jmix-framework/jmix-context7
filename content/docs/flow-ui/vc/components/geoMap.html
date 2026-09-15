@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>geoMap :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">geoMap</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="admonitionblock note addon-component">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This component requires the commercial <a class="xref page" href="../../../maps/index.html#installation">Maps add-on</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/maps" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>geoMap</code> displays geographical data.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>geoMap</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GeoMap</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph" id="map">
+<p>Declare the <code>maps</code> namespace in the view’s XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:maps="http://jmix.io/schema/maps/ui"
+      title="msg://mapBasicView.title"&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Studio adds the namespace automatically when you add the component using the <strong>Add Component</strong> action in the top actions panel. See <a class="xref page" href="../../../studio/view-designer.html#component-palette">Component Palette</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Then add the <code>geoMap</code> element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="map"
+             height="100%"
+             width="100%"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph" id="how-to-inject">
+<p>With the <code>id</code> attribute set, inject the <code>GeoMap</code> component into the controller to access its API directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private GeoMap geoMap;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    geoMap.addLayer(new TileLayer()
+            .withSource(new OsmSource()
+                    .withUrl("https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+                    .withOpaque(true)
+                    .withMaxZoom(10)));
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="layer"><a class="anchor" href="#layer"></a>Layer</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>GeoMap</code> component can include multiple layers that display different types of geographic information.
+Initially, the map does not have layers.</p>
+</div>
+<div class="paragraph">
+<p>The Maps add-on provides the following layer types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../../../maps/layers-sources.html#tile-layer">TileLayer</a> displays pre-rendered tiled images organized by zoom levels.</p>
+</li>
+<li>
+<p><a class="xref page" href="../../../maps/layers-sources.html#image-layer">ImageLayer</a> displays static images or images obtained from a Web Map Service (WMS).</p>
+</li>
+<li>
+<p><a class="xref page" href="../../../maps/layers-sources.html#vector-layer">VectorLayer</a> displays features and geometries.</p>
+</li>
+<li>
+<p><a class="xref page" href="../../../maps/high-density-data-visualization.html#heatmap">HeatmapLayer</a> renders point features as a heatmap.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../../../maps/layers-sources.html">Layers and Sources</a> for the sources supported by each layer type and usage examples.</p>
+</div>
+<div class="paragraph">
+<p>You can inject a layer into the controller and interact with it programmatically by accessing its methods directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("map.tile")
+private TileLayer mapTile;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    mapTile.setSource(new XyzSource()
+            .withUrl("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"));
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="source"><a class="anchor" href="#source"></a>Source</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <a class="xref page" href="../../../maps/layers-sources.html">source</a> represents the data used to render map layers on the map component. Sources provide the spatial information that defines the content and appearance of the map layers.</p>
+</div>
+<div class="paragraph">
+<p>The Maps add-on provides the following source types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For <code>TileLayer</code>: <a class="xref page" href="../../../maps/layers-sources.html#osm-source"><code>OsmSource</code></a>, <a class="xref page" href="../../../maps/layers-sources.html#xyz-source"><code>XyzSource</code></a>, and <a class="xref page" href="../../../maps/layers-sources.html#wms-source"><code>WmsSource</code></a>.</p>
+</li>
+<li>
+<p>For <code>ImageLayer</code>: <a class="xref page" href="../../../maps/layers-sources.html#image-static-source"><code>ImageStaticSource</code></a> and <a class="xref page" href="../../../maps/layers-sources.html#image-wms-source"><code>ImageWmsSource</code></a>.</p>
+</li>
+<li>
+<p>For <code>VectorLayer</code>: <a class="xref page" href="../../../maps/layers-sources.html#vector-source"><code>VectorSource</code></a>, <a class="xref page" href="../../../maps/layers-sources.html#data-vector-source"><code>DataVectorSource</code></a>, and <a class="xref page" href="../../../maps/high-density-data-visualization.html#cluster-source"><code>ClusterSource</code></a>.</p>
+</li>
+<li>
+<p>For <code>HeatmapLayer</code>: <a class="xref page" href="../../../maps/high-density-data-visualization.html#heatmap"><code>HeatmapDataVectorSource</code></a> and <code>VectorSource</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../../../maps/layers-sources.html">Layers and Sources</a> for source descriptions and usage examples.</p>
+</div>
+<div class="paragraph">
+<p>The following example defines an <code>OsmSource</code> for a tile layer:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:layers&gt;
+    &lt;maps:tile&gt;
+        &lt;maps:osmSource attributions="© Your Attribution Info"
+                        maxZoom="34"/&gt;
+    &lt;/maps:tile&gt;
+&lt;/maps:layers&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can <a href="#how-to-inject">inject</a> a source into the controller and interact with it programmatically by accessing its methods directly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent("map.tile.osmSource")
+private OsmSource osmSource;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    osmSource.withUrl("https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+            .withMaxZoom(12)
+            .withWrapX(false);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="view"><a class="anchor" href="#view"></a>View</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://openlayers.org/en/v8.2.0/apidoc/module-ol_View-View.html" rel="noopener" target="_blank">View</a> defines how the map is displayed in terms of its center, zoom level, rotation, and projection. It essentially sets the initial state of the map when it is loaded in the user interface.</p>
+</div>
+<div class="paragraph">
+<p>By default, the <code>geoMap</code> component displays a world map with an initial geographical center at <code>(0,0)</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:mapView centerX="10.872461786203276"
+              centerY="48.36928140366503"
+              zoom="4.0"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can specify additional parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>centerX</code> defines latitude of the initial geographical center of the map. It is passed to the <code>org.locationtech.jts.geom.Coordinate</code> object.</p>
+</li>
+<li>
+<p><code>centerY</code> defines longitude of the initial geographical center of the map. It is passed to the <code>org.locationtech.jts.geom.Coordinate</code> object.</p>
+</li>
+<li>
+<p><code>maxZoom</code> - sets the maximum zoom level for the view.</p>
+</li>
+<li>
+<p><code>minZoom</code> - sets a minimum zoom level for the view.</p>
+</li>
+<li>
+<p><code>projection</code> defines the coordinate reference system (CRS) used to display geographic data on a map. It transforms three-dimensional Earth coordinates onto a two-dimensional plane. Common projections include <code>EPSG:3857</code> (Web Mercator) and <code>EPSG:4326</code> (WGS 84). The default projection is <a href="https://epsg.io/3857" rel="noopener" target="_blank">EPSG:3857</a>. You can set a <a href="#custom-projection">custom projection</a>.</p>
+</li>
+<li>
+<p><code>rotation</code> - sets the rotation for the view in radians (positive rotation clockwise, 0 means North). For more details see <a href="https://openlayers.org/en/v8.2.0/apidoc/module-ol_View-View.html#setRotation" rel="noopener" target="_blank">setRotation</a>.</p>
+</li>
+<li>
+<p><code>zoom</code> defines the specific zoom level. The zoom level begins at 0, representing the maximum zoomed-out view, and progressively rises as you zoom in for a closer perspective.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-projection"><a class="anchor" href="#custom-projection"></a><a id="set-custom-projection"></a>Custom Projection</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/geo-map-custom-projection" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Follow these steps to configure a custom projection:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Define Projection Bean</strong>. Register the projection in your Spring configuration using <a href="https://epsg.io/21781.proj4" rel="noopener" target="_blank">PROJ.4</a> format:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+public ProjectionRegistration projectionRegistration21781() {
+    return new GeoMapProjectionRegistration("EPSG:21781",
+            "+proj=somerc +lat_0=46.9524055555556 " +
+                    "+lon_0=7.43958333333333 " +
+                    "+k_0=1 +x_0=600000 +y_0=200000 +ellps=bessel " +
+                    "+towgs84=674.374,15.056,405.346,0,0,0,0 +units=m " +
+                    "+no_defs +type=crs");
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Configure Map Component</strong>. Specify the <code>projection</code> attribute for a <code>mapView</code> in your XML descriptor:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="geoMap"
+             width="100%"
+             height="100%"&gt;
+    &lt;maps:mapView projection="EPSG:21781"
+                  centerX="10.872461786203276"
+                  centerY="48.36928140366503"
+                  zoom="4.0"&gt;
+    &lt;/maps:mapView&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:osmSource/&gt;
+        &lt;/maps:tile&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Initialize in Controller</strong>. Apply the projection programmatically to all map components on the page:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private GeoMap geoMap;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    geoMap.setProjection(() -&gt; "EPSG:21781");
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The projection applies to all map components on the page. Once set, all coordinate operations use the projection’s units (meters, degrees, etc.).
+</td>
+</tr>
+</table>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="extent"><a class="anchor" href="#extent"></a>Extent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a href="https://openlayers.org/en/v8.2.0/apidoc/module-ol_extent.html#~Extent" rel="noopener" target="_blank">extent</a> specifies the geographic boundaries of the map <a href="#view">view</a> or a specific <a href="#layer">layer</a> in terms of coordinates, defining the visible area on the map.</p>
+</div>
+<div class="paragraph">
+<p>Extent is typically defined by minimum (top-left corner) and maximum (bottom-right corner) coordinate values in the form of [<code>minX</code>, <code>minY</code>, <code>maxX</code>, <code>maxY</code>], representing the bounding box of the area.</p>
+</div>
+<div class="paragraph">
+<p>Choose a layer or the <code>mapView</code> element in the <strong>Jmix UI</strong> structure panel or in the view XML descriptor, and then click the <strong>Add</strong> button in the inspector panel. From the drop-down list, select <strong>Extent</strong>, and configure the <code>minX</code>, <code>minY</code>, <code>maxX</code> and <code>maxY</code> attributes as indicated below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:mapView centerY="51.0"
+              centerX="40.0"
+              zoom="4.0"&gt;
+    &lt;maps:extent minX="-15.0"
+                 minY="30.0"
+                 maxX="40.0"
+                 maxY="60.0"/&gt;
+&lt;/maps:mapView&gt;</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="extent-constraint-options"><a class="anchor" href="#extent-constraint-options"></a>Extent Constraint Options</h3>
+<div class="paragraph">
+<p>By default, when <code>mapView</code> has an <code>extent</code>, OpenLayers constrains the whole viewport to stay inside this extent. In responsive layouts, this can force the map to zoom in when the map container aspect ratio differs from the extent aspect ratio.</p>
+</div>
+<div class="paragraph">
+<p>Use the following <code>mapView</code> attributes to adjust this behavior:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>showFullExtent</code> - allows zooming out far enough to show the whole configured extent, even when the container’s aspect ratio differs from it. The default value is <code>false</code>.</p>
+</li>
+<li>
+<p><code>constrainOnlyCenter</code> - applies the extent constraint only to the view center, so viewport edges may move outside the extent. The default value is <code>false</code>.</p>
+</li>
+<li>
+<p><code>smoothExtentConstraint</code> - applies the extent constraint smoothly, allowing slight overscroll with an ease-back effect instead of a hard stop. The default value is <code>true</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These attributes are creation-time options. They are passed to the OpenLayers view during initialization and cannot be changed at runtime.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="map"
+             width="100%"
+             height="340px"&gt;
+    &lt;maps:mapView centerX="7"
+                  centerY="7"
+                  zoom="7"
+                  showFullExtent="true"&gt;
+        &lt;maps:extent minX="5"
+                     minY="0"
+                     maxX="20"
+                     maxY="15"/&gt;
+    &lt;/maps:mapView&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:osmSource/&gt;
+        &lt;/maps:tile&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>geoMap</code> does not define component-specific attributes.</p>
+</div>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>geoMap</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following events are specific to <code>geoMap</code>:</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="MapClickEvent"></a><code>MapClickEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired for a map click. A double-click causes this event to be fired twice.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="MapDoubleClickEvent"></a><code>MapDoubleClickEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the user double-clicks the map.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="MapMoveEndEvent"></a><code>MapMoveEndEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired after the map view finishes moving.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="MapSingleClickEvent"></a><code>MapSingleClickEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired for a single click after the component determines that the interaction is not a double-click.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="MapZoomChangedEvent"></a><code>MapZoomChangedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the map zoom level changes.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>geoMap</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <code>geoMap</code> can include one <code>mapView</code> element and a required <code>layers</code> element. The <code>layers</code> element can contain <code>tile</code>, <code>image</code>, <code>vector</code>, and <code>heatmap</code> layers, each with the source and styling elements supported by its layer type.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../../../maps/layers-sources.html">Layers and Sources</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../../../maps/events.html">Events</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../../../maps/reference.html">Reference</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

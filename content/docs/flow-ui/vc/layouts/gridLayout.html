@@ -10,16 +10,13 @@
 <h1 class="page">gridLayout</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/grid-layout-simple" target="_blank">LIVE DEMO</a>
-</div>
 <div class="paragraph">
-<p>The <code>gridLayout</code> component arranges child components in a responsive, two-dimensional grid system based on the CSS <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout/Basic_concepts_of_grid_layout">Grid Layout</a>.</p>
+<p><code>gridLayout</code> arranges components or data items in a responsive, two-dimensional CSS grid.</p>
 </div>
-<table class="tableblock frame-all grid-none stretch">
+<table class="tableblock frame-none grid-none" style="width: 50%;">
 <colgroup>
-<col style="width: 14.2857%;"/>
-<col style="width: 85.7143%;"/>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
 </colgroup>
 <tbody>
 <tr>
@@ -30,146 +27,70 @@
 <th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>GridLayout</code></p></td>
 </tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-attributes.html#id">id</a> -
-<a href="#alignSelf">alignSelf</a> -
-<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
-<a href="#columnMinWidth">columnMinWidth</a> -
-<a class="xref page" href="../common-attributes.html#css">css</a> -
-<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
-<a href="#gap">gap</a> -
-<a class="xref page" href="../common-attributes.html#height">height</a> -
-<a href="#data-binding">itemsContainer</a> -
-<a href="#data-binding">itemsEnum</a> -
-<a href="#justifySelf">justifySelf</a> -
-<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
-<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
-<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
-<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
-<a class="xref page" href="../common-attributes.html#visible">visible</a> -
-<a class="xref page" href="../common-attributes.html#width">width</a></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock">Handlers</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
-<a href="#itemLabelGenerator">itemLabelGenerator</a> -
-<a href="#renderer">renderer</a> -
-<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#fragment-renderer">fragmentRenderer</a></p></td>
-</tr>
 </tbody>
 </table>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>You can populate <code>gridLayout</code> with components either declaratively in the XML descriptor or programmatically in a controller using the <code>gridLayout.add()</code> method.</p>
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/grid-layout-simple" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>Example of declarative addition:</p>
+<p>Add child components declaratively and use <code>gap</code> and <code>columnMinWidth</code> to control spacing and responsive column sizing. Both attributes accept CSS length values and variables.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;gridLayout id="gridLayout" width="100%"&gt;
-    &lt;textField placeholder="City" label="Where from?"/&gt;
-    &lt;textField placeholder="City" label="Where to?"/&gt;
-    &lt;datePicker label="Depart"/&gt;
-    &lt;datePicker label="Return"/&gt;
-    &lt;button text="Search tickets" height="AUTO"/&gt;
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;gridLayout id="gridLayout" gap="var(--lumo-space-m)" columnMinWidth="18em" width="100%" height="100%"&gt;
+    &lt;image width="100%" height="100%" resource="icons/jmix-icon.png"/&gt;
+    &lt;image width="100%" height="100%" resource="icons/jmix-icon.png"/&gt;
+    &lt;image width="100%" height="100%" resource="icons/jmix-icon.png"/&gt;
+    &lt;image width="100%" height="100%" resource="icons/jmix-icon.png"/&gt;
+    &lt;image width="100%" height="100%" resource="icons/jmix-icon.png"/&gt;
+    &lt;image width="100%" height="100%" resource="icons/jmix-icon.png"/&gt;
+    &lt;image width="100%" height="100%" resource="icons/jmix-icon.png"/&gt;
+    &lt;image width="100%" height="100%" resource="icons/jmix-icon.png"/&gt;
 &lt;/gridLayout&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Example of adding in a view controller:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
-private GridLayout&lt;Object&gt; gridLayout;
-
-@Autowired
-private UiComponents uiComponents;
-
-@Subscribe
-public void onInit(final InitEvent event) {
-    Checkbox checkbox = uiComponents.create(Checkbox.class);
-    checkbox.setLabel("I verify that all information is accurate");
-    checkbox.setValue(false);
-    gridLayout.add(checkbox);
-}</code></pre>
-</div>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="grid layout basic" src="../../_images/visual-components/layouts/grid-layout-basic.png" width="803"/>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data-aware <code>gridLayout</code></h2>
 <div class="sectionbody">
 <div class="jmix-ui-live-demo-container">
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/grid-layout-dataaware" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>Data binding refers to linking a visual component to a <a class="xref page" href="../../data/data-containers.html">data container</a>.</p>
-</div>
-<div class="paragraph">
-<p>In the <code>gridLayout</code> component, this is achieved by setting the <code>itemsContainer</code> attribute to reference a data container.</p>
+<p>Set <code>itemsContainer</code> to connect <code>gridLayout</code> to a <a class="xref page" href="../../data/data-containers.html">collection container</a>. The layout creates one rendered component for each item in the container.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
-    &lt;collection id="usersDc" class="com.company.onboarding.entity.User"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-        &lt;fetchPlan extends="_base"&gt;
-            &lt;property name="department" fetchPlan="_base"/&gt;
-        &lt;/fetchPlan&gt;
-        &lt;loader id="usersDl" readOnly="true"&gt;
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data readOnly="true"&gt;
+    &lt;collection id="customerDc" class="io.jmix.uisamples.entity.Customer"
+                fetchPlan="_base"&gt;
+        &lt;loader id="customerDl" readOnly="true"&gt;
             &lt;query&gt;
-                &lt;![CDATA[select e from User e]]&gt;
+                &lt;![CDATA[select e from Customer e]]&gt;
             &lt;/query&gt;
         &lt;/loader&gt;
     &lt;/collection&gt;
 &lt;/data&gt;
 &lt;facets&gt;
-    &lt;dataLoadCoordinator auto="true"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;dataLoadCoordinator auto="true"/&gt;
 &lt;/facets&gt;
 &lt;layout&gt;
-    &lt;gridLayout width="100%"
-                itemsContainer="usersDc"/&gt; <i class="conum" data-value="3"></i><b>(3)</b>
+    &lt;split width="100%" height="100%"&gt;
+        &lt;gridLayout id="gridLayout" itemsContainer="customerDc"
+                    width="100%" height="100%"/&gt;
+        &lt;div/&gt;
+    &lt;/split&gt;
 &lt;/layout&gt;</code></pre>
 </div>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Data container to hold a collection of all existing <code>User</code> instances.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Data load coordinator to automatically supply the component with instances to display from.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Specifying the container that holds the list of items to be displayed.</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
 <p>By default, the component displays the <a class="xref page" href="../../../data-model/entities.html#instance-name">instance name</a> of the entity.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="grid layout items" src="../../_images/visual-components/layouts/grid-layout-items.png" width="514"/>
-</div>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -183,8 +104,13 @@ You can override the default display by configuring a <a href="#rendering-items"
 </tr>
 </table>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="enumeration-items"><a class="anchor" href="#enumeration-items"></a>Enumeration Items</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>The component also supports displaying enumeration values using the <code>itemsEnum</code> property.</p>
+<p>The component also supports displaying enumeration values using the <code>itemsEnum</code> attribute.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -195,144 +121,147 @@ You can override the default display by configuring a <a href="#rendering-items"
 </div>
 </div>
 <div class="sect1">
-<h2 id="rendering-items"><a class="anchor" href="#rendering-items"></a>Rendering Items</h2>
+<h2 id="programmatically"><a class="anchor" href="#programmatically"></a>Custom Item Renderer</h2>
 <div class="sectionbody">
 <div class="jmix-ui-live-demo-container">
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/grid-layout-renderer" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>It is possible to customize the render of items. The renderer is applied to each item to create a component which represents the item.</p>
+<p>Use a renderer to replace the default item label with a component. The example connects <code>gridLayout</code> to a collection container in XML and supplies a <code>ComponentRenderer</code> from the controller with <code>@Supply</code>.</p>
 </div>
-<div class="paragraph">
-<p>This customization can be achieved using two distinct methods.</p>
-</div>
-<div class="sect2">
-<h3 id="programmatically"><a class="anchor" href="#programmatically"></a>Programmatic Approach</h3>
-<div class="paragraph">
-<p>In the view controller, use either:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>The <code>setRenderer()</code> method;</p>
-</li>
-<li>
-<p>The <code>@Supply</code> annotation.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Building on the <a href="#data-binding">previous example</a>, we can generate a <code>renderer</code> to display each user as a custom <a class="xref page" href="card.html">Card</a> component.</p>
-</div>
-<details>
-<summary class="title">Show code</summary>
-<div class="content">
 <div class="listingblock">
+<div class="title">XML</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "gridLtUsers", subject = "renderer")
-private ComponentRenderer&lt;Card, User&gt; gridLtUsersRenderer() { <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data readOnly="true"&gt;
+    &lt;collection id="customerDc" class="io.jmix.uisamples.entity.Customer"
+                fetchPlan="_base"&gt;
+        &lt;loader id="customerDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Customer e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;split width="100%" height="100%"&gt;
+        &lt;vbox&gt;
+            &lt;gridLayout id="gridLayout" itemsContainer="customerDc" gap="var(--lumo-space-m)"
+                        width="100%" height="100%"/&gt;
+        &lt;/vbox&gt;
+        &lt;div/&gt;
+    &lt;/split&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+@Autowired
+private MetadataTools metadataTools;
+@Autowired
+private MessageTools messageTools;
+@Autowired
+private Metadata metadata;
+
+private int colorIndex;
+
+@Supply(to = "gridLayout", subject = "renderer")
+public ComponentRenderer&lt;JmixCard, Customer&gt; customerRenderer() {
     return new ComponentRenderer&lt;&gt;(this::createCard, this::initCard);
 }
 
-private Card createCard() { <i class="conum" data-value="2"></i><b>(2)</b>
-    Card card = uiComponents.create(Card.class);
+private JmixCard createCard() {
+    JmixCard card = uiComponents.create(JmixCard.class);
     card.setWidthFull();
-    card.addThemeVariants(CardVariant.LUMO_OUTLINED, CardVariant.LUMO_ELEVATED);
+    card.addThemeVariants(CardVariant.OUTLINED, CardVariant.ELEVATED);
     return card;
 }
 
-private void initCard(Card card, User user) { <i class="conum" data-value="3"></i><b>(3)</b>
-    card.setHeaderPrefix(createAvatar(user));
-    card.setTitle(user.getFirstName() + " " + user.getLastName());
-    card.setSubtitle(createSubtitle(user));
-    card.setHeaderSuffix(createHeaderSuffix(user));
+private void initCard(JmixCard card, Customer customer) {
+    card.setHeaderPrefix(createAvatar(customer));
+    card.setTitle(customer.getInstanceName());
+    card.setSubtitle(createSubtitle(customer));
+    card.add(createAdditionalInfo(customer));
 }
 
-private Image createAvatar(User user) { <i class="conum" data-value="4"></i><b>(4)</b>
-    Image image = uiComponents.create(Image.class);
-    FileRef fileRef = user.getPicture();
-    if (fileRef != null) {
-        image.setWidth("50px");
-        image.setHeight("50px");
-        InputStreamDownloadHandler handler = DownloadHandler.fromInputStream(event -&gt; {
-            InputStream inputStream = fileStorageLocator.getByName(fileRef.getStorageName()).openStream(fileRef);
-            return new DownloadResponse(inputStream, fileRef.getFileName(), fileRef.getContentType(), -1);
-        });
-        image.setSrc(handler);
-    }
-    return image;
+private Avatar createAvatar(Customer customer) {
+    Avatar avatar = new Avatar(customer.getInstanceName());
+    avatar.setColorIndex(colorIndex++ % 7);
+    return avatar;
 }
 
-private Span createSubtitle(User user) {
+private Component createSubtitle(Customer customer) {
     Span span = uiComponents.create(Span.class);
-    span.setText("%s: %s".formatted(
-            getPropertyCaption(user, "department"),
-            (user.getDepartment() != null ?
-                    user.getDepartment().getName() :
-                    "Not assigned")));
+    String ageCaption = getPropertyCaption(customer, "age");
+    span.setText("%s: %s".formatted(ageCaption, customer.getAge()));
     return span;
 }
 
-private String getPropertyCaption(User user, String property) {
-    MetaClass metaClass = metadata.getClass(user);
+private Component createAdditionalInfo(Customer customer) {
+    HorizontalLayout emailLayout = uiComponents.create(HorizontalLayout.class);
+    emailLayout.setPadding(false);
+    emailLayout.add(createPropertyCaption(customer, "email"), new Span(customer.getEmail()));
+
+    HorizontalLayout gradeLayout = uiComponents.create(HorizontalLayout.class);
+    gradeLayout.setPadding(false);
+    gradeLayout.add(createPropertyCaption(customer, "grade"), createGradeBadge(customer));
+
+    VerticalLayout infoLayout = uiComponents.create(VerticalLayout.class);
+    infoLayout.add(emailLayout, gradeLayout);
+    return infoLayout;
+}
+
+private Component createPropertyCaption(Customer customer, String property) {
+    Span span = uiComponents.create(Span.class);
+    String propertyCaption = getPropertyCaption(customer, property);
+    span.setText("%s: ".formatted(propertyCaption));
+    return span;
+}
+
+private String getPropertyCaption(Customer customer, String property) {
+    MetaClass metaClass = metadata.getClass(customer);
     return messageTools.getPropertyCaption(metaClass, property);
 }
 
-private Span createHeaderSuffix(User user) {
+private Component createGradeBadge(Customer customer) {
     Span span = uiComponents.create(Span.class);
-    if (user.getActive()) {
-        span.setText("Active");
-        span.getElement().getThemeList().add("badge success");
-    }
-    else {
-        span.setText("Inactive");
-        span.getElement().getThemeList().add("badge error");
-    }
+    CustomerGrade gradeValue = customer.getGrade();
+    String gradeCaption = metadataTools.format(gradeValue);
+
+    span.setText(gradeCaption);
+    span.getElement().getThemeList().add("badge " + getGradeColor(Objects.requireNonNull(gradeValue)));
     return span;
+}
+
+private String getGradeColor(CustomerGrade customerGrade) {
+    return switch (customerGrade) {
+        case STANDARD -&gt; "contrast";
+        case HIGH -&gt; "success";
+        case PREMIUM -&gt; "primary";
+    };
 }</code></pre>
 </div>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Supplies a custom renderer to display each <code>User</code> as a <code>Card</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Creates a base <code>Card</code> component with common styling.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Initializes card content with user-specific data. Called for each card instance with the corresponding <code>User</code> entity.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Creates an avatar <a class="xref page" href="../html-components/image.html">image</a> component from the user’s picture.</td>
-</tr>
-</table>
 </div>
 </div>
-</details>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="grid layout renderer" src="../../_images/visual-components/layouts/grid-layout-renderer.png" width="658"/>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="fragment-renderer"><a class="anchor" href="#fragment-renderer"></a>Declarative Approach</h3>
+<div class="sect1">
+<h2 id="fragment-renderer"><a class="anchor" href="#fragment-renderer"></a>Fragment Renderer</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Alternatively, you can render items using a nested <a class="xref page" href="../miscellaneous/renderers.html#fragment-renderer">fragmentRenderer</a> element.</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create <code>FragmentRenderer</code> XML-descriptor:</p>
+<p>Create the fragment descriptor:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
-&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fragment xmlns="http://jmix.io/schema/flowui/fragment"&gt;
     &lt;data&gt;
         &lt;instance id="userDc" class="com.company.onboarding.entity.User"&gt;
             &lt;loader id="userDl"/&gt;
@@ -347,9 +276,9 @@ private Span createHeaderSuffix(User user) {
 </div>
 </li>
 <li>
-<p>Create <code>FragmentRenderer</code> Java Controller</p>
+<p>Create the fragment controller.</p>
 <div class="paragraph">
-<p>The fragment renderer class should extend the <code>FragmentRenderer</code> base class with type parameters indicating the root component and rendered entity, for example:</p>
+<p>Extend <code>FragmentRenderer</code> using the fragment root component and rendered entity as its type parameters:</p>
 </div>
 <details>
 <summary class="title">Show code</summary>
@@ -450,49 +379,45 @@ public class CardFragment extends FragmentRenderer&lt;VerticalLayout, User&gt; {
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a class="xref page" href="../common-attributes.html">Common attributes</a> serve the same purpose for all components.</p>
+<p><a class="xref page" href="../common-attributes.html">Common attributes</a> serve the same purpose for all components. The following attributes configure <code>gridLayout</code> or its direct child elements:</p>
 </div>
-<div class="paragraph">
-<p>The following attributes are specific to <code>gridLayout</code>:</p>
-</div>
-<table class="tableblock frame-none grid-rows stretch">
+<table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 14.2857%;"/>
-<col style="width: 71.4285%;"/>
-<col style="width: 14.2858%;"/>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
 </colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
 <tbody>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Default</strong></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="alignSelf"></a>alignSelf</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Controls the vertical alignment of a component within its grid cell along the block (column) axis. This corresponds to the CSS <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/align-self" rel="noopener" target="_blank">align-self</a> property. See also <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a>.</p>
-<p class="tableblock">Available for projects with version 2.7.2+.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="alignSelf"></a>alignSelf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set on a child element to control its alignment within the grid cell along the block (column) axis. This corresponds to the CSS <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/align-self" rel="noopener" target="_blank">align-self</a> property.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>AUTO</code></p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="columnMinWidth"></a>columnMinWidth</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="columnMinWidth"></a>columnMinWidth</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Sets the minimum width for the grid columns in <code>gridLayout</code>. This ensures columns don’t become too narrow when the container resizes.
-This value represented as a CSS length value (for example, <code>"50px"</code>, <code>"10rem"</code>)</p></td>
+The value must be a valid CSS length (for example, <code>"50px"</code> or <code>"10rem"</code>).</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>19rem</code></p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="gap"></a>gap</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Controls the spacing between grid cells (both row and column gaps). This creates visual separation between components. The value represented as a CSS length value (for example, <code>"10px"</code>, <code>"1rem"</code>)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>var(--lumo-space-s)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="gap"></a>gap</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls the spacing between grid cells, including both row and column gaps. The value must be a valid CSS length (for example, <code>"10px"</code> or <code>"1rem"</code>).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0.5rem</code></p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="justifySelf"></a>justifySelf</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Controls the horizontal alignment of a component within its grid cell along the inline (row) axis. This corresponds to the CSS <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/justify-self" rel="noopener" target="_blank">justify-self</a> property.</p>
-<p class="tableblock">Available for projects with version 2.7.2+.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="justifySelf"></a>justifySelf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set on a child element to control its alignment within the grid cell along the inline (row) axis. This corresponds to the CSS <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/justify-self" rel="noopener" target="_blank">justify-self</a> property.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>AUTO</code></p></td>
 </tr>
 </tbody>
@@ -508,40 +433,36 @@ This value represented as a CSS length value (for example, <code>"50px"</code>, 
 <div class="paragraph">
 <p>The following handlers are specific to <code>gridLayout</code>.</p>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<table class="tableblock frame-none grid-rows stretch">
+<table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 14.2857%;"/>
-<col style="width: 85.7143%;"/>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
 </colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
 <tbody>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemLabelGenerator"></a>itemLabelGenerator</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Customizes the text produced by the default item renderer.</p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemLabelGenerator"></a>itemLabelGenerator</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Allows you to customize the labels displayed for each item. See <a class="xref page" href="../components/select.html#customizing-item-labels">Customizing Item Labels</a>.</p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="renderer"></a>renderer</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the item renderer for <code>gridLayout</code>. The renderer is applied to each item to create a component which represents the item option. See <a href="#rendering-items">Rendering Items</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="renderer"></a>renderer</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the renderer used to create a component for each item. See <a href="#rendering-items">Custom Item Renderer</a>.</p></td>
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A non-data-aware <code>gridLayout</code> can contain components directly. A data-aware layout can contain a <a class="xref page" href="../miscellaneous/renderers.html#fragment-renderer"><code>fragmentRenderer</code></a> that creates a component for each item.</p>
+</div>
 </div>
 </div>
 

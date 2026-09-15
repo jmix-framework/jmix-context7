@@ -9,6 +9,57 @@
 <article class="doc">
 <h1 class="page">Data Access Properties</h1>
 <div class="sect1">
+<h2 id="jmix.data.include-null-clause-in-not-conditions"><a class="anchor" href="#jmix.data.include-null-clause-in-not-conditions"></a>jmix.data.include-null-clause-in-not-conditions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Controls whether records with <code>null</code> values are included in the result of negative property conditions.</p>
+</div>
+<div class="paragraph">
+<p>By default, when a negative property condition is used, records where the filtered property is <code>null</code> are not included in the result because of standard SQL three-valued logic. If this property is set to <code>true</code>, Jmix adds an <code>is null</code> clause for negative property condition operators.</p>
+</div>
+<div class="paragraph">
+<p>The property affects the following operators:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;"/>
+<col style="width: 40%;"/>
+<col style="width: 40%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Operator</th>
+<th class="tableblock halign-left valign-top">Default JPQL</th>
+<th class="tableblock halign-left valign-top">JPQL when the property is <code>true</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NOT_EQUAL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>e.field &lt;&gt; :p</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(e.field &lt;&gt; :p or e.field is null)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NOT_CONTAINS</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>e.field not like :p</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(e.field not like :p or e.field is null)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NOT_IN_LIST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>e.field not in :p</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(e.field not in :p or e.field is null)</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Element collections are not affected by this property. Negative conditions for element collections already use <code>not exists (…​)</code>, which includes empty collections.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>false</code></p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="jmix.data.number-id-cache-size"><a class="anchor" href="#jmix.data.number-id-cache-size"></a>jmix.data.number-id-cache-size</h2>
 <div class="sectionbody">
 <div class="paragraph">

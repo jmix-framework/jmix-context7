@@ -10,26 +10,29 @@
 <h1 class="page">fileUploadField</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/file-upload-field" target="_blank">LIVE DEMO</a>
-</div>
 <div class="paragraph">
-<p><code>fileUploadField</code> allows users to select a file from their local machine and upload it in the Jmix application.</p>
+<p><code>fileUploadField</code> uploads a file into memory as a byte array.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML element: <code>fileUploadField</code></p>
-</li>
-<li>
-<p>Java class: <code>FileUploadField</code></p>
-</li>
-</ul>
-</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>fileUploadField</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FileUploadField</code></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The component can contain a label, a link to the uploaded file, and an upload button. When the upload button is clicked, a standard file picker dialog pops up, allowing the user to select a file.</p>
@@ -58,16 +61,14 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("fileUploadField")
-public void onFileUploadFieldFileUploadSucceeded(
-        final FileUploadSucceededEvent&lt;FileUploadField, byte[]&gt; event) {
-    // Access the uploaded file information:
-    String fileName = event.getFileName();
-    byte[] fileContent = event.getSource().getValue();
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Notifications notifications;
 
-    // Perform your logic to handle the fileContent:
-    assert fileContent != null;
-    log.info("File content: " + new String(fileContent, StandardCharsets.UTF_8));
+@Subscribe("fileUploadField")
+public void onFileUploadFieldFileUploadSucceeded(final FileUploadSucceededEvent&lt;FileStorageUploadField, byte[]&gt; event) {
+    notifications.create("Your file %s has been uploaded successfully.".formatted(event.getFileName()))
+            .withThemeVariant(NotificationVariant.LUMO_PRIMARY)
+            .show();
 }</code></pre>
 </div>
 </div>
@@ -103,8 +104,11 @@ Internally, <code>fileUploadField</code> uses Vaadin’s <code>UploadHandler</co
 </div>
 </div>
 <div class="sect1">
-<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data-aware <code>fileUploadField</code></h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/file-upload-field" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p><code>fileUploadField</code> allows users to save the uploaded file to an entity attribute as a byte array.</p>
 </div>
@@ -120,16 +124,18 @@ private byte[] document;</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
-    &lt;instance class="com.company.onboarding.entity.User" id="userDc"&gt;
-        &lt;fetchPlan extends="_base"/&gt;
-        &lt;loader id="userDl"/&gt;
+    &lt;instance id="pictureDc" class="io.jmix.uisamples.entity.Picture"&gt;
     &lt;/instance&gt;
 &lt;/data&gt;
 &lt;layout&gt;
-    &lt;fileUploadField dataContainer="userDc"
-                     property="document"
+    &lt;fileUploadField id="fileUploadField" label="Select File"
+                     dataContainer="pictureDc" property="content"
                      clearButtonVisible="true"
-                     fileNameVisible="true"/&gt;
+                     fileNameVisible="true"
+                     dropAllowed="true"
+                     maxFileSize="51200"
+                     acceptedFileTypes="image/png,image/jpeg"
+    /&gt;
 &lt;/layout&gt;</code></pre>
 </div>
 </div>
@@ -145,56 +151,139 @@ private byte[] document;</code></pre>
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following attributes are specific to <code>fileUploadField</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="acceptedFileTypes"></a><code>acceptedFileTypes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the accepted file types.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="clearButtonAriaLabel"></a><code>clearButtonAriaLabel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the clear button aria label.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="clearButtonVisible"></a><code>clearButtonVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls whether the field displays a clear button.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="connectingStatusText"></a><code>connectingStatusText</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the connecting status text.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="dropAllowed"></a><code>dropAllowed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls whether users can drag files onto the upload area.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="fileName"></a><code>fileName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the text that should be shown if the value is set from the data container.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="fileNameVisible"></a><code>fileNameVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls whether the selected file name is displayed.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="fileNotSelectedText"></a><code>fileNotSelectedText</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the file not selected text.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="fileTooBigText"></a><code>fileTooBigText</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the file too big text.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="incorrectFileTypeText"></a><code>incorrectFileTypeText</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the incorrect file type text.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maxFileSize"></a><code>maxFileSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the maximum file size.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="processingStatusText"></a><code>processingStatusText</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the processing status text.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="remainingTimeText"></a><code>remainingTimeText</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the remaining time text.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="remainingTimeUnknownText"></a><code>remainingTimeUnknownText</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the remaining time unknown text.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="uploadDialogCancelText"></a><code>uploadDialogCancelText</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the upload dialog cancel text.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="uploadDialogTitle"></a><code>uploadDialogTitle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the upload dialog title.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="uploadIcon"></a><code>uploadIcon</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the upload icon.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="uploadText"></a><code>uploadText</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the upload text.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>fileUploadField</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
-<a class="xref page" href="fileStorageUploadField.html#acceptedFileTypes">acceptedFileTypes</a> -
 <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
 <a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
-<a class="xref page" href="fileStorageUploadField.html#clearButtonAriaLabel">clearButtonAriaLabel</a> -
-<a class="xref page" href="fileStorageUploadField.html#clearButtonVisible">clearButtonVisible</a> -
 <a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
-<a class="xref page" href="fileStorageUploadField.html#connectingStatusText">connectingStatusText</a> -
 <a class="xref page" href="../common-attributes.html#css">css</a> -
 <a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> -
-<a class="xref page" href="fileStorageUploadField.html#dropAllowed">dropAllowed</a> -
 <a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
 <a class="xref page" href="../common-attributes.html#errorMessage">errorMessage</a> -
-<a href="#fileName">fileName</a> -
-<a class="xref page" href="fileStorageUploadField.html#fileNameVisible">fileNameVisible</a> -
-<a class="xref page" href="fileStorageUploadField.html#fileNotSelectedText">fileNotSelectedText</a> -
-<a class="xref page" href="fileStorageUploadField.html#fileTooBigText">fileTooBigText</a> -
 <a class="xref page" href="../common-attributes.html#height">height</a> -
 <a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
-<a class="xref page" href="fileStorageUploadField.html#incorrectFileTypeText">incorrectFileTypeText</a> -
 <a class="xref page" href="../common-attributes.html#label">label</a> -
-<a class="xref page" href="fileStorageUploadField.html#maxFileSize">maxFileSize</a> -
 <a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
 <a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
 <a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
 <a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
-<a class="xref page" href="fileStorageUploadField.html#processingStatusText">processingStatusText</a> -
 <a class="xref page" href="../common-attributes.html#property">property</a> -
 <a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
-<a class="xref page" href="fileStorageUploadField.html#remainingTimeText">remainingTimeText</a> -
-<a class="xref page" href="fileStorageUploadField.html#remainingTimeUnknownText">remainingTimeUnknownText</a> -
 <a class="xref page" href="../common-attributes.html#required">required</a> -
 <a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
-<a class="xref page" href="fileStorageUploadField.html#uploadDialogCancelText">uploadDialogCancelText</a> -
-<a class="xref page" href="fileStorageUploadField.html#uploadDialogTitle">uploadDialogTitle</a> -
-<a class="xref page" href="fileStorageUploadField.html#uploadIcon">uploadIcon</a> -
-<a class="xref page" href="fileStorageUploadField.html#uploadText">uploadText</a> -
 <a class="xref page" href="../common-attributes.html#visible">visible</a> -
 <a class="xref page" href="../common-attributes.html#width">width</a></p>
-</div>
-<div class="sect2">
-<h3 id="fileName"><a class="anchor" href="#fileName"></a>fileName</h3>
-<div class="paragraph">
-<p>Sets the text that should be shown if the value is set from the data container. When a user uploads the file, the field shows the file name. However, when the value is saved to the database, the field loses information about the file name. The <code>fileName</code> attribute is intended to set custom text when there is no information about the file name. If it is not defined, the default value will be shown:</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="file upload field file name" src="../../_images/visual-components/components/file-upload-field-file-name.png" width="283"/>
-</div>
-</div>
 </div>
 </div>
 </div>
@@ -202,49 +291,66 @@ private byte[] document;</code></pre>
 <h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following handlers are specific to <code>fileUploadField</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="FileUploadFailedEvent"></a><code>FileUploadFailedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when uploading a file fails.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="FileUploadFileRejectedEvent"></a><code>FileUploadFileRejectedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when a selected file is rejected because it violates an upload constraint.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="FileUploadFinishedEvent"></a><code>FileUploadFinishedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired after an upload finishes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="FileUploadProgressEvent"></a><code>FileUploadProgressEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired as upload progress changes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="FileUploadStartedEvent"></a><code>FileUploadStartedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when uploading a file starts.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="FileUploadSucceededEvent"></a><code>FileUploadSucceededEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>io.jmix.flowui.kit.component.upload.event.FileUploadSucceededEvent</code> is fired when the <code>Upload</code> component fires <code>SucceededEvent</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="validator"></a><code>validator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validates the component value.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>fileUploadField</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
 <a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
 <a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
-<a class="xref page" href="fileStorageUploadField.html#FileUploadFailedEvent">FileUploadFailedEvent</a> -
-<a class="xref page" href="fileStorageUploadField.html#FileUploadFileRejectedEvent">FileUploadFileRejectedEvent</a> -
-<a class="xref page" href="fileStorageUploadField.html#FileUploadFinishedEvent">FileUploadFinishedEvent</a> -
-<a class="xref page" href="fileStorageUploadField.html#FileUploadProgressEvent">FileUploadProgressEvent</a> -
-<a class="xref page" href="fileStorageUploadField.html#FileUploadStartedEvent">FileUploadStartedEvent</a> -
-<a href="#FileUploadSucceededEvent">FileUploadSucceededEvent</a> -
-<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a> -
-<a class="xref page" href="textField.html#validator">validator</a></p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="FileUploadSucceededEvent"><a class="anchor" href="#FileUploadSucceededEvent"></a>FileUploadSucceededEvent</h3>
-<div class="paragraph">
-<p><code>io.jmix.flowui.kit.component.upload.event.FileUploadSucceededEvent</code> is fired when the <code>Upload</code> component fires <code>SucceededEvent</code>.</p>
-</div>
-<div class="paragraph">
-<p>See the usage example <a href="#FileUploadSucceededEvent-example">above</a> in the <strong>Basics</strong> section.</p>
-</div>
+<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a></p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="elements"><a class="anchor" href="#elements"></a>Elements</h2>
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a class="xref page" href="tooltip.html">tooltip</a>
-<a class="xref page" href="../../icons/custom-icons.html">uploadIcon</a></p>
+<p>A <code>fileUploadField</code> can include <a class="xref page" href="tooltip.html">tooltip</a> and <a class="xref page" href="../../icons/custom-icons.html">uploadIcon</a> as its nested elements.</p>
 </div>
 </div>
 </div>

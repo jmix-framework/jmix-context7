@@ -86,7 +86,7 @@ public interface OrderIndexDefinition {
 <p>They should not contain any implementation logic.</p>
 </li>
 <li>
-<p>Each method should be annotated with the <code>@AutoMappedField</code> annotation.</p>
+<p>Each method should be annotated with a field-mapping annotation: <code>@AutoMappedField</code> for static attributes, or <code>@DynamicAttributes</code> for <a class="xref page" href="../dyn-attr/index.html">dynamic attributes</a> (see <a class="xref page" href="dyn-attr-support.html">Dynamic Attributes in Search</a>).</p>
 </li>
 </ul>
 </div>
@@ -414,6 +414,14 @@ void fileMapping();</code></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="dynamic-attributes"><a class="anchor" href="#dynamic-attributes"></a>Dynamic Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In addition to static attributes mapped with <code>@AutoMappedField</code>, the Search add-on can index <a class="xref page" href="../dyn-attr/index.html">dynamic attributes</a> of an entity. Add the <code>@DynamicAttributes</code> annotation to a method of the index definition interface. See <a class="xref page" href="dyn-attr-support.html">Dynamic Attributes in Search</a> for the annotation parameters, supported attribute types, and limitations.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="programmatic-mapping"><a class="anchor" href="#programmatic-mapping"></a>Programmatic Mapping</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -449,14 +457,42 @@ void fileMapping();</code></pre>
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntitySearchIndex(entity = Customer.class)
 public interface CustomerIndexDefinition {
     @ManualMappingDefinition <i class="conum" data-value="1"></i><b>(1)</b>
-    default MappingDefinition mapping(FilePropertyValueExtractor filePropertyValueExtractor) { <i class="conum" data-value="2"></i><b>(2)</b>
+    default MappingDefinition mapping(FilePropertyValueExtractor filePropertyValueExtractor, <i class="conum" data-value="2"></i><b>(2)</b>
+                                      AutoMappingStrategy autoMappingStrategy,
+                                      SimplePropertyValueExtractor simplePropertyValueExtractor) {
         return MappingDefinition.builder()
                 .addStaticAttributesGroup(
                         StaticAttributesGroupConfiguration.builder()
                                 .includeProperties("*") <i class="conum" data-value="3"></i><b>(3)</b>
-                                .excludeProperties("hobby", "maritalStatus") <i class="conum" data-value="4"></i><b>(4)</b>
+                                .excludeProperties("hobby", "maritalStatus", "firstName", "lastName") <i class="conum" data-value="4"></i><b>(4)</b>
                                 .withFieldMappingStrategyClass(AutoMappingStrategy.class) <i class="conum" data-value="5"></i><b>(5)</b>
                                 .withPropertyValueExtractor(filePropertyValueExtractor) <i class="conum" data-value="6"></i><b>(6)</b>
+                                .build()
+                )
+                .addStaticAttributesGroup( <i class="conum" data-value="7"></i><b>(7)</b>
+                        StaticAttributesGroupConfiguration.builder()
+                                .includeProperties("firstName")
+                                .withFieldMappingStrategy(autoMappingStrategy) <i class="conum" data-value="8"></i><b>(8)</b>
+                                .withFieldConfiguration( <i class="conum" data-value="9"></i><b>(9)</b>
+                                        "{\n" +
+                                                "    \"type\": \"text\",\n" +
+                                                "    \"analyzer\": \"standard\",\n" +
+                                                "    \"boost\": 2\n" +
+                                                "}"
+                                )
+                                .build()
+                )
+                .addStaticAttributesGroup(
+                        StaticAttributesGroupConfiguration.builder()
+                                .includeProperties("lastName")
+                                .withFieldConfiguration( <i class="conum" data-value="10"></i><b>(10)</b>
+                                        "{\n" +
+                                                "    \"type\": \"text\",\n" +
+                                                "    \"analyzer\": \"english\"\n" +
+                                                "}"
+                                )
+                                .withPropertyValueExtractor(simplePropertyValueExtractor) <i class="conum" data-value="11"></i><b>(11)</b>
+                                .withOrder(1) <i class="conum" data-value="12"></i><b>(12)</b>
                                 .build()
                 )
                 .build();
@@ -476,19 +512,71 @@ public interface CustomerIndexDefinition {
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>The list of properties that should be indexed. Here the <code>*</code> wildcard is used to include all local properties of the indexed <code>Customer</code> entity.</td>
+<td>The list of properties to index. Here the <code>*</code> wildcard includes all local properties of the indexed <code>Customer</code> entity.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>The list of properties that should not be indexed.</td>
+<td>The list of properties to exclude. <code>firstName</code> and <code>lastName</code> are excluded here because they are configured separately in the following groups for fine-tuning.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="5"></i><b>5</b></td>
-<td>The <code>FieldMappingStrategy</code> implementation class that should be used to map properties. The mapping strategy can also be defined as an instance using the <code>withFieldMappingStrategy()</code> method with the strategy instance as a parameter.</td>
+<td>The <code>FieldMappingStrategy</code> implementation class used to map the properties of this group. The strategy can also be set as an instance using the <code>withFieldMappingStrategy()</code> method.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="6"></i><b>6</b></td>
-<td>An explicit property value extractor. For example, a <code>FilePropertyValueExtractor</code> instance can be used for processing attributes of the <code>FileRef</code> type.</td>
+<td>An explicit property value extractor. For example, a <code>FilePropertyValueExtractor</code> instance is used for processing attributes of the <code>FileRef</code> type.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>A second group that fine-tunes a single field with a native field configuration.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>First applies the automatic mapping strategy to obtain a base mapping.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="9"></i><b>9</b></td>
+<td>Defines a native field configuration as a JSON string that overrides and extends the settings generated by the strategy:
+<div class="ulist">
+<ul>
+<li>
+<p><code>"type": "text"</code> — explicitly specifies the text type.</p>
+</li>
+<li>
+<p><code>"analyzer": "standard"</code> — uses the standard analyzer for token splitting.</p>
+</li>
+<li>
+<p><code>"boost": 2</code> — gives the <code>firstName</code> field double weight in search, so documents matching the name rank higher.</p>
+</li>
+</ul>
+</div></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="10"></i><b>10</b></td>
+<td>Defines the field configuration directly, bypassing any strategy. The <code>lastName</code> field is indexed as text with the <code>"english"</code> analyzer.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="11"></i><b>11</b></td>
+<td>Required when only a native configuration is specified (no strategy): the extractor that reads the property value for indexing.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="12"></i><b>12</b></td>
+<td>Sets the order of this group. It matters when groups would otherwise conflict — the group with the higher order wins.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The example above defines several static attributes groups, including native field configurations for <code>firstName</code> and <code>lastName</code>. To also index dynamic attributes programmatically, add a dynamic attributes group using <code>MappingDefinition.builder().addDynamicAttributesGroup()</code> with a <code>DynamicAttributesGroupConfiguration</code>. See <a class="xref page" href="dyn-attr-support.html#programmatic-index-definition">Programmatic Index Definition</a> for details.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+There can be only one method with programmatic mapping in an index definition interface. If such a method exists, all field-mapping annotations in the interface are ignored.
+</td>
 </tr>
 </table>
 </div>

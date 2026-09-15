@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>supersetDashboard :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">supersetDashboard</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="admonitionblock note addon-component">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This component requires the free <a class="xref page" href="../../../superset/index.html#installation">Superset add-on</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><code>supersetDashboard</code> embeds dashboards configured in Apache Superset into application views.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dashboard</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SupersetDashboard</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a><a id="usage"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Declare the <code>superset</code> namespace in the view’s XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:superset="http://jmix.io/schema/superset/ui"
+      title="msg://dashboardView.title"&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Studio adds the namespace automatically when you add the component using the <strong>Add Component</strong> action in the top actions panel. See <a class="xref page" href="../../../studio/view-designer.html#component-palette">Component Palette</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Then add <code>supersetDashboard</code> to the view and specify its <code>id</code>, size, and the <a href="#embeddedId">embeddedId</a> obtained from Apache Superset:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;superset:dashboard id="dashboard" width="100%" height="100%"
+                    embeddedId="b6f53731-1da2-4768-b545-fff4fd2659c6"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also, you can inject the component into the controller and interact with it programmatically:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private SupersetDashboard dashboard;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    dashboard.setEmbeddedId("1aec5c74-f143-4051-818b-fcf9d77c8501");
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dataset-constraints"><a class="anchor" href="#dataset-constraints"></a>Dataset Constraints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A dashboard in Superset can contain multiple charts that show data from different datasets. The <code>SupersetDashboard</code> component provides the ability to set constraints on these datasets. Constraints can be defined statically in the component’s XML element or calculated dynamically at runtime.</p>
+</div>
+<div class="paragraph">
+<p>To provide a constraint, you need to define the ID of the dataset and write a native SQL condition that will be appended to the <strong>WHERE</strong> clause of the dataset query.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+It is not obvious from the Superset UI where to find a dataset ID. You can get it from the <code>datasource_id</code> parameter of the URL displayed in the address bar when you open the dataset from the datasets list.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="static-dataset-constraints"><a class="anchor" href="#static-dataset-constraints"></a>Static Dataset Constraints</h3>
+<div class="paragraph">
+<p>Let’s consider usage of static dataset constraints in the <code>Employees' salaries</code> dashboard created in the <a class="xref page" href="../../../superset/getting-started.html">Getting Started</a> section. It uses the dataset that loads employees, departments and salaries. Suppose that you need to limit the salary lower bound, e.g. by <code>80,000</code>.</p>
+</div>
+<div class="paragraph">
+<p>Constraints are defined in the <code>datasetConstraint</code> nested elements of the <code>dashboard</code> component. They can be added using Studio <strong>Add</strong> action available for the component or manually in XML.</p>
+</div>
+<div class="paragraph">
+<p>The required constraint definition will look as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;superset:dashboard id="dashboard"
+                    width="100%"
+                    height="100%"
+                    embeddedId="940f36ff-6c97-4a35-a4ff-4e4aeee3a9c7"&gt;
+    &lt;superset:datasetConstraints&gt;
+        &lt;superset:datasetConstraint datasetId="24"&gt;
+            &lt;![CDATA[salary &gt;= 80000]]&gt;
+        &lt;/superset:datasetConstraint&gt;
+    &lt;/superset:datasetConstraints&gt;
+&lt;/superset:dashboard&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>salary</code> here is the column of the dataset.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="dataset-constraints-provider"><a class="anchor" href="#dataset-constraints-provider"></a>Dataset Constraints Provider</h3>
+<div class="paragraph">
+<p>Dataset constraints can be calculated dynamically at runtime and passed to Superset when the dashboard is opened in the Jmix application. This allows you to filter out dashboard data based on the current user privileges or any other criteria.</p>
+</div>
+<div class="paragraph">
+<p>A dataset constraint is represented by the <code>DatasetConstraint</code> Java class. You can provide a list of constraints to the <code>SupersetDashboard</code> component in the following ways:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a <code>datasetConstraintsProvider</code> handler in the view and return the list of constraints from it.</p>
+</li>
+<li>
+<p>Create a Spring bean implementing the <code>DatasetConstraintsProvider</code> interface and pass it to the component using the <code>setDatasetConstraintsProvider()</code> method.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Let’s consider the following requirement: a department manager can see information about salaries only in their own department. A dataset constraint may take into account a row-level role assigned to the current user.</p>
+</div>
+<div class="paragraph">
+<p>In the example below uses the first approach with <code>datasetConstraintsProvider</code> handler in the view, but the logic is extracted to a regular Spring bean:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.company.supersetsample.app;
+
+import com.company.supersetsample.entity.Department;
+import com.company.supersetsample.entity.User;
+import com.company.supersetsample.security.DepartmentConstraintRole;
+import io.jmix.core.security.CurrentAuthentication;
+import io.jmix.security.SecurityProperties;
+import io.jmix.supersetflowui.component.dataconstraint.DatasetConstraint;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+public class DepartmentDatasetConstraintProvider {
+
+    private final CurrentAuthentication currentAuthentication;
+    private final SecurityProperties securityProperties;
+
+    public DepartmentDatasetConstraintProvider(CurrentAuthentication currentAuthentication,
+                                               SecurityProperties securityProperties) {
+        this.currentAuthentication = currentAuthentication;
+        this.securityProperties = securityProperties;
+    }
+
+    public List&lt;DatasetConstraint&gt; getConstraints() {
+        Department department = getDepartment();
+        if (hasDepartmentConstraintRole() &amp;&amp; department != null) {
+            return List.of(new DatasetConstraint(24, "department_name = '" + department.getName() + "'"));
+        }
+        return List.of();
+    }
+
+    private boolean hasDepartmentConstraintRole() {
+        Authentication authentication = currentAuthentication.getAuthentication();
+        return authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -&gt;
+                        grantedAuthority.getAuthority().equals(
+                                securityProperties.getDefaultRowLevelRolePrefix() + DepartmentConstraintRole.CODE));
+    }
+
+    private Department getDepartment() {
+        User user = (User) currentAuthentication.getUser();
+        return user.getDepartment();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The bean is used in the <code>datasetConstraintsProvider</code> handler that can be generated from the Jmix UI inspector panel:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DepartmentDatasetConstraintProvider departmentDatasetConstraintProvider;
+
+@Install(to = "dashboard", subject = "datasetConstraintsProvider")
+private List&lt;DatasetConstraint&gt; dashboardDatasetConstraintsProvider() {
+    return departmentDatasetConstraintProvider.getConstraints();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>dashboard</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="chartControlsVisible"></a><code>chartControlsVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Sets whether chart controls are visible.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="chart controls example" src="../../../superset/_images/chart-controls-example.png"/>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="embeddedId"></a><code>embeddedId</code></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Sets the embedded dashboard ID from Superset. See <a class="xref page" href="../../../superset/dashboard.html#create-dashboard">Create Dashboard</a>.</p>
+</div>
+<div class="paragraph">
+<p>The ID is required for fetching a guest token and loading the dashboard. Changing it reloads the dashboard; without it, the component shows a stub image.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Enable the <code>EMBEDDED_SUPERSET</code> feature flag as described in <a class="xref page" href="../../../superset/configuration.html#enable-embedding-dashboards">Embedded Dashboards</a>.
+</td>
+</tr>
+</table>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="filtersExpanded"></a><code>filtersExpanded</code></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Sets whether the filters bar is expanded.</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="titleVisible"></a><code>titleVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Sets whether the title bar is visible.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="title visible example" src="../../../superset/_images/title-visible-example.png"/>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>dashboard</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following handler is specific to <code>dashboard</code>:</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="datasetConstraintsProvider"></a><code>datasetConstraintsProvider</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Provides dataset constraints dynamically when the dashboard requests a guest token. See <a href="#dataset-constraints-provider">Dataset Constraints Provider</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>dashboard</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <code>dashboard</code> can include the <code>datasetConstraints</code> element containing zero or more <code>datasetConstraint</code> elements. Each <code>datasetConstraint</code> requires a <code>datasetId</code> attribute and contains the SQL condition as its text content. See <a href="#static-dataset-constraints">Static Dataset Constraints</a>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

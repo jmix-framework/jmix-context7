@@ -27,7 +27,6 @@ custom-login.xml
 
 
 
-
 CustomLoginSample.java
 
 package io.jmix.uisamples.view.flowui.cookbook.customlogin;

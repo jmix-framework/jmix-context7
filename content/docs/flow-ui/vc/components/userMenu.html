@@ -11,12 +11,12 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>userMenu</code> component displays a button that, when clicked, opens a dropdown menu containing a list of items.</p>
+<p><code>userMenu</code> displays the current user and opens a menu of user-related actions.</p>
 </div>
-<table class="tableblock frame-all grid-none stretch">
+<table class="tableblock frame-none grid-none fit-content">
 <colgroup>
-<col style="width: 14.2857%;"/>
-<col style="width: 85.7143%;"/>
+<col/>
+<col/>
 </colgroup>
 <tbody>
 <tr>
@@ -26,40 +26,6 @@
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>UserMenu</code></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-attributes.html#id">id</a> -
-<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
-<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
-<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
-<a class="xref page" href="../common-attributes.html#css">css</a> -
-<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
-<a class="xref page" href="../common-attributes.html#focusShortcut">focusShortcut</a> -
-<a href="#openOnHover">openOnHover</a> -
-<a class="xref page" href="comboBox.html#overlayClass">overlayClass</a> -
-<a class="xref page" href="../common-attributes.html#tabIndex">tabIndex</a> -
-<a href="#theme-variants">themeNames</a> -
-<a class="xref page" href="../common-attributes.html#title">title</a> -
-<a class="xref page" href="../common-attributes.html#visible">visible</a></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock">Handlers</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
-<a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
-<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
-<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a> -
-<a href="#UserChangedEvent">UserChangedEvent</a> -
-<a href="#buttonRenderer">buttonRenderer</a> -
-<a href="#headerRenderer">headerRenderer</a></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#actionItem">actionItem</a> -
-<a href="#componentItem">componentItem</a> -
-<a href="#separator">separator</a> -
-<a href="#textItem">textItem</a> -
-<a href="#viewItem">viewItem</a></p></td>
 </tr>
 </tbody>
 </table>
@@ -74,11 +40,6 @@ Users click this button to access the dropdown menu.</p>
 </div>
 <div class="paragraph">
 <p>The dropdown menu contains a list of actions, each represented by a clickable item or submenu.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="user menu basic" src="../../_images/visual-components/components/user-menu-basic.png" width="240"/>
-</div>
 </div>
 <div class="paragraph">
 <p>Here’s an example of defining a <code>userMenu</code> with default button renderer and several menu items:</p>
@@ -107,7 +68,435 @@ Users click this button to access the dropdown menu.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="elements"><a class="anchor" href="#elements"></a>Elements</h2>
+<h2 id="renderers"><a class="anchor" href="#renderers"></a>Renderers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The framework provides flexibility in customizing the content of the button and the optional menu header.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="button-renderer"><a class="anchor" href="#button-renderer"></a>Custom Button Renderer</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can set a button renderer either using the <code>setButtonRenderer()</code> method or the <code>@Install</code> annotation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.onboarding.entity.User;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.avatar.AvatarVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.server.streams.DownloadHandler;
+import com.vaadin.flow.server.streams.DownloadResponse;
+import io.jmix.core.FileRef;
+import io.jmix.core.FileStorage;
+import io.jmix.flowui.UiComponents;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+
+// class declaration and annotations omitted
+
+    @Autowired
+    private UiComponents uiComponents;
+    @Autowired
+    private FileStorage fileStorage;
+
+    @Install(to = "userMenu", subject = "buttonRenderer")
+    private Component userMenuButtonRenderer(final UserDetails userDetails) {
+        if (!(userDetails instanceof User user)) {
+            return null;
+        }
+
+        String userName = generateUserName(user);
+        Avatar avatar = createAvatar(userName, user.getPicture());
+        Span name = uiComponents.create(Span.class);
+        name.setText(userName);
+        name.addClassName(LumoUtility.TextColor.BODY);
+
+        HorizontalLayout content = uiComponents.create(HorizontalLayout.class);
+        content.setAlignItems(FlexComponent.Alignment.CENTER);
+        content.add(avatar, name);
+        content.addClassNames( <i class="conum" data-value="1"></i><b>(1)</b>
+                LumoUtility.Padding.Horizontal.MEDIUM,
+                LumoUtility.Padding.Vertical.SMALL);
+
+        return content;
+    }
+
+    private String generateUserName(User user) {
+        String userName = String.format("%s %s",
+                        Strings.nullToEmpty(user.getFirstName()),
+                        Strings.nullToEmpty(user.getLastName()))
+                .trim();
+
+        return userName.isEmpty() ? user.getUsername() : userName;
+    }
+
+    private Avatar createAvatar(String fullName, @Nullable FileRef fileRef) {
+        Avatar avatar = uiComponents.create(Avatar.class); <i class="conum" data-value="2"></i><b>(2)</b>
+        avatar.setName(fullName); <i class="conum" data-value="3"></i><b>(3)</b>
+        avatar.getElement().setAttribute("tabindex", "-1"); <i class="conum" data-value="4"></i><b>(4)</b>
+
+        if (fileRef != null) {
+            avatar.setImageHandler( <i class="conum" data-value="5"></i><b>(5)</b>
+                    DownloadHandler.fromInputStream(event -&gt;
+                            new DownloadResponse(
+                                    fileStorage.openStream(fileRef),
+                                    fileRef.getFileName(),
+                                    fileRef.getContentType(),
+                                    -1
+                            )
+                    )
+            );
+        }
+
+        return avatar;
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Default <code>HorizontalLayout</code> padding is too big, we add padding using styles.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>Avatar</code> component instance is created using the <code>UiComponents</code> factory.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The full user name is passed to <code>Avatar</code> to generate fallback initials when no image is available.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>avatar</code> is focusable by default, but it doesn’t provide a Java API to disable focus. Remove the tab index, so only the <code>userMenu</code> component can receive focus.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><code>DownloadHandler</code> streams the avatar image from file storage by the reference stored in the <code>picture</code> attribute of the <code>User</code> entity.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="header-renderer"><a class="anchor" href="#header-renderer"></a>Custom Header Renderer</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Header renderer defines the content displayed at the top of the menu. You can set a header renderer using either the <code>setHeaderRenderer()</code> method or the <code>@Install</code> annotation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.onboarding.entity.User;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.avatar.AvatarVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.server.streams.DownloadHandler;
+import com.vaadin.flow.server.streams.DownloadResponse;
+import io.jmix.core.FileRef;
+import io.jmix.core.FileStorage;
+import io.jmix.flowui.UiComponents;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+
+// class declaration and annotations omitted
+
+    @Autowired
+    private UiComponents uiComponents;
+    @Autowired
+    private FileStorage fileStorage;
+
+    @Install(to = "userMenu", subject = "headerRenderer")
+    private Component userMenuHeaderRenderer(final UserDetails userDetails) {
+        if (!(userDetails instanceof User user)) {
+            return null;
+        }
+
+        String name = generateUserName(user);
+
+        Avatar avatar = createAvatar(name, user.getPicture());
+        avatar.addThemeVariants(AvatarVariant.LUMO_LARGE);
+        avatar.addClassName("user-menu-avatar");
+
+        Span text = uiComponents.create(Span.class);
+        text.setText(name);
+        text.setClassName("user-menu-text");
+
+        Div content = uiComponents.create(Div.class);
+        content.setClassName("user-menu-header-content"); <i class="conum" data-value="1"></i><b>(1)</b>
+        content.add(avatar, text);
+
+        if (name.equals(user.getUsername())) {
+            text.addClassNames("user-menu-text-subtext");
+        } else {
+            Span subtext = uiComponents.create(Span.class);
+            subtext.setText(user.getUsername());
+            subtext.setClassName("user-menu-subtext");
+
+            content.add(subtext);
+        }
+
+        return content;
+    }
+
+    private String generateUserName(User user) {
+        String userName = String.format("%s %s",
+                        Strings.nullToEmpty(user.getFirstName()),
+                        Strings.nullToEmpty(user.getLastName()))
+                .trim();
+
+        return userName.isEmpty() ? user.getUsername() : userName;
+    }
+
+    private Avatar createAvatar(String fullName, @Nullable FileRef fileRef) {
+        Avatar avatar = uiComponents.create(Avatar.class); <i class="conum" data-value="2"></i><b>(2)</b>
+        avatar.setName(fullName); <i class="conum" data-value="3"></i><b>(3)</b>
+        avatar.getElement().setAttribute("tabindex", "-1"); <i class="conum" data-value="4"></i><b>(4)</b>
+
+        if (fileRef != null) {
+            avatar.setImageHandler( <i class="conum" data-value="5"></i><b>(5)</b>
+                    DownloadHandler.fromInputStream(event -&gt;
+                            new DownloadResponse(
+                                    fileStorage.openStream(fileRef),
+                                    fileRef.getFileName(),
+                                    fileRef.getContentType(),
+                                    -1
+                            )
+                    )
+            );
+        }
+
+        return avatar;
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Component positions are defined using styles.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>Avatar</code> component instance is created using the <code>UiComponents</code> factory.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The full user name is passed to <code>Avatar</code> to generate fallback initials when no image is available.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>avatar</code> is focusable by default, but it doesn’t provide a Java API to disable focus. Remove the tab index, so only the <code>userMenu</code> component can receive focus.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><code>DownloadHandler</code> streams the avatar image from file storage by the reference stored in the <code>picture</code> attribute of the <code>User</code> entity.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.user-menu-header-content {
+    display: grid;
+    grid-template: "avatar text"
+                   "avatar subtext";
+    grid-template-columns: auto 1fr;
+    column-gap: var(--lumo-space-s);
+
+    width: 100%;
+    box-sizing: border-box;
+
+    color: var(--lumo-body-text-color);
+    padding: var(--lumo-space-xs) var(--lumo-space-l) var(--lumo-space-xs) var(--lumo-space-s);
+}
+
+.user-menu-header-content &gt; .user-menu-avatar {
+    grid-area: avatar;
+    align-self: center;
+}
+
+.user-menu-header-content &gt; .user-menu-text {
+    grid-area: text;
+
+    color: var(--lumo-body-text-color);
+    font-weight: 700;
+    font-size: var(--lumo-font-size-m);
+}
+
+.user-menu-header-content &gt; .user-menu-text-subtext {
+    grid-row: text / subtext;
+}
+
+.user-menu-header-content &gt; .user-menu-text {
+    align-self: center;
+    text-align: start;
+
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-menu-header-content &gt; .user-menu-subtext {
+    grid-area: subtext;
+    align-self: center;
+    text-align: start;
+
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xs);
+
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="variants"><a class="anchor" href="#variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to apply one or more theme variants.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 66.6666%;"/>
+<col style="width: 16.6668%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variant</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Supported By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tertiary</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Removes the background from the main button.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>non-checkable</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Removes the area used to display a check mark.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The <code>non-checkable</code> theme can be applied to both the <code>userMenu</code> component and individual menu items.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If a submenu contains checkable items, apply <code>non-checkable</code> to each first-level item individually.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>userMenu</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="openOnHover"></a><code>openOnHover</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If the <code>openOnHover</code> attribute is <code>true</code>, the drop-down list of items is opened automatically when the field is focused using a mouse or touch.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>userMenu</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#focusShortcut">focusShortcut</a> -
+<a class="xref page" href="../common-attributes.html#tabIndex">tabIndex</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#title">title</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following handlers are specific to <code>userMenu</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="UserChangedEvent"></a><code>UserChangedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>io.jmix.flowui.kit.component.usermenu.JmixUserMenu.UserChangedEvent</code> is fired when the user associated with the user menu component changes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="buttonRenderer"></a><code>buttonRenderer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the <code>Renderer</code> responsible to render the button’s content based on the current user. See <a href="#button-renderer">Button Renderer</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="headerRenderer"></a><code>headerRenderer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the <code>Renderer</code> responsible to render the header’s content based on the current user. See <a href="#header-renderer">Header Renderer</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>userMenu</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p><code>userMenu</code> defined in the XML descriptor can contain nested elements:</p>
@@ -289,11 +678,6 @@ public void onUserMenuTextContactUsMenuItemClick(final UserMenuItem.HasClickList
 <div class="paragraph">
 <p>The <code>textItem</code> and <code>componentItem</code> elements support nested items, which allows you to define a hierarchical menu.</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="user menu nested" src="../../_images/visual-components/components/user-menu-nested.png" width="330"/>
-</div>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;userMenu&gt;
@@ -311,429 +695,6 @@ public void onUserMenuTextContactUsMenuItemClick(final UserMenuItem.HasClickList
 </div>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 16.6666%;"/>
-<col style="width: 66.6666%;"/>
-<col style="width: 16.6668%;"/>
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Variant</th>
-<th class="tableblock halign-left valign-top">Description</th>
-<th class="tableblock halign-left valign-top">Supported By</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tertiary</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Removes the background from the main button.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>non-checkable</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Removes the area used to display a check mark.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>The <code>non-checkable</code> theme can be applied to both the <code>userMenu</code> component and individual menu items.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-If a submenu contains checkable items, apply <code>non-checkable</code> to each first-level item individually.
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="renderers"><a class="anchor" href="#renderers"></a>Renderers</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The framework provides flexibility in customizing the content of the button and the optional menu header.</p>
-</div>
-<div class="sect2">
-<h3 id="button-renderer"><a class="anchor" href="#button-renderer"></a>Button Renderer</h3>
-<div class="paragraph">
-<p>You can set a button renderer either using the <code>setButtonRenderer()</code> method or the <code>@Install</code> annotation.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="user menu button renderer" src="../../_images/visual-components/components/user-menu-button-renderer.png" width="196"/>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.onboarding.entity.User;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.avatar.Avatar;
-import com.vaadin.flow.component.avatar.AvatarVariant;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.server.streams.DownloadHandler;
-import com.vaadin.flow.server.streams.DownloadResponse;
-import io.jmix.core.FileRef;
-import io.jmix.core.FileStorage;
-import io.jmix.flowui.UiComponents;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-
-// class declaration and annotations omitted
-
-    @Autowired
-    private UiComponents uiComponents;
-    @Autowired
-    private FileStorage fileStorage;
-
-    @Install(to = "userMenu", subject = "buttonRenderer")
-    private Component userMenuButtonRenderer(final UserDetails userDetails) {
-        if (!(userDetails instanceof User user)) {
-            return null;
-        }
-
-        String userName = generateUserName(user);
-        Avatar avatar = createAvatar(userName, user.getPicture());
-        Span name = uiComponents.create(Span.class);
-        name.setText(userName);
-        name.addClassName(LumoUtility.TextColor.BODY);
-
-        HorizontalLayout content = uiComponents.create(HorizontalLayout.class);
-        content.setAlignItems(FlexComponent.Alignment.CENTER);
-        content.add(avatar, name);
-        content.addClassNames( <i class="conum" data-value="1"></i><b>(1)</b>
-                LumoUtility.Padding.Horizontal.MEDIUM,
-                LumoUtility.Padding.Vertical.SMALL);
-
-        return content;
-    }
-
-    private String generateUserName(User user) {
-        String userName = String.format("%s %s",
-                        Strings.nullToEmpty(user.getFirstName()),
-                        Strings.nullToEmpty(user.getLastName()))
-                .trim();
-
-        return userName.isEmpty() ? user.getUsername() : userName;
-    }
-
-    private Avatar createAvatar(String fullName, @Nullable FileRef fileRef) {
-        Avatar avatar = uiComponents.create(Avatar.class); <i class="conum" data-value="2"></i><b>(2)</b>
-        avatar.setName(fullName); <i class="conum" data-value="3"></i><b>(3)</b>
-        avatar.getElement().setAttribute("tabindex", "-1"); <i class="conum" data-value="4"></i><b>(4)</b>
-
-        if (fileRef != null) {
-            avatar.setImageHandler( <i class="conum" data-value="5"></i><b>(5)</b>
-                    DownloadHandler.fromInputStream(event -&gt;
-                            new DownloadResponse(
-                                    fileStorage.openStream(fileRef),
-                                    fileRef.getFileName(),
-                                    fileRef.getContentType(),
-                                    -1
-                            )
-                    )
-            );
-        }
-
-        return avatar;
-    }</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Default <code>HorizontalLayout</code> padding is too big, we add padding using styles.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>The <code>Avatar</code> component instance is created using the <code>UiComponents</code> factory.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>The full user name is passed to <code>Avatar</code> to generate fallback initials when no image is available.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><code>avatar</code> is focusable by default, but it doesn’t provide a Java API to disable focus. Remove the tab index, so only the <code>userMenu</code> component can receive focus.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><code>DownloadHandler</code> streams the avatar image from file storage by the reference stored in the <code>picture</code> attribute of the <code>User</code> entity.</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="header-renderer"><a class="anchor" href="#header-renderer"></a>Header Renderer</h3>
-<div class="paragraph">
-<p>Header renderer defines the content displayed at the top of the menu. You can set a header renderer using either the <code>setHeaderRenderer()</code> method or the <code>@Install</code> annotation.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="user menu header renderer" src="../../_images/visual-components/components/user-menu-header-renderer.png" width="234"/>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.company.onboarding.entity.User;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.avatar.Avatar;
-import com.vaadin.flow.component.avatar.AvatarVariant;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.server.streams.DownloadHandler;
-import com.vaadin.flow.server.streams.DownloadResponse;
-import io.jmix.core.FileRef;
-import io.jmix.core.FileStorage;
-import io.jmix.flowui.UiComponents;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-
-// class declaration and annotations omitted
-
-    @Autowired
-    private UiComponents uiComponents;
-    @Autowired
-    private FileStorage fileStorage;
-
-    @Install(to = "userMenu", subject = "headerRenderer")
-    private Component userMenuHeaderRenderer(final UserDetails userDetails) {
-        if (!(userDetails instanceof User user)) {
-            return null;
-        }
-
-        String name = generateUserName(user);
-
-        Avatar avatar = createAvatar(name, user.getPicture());
-        avatar.addThemeVariants(AvatarVariant.LUMO_LARGE);
-        avatar.addClassName("user-menu-avatar");
-
-        Span text = uiComponents.create(Span.class);
-        text.setText(name);
-        text.setClassName("user-menu-text");
-
-        Div content = uiComponents.create(Div.class);
-        content.setClassName("user-menu-header-content"); <i class="conum" data-value="1"></i><b>(1)</b>
-        content.add(avatar, text);
-
-        if (name.equals(user.getUsername())) {
-            text.addClassNames("user-menu-text-subtext");
-        } else {
-            Span subtext = uiComponents.create(Span.class);
-            subtext.setText(user.getUsername());
-            subtext.setClassName("user-menu-subtext");
-
-            content.add(subtext);
-        }
-
-        return content;
-    }
-
-    private String generateUserName(User user) {
-        String userName = String.format("%s %s",
-                        Strings.nullToEmpty(user.getFirstName()),
-                        Strings.nullToEmpty(user.getLastName()))
-                .trim();
-
-        return userName.isEmpty() ? user.getUsername() : userName;
-    }
-
-    private Avatar createAvatar(String fullName, @Nullable FileRef fileRef) {
-        Avatar avatar = uiComponents.create(Avatar.class); <i class="conum" data-value="2"></i><b>(2)</b>
-        avatar.setName(fullName); <i class="conum" data-value="3"></i><b>(3)</b>
-        avatar.getElement().setAttribute("tabindex", "-1"); <i class="conum" data-value="4"></i><b>(4)</b>
-
-        if (fileRef != null) {
-            avatar.setImageHandler( <i class="conum" data-value="5"></i><b>(5)</b>
-                    DownloadHandler.fromInputStream(event -&gt;
-                            new DownloadResponse(
-                                    fileStorage.openStream(fileRef),
-                                    fileRef.getFileName(),
-                                    fileRef.getContentType(),
-                                    -1
-                            )
-                    )
-            );
-        }
-
-        return avatar;
-    }</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Component positions are defined using styles.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>The <code>Avatar</code> component instance is created using the <code>UiComponents</code> factory.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>The full user name is passed to <code>Avatar</code> to generate fallback initials when no image is available.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><code>avatar</code> is focusable by default, but it doesn’t provide a Java API to disable focus. Remove the tab index, so only the <code>userMenu</code> component can receive focus.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><code>DownloadHandler</code> streams the avatar image from file storage by the reference stored in the <code>picture</code> attribute of the <code>User</code> entity.</td>
-</tr>
-</table>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.user-menu-header-content {
-    display: grid;
-    grid-template: "avatar text"
-                   "avatar subtext";
-    grid-template-columns: auto 1fr;
-    column-gap: var(--lumo-space-s);
-
-    width: 100%;
-    box-sizing: border-box;
-
-    color: var(--lumo-body-text-color);
-    padding: var(--lumo-space-xs) var(--lumo-space-l) var(--lumo-space-xs) var(--lumo-space-s);
-}
-
-.user-menu-header-content &gt; .user-menu-avatar {
-    grid-area: avatar;
-    align-self: center;
-}
-
-.user-menu-header-content &gt; .user-menu-text {
-    grid-area: text;
-
-    color: var(--lumo-body-text-color);
-    font-weight: 700;
-    font-size: var(--lumo-font-size-m);
-}
-
-.user-menu-header-content &gt; .user-menu-text-subtext {
-    grid-row: text / subtext;
-}
-
-.user-menu-header-content &gt; .user-menu-text {
-    align-self: center;
-    text-align: start;
-
-    width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.user-menu-header-content &gt; .user-menu-subtext {
-    grid-area: subtext;
-    align-self: center;
-    text-align: start;
-
-    color: var(--lumo-secondary-text-color);
-    font-size: var(--lumo-font-size-xs);
-
-    width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p><a class="xref page" href="../common-attributes.html">Common attributes</a> serve the same purpose for all components.</p>
-</div>
-<div class="paragraph">
-<p>The following attributes are specific to <code>userMenu</code>:</p>
-</div>
-<table class="tableblock frame-none grid-rows stretch">
-<colgroup>
-<col style="width: 14.2857%;"/>
-<col style="width: 71.4285%;"/>
-<col style="width: 14.2858%;"/>
-</colgroup>
-<tbody>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Default</strong></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="openOnHover"></a>openOnHover</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">If the <code>openOnHover</code> attribute is <code>true</code>, the drop-down list of items is opened automatically when the field is focused using a mouse or touch.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="sect1">
-<h2 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p><a class="xref page" href="../common-handlers.html">Common handlers</a> are configured in the same way for all components.
-The following handlers are specific to <code>userMenu</code>:</p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<table class="tableblock frame-none grid-rows stretch">
-<colgroup>
-<col style="width: 14.2857%;"/>
-<col style="width: 85.7143%;"/>
-</colgroup>
-<tbody>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="UserChangedEvent"></a>UserChangedEvent</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>io.jmix.flowui.kit.component.usermenu.JmixUserMenu.UserChangedEvent</code> is fired when the user associated with the user menu component changes.</p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="buttonRenderer"></a>buttonRenderer</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the <code>Renderer</code> responsible to render the button’s content based on the current user. See <a href="#button-renderer">Button Renderer</a>.</p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="headerRenderer"></a>headerRenderer</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the <code>Renderer</code> responsible to render the header’s content based on the current user. See <a href="#header-renderer">Header Renderer</a>.</p></td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 

@@ -10,56 +10,39 @@
 <h1 class="page">entityComboBox</h1>
 <div id="preamble">
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>entityComboBox</code> lets users select an <a class="xref page" href="../../../data-model/entities.html">entity</a> instance from a drop-down list and run actions for it.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>entityComboBox</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EntityComboBox</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
 <div class="jmix-ui-live-demo-container">
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/entity-combobox-simple" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>An input field to select an <a class="xref page" href="../../../data-model/entities.html">entity</a> instance from a drop-down list and perform relevant actions. These can be both predefined actions such as updating instance details, as well as custom actions to perform more specific tasks.</p>
-</div>
-<div class="paragraph">
-<p>This component is, in fact, a hybrid of the <a class="xref page" href="comboBox.html">comboBox</a> and <a class="xref page" href="entityPicker.html">entityPicker</a> components.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML element: <code>entityComboBox</code></p>
-</li>
-<li>
-<p>Java class: <code>EntityComboBox</code></p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
-<div class="sectionbody">
-<div class="paragraph">
 <p>The <code>entityComboBox</code> component is commonly used when the field value must represent a reference to an entity. It enables users to select a particular entity instance with the ability to perform relevant actions.</p>
 </div>
 <div class="paragraph">
-<p>Clicking the field or arrow button opens a drop-down list containing all existing instances of the entity:</p>
+<p>Clicking the field or arrow button opens a drop-down list containing all existing instances of the entity.</p>
 </div>
-<table class="tableblock frame-none grid-none stretch">
-<colgroup>
-<col style="width: 50%;"/>
-<col style="width: 50%;"/>
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="imageblock text-center">
-<div class="content">
-<img alt="entity combobox basics" src="../../_images/visual-components/components/entity-combobox-basics.png" width="220"/>
-</div>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="imageblock text-center">
-<div class="content">
-<img alt="entity combobox basics 2" src="../../_images/visual-components/components/entity-combobox-basics-2.png" width="220"/>
-</div>
-</div></div></td>
-</tr>
-</tbody>
-</table>
 <div class="paragraph">
 <p>Note that unless you have configured <a href="#lazy-loading">lazy loading</a>, the component will load a list of all available instances into both the browser’s memory and the server’s memory. This can consume substantial system resources and may impact performance, especially for large number of items. Furthermore, users may find it challenging to search for a specific instance within a lengthy drop-down list.</p>
 </div>
@@ -75,75 +58,49 @@ If the expected number of items is large, such as thousands or more, or if makin
 </tr>
 </table>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="quick-start"><a class="anchor" href="#quick-start"></a>Quick Start</h2>
-<div class="sectionbody">
 <div class="paragraph">
-<p>The following example demonstrates how to use the <code>entityCombobox</code> component to select the department the user belongs to:</p>
+<p>The following example uses <code>entityComboBox</code> to select the department to which a user belongs:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
-    &lt;instance class="com.company.onboarding.entity.User"
-              id="userDc"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-        &lt;fetchPlan extends="_base"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
-            &lt;property name="department" fetchPlan="_base"/&gt;
+    &lt;instance id="orderDc"
+              class="io.jmix.uisamples.entity.Order"&gt;
+        &lt;fetchPlan extends="_local"&gt;
+            &lt;property name="customer" fetchPlan="_local"/&gt;
         &lt;/fetchPlan&gt;
-        &lt;loader id="userDl"/&gt;
     &lt;/instance&gt;
-    &lt;collection class="com.company.onboarding.entity.Department"
-                id="departmentsDc"&gt; <i class="conum" data-value="3"></i><b>(3)</b>
-        &lt;fetchPlan extends="_base"/&gt;
-        &lt;loader id="departmentsDl"&gt;
+    &lt;collection id="customersDc"
+                class="io.jmix.uisamples.entity.Customer"
+                fetchPlan="_local"&gt;
+        &lt;loader id="customersDl"&gt;
             &lt;query&gt;
-                &lt;![CDATA[select e from Department e]]&gt;
+                &lt;![CDATA[select e from Customer e]]&gt;
             &lt;/query&gt;
         &lt;/loader&gt;
     &lt;/collection&gt;
 &lt;/data&gt;
 &lt;facets&gt;
-    &lt;dataLoadCoordinator auto="true"/&gt; <i class="conum" data-value="4"></i><b>(4)</b>
+    &lt;dataLoadCoordinator auto="true"/&gt;
 &lt;/facets&gt;
 &lt;layout&gt;
-    &lt;entityComboBox dataContainer="userDc"
-                    property="department"
-                    itemsContainer="departmentsDc"&gt; <i class="conum" data-value="5"></i><b>(5)</b>
+    &lt;entityComboBox dataContainer="orderDc"
+                    itemsContainer="customersDc"
+                    property="customer"
+                    width="15em"
+                    label="With actions"&gt;
         &lt;actions&gt;
-            &lt;action id="entityClear" type="entity_clear"/&gt; <i class="conum" data-value="6"></i><b>(6)</b>
+            &lt;action id="lookup" type="entity_lookup"/&gt;
+            &lt;action id="clear" type="entity_clear"/&gt;
         &lt;/actions&gt;
     &lt;/entityComboBox&gt;
+    &lt;entityComboBox dataContainer="orderDc"
+                    itemsContainer="customersDc"
+                    property="customer"
+                    width="15em"
+                    label="Without actions"/&gt;
 &lt;/layout&gt;</code></pre>
 </div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Data container to hold the <code>User</code> instance which is currently being edited.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Fetch plan extended to retrieve a collection of <code>Department</code> instances that will be available for selection.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Data container to hold a collection of all existing <code>Department</code> instances.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Data load coordinator to automatically supply the component with instances to select from.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td>Binding the component to a data container and property. Specifying the container that holds the list of items to be selected.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="6"></i><b>6</b></td>
-<td>Adding a predefined action to clear the selection.</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>For more interactive examples of the <code>entityComboBox</code> and its variations, see:</p>
@@ -161,13 +118,16 @@ If the expected number of items is large, such as thousands or more, or if makin
 </div>
 </div>
 <div class="sect1">
-<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data-aware <code>entityComboBox</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Data binding refers to linking a visual component to a data container. Changes in the visual component or corresponding data container can trigger updates to one another. See <a class="xref page" href="../../data/data-examples.html">Using Data Components</a> for more details.</p>
+<p>Use the <code>dataContainer</code> and <code>property</code> attributes to bind <code>entityComboBox</code> to an entity attribute. The data container provides the entity instance, <code>property</code> identifies the reference attribute to update, and <code>itemsContainer</code> supplies the entities available for selection.</p>
 </div>
-<div class="sect2">
-<h3 id="_select_an_instance"><a class="anchor" href="#_select_an_instance"></a>Select an instance</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_selecting_an_entity"><a class="anchor" href="#_selecting_an_entity"></a>Selecting an Entity</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>If you simply need a way to select an instance of a specific entity, specify that entity using the <code>metaClass</code> attribute. To specify a collection of instances for selection use the <a href="#itemsContainer">itemsContainer</a> attribute.</p>
 </div>
@@ -180,10 +140,12 @@ If the expected number of items is large, such as thousands or more, or if makin
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_select_an_instance_to_update_a_related_attribute"><a class="anchor" href="#_select_an_instance_to_update_a_related_attribute"></a>Select an instance to update a related attribute</h3>
+</div>
+<div class="sect1">
+<h2 id="_updating_a_related_entity_attribute"><a class="anchor" href="#_updating_a_related_entity_attribute"></a>Updating a Related Entity Attribute</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>Selecting an instance is often intended to update an attribute within another instance. In the <a href="#quick-start">example above</a>, selecting a <code>Department</code> instance updates the <code>User</code> instance by associating it with the chosen department.</p>
+<p>Selecting an instance is often intended to update an attribute within another instance. In the <a href="#basics">example above</a>, selecting a <code>Department</code> instance updates the <code>User</code> instance by associating it with the chosen department.</p>
 </div>
 <div class="paragraph">
 <p>In such cases you will need to bind the component to the data container holding the instance and specify the attribute to be updated using the <a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> and <a class="xref page" href="../common-attributes.html#property">property</a> attributes respectively. To specify a collection of instances for selection use the <a href="#itemsContainer">itemsContainer</a> attribute.</p>
@@ -199,24 +161,54 @@ If the expected number of items is large, such as thousands or more, or if makin
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="actions"><a class="anchor" href="#actions"></a>Actions</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/entity-combobox-simple" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>Initially <code>entityComboBox</code> does not have any actions. You need to add them explicitly, for example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityComboBox dataContainer="userDc"
-                property="department"
-                itemsContainer="departmentsDc"&gt;
-    &lt;actions&gt;
-        &lt;action id="entityClear" type="entity_clear"/&gt;
-        &lt;action id="entityLookup" type="entity_lookup"/&gt;
-        &lt;action id="entityOpen" type="entity_open"/&gt;
-    &lt;/actions&gt;
-&lt;/entityComboBox&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance id="orderDc"
+              class="io.jmix.uisamples.entity.Order"&gt;
+        &lt;fetchPlan extends="_local"&gt;
+            &lt;property name="customer" fetchPlan="_local"/&gt;
+        &lt;/fetchPlan&gt;
+    &lt;/instance&gt;
+    &lt;collection id="customersDc"
+                class="io.jmix.uisamples.entity.Customer"
+                fetchPlan="_local"&gt;
+        &lt;loader id="customersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Customer e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;entityComboBox dataContainer="orderDc"
+                    itemsContainer="customersDc"
+                    property="customer"
+                    width="15em"
+                    label="With actions"&gt;
+        &lt;actions&gt;
+            &lt;action id="lookup" type="entity_lookup"/&gt;
+            &lt;action id="clear" type="entity_clear"/&gt;
+        &lt;/actions&gt;
+    &lt;/entityComboBox&gt;
+    &lt;entityComboBox dataContainer="orderDc"
+                    itemsContainer="customersDc"
+                    property="customer"
+                    width="15em"
+                    label="Without actions"/&gt;
+&lt;/layout&gt;</code></pre>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -241,59 +233,65 @@ If the expected number of items is large, such as thousands or more, or if makin
 <div class="sect1">
 <h2 id="lazy-loading"><a class="anchor" href="#lazy-loading"></a>Lazy Loading</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/entity-combobox-items-query" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>The component supports loading items in batches in response to user input, rather than loading all items at once. This helps to ensure a smooth user experience, even when dealing with a large number of items.</p>
 </div>
-<div class="sect2">
-<h3 id="declarative-lazy-loading"><a class="anchor" href="#declarative-lazy-loading"></a>Declarative Configuration</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="declarative-lazy-loading"><a class="anchor" href="#declarative-lazy-loading"></a>Declarative Items Query</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>To implement lazy loading in the view descriptor, instead of specifying the <code>itemsContainer</code> attribute configure the <code>itemsQuery</code> nested element. For example, to load at most 30 items and show them in the list, do the following:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityComboBox metaClass="Department" pageSize="30"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-    &lt;itemsQuery class="com.company.onboarding.entity.User"
-                searchStringFormat="(?i)%${inputString}%"
-                escapeValueForLike="true"
-                fetchPlan="_instance_name"&gt; <i class="conum" data-value="2"></i><b>(2)</b>
-        &lt;query&gt;
-            &lt;![CDATA[select e from Department e where e.name like :searchString order by e.name]]&gt; <i class="conum" data-value="3"></i><b>(3)</b>
-        &lt;/query&gt;
-    &lt;/itemsQuery&gt;
-&lt;/entityComboBox&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout&gt;
+    &lt;tabSheet id="tabSheet" width="100%"&gt;
+        &lt;tab id="declarativeTab" label="Declaratively"&gt;
+            &lt;entityComboBox id="declarativeEntityComboBox" label="Customer"
+                            metaClass="Customer"&gt;
+                &lt;actions&gt;
+                    &lt;action id="entityLookup" type="entity_lookup"/&gt;
+                    &lt;action id="entityClear" type="entity_clear"/&gt;
+                &lt;/actions&gt;
+                &lt;itemsQuery class="io.jmix.uisamples.entity.Customer"
+                            searchStringFormat="(?i)%${inputString}%"
+                            escapeValueForLike="true"
+                            fetchPlan="_local"&gt;
+                    &lt;query&gt;
+                        &lt;![CDATA[select e from Customer e where e.name
+                        like :searchString escape '\' order by e.name asc]]&gt;
+                    &lt;/query&gt;
+                &lt;/itemsQuery&gt;
+            &lt;/entityComboBox&gt;
+        &lt;/tab&gt;
+        &lt;tab id="programmaticTab" label="Programmatic"&gt;
+            &lt;entityComboBox id="programmaticEntityComboBox" label="Customer"
+                            metaClass="Customer"&gt;
+                &lt;actions&gt;
+                    &lt;action id="entityLookup" type="entity_lookup"/&gt;
+                    &lt;action id="entityClear" type="entity_clear"/&gt;
+                &lt;/actions&gt;
+            &lt;/entityComboBox&gt;
+        &lt;/tab&gt;
+    &lt;/tabSheet&gt;
+&lt;/layout&gt;</code></pre>
 </div>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The <code>pageSize</code> attribute defines the batch size when loading data from the database. It is 50 by default.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Attributes in the <code>itemsQuery</code> provide control over the fetching process. They are as follows:
-<div class="ulist">
-<ul>
-<li>
-<p><code>class</code> – specifies a full qualified name of the entity class which instances will be fetched.</p>
-</li>
-<li>
-<p><code>searchStringFormat</code> – a string that contains a variable placeholder, which is subsequently replaced with an actual value.</p>
-</li>
-<li>
-<p><code>escapeValueForLike</code> – specifies whether to search for values containing special symbols. By default, this value is <code>false</code>.</p>
-</li>
-<li>
-<p><code>fetchPlan</code> – and optional descriptor of inline fetch plan.</p>
-</li>
-</ul>
-</div></td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>A JPQL query.</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>The <code>pageSize</code> attribute defines the batch size when loading data from the database. It is 50 by default.</p>
+</div>
+<div class="paragraph">
+<p>Attributes in the <code>itemsQuery</code> provide control over the fetching process. They are as follows:
+    *  <code>class</code> – specifies a full qualified name of the entity class which instances will be fetched.
+    *  <code>searchStringFormat</code> – a string that contains a variable placeholder, which is subsequently replaced with an actual value.
+    * <code>escapeValueForLike</code> – specifies whether to search for values containing special symbols. By default, this value is <code>false</code>.
+    * <code>fetchPlan</code> – and optional descriptor of inline fetch plan.
+A JPQL query specifies the items to load.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -310,36 +308,77 @@ If the expected number of items is large, such as thousands or more, or if makin
 </table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="programmatic-lazy-loading"><a class="anchor" href="#programmatic-lazy-loading"></a>Programmatic Configuration</h3>
+</div>
+<div class="sect1">
+<h2 id="programmatic-lazy-loading"><a class="anchor" href="#programmatic-lazy-loading"></a>Programmatic Items Fetching</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Items fetching can also be defined programmatically using the <code>itemsFetchCallback</code> handler. For example:</p>
 </div>
 <div class="listingblock">
+<div class="title">XML</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityComboBox id="departmentComboBox" metaClass="Department"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout&gt;
+    &lt;tabSheet id="tabSheet" width="100%"&gt;
+        &lt;tab id="declarativeTab" label="Declaratively"&gt;
+            &lt;entityComboBox id="declarativeEntityComboBox" label="Customer"
+                            metaClass="Customer"&gt;
+                &lt;actions&gt;
+                    &lt;action id="entityLookup" type="entity_lookup"/&gt;
+                    &lt;action id="entityClear" type="entity_clear"/&gt;
+                &lt;/actions&gt;
+                &lt;itemsQuery class="io.jmix.uisamples.entity.Customer"
+                            searchStringFormat="(?i)%${inputString}%"
+                            escapeValueForLike="true"
+                            fetchPlan="_local"&gt;
+                    &lt;query&gt;
+                        &lt;![CDATA[select e from Customer e where e.name
+                        like :searchString escape '\' order by e.name asc]]&gt;
+                    &lt;/query&gt;
+                &lt;/itemsQuery&gt;
+            &lt;/entityComboBox&gt;
+        &lt;/tab&gt;
+        &lt;tab id="programmaticTab" label="Programmatic"&gt;
+            &lt;entityComboBox id="programmaticEntityComboBox" label="Customer"
+                            metaClass="Customer"&gt;
+                &lt;actions&gt;
+                    &lt;action id="entityLookup" type="entity_lookup"/&gt;
+                    &lt;action id="entityClear" type="entity_clear"/&gt;
+                &lt;/actions&gt;
+            &lt;/entityComboBox&gt;
+        &lt;/tab&gt;
+    &lt;/tabSheet&gt;
+&lt;/layout&gt;</code></pre>
 </div>
 </div>
 <div class="listingblock">
+<div class="title">Java</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
-private EntityComboBox&lt;Department&gt; departmentField;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+protected DataManager dataManager;
 
-@Install(to = "departmentComboBox", subject = "itemsFetchCallback")
-private Stream&lt;Department&gt; departmentFieldItemsFetchCallback(final Query&lt;Department, String&gt; query) {
-    String param = query.getFilter().orElse("");
-    return dataManager.load(Department.class)
-            .condition(PropertyCondition.contains("name", param).skipNullOrEmpty())
-            .firstResult(query.getOffset())
-            .maxResults(query.getLimit())
-            .list()
-            .stream();
+protected Collection&lt;Customer&gt; customers;
+
+@Subscribe
+protected void onInit(InitEvent event) {
+    customers = dataManager.load(Customer.class).all().list();
+}
+
+@Install(to = "programmaticEntityComboBox", subject = "itemsFetchCallback")
+protected Stream&lt;Customer&gt; programmaticEntityComboBoxItemsFetchCallback(Query&lt;Customer, String&gt; query) {
+    String enteredValue = query.getFilter()
+            .orElse("");
+
+    return customers.stream()
+            .filter(customer -&gt; customer.getName() != null &amp;&amp;
+                    customer.getName().toLowerCase().contains(enteredValue.toLowerCase()))
+            .skip(query.getOffset())
+            .limit(query.getLimit());
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>In this example, data is fetched using <a class="xref page" href="../../../data-access/data-manager.html">DataManager</a>, but you can use this approach to load from a custom service as well.</p>
-</div>
 </div>
 </div>
 </div>
@@ -373,10 +412,10 @@ private Renderer&lt;Department&gt; departmentRenderer() {
 </div>
 </div>
 <div class="sect1">
-<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<h2 id="variants"><a class="anchor" href="#variants"></a>Theme Variants</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to apply one or more theme variants.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -435,13 +474,63 @@ private Renderer&lt;Department&gt; departmentRenderer() {
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following attributes are specific to <code>entityComboBox</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="allowCustomValue"></a><code>allowCustomValue</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If the <code>allowCustomValue</code> attribute is <code>true</code>, the user can input string values that do not match any existing item labels, which will fire <a href="#CustomValueSetEvent">CustomValueSetEvent</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="autoOpen"></a><code>autoOpen</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls whether the item overlay opens when the field receives focus.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemsContainer"></a><code>itemsContainer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the name of a data container which contains a list of items.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="metaClass"></a><code>metaClass</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the meta class.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="opened"></a><code>opened</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether the drop-down list should be opened or not.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="pageSize"></a><code>pageSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the page size.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>entityComboBox</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
 <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
-<a href="#allowCustomValue">allowCustomValue</a> -
 <a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
 <a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
 <a class="xref page" href="../common-attributes.html#allowedCharPattern">allowedCharPattern</a> -
-<a class="xref page" href="comboBox.html#autoOpen">autoOpen</a> -
 <a class="xref page" href="../common-attributes.html#autofocus">autofocus</a> -
 <a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
 <a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
@@ -452,16 +541,11 @@ private Renderer&lt;Department&gt; departmentRenderer() {
 <a class="xref page" href="../common-attributes.html#focusShortcut">focusShortcut</a> -
 <a class="xref page" href="../common-attributes.html#height">height</a> -
 <a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
-<a href="#itemsContainer">itemsContainer</a> -
 <a class="xref page" href="../common-attributes.html#label">label</a> -
 <a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
 <a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
-<a class="xref page" href="entityPicker.html#metaClass">metaClass</a> -
 <a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
 <a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
-<a href="#opened">opened</a> -
-<a class="xref page" href="../common-attributes.html#overlayClass">overlayClass</a> -
-<a class="xref page" href="comboBox.html#pageSize">pageSize</a> -
 <a class="xref page" href="../common-attributes.html#pattern">pattern</a> -
 <a class="xref page" href="../common-attributes.html#placeholder">placeholder</a> -
 <a class="xref page" href="../common-attributes.html#property">property</a> -
@@ -474,118 +558,54 @@ private Renderer&lt;Department&gt; departmentRenderer() {
 <a class="xref page" href="../common-attributes.html#visible">visible</a> -
 <a class="xref page" href="../common-attributes.html#width">width</a></p>
 </div>
-<div class="sect2">
-<h3 id="allowCustomValue"><a class="anchor" href="#allowCustomValue"></a>allowCustomValue</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/combo-box/#custom-value-entry" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>If the <code>allowCustomValue</code> attribute is <code>true</code>, the user can input string values that do not match any existing item labels, which will fire <a href="#CustomValueSetEvent">CustomValueSetEvent</a>.</p>
-</div>
-<div class="paragraph">
-<p>Note that <code>entityComboBox</code> doesn’t do anything with the custom value string automatically. Use <code>CustomValueSetEvent</code> to determine how the custom value should be handled.</p>
-</div>
-<div class="paragraph">
-<p>Default is <code>false</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="itemsContainer"><a class="anchor" href="#itemsContainer"></a>itemsContainer</h3>
-<div class="paragraph">
-<p>Sets the name of a data container which contains a list of items. The component will display the <a class="xref page" href="../../../data-model/entities.html#instance-name">instance name</a> of an entity instance.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="opened"><a class="anchor" href="#opened"></a>opened</h3>
-<div class="paragraph">
-<p>Sets whether the drop-down list should be opened or not.</p>
-</div>
-<div class="paragraph">
-<p>Default is <code>false</code>.</p>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following handlers are specific to <code>entityComboBox</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="CustomValueSetEvent"></a><code>CustomValueSetEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>com.vaadin.flow.component.combobox.ComboBoxBase.CustomValueSetEvent</code> is fired when the user enters a non-empty value that does not match any of the existing items.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemLabelGenerator"></a><code>itemLabelGenerator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Provides the text shown for each item.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="validator"></a><code>validator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validates the component value.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>renderer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Provides the component used to render each item. See <a href="#renderer">Custom Renderer</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>entityComboBox</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
 <a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
 <a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
-<a href="#CustomValueSetEvent">CustomValueSetEvent</a> -
 <a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
 <a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a> -
-<a class="xref page" href="comboBox.html#itemLabelGenerator">itemLabelGenerator</a> -
-<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a> -
-<a class="xref page" href="textField.html#validator">validator</a> -
-<a href="#renderer">renderer</a></p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="CustomValueSetEvent"><a class="anchor" href="#CustomValueSetEvent"></a>CustomValueSetEvent</h3>
-<div class="paragraph">
-<p><code>com.vaadin.flow.component.combobox.ComboBoxBase.CustomValueSetEvent</code> is fired when the user enters a non-empty value that does not match any of the existing items. To enable input custom values, set the <a href="#allowCustomValue">allowCustomValue</a> attribute to <code>true</code>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityComboBox dataContainer="userDc"
-                property="department"
-                itemsContainer="departmentsDc"
-                id="departmentField"
-                allowCustomValue="true"/&gt;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
-private CollectionContainer&lt;Department&gt; departmentsDc;
-
-@ViewComponent
-private EntityComboBox&lt;Department&gt; departmentField;
-
-@Autowired
-private DataManager dataManager;
-
-@Subscribe("departmentField")
-public void onDepartmentFieldCustomValueSet(ComboBoxBase.CustomValueSetEvent
-                                                    &lt;ComboBox&lt;Department&gt;&gt; event) {
-    Department department = dataManager.create(Department.class); <i class="conum" data-value="1"></i><b>(1)</b>
-    department.setName(event.getDetail()); <i class="conum" data-value="2"></i><b>(2)</b>
-    departmentsDc.getMutableItems().add(department); <i class="conum" data-value="3"></i><b>(3)</b>
-    departmentField.setValue(department);
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Create a new instance and merge it into the context.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Set the name of the newly created <code>department</code> entity.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Add merged entity.</td>
-</tr>
-</table>
-</div>
+<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a></p>
 </div>
 </div>
 </div>
@@ -593,12 +613,7 @@ public void onDepartmentFieldCustomValueSet(ComboBoxBase.CustomValueSetEvent
 <h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="#actions">actions</a> -
-<a href="#fragment-renderer">fragmentRenderer</a> -
-<a href="#declarative-lazy-loading">itemsQuery</a> -
-<a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a> -
-<a class="xref page" href="tooltip.html">tooltip</a> -
-<a class="xref page" href="../miscellaneous/validator.html">validator</a></p>
+<p>An <code>entityComboBox</code> can include <a href="#actions">actions</a>, <a href="#fragment-renderer">fragmentRenderer</a>, <a href="#declarative-lazy-loading">itemsQuery</a>, <a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a>, <a class="xref page" href="tooltip.html">tooltip</a>, and <a class="xref page" href="../miscellaneous/validator.html">validator</a> as its nested elements.</p>
 </div>
 </div>
 </div>

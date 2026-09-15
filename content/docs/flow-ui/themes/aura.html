@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Theme :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Aura Theme</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a href="https://vaadin.com/docs/v25/styling/themes/aura" rel="noopener" target="_blank">Aura theme</a> is the default Vaadin theme for new Jmix projects. It provides styles for all Vaadin components and a set of CSS properties for changing colors, typography, sizes, spacing, and shapes.</p>
+</div>
+<div class="paragraph">
+<p>Jmix adds its own Aura stylesheet for Jmix components and standard Jmix views.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="applying-aura"><a class="anchor" href="#applying-aura"></a>Applying Aura</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An Aura application loads styles in the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The Vaadin Aura stylesheet applies the standard Aura theme.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="themes.html#application-theme-files">Jmix Aura stylesheet</a> provides styles for Jmix components and standard Jmix views.</p>
+</li>
+<li>
+<p>The application stylesheet provides project-specific styles.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The order matters because styles loaded later can override styles loaded earlier. Each layer corresponds to a <code>@StyleSheet</code> annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@StyleSheet(Aura.STYLESHEET)
+@StyleSheet(JmixAura.STYLESHEET)
+@StyleSheet("themes/my-project-aura/styles.css")
+public class MyProjectApplication implements AppShellConfigurator {
+    // ...
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="application-files"><a class="anchor" href="#application-files"></a>Application Files</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Aura application styles are located in:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">src/main/resources/META-INF/resources/themes/my-project-aura</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="themes.html#application-theme-files">Application Theme Files</a> for the complete directory structure.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="customizing-aura"><a class="anchor" href="#customizing-aura"></a>Customizing Aura</h2>
+<div class="sectionbody">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use the <a href="https://vaadin.github.io/web-components/aura.html" rel="noopener" target="_blank">Aura Theme Editor</a> to configure the theme and export the CSS. Use the exported properties in your application as shown below.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Aura provides CSS properties with the <code>--aura-</code> prefix. Vaadin components also provide common and component-specific properties with the <code>--vaadin-</code> prefix.</p>
+</div>
+<div class="paragraph">
+<p>Add theme properties to the application CSS file in the active Aura theme directory. For example, add them to <code>src/main/resources/META-INF/resources/themes/my-project-aura/my-project.css</code>.</p>
+</div>
+<div class="paragraph">
+<p>Set the properties on the <code>html</code> element to apply them to the whole application:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/META-INF/resources/themes/my-project-aura/my-project.css</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html {
+    --aura-accent-color-light: #006b57;
+    --aura-accent-color-dark: #72d5bb;
+    --aura-base-font-size: 15;
+    --aura-base-radius: 4;
+    --aura-base-size: 20;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See the <a href="https://vaadin.com/docs/v25/styling/themes/aura" rel="noopener" target="_blank">Aura documentation</a> for the complete property reference.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="styling-ui-components.html">Styling UI Components</a> for ways to style UI components.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="accent-and-surface-color-class-names"><a class="anchor" href="#accent-and-surface-color-class-names"></a>Accent and Surface Color Class Names</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Aura provides class names for applying accent and surface colors to components and custom UI elements. Apply them using the <code>classNames</code> XML attribute.</p>
+</div>
+<div class="paragraph">
+<p>For example, <code>aura-accent-red</code> and <code>aura-accent-purple</code> change the accent color of an element, while <code>aura-surface</code> and <code>aura-surface-solid</code> apply an Aura surface color.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button text="Delete" classNames="aura-accent-red"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See the <a href="https://vaadin.com/docs/v25/styling/themes/aura/color" rel="noopener" target="_blank">Aura color reference</a> for the complete list of Aura color classes and their usage.</p>
+</div>
+<div class="paragraph">
+<p>When applying Aura class names in Java, pass them to <code>addClassName()</code> or <code>addClassNames()</code>.</p>
+</div>
+<div class="paragraph">
+<p>The Jmix Aura stylesheet also includes theme-independent Jmix utility classes. Their Java constants are defined by the <code>io.jmix.flowui.theme.StyleUtility</code> class.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="color-schemes"><a class="anchor" href="#color-schemes"></a>Color Schemes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Aura supports light and dark color schemes. You can select a fixed color scheme or allow users to switch between light, dark, and system settings.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="switching-color-scheme.html">Switching Color Scheme</a>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

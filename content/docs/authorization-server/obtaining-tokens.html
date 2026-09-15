@@ -510,7 +510,7 @@ spring.security.oauth2.authorizationserver.client.myclient.token.refresh-token-t
 </div>
 </div>
 <div class="paragraph">
-<p>By default, if <a class="xref page" href="configuration.html#jmix.authserver.use-in-memory-authorization-service">jmix.authserver.use-in-memory-authorization-service</a> is <code>false</code>, the tokens are serialized and stored in the database. In case of Password grant, the token contains the <code>User</code> entity, so you need to define a bean of the <code>JdbcOAuth2AuthorizationServiceObjectMapperCustomizer</code> type in your application and implement it as follows:</p>
+<p>By default, if <a class="xref page" href="configuration.html#jmix.authserver.use-in-memory-authorization-service">jmix.authserver.use-in-memory-authorization-service</a> is <code>false</code>, the tokens are serialized and stored in the database. In case of Password grant, the token contains the <code>User</code> entity, so you need to define a bean of the <code>JdbcOAuth2AuthorizationServiceJsonMapperCustomizer</code> type in your application and implement it as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -524,8 +524,20 @@ JdbcOAuth2AuthorizationServiceJsonMapperCustomizer tokenObjectMapperCustomizer()
 <div class="paragraph">
 <p>Here <code>User</code> is your user entity class.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Since Jmix 3.0, the customizer receives a <code>JsonMapper.Builder</code>, so mixins and other JSON mapping settings should be registered on the builder.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
-<p>If you get <code>java.lang.IllegalArgumentException: The class …​ is not in the allowlist</code> when using a token, it means that your user entity contains fields of types not supported by the token serializer by default. Then create a mixin class extending <code>DefaultOAuth2TokenUserMixin</code> and use it in the <code>JdbcOAuth2AuthorizationServiceObjectMapperCustomizer</code> bean. For example:</p>
+<p>If you get <code>java.lang.IllegalArgumentException: The class …​ is not in the allowlist</code> when using a token, it means that your user entity contains fields of types not supported by the token serializer by default. Then create a mixin class extending <code>DefaultOAuth2TokenUserMixin</code> and use it in the <code>JdbcOAuth2AuthorizationServiceJsonMapperCustomizer</code> bean. For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">

@@ -10,16 +10,13 @@
 <h1 class="page">listBox</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/list-box-simple" target="_blank">LIVE DEMO</a>
-</div>
 <div class="paragraph">
 <p><code>listBox</code> allows users to select a single value from a scrollable list of items.</p>
 </div>
-<table class="tableblock frame-all grid-none stretch">
+<table class="tableblock frame-none grid-none fit-content">
 <colgroup>
-<col style="width: 14.2857%;"/>
-<col style="width: 85.7143%;"/>
+<col/>
+<col/>
 </colgroup>
 <tbody>
 <tr>
@@ -30,93 +27,96 @@
 <th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>JmixListBox</code></p></td>
 </tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-attributes.html#id">id</a> -
-<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
-<a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
-<a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
-<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
-<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
-<a class="xref page" href="../common-attributes.html#css">css</a> -
-<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
-<a class="xref page" href="../common-attributes.html#height">height</a> -
-<a class="xref page" href="entityComboBox.html#itemsContainer">itemsContainer</a> -
-<a class="xref page" href="comboBox.html#itemsEnum">itemsEnum</a> -
-<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
-<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
-<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
-<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
-<a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
-<a class="xref page" href="../common-attributes.html#visible">visible</a> -
-<a class="xref page" href="../common-attributes.html#width">width</a></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock">Handlers</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
-<a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
-<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
-<a href="#disabled-items">itemEnabledProvider</a> -
-<a class="xref page" href="comboBox.html#itemLabelGenerator">itemsLabelGenerator</a> -
-<a href="#renderer">renderer</a></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#fragment-renderer">fragmentRenderer</a> - <a class="xref page" href="tooltip.html">tooltip</a></p></td>
-</tr>
 </tbody>
 </table>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p><code>listbox</code> can be populated with items from either an enumeration or collection of entities.</p>
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/list-box-simple" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>Use the <a class="xref page" href="comboBox.html#items-enum">itemsEnum</a> attribute to directly specify the name of the enumeration class:</p>
+<p>A <code>listBox</code> can be populated programmatically with <code>setItems()</code>. Components such as separators can be inserted between particular items.</p>
 </div>
 <div class="listingblock">
+<div class="title">XML</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;listBox itemsEnum="com.company.onboarding.entity.OnboardingStatus"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox width="AUTO"&gt;
+    &lt;h4 text="Simple ListBox"/&gt;
+    &lt;listBox id="listBox"/&gt;
+&lt;/vbox&gt;
+&lt;vbox width="AUTO"&gt;
+    &lt;h4 text="ListBox with separator"/&gt;
+    &lt;listBox id="listBox2"/&gt;
+&lt;/vbox&gt;</code></pre>
 </div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected JmixListBox&lt;String&gt; listBox;
+@ViewComponent
+protected JmixListBox&lt;String&gt; listBox2;
+
+@Subscribe
+protected void onInit(InitEvent event) {
+    List&lt;String&gt; items = List.of("Jmix", "Vaadin", "SpringBoot", "EclipseLink");
+    listBox.setItems(items);
+    listBox2.setItems(items);
+
+    listBox.setValue("Jmix");
+    listBox2.setValue("Jmix");
+
+    listBox2.addComponents("Vaadin", new Hr());
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="items-container"><a class="anchor" href="#items-container"></a>Items from a Data Container</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/list-box-dataaware" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>In case of entities, first define a collection container and then pass its name to the <a class="xref page" href="entityComboBox.html#itemsContainer">itemsContainer</a> attribute:</p>
+<p>Use <code>itemsContainer</code> to populate the component with entities from a collection data container.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
-    &lt;collection class="com.company.onboarding.entity.City" id="citiesDc"&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-        &lt;fetchPlan extends="_base"/&gt;
-        &lt;loader id="citiesDl"&gt;
+    &lt;collection id="productsDc"
+                class="io.jmix.uisamples.entity.Product"
+                fetchPlan="_local"&gt;
+        &lt;loader id="productsDl"&gt;
             &lt;query&gt;
-                &lt;![CDATA[select e from City e]]&gt;
+                &lt;![CDATA[select e from Product e]]&gt;
             &lt;/query&gt;
         &lt;/loader&gt;
     &lt;/collection&gt;
 &lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
 &lt;layout&gt;
-    &lt;listBox itemsContainer="citiesDc"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+    &lt;listBox itemsContainer="productsDc"/&gt;
 &lt;/layout&gt;</code></pre>
 </div>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><code>CollectionContainer</code> for the <code>City</code> entity.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><code>citiesDc</code> is set as an items container for the component.</td>
-</tr>
-</table>
 </div>
-<div class="imageblock text-center">
+</div>
+<div class="sect1">
+<h2 id="enum-items"><a class="anchor" href="#enum-items"></a>Enumeration Items</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use <code>itemsEnum</code> to populate <code>listBox</code> with the values of an enumeration:</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<img alt="list box basics" src="../../_images/visual-components/components/list-box-basics.png" width="125"/>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;listBox itemsEnum="com.company.onboarding.entity.OnboardingStatus"/&gt;</code></pre>
 </div>
 </div>
 </div>
@@ -135,13 +135,32 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "listBox", subject = "itemEnabledProvider")
-private boolean listBoxItemEnabledProvider(final User user) {
-    if (user == null) {
-        return true;
-    }
-    return user.getOnboardingStatus() == OnboardingStatus.COMPLETED;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected JmixListBox&lt;Product&gt; listBox;
 
+@Subscribe
+protected void onInit(InitEvent event) {
+    initListBox();
+}
+
+protected void initListBox() {
+    listBox.setItems(getListBoxItems());
+    listBox.setItemEnabledProvider(product -&gt; product.count() &gt; 0);
+}
+
+@Supply(to = "listBox", subject = "renderer")
+protected ComponentRenderer&lt;Text, Product&gt; listBoxRenderer() {
+    return new ComponentRenderer&lt;&gt;(product -&gt; new Text(product.getDisplayName()));
+}
+
+protected Collection&lt;Product&gt; getListBoxItems() {
+    return List.of(
+            new Product("TV set", 4),
+            new Product("Keyboard", 13),
+            new Product("Earphones", 0),
+            new Product("Telephone", 23),
+            new Product("Laptop", 0)
+    );
 }</code></pre>
 </div>
 </div>
@@ -160,42 +179,66 @@ private boolean listBoxItemEnabledProvider(final User user) {
 <p>The framework provides flexibility in customizing the rendering of items. You can use either the <code>setRenderer()</code> method or the <code>@Supply</code> annotation to achieve this.</p>
 </div>
 <div class="listingblock">
+<div class="title">XML</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;listBox id="listBox" itemsContainer="usersDc"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layout classNames="list-box-custom-renderer"&gt;
+    &lt;listBox id="listBox"/&gt;
+&lt;/layout&gt;</code></pre>
 </div>
 </div>
 <div class="listingblock">
+<div class="title">Java</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
-private UiComponents uiComponents;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">protected static final String PATH_PREFIX = "/META-INF/resources/icons/";
+
+@ViewComponent
+protected JmixListBox&lt;Simpson&gt; listBox;
+
 @Autowired
-private FileStorage fileStorage;
+protected UiComponents uiComponents;
+@Autowired
+protected Resources resources;
+
+@Subscribe
+protected void onInit(InitEvent event) {
+    listBox.setItems(getListBoxItems());
+}
 
 @Supply(to = "listBox", subject = "renderer")
-private ComponentRenderer&lt;HorizontalLayout, User&gt; listBoxRenderer() {
-    return new ComponentRenderer&lt;&gt;(user -&gt; {
-        FileRef fileRef = user.getPicture();
+protected ComponentRenderer&lt;HorizontalLayout, Simpson&gt; listBoxRenderer() {
+    return new ComponentRenderer&lt;&gt;(simpson -&gt; {
         HorizontalLayout row = uiComponents.create(HorizontalLayout.class);
-        row.setAlignItems(FlexComponent.Alignment.END);
-        if (fileRef != null) {
-            Image image = uiComponents.create(Image.class);
-            image.setWidth("30px");
-            image.setHeight("30px");
-            image.setClassName("user-picture");
-            InputStreamDownloadHandler handler =
-                    DownloadHandler.fromInputStream(event -&gt;
-                            new DownloadResponse(
-                                    fileStorage.openStream(fileRef),
-                                    fileRef.getFileName(),
-                                    fileRef.getContentType(),
-                                    -1
-                            ));
-            image.setSrc(handler);
-            row.add(image);
-        }
-        row.add(new Span(user.getFirstName() + ", " + user.getLastName()));
+        row.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Avatar avatar = uiComponents.create(Avatar.class);
+        avatar.setImageHandler(getSimpsonImageHandler(simpson));
+
+        Span name = new Span(simpson.name());
+        Span shortName = new Span(simpson.shortName());
+        shortName.addClassNames("short-name");
+
+        VerticalLayout column = uiComponents.create(VerticalLayout.class);
+        column.add(name, shortName);
+        column.setPadding(false);
+        column.setSpacing(false);
+
+        row.add(avatar, column);
+        row.addClassName("row");
         return row;
     });
+}
+
+protected List&lt;Simpson&gt; getListBoxItems() {
+    return List.of(
+            new Simpson("Homer Jay Simpson", "Homer", "homer-simpson.png"),
+            new Simpson("Marjorie Jacqueline Simpson", "Marge", "marge-simpson.png"),
+            new Simpson("Bartholomew Jojo Simpson", "Bart", "bart-simpson.png")
+    );
+}
+
+protected DownloadHandler getSimpsonImageHandler(Simpson simpson) {
+    String picture = simpson.picture();
+    return DownloadHandler.forClassResource(getClass(), PATH_PREFIX + picture);
 }</code></pre>
 </div>
 </div>
@@ -205,10 +248,119 @@ private ComponentRenderer&lt;HorizontalLayout, User&gt; listBoxRenderer() {
 </div>
 </div>
 <div class="sect1">
-<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>See the <a href="https://vaadin.com/docs/v25/components/list-box" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<p>The following attributes are specific to <code>listBox</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemsContainer"></a><code>itemsContainer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the items container.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemsEnum"></a><code>itemsEnum</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the items enum.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>listBox</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following handlers are specific to <code>listBox</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemEnabledProvider"></a><code>itemEnabledProvider</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Determines whether each item is enabled. See <a href="#disabled-items">Disabled Items</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemsLabelGenerator"></a><code>itemsLabelGenerator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Provides the text shown for each item.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>renderer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Provides the component used to render each item. See <a href="#renderer">Rendering Items</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>listBox</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <code>listBox</code> can include <a href="#fragment-renderer">fragmentRenderer</a> and <a class="xref page" href="tooltip.html">tooltip</a> as its nested elements.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/list-box" rel="noopener" target="_blank">Vaadin List Box documentation</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

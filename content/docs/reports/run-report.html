@@ -226,6 +226,80 @@ public void onInitEntity(final InitEntityEvent&lt;Book&gt; event) {
 </div>
 </div>
 <div class="sect1">
+<h2 id="spreadsheet-viewer"><a class="anchor" href="#spreadsheet-viewer"></a>Opening Reports within the Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Instead of downloading a generated XLS or XLSX report as a file, you can open it in a spreadsheet viewer inside the application. Users review the document, edit it, and download the edited version in its original format. This is provided by the separate <a class="xref page" href="../report-spreadsheet/index.html">Report Spreadsheet</a> add-on.</p>
+</div>
+<div class="paragraph">
+<p>Once the add-on is installed, the <strong>Run and open in spreadsheet</strong> action appears next to the standard run action in the <a class="xref page" href="reports-ui.html#run-report-view">Run report</a> and <a class="xref page" href="reports-ui.html">Reports</a> views. The action is enabled only for reports that have at least one template producing XLS or XLSX output, and the input parameters dialog offers only those templates and output types.</p>
+</div>
+<div class="paragraph">
+<p>The action opens the generated document in the spreadsheet viewer, where the user can:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Edit cells directly in the browser.</p>
+</li>
+<li>
+<p>Download the current state of the workbook with the <strong>Download</strong> button. The file is downloaded in the format of the generated document and includes the edits made in the viewer.</p>
+</li>
+<li>
+<p>Switch from a dialog to a full page with the <strong>Open in view</strong> button, which is convenient for large documents.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The viewer also opens previously generated documents. If the <a class="xref page" href="exec-history.html">execution history</a> is enabled and <a class="xref page" href="exec-history.html#history_output_documents">output documents</a> are saved, the <strong>Open in Spreadsheet</strong> action of the <strong>Execution history</strong> view opens a stored XLS or XLSX result.</p>
+</div>
+<div class="sect2">
+<h3 id="spreadsheet-viewer-permissions"><a class="anchor" href="#spreadsheet-viewer-permissions"></a>Permissions</h3>
+<div class="paragraph">
+<p>The spreadsheet viewer is a separate view, <code>report_ReportSpreadsheetView</code>. Access to it is granted by the <strong>Reports: open report result in spreadsheet</strong> resource role with the <code>report-spreadsheet-run</code> code. Assign this role in addition to the <a class="xref page" href="creation/permissions.html">reports roles</a> to the users who should open report results in a spreadsheet. Users without it do not see the spreadsheet actions.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="spreadsheet-viewer-open-mode"><a class="anchor" href="#spreadsheet-viewer-open-mode"></a>Open Mode</h3>
+<div class="paragraph">
+<p>By default, the spreadsheet viewer is shown as a modal dialog. Set the <a class="xref page" href="configuration.html#jmix.reports.spreadsheet.output-open-mode">jmix.reports.spreadsheet.output-open-mode</a> application property to <code>NAVIGATION</code> to open it as a full page instead:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">jmix.reports.spreadsheet.output-open-mode = NAVIGATION</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="spreadsheet-report-runner"><a class="anchor" href="#spreadsheet-report-runner"></a>SpreadsheetReportRunner</h3>
+<div class="paragraph">
+<p>To open a report in the spreadsheet viewer from your own code, build a <code>UiReportRunContext</code> with the fluent interface of <a href="#ui-report-runner">UiReportRunner</a> and pass it to <code>SpreadsheetReportRunner</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiReportRunner uiReportRunner;
+@Autowired
+private SpreadsheetReportRunner spreadsheetReportRunner;
+
+@Subscribe("openInSpreadsheetBtn")
+public void onOpenInSpreadsheetBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    UiReportRunContext context = uiReportRunner.byReportCode("orders-report")
+            .addParam("customer", customer)
+            .withParametersDialogShowMode(ParametersDialogShowMode.IF_REQUIRED)
+            .buildContext();
+
+    spreadsheetReportRunner.runAndShow(context);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the report produces output that the spreadsheet viewer cannot render, the result is handled in the same way as with a regular run: the document is downloaded.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="reports-api"><a class="anchor" href="#reports-api"></a>Reports API</h2>
 <div class="sectionbody">
 <div class="admonitionblock tip">

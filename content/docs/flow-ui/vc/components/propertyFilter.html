@@ -10,52 +10,69 @@
 <h1 class="page">propertyFilter</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/property-filter-simple" target="_blank">LIVE DEMO</a>
-</div>
 <div class="paragraph">
-<p><code>propertyFilter</code> defines a filtering condition based on a particular property of an <a class="xref page" href="../../../data-model/entities.html">entity</a>.</p>
+<p><code>propertyFilter</code> filters data by an attribute of an <a class="xref page" href="../../../data-model/entities.html">entity</a>.</p>
 </div>
-<div class="paragraph">
-<p>The component can be used independently or as part of the <a class="xref page" href="genericFilter.html">genericFilter</a> component.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML element: <code>propertyFilter</code></p>
-</li>
-<li>
-<p>Java class: <code>PropertyFilter</code></p>
-</li>
-</ul>
-</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>propertyFilter</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PropertyFilter</code></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
 <h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/property-filter-simple" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>At its simplest, <code>propertyFilter</code> consists of an input field preceded by the name of the property being filtered and the operation being used.</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="property filter basics" src="../../_images/visual-components/components/property-filter-basics.png" width="315"/>
-</div>
-</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;propertyFilter dataLoader="usersDl"
-                operation="EQUAL"
-                property="department"/&gt; <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="ordersDc"
+                class="io.jmix.uisamples.entity.Order"
+                fetchPlan="_local"&gt;
+        &lt;loader id="ordersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from uisamples_Order e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;propertyFilter property="amount"
+                    operation="GREATER_OR_EQUAL"
+                    dataLoader="ordersDl"/&gt;
+    &lt;dataGrid id="orderDataGrid"
+              dataContainer="ordersDc"
+              width="100%"
+              minHeight="20em"&gt;
+        &lt;columns&gt;
+            &lt;column property="date"/&gt;
+            &lt;column property="customer"/&gt;
+            &lt;column property="amount"/&gt;
+            &lt;column property="description"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
 </div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td><a href="#dataLoader">dataLoader</a>, <a href="#operation">operation</a>, and <a href="#property">property</a> are required attributes.</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>This component filters data loaded to a data container. It is commonly used in conjunction with <a class="xref page" href="dataGrid.html">dataGrid</a> or <a class="xref page" href="treeDataGrid.html">treeDataGrid</a> components, which are bound to the same container. This combination allows for precise control over the rows displayed.</p>
@@ -65,92 +82,161 @@
 <div class="sect1">
 <h2 id="filtering-operations"><a class="anchor" href="#filtering-operations"></a>Filtering Operations</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/property-filter-editable-operation" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
-<p>The component supports numerous filtering <a href="#operation">operations</a>. You can limit it to a specific operation or allow users to choose the operation they want at runtime using the <a href="#operationEditable">operationEditable</a> attribute.</p>
+<p>The <a href="#operation">operation</a> attribute specifies the filtering operation. The operations supported by the component depend on the type of the property specified in the <a href="#property">property</a> attribute.</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="property filter operation editable" src="../../_images/visual-components/components/property-filter-operation-editable.png" width="340"/>
-</div>
+<div class="paragraph">
+<p>By default, the operation is fixed and the operation selector is hidden. Set <a href="#operationEditable">operationEditable</a> to <code>true</code> to let users select another supported operation at runtime:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;propertyFilter dataLoader="usersDl"
-                operation="EQUAL"
-                property="department"
-                operationEditable="true"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="customersDc"
+                class="io.jmix.uisamples.entity.Customer"
+                fetchPlan="_local"&gt;
+        &lt;loader id="customersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Customer e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;propertyFilter id="propertyFilter"
+                    property="name"
+                    operation="CONTAINS"
+                    operationEditable="true"
+                    dataLoader="customersDl"/&gt;
+    &lt;dataGrid id="customersDataGrid"
+              dataContainer="customersDc"
+              width="100%"
+              minHeight="20em"&gt;
+        &lt;columns&gt;
+            &lt;column property="name"/&gt;
+            &lt;column property="lastName"/&gt;
+            &lt;column property="age"/&gt;
+            &lt;column property="active"/&gt;
+            &lt;column property="grade"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The list of available operations depends on the property type.</p>
+<p>To make only a subset of the supported operations available, specify their names in the <a href="#operationsList">operationsList</a> attribute, separated by commas or whitespace. In Java, use the <code>setOperationsList()</code> method.</p>
+</div>
+<div class="paragraph">
+<p>The component ignores operations in <code>operationsList</code> that are not supported for the property type. The operation specified by <code>operation</code> must be supported for the property type and, if <code>operationsList</code> is set, included in that list. Otherwise, an exception is thrown.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data-aware <code>propertyFilter</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Data binding refers to linking a visual component to a data container. Changes in the visual component or corresponding data container can trigger updates to one another. See <a class="xref page" href="../../data/data-examples.html">Using Data Components</a> for more details.</p>
+<p>Set <code>dataLoader</code> to the loader that <code>propertyFilter</code> should constrain and <code>property</code> to the entity attribute used in the condition. The loader can populate either a <a class="xref page" href="../../data/collection-container.html">collection container</a> or a <a class="xref page" href="../../data/key-value-containers.html">key-value container</a>.</p>
 </div>
-<div class="paragraph">
-<p>Property filter can filter data loaded to either <a class="xref page" href="../../data/collection-container.html">collection container</a> or <a class="xref page" href="../../data/key-value-containers.html">key-value container</a>.</p>
 </div>
-<div class="sect2">
-<h3 id="collection-container"><a class="anchor" href="#collection-container"></a>Collection Container</h3>
+</div>
+<div class="sect1">
+<h2 id="collection-container"><a class="anchor" href="#collection-container"></a>Property Filter with a Collection Container</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/property-filter-simple" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>The following example demonstrates setting up <code>propertyFilter</code> to work with a collection container:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
-    &lt;collection class="com.company.onboarding.entity.User" id="usersDc"&gt;
-        &lt;fetchPlan extends="_base"&gt;
-            &lt;property name="department" fetchPlan="_base"/&gt;
-        &lt;/fetchPlan&gt;
-        &lt;loader id="usersDl"&gt;
+    &lt;collection id="ordersDc"
+                class="io.jmix.uisamples.entity.Order"
+                fetchPlan="_local"&gt;
+        &lt;loader id="ordersDl"&gt;
             &lt;query&gt;
-                &lt;![CDATA[select e from User e]]&gt;
+                &lt;![CDATA[select e from uisamples_Order e]]&gt;
             &lt;/query&gt;
         &lt;/loader&gt;
     &lt;/collection&gt;
 &lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
 &lt;layout&gt;
-    &lt;propertyFilter dataLoader="usersDl"
-                    operation="EQUAL"
-                    property="department"/&gt;
+    &lt;propertyFilter property="amount"
+                    operation="GREATER_OR_EQUAL"
+                    dataLoader="ordersDl"/&gt;
+    &lt;dataGrid id="orderDataGrid"
+              dataContainer="ordersDc"
+              width="100%"
+              minHeight="20em"&gt;
+        &lt;columns&gt;
+            &lt;column property="date"/&gt;
+            &lt;column property="customer"/&gt;
+            &lt;column property="amount"/&gt;
+            &lt;column property="description"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
 &lt;/layout&gt;</code></pre>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="key-value-collection-container"><a class="anchor" href="#key-value-collection-container"></a>Key-Value Collection Container</h3>
+</div>
+<div class="sect1">
+<h2 id="key-value-collection-container"><a class="anchor" href="#key-value-collection-container"></a>Property Filter with a Key-Value Collection Container</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/property-filter-key-value" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>The following example demonstrates setting up <code>propertyFilter</code> to work with a key-value collection container:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
-    &lt;keyValueCollection id="statusesDc"&gt;
-        &lt;loader id="statusesDl"&gt;
+    &lt;keyValueCollection id="customersDc"&gt;
+        &lt;loader id="customersDl"&gt;
             &lt;query&gt;
-                &lt;![CDATA[select e.username, e.onboardingStatus, COUNT(e.onboardingStatus)
-                from User e
-                group by e.username, e.onboardingStatus]]&gt;
+                &lt;![CDATA[select o.customer.name, o.customer.lastName, sum(o.amount) from uisamples_Order o group by o.customer]]&gt;
             &lt;/query&gt;
         &lt;/loader&gt;
         &lt;properties&gt;
-            &lt;property name="username" datatype="string"/&gt;
-            &lt;property name="onboardingStatus" datatype="int"/&gt;
-            &lt;property name="count" datatype="int"/&gt;
+            &lt;property datatype="string" name="name"/&gt;
+            &lt;property datatype="string" name="lastName"/&gt;
+            &lt;property datatype="decimal" name="sum"/&gt;
         &lt;/properties&gt;
     &lt;/keyValueCollection&gt;
 &lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
 &lt;layout&gt;
-    &lt;propertyFilter dataLoader="statusesDl"
+    &lt;propertyFilter id="propertyFilter"
+                    label="Name contains"
+                    property="name"
                     operation="CONTAINS"
-                    property="username"/&gt;
+                    dataLoader="customersDl"/&gt;
+    &lt;dataGrid id="customersDataGrid"
+              dataContainer="customersDc"
+              width="100%"
+              minHeight="20em"&gt;
+        &lt;columns&gt;
+            &lt;column property="name"
+                    header="Name"/&gt;
+            &lt;column property="lastName"
+                    header="Last name"/&gt;
+            &lt;column property="sum"
+                    header="Sum"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
 &lt;/layout&gt;</code></pre>
-</div>
 </div>
 </div>
 </div>
@@ -160,11 +246,6 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>Binding multiple <code>propertyFilter</code> components to a single data container allows to apply several conditions simultaneously. For example, use two components to support filtering by department and last name:</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="property filter multifiltering" src="../../_images/visual-components/components/property-filter-multifiltering.png" width="666"/>
-</div>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -183,26 +264,24 @@
 <div class="sect1">
 <h2 id="filtering-dates"><a class="anchor" href="#filtering-dates"></a>Filtering Dates</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="date-equals"><a class="anchor" href="#date-equals"></a>Omitting Time</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="date-equals"><a class="anchor" href="#date-equals"></a>Omitting Time</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>An exact match with <code>=</code> may not always fit Date/Time properties. Many situations require filtering by just the date, ignoring the time. In such cases, use <code>date equals</code> instead:</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="property filter date equals" src="../../_images/visual-components/components/property-filter-date-equals.png" width="992"/>
 </div>
 </div>
+<div class="sect1">
+<h2 id="date-interval"><a class="anchor" href="#date-interval"></a>Date Interval</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/property-filter-date-interval-operation" target="_blank">LIVE DEMO</a>
 </div>
-<div class="sect2">
-<h3 id="date-interval"><a class="anchor" href="#date-interval"></a>Date Interval</h3>
 <div class="paragraph">
 <p>The component provides several options to filter by date intervals. Choose the <code>in interval</code> operator and enter interval values in the dialog.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="property filter date interval" src="../../_images/visual-components/components/property-filter-date-interval.png" width=""/>
-</div>
 </div>
 <div class="paragraph">
 <p>Choose from:</p>
@@ -226,35 +305,101 @@
 </li>
 </ul>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="ordersDc"
+                class="io.jmix.uisamples.entity.Order"
+                fetchPlan="_local"&gt;
+        &lt;loader id="ordersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from uisamples_Order e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;propertyFilter property="date"
+                    operation="IN_INTERVAL"
+                    dataLoader="ordersDl"/&gt;
+    &lt;dataGrid id="orderDataGrid"
+              dataContainer="ordersDc"
+              width="100%"
+              minHeight="20em"&gt;
+        &lt;columns&gt;
+            &lt;column property="date"/&gt;
+            &lt;column property="customer"/&gt;
+            &lt;column property="amount"/&gt;
+            &lt;column property="description"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="customization"><a class="anchor" href="#customization"></a>Customization</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/property-filter-custom-field" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>You can explicitly specify the component to use as the input field and set its attributes. This enables to change the default <code>propertyFilter</code> look and feel and enhance it with additional features. For example:</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="property filter custom input field" src="../../_images/visual-components/components/property-filter-custom-input-field.png" width="490"/>
-</div>
-</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;propertyFilter id="nameFilter"
-                dataLoader="usersDl" property="username"
-                operation="CONTAINS"
-                labelVisible="false"
-                width="100%" maxWidth="30em"&gt;
-    &lt;textField id="nameFilterField"
-               placeholder="Find a user..."
-               clearButtonVisible="true"&gt;
-        &lt;prefix&gt;
-            &lt;icon icon="SEARCH"/&gt;
-        &lt;/prefix&gt;
-    &lt;/textField&gt;
-&lt;/propertyFilter&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="ordersDc"
+                class="io.jmix.uisamples.entity.Order"&gt;
+        &lt;fetchPlan extends="_local"&gt;
+            &lt;property name="customer" fetchPlan="_local"/&gt;
+        &lt;/fetchPlan&gt;
+        &lt;loader id="ordersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from uisamples_Order e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+    &lt;collection id="customersDc"
+                class="io.jmix.uisamples.entity.Customer"&gt;
+        &lt;fetchPlan extends="_local"/&gt;
+        &lt;loader id="customersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Customer e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;propertyFilter property="customer"
+                    operation="EQUAL"
+                    dataLoader="ordersDl"&gt;
+        &lt;entityComboBox metaClass="Customer" itemsContainer="customersDc"&gt;
+            &lt;actions&gt;
+                &lt;action id="lookup" type="entity_lookup"/&gt;
+                &lt;action id="clear" type="entity_clear"/&gt;
+            &lt;/actions&gt;
+        &lt;/entityComboBox&gt;
+    &lt;/propertyFilter&gt;
+    &lt;dataGrid id="ordersDataGrid"
+              dataContainer="ordersDc"
+              width="100%"
+              minHeight="20em"&gt;
+        &lt;columns&gt;
+            &lt;column property="date"/&gt;
+            &lt;column property="customer"/&gt;
+            &lt;column property="amount"/&gt;
+            &lt;column property="description"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
 </div>
 </div>
 </div>
@@ -291,10 +436,10 @@ If the dynamic attribute is an entity, it cannot be filtered through its attribu
 </div>
 </div>
 <div class="sect1">
-<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<h2 id="variants"><a class="anchor" href="#variants"></a>Theme Variants</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to apply one or more theme variants.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -323,35 +468,110 @@ If the dynamic attribute is an entity, it cannot be filtered through its attribu
 <h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following attributes are specific to <code>propertyFilter</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="autoApply"></a><code>autoApply</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether the property filter should be automatically applied to the <code>DataLoader</code> when the condition value is changed.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="dataLoader"></a><code>dataLoader</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dataLoader</code> is a required attribute.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="defaultValue"></a><code>defaultValue</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the default value for the filter condition.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="label"></a><code>label</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the component label.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="labelPosition"></a><code>labelPosition</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>labelPosition</code> attribute defines the filter label position:</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="labelVisible"></a><code>labelVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the <a href="#label">label</a> visible or not.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="labelWidth"></a><code>labelWidth</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the <a href="#label">label</a> width.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="operation"></a><code>operation</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the filtering operation.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="operationsList"></a><code>operationsList</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Restricts the filtering operations available for the component. Operation names can be separated by commas or whitespace.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="operationEditable"></a><code>operationEditable</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether an operation selector is visible.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="operationTextVisible"></a><code>operationTextVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>operationTextVisible</code> attribute defines the visibility of the operation label.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="parameterName"></a><code>parameterName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>parameterName</code> attribute sets the name of the associated query parameter name, used by condition.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="property"></a><code>property</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the entity attribute bound to the component.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>propertyFilter</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
 <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
 <a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
 <a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
-<a href="#autoApply">autoApply</a> -
 <a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
 <a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
 <a class="xref page" href="../common-attributes.html#css">css</a> -
-<a href="#dataLoader">dataLoader</a> -
-<a href="#defaultValue">defaultValue</a> -
 <a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
 <a class="xref page" href="../common-attributes.html#errorMessage">errorMessage</a> -
 <a class="xref page" href="../common-attributes.html#focusShortcut">focusShortcut</a> -
 <a class="xref page" href="../common-attributes.html#height">height</a> -
 <a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
 <a class="xref page" href="../common-attributes.html#invalid">invalid</a> -
-<a href="#label">label</a> -
-<a href="#labelPosition">labelPosition</a> -
-<a href="#labelVisible">labelVisible</a> -
-<a href="#labelWidth">labelWidth</a> -
 <a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
 <a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
 <a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
 <a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
-<a href="#operation">operation</a> -
-<a href="#operationEditable">operationEditable</a> -
-<a href="#operationTextVisible">operationTextVisible</a> -
-<a href="#parameterName">parameterName</a> -
-<a href="#property">property</a> -
 <a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
 <a class="xref page" href="../common-attributes.html#required">required</a> -
 <a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
@@ -360,267 +580,53 @@ If the dynamic attribute is an entity, it cannot be filtered through its attribu
 <a class="xref page" href="../common-attributes.html#visible">visible</a> -
 <a class="xref page" href="../common-attributes.html#width">width</a></p>
 </div>
-<div class="sect2">
-<h3 id="autoApply"><a class="anchor" href="#autoApply"></a>autoApply</h3>
-<div class="paragraph">
-<p>Sets whether the property filter should be automatically applied to the <code>DataLoader</code> when the condition value is changed. The default value is <code>true</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="dataLoader"><a class="anchor" href="#dataLoader"></a>dataLoader</h3>
-<div class="paragraph">
-<p><code>dataLoader</code> is a required attribute. It sets a <a class="xref page" href="../../data-components.html">data loader</a> related to the current <code>propertyFilter</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="defaultValue"><a class="anchor" href="#defaultValue"></a>defaultValue</h3>
-<div class="paragraph">
-<p>Sets the default value for the filter condition.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="label"><a class="anchor" href="#label"></a>label</h3>
-<div class="paragraph">
-<p>Sets the custom label of the property filter condition. If not specified, it is generated automatically based on the entity property caption and the operation label.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-If you set the <code>label</code> attribute, the operation label or selector will not be displayed.
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="labelPosition"><a class="anchor" href="#labelPosition"></a>labelPosition</h3>
-<div class="paragraph">
-<p>The <code>labelPosition</code> attribute defines the filter label position:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>TOP</code> - label is displayed atop the property filter.</p>
-</li>
-<li>
-<p><code>ASIDE</code> - label is displayed on the side of the property filter.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>The default value is <code>ASIDE</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="labelVisible"><a class="anchor" href="#labelVisible"></a>labelVisible</h3>
-<div class="paragraph">
-<p>Sets the <a href="#label">label</a> visible or not. Default value is <code>true</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="labelWidth"><a class="anchor" href="#labelWidth"></a>labelWidth</h3>
-<div class="paragraph">
-<p>Sets the <a href="#label">label</a> width. The width should be in a format understood by the browser, for example, <code>"100px"</code> or <code>"2.5em"</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="operation"><a class="anchor" href="#operation"></a>operation</h3>
-<div class="paragraph">
-<p>Specifies the filtering operation.</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 10%;"/>
-<col style="width: 40%;"/>
-<col style="width: 50%;"/>
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Operation</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property Types</strong></p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">EQUAL</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Equal to. Consider DATE_EQUALS for Date/Time properties.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Numeric, Boolean, String, Date/Time, Time, UUID, URI, Entity, Enum</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_EQUAL</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Not equal to.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Numeric, Boolean, String, Date/Time, Time, UUID, URI, Entity, Enum</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">IS_SET</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Is null or is not null.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Numeric, Boolean, String, Date/Time, Time, UUID, URI, Entity, Enum</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">IN_LIST</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Checks if the value is in the list.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Numeric, String, Date/Time, Time, UUID, URI, Entity, Enum</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_IN_LIST</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Checks if the value is not in the list.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Numeric, String, Date/Time, Time, UUID, URI, Entity, Enum</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">IS_COLLECTION_EMPTY</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Checks if the collection is empty.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Entity (<code>@OneToMany</code>, <code>@ManyToMany</code>)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MEMBER_OF_COLLECTION</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Belong to the collection.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Entity (<code>@OneToMany</code>, <code>@ManyToMany</code>)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_MEMBER_OF_COLLECTION</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Do not belong to the collection</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Entity (<code>@OneToMany</code>, <code>@ManyToMany</code>)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CONTAINS</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Contain the substring.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_CONTAINS</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Do not contain the substring.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">STARTS_WITH</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Starts with.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ENDS_WITH</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ends with.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">GREATER</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Greater than.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Numeric, Date/Time, Time</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">GREATER_OR_EQUAL</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Greater than or equal to.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Numeric, Date/Time, Time</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">LESS</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Less than.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Numeric, Date/Time, Time</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">LESS_OR_EQUAL</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Less than or equal to.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Numeric, Date/Time, Time</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">IN_INTERVAL</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Belongs to the interval that users can specify through the <a href="#date-interval">date interval</a> dialog.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Date/Time, Time</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">DATE_EQUALS</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Equals to date. Compares only the date while excluding time. See <a href="#date-equals">example</a>.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Date/Time</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect2">
-<h3 id="operationEditable"><a class="anchor" href="#operationEditable"></a>operationEditable</h3>
-<div class="paragraph">
-<p>Sets whether an operation selector is visible. Possible values are <code>true</code> and <code>false</code>. The default value is <code>false</code>. If you set <code>operationEditable = true</code>, the operation field enables selecting the condition operator in run-time. The list of available operators depends on the attribute type.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="operationTextVisible"><a class="anchor" href="#operationTextVisible"></a>operationTextVisible</h3>
-<div class="paragraph">
-<p>The <code>operationTextVisible</code> attribute defines the visibility of the operation label. Possible values are <code>true</code> and <code>false</code> (<code>true</code> by default).</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="parameterName"><a class="anchor" href="#parameterName"></a>parameterName</h3>
-<div class="paragraph">
-<p>The <code>parameterName</code> attribute sets the name of the associated query parameter name, used by condition. If not defined, then the parameter name is randomly generated.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="property"><a class="anchor" href="#property"></a>property</h3>
-<div class="paragraph">
-<p>Sets the related entity property name or properties path (for example, <code>name</code>, <code>order</code>, <code>order.date</code>).</p>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h2>
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>The following handlers are specific to <code>propertyFilter</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="OperationChangeEvent"></a><code>OperationChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>OperationChangeEvent</code> is sent when the operation property is changed.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="validator"></a><code>validator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validates the component value.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>propertyFilter</code>:</p>
+</div>
 <div class="paragraph">
 <p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
 <a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
 <a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
 <a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
-<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a> -
-<a href="#OperationChangeEvent">OperationChangeEvent</a> -
-<a href="#validator">validator</a></p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="OperationChangeEvent"><a class="anchor" href="#OperationChangeEvent"></a>OperationChangeEvent</h3>
-<div class="paragraph">
-<p>The <code>OperationChangeEvent</code> is sent when the operation property is changed.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="validator"><a class="anchor" href="#validator"></a>validator</h3>
-<div class="paragraph">
-<p>Adds a <a class="xref page" href="../miscellaneous/validator.html">validator</a> instance to the component. The validator must throw <code>ValidationException</code> if the value is not valid.</p>
-</div>
-<div class="paragraph">
-<p>If you are not satisfied with the predefined validators, add your own validator instance:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "propertyFilter", subject = "validator")
-private void propertyFilterValidator(String value) {
-    if (value != null &amp;&amp; value.length() != 6)
-        throw new ValidationException("Zip must be of 6 digits length");
-}</code></pre>
-</div>
-</div>
+<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a></p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="elements"><a class="anchor" href="#elements"></a>Elements</h2>
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a class="xref page" href="tooltip.html">tooltip</a> -
-<a class="xref page" href="../miscellaneous/validator.html">validator</a></p>
+<p>A <code>propertyFilter</code> can include <a class="xref page" href="tooltip.html">tooltip</a> and <a class="xref page" href="../miscellaneous/validator.html">validator</a> as its nested elements.</p>
 </div>
 </div>
 </div>

@@ -10,34 +10,35 @@
 <h1 class="page">datePicker</h1>
 <div id="preamble">
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>datePicker</code> lets users enter a date by typing or select it using a calendar overlay.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>datePicker</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TypedDatePicker</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
 <div class="jmix-ui-live-demo-container">
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/date-picker-simple" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p><code>datePicker</code> lets users enter a date by typing or select it using a calendar overlay.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML element: <code>datePicker</code></p>
-</li>
-<li>
-<p>Java class: <code>TypedDatePicker</code></p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
-<div class="sectionbody">
-<div class="paragraph">
 <p>Unlike a regular input field, <code>datePicker</code> has a calendar button and a calendar overlay. The calendar opens when the user clicks the button or the field itself, or starts entering a date.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="date picker" src="../../_images/visual-components/components/date-picker.png" width="370"/>
-</div>
 </div>
 <div class="paragraph">
 <p>The calendar is scrollable and allows selecting a year in the right pane. Click <strong>Today</strong> at the bottom to navigate back to the current date.</p>
@@ -47,7 +48,7 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;datePicker label="Select date"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;datePicker id="datePicker" label="DatePicker" datatype="localDate"/&gt;</code></pre>
 </div>
 </div>
 </div>
@@ -83,17 +84,32 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data-aware <code>datePicker</code></h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/date-picker-dataaware" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
-<p>Data binding refers to linking a visual component to a data container. Changes in the visual component or corresponding data container can trigger updates to one another. See <a class="xref page" href="../../data/data-examples.html">Using Data Components</a> for more details.</p>
+<p>Use the <code>dataContainer</code> and <code>property</code> attributes to bind <code>datePicker</code> to an entity attribute. The data container provides the entity instance, and <code>property</code> identifies the date attribute to edit.</p>
 </div>
 <div class="paragraph">
 <p>The following example produces a data-aware <code>datePicker</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;datePicker dataContainer="userStepDc" property="dueDate"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance id="orderDc"
+              class="io.jmix.uisamples.entity.Order"
+              fetchPlan="_local"/&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;datePicker id="datePicker" label="DatePicker"
+                     dataContainer="orderDc" property="date"/&gt;
+    &lt;hbox&gt;
+        &lt;span text="Value in the container:"/&gt;
+        &lt;span id="spanValue"/&gt;
+    &lt;/hbox&gt;
+&lt;/layout&gt;</code></pre>
 </div>
 </div>
 </div>
@@ -112,6 +128,9 @@
 <div class="sect1">
 <h2 id="_date_range"><a class="anchor" href="#_date_range"></a>Date Range</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/date-picker-custom-range" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>To restrict the input to a specific date range, specify the minimum and maximum dates using the <a href="#max">max</a> and <a href="#min">min</a> attributes:</p>
 </div>
@@ -126,22 +145,65 @@
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
-private TypedDatePicker&lt;Comparable&gt; datePicker;
+protected TypedDatePicker&lt;LocalDate&gt; datePicker;
 
 @Subscribe
-public void onInit(InitEvent event) {
-    datePicker.setMin(LocalDate.now());
-    datePicker.setMax(LocalDate.now().plusDays(7));
+protected void onInit(InitEvent event) {
+    datePicker.setMin(LocalDate.now().minusWeeks(1));
+    datePicker.setMax(LocalDate.now().plusWeeks(1));
 }</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<h2 id="validation"><a class="anchor" href="#validation"></a>Validation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+<p>To check values entered into <code>datePicker</code>, add a <a class="xref page" href="../miscellaneous/validator.html">validator</a> element. This allows adding a custom validation criterion or select one of the following predefined validators:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../miscellaneous/validator.html#FutureOrPresentValidator">FutureOrPresent</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../miscellaneous/validator.html#FutureValidator">Future</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../miscellaneous/validator.html#NotNullValidator">NotNull</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../miscellaneous/validator.html#PastOrPresentValidator">PastOrPresent</a></p>
+</li>
+<li>
+<p><a class="xref page" href="../miscellaneous/validator.html#PastValidator">Past</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to use the <code>FutureValidator</code> to ensure that the selected date is in the future:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;datePicker label="Select a future date"
+            datatype="date"&gt;
+    &lt;validators&gt;
+        &lt;future/&gt;
+    &lt;/validators&gt;
+&lt;/datePicker&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="variants"><a class="anchor" href="#variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/date-picker-theme-variant" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to apply one or more theme variants.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -187,55 +249,61 @@ public void onInit(InitEvent event) {
 </div>
 </div>
 <div class="sect1">
-<h2 id="validation"><a class="anchor" href="#validation"></a>Validation</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>To check values entered into <code>datePicker</code>, add a <a class="xref page" href="../miscellaneous/validator.html">validator</a> element. This allows adding a custom validation criterion or select one of the following predefined validators:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a class="xref page" href="../miscellaneous/validator.html#FutureOrPresentValidator">FutureOrPresent</a></p>
-</li>
-<li>
-<p><a class="xref page" href="../miscellaneous/validator.html#FutureValidator">Future</a></p>
-</li>
-<li>
-<p><a class="xref page" href="../miscellaneous/validator.html#NotNullValidator">NotNull</a></p>
-</li>
-<li>
-<p><a class="xref page" href="../miscellaneous/validator.html#PastOrPresentValidator">PastOrPresent</a></p>
-</li>
-<li>
-<p><a class="xref page" href="../miscellaneous/validator.html#PastValidator">Past</a></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>This example demonstrates how to use the <code>FutureValidator</code> to ensure that the selected date is in the future:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;datePicker label="Select a future date"
-            datatype="date"&gt;
-    &lt;validators&gt;
-        &lt;future/&gt;
-    &lt;/validators&gt;
-&lt;/datePicker&gt;</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>datePicker</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="autoOpen"></a><code>autoOpen</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Defines whether an overlay calendar opens when the user starts typing a date.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="max"></a><code>max</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the latest date that can be selected.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="min"></a><code>min</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the earliest date that can be selected.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="name"></a><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies a name for an HTML element that can be used to reference the component.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="opened"></a><code>opened</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies whether the calendar overlay is opened.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>datePicker</code>:</p>
+</div>
 <div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
 <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
 <a class="xref page" href="../common-attributes.html#allowedCharPattern">allowedCharPattern</a> -
 <a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
 <a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
-<a href="#autoOpen">autoOpen</a> -
 <a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
 <a class="xref page" href="../common-attributes.html#clearButtonVisible">clearButtonVisible</a> -
 <a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
@@ -249,15 +317,10 @@ public void onInit(InitEvent event) {
 <a class="xref page" href="../common-attributes.html#height">height</a> -
 <a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
 <a class="xref page" href="../common-attributes.html#label">label</a> -
-<a href="#max">max</a> -
 <a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
 <a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
-<a href="#min">min</a> -
 <a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
 <a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
-<a href="#name">name</a> -
-<a href="#opened">opened</a> -
-<a class="xref page" href="../common-attributes.html#overlayClass">overlayClass</a> -
 <a class="xref page" href="../common-attributes.html#placeholder">placeholder</a> -
 <a class="xref page" href="../common-attributes.html#property">property</a> -
 <a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
@@ -269,118 +332,55 @@ public void onInit(InitEvent event) {
 <a class="xref page" href="../common-attributes.html#weekNumbersVisible">weekNumbersVisible</a> -
 <a class="xref page" href="../common-attributes.html#width">width</a></p>
 </div>
-<div class="sect2">
-<h3 id="autoOpen"><a class="anchor" href="#autoOpen"></a>autoOpen</h3>
-<div class="paragraph">
-<p>Defines whether an overlay calendar opens when the user starts typing a date.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If set to <code>true</code>, an overlay calendar opens both on user input and on clicking the calendar button or the field.</p>
-</li>
-<li>
-<p>If set to <code>false</code>, an overlay calendar opens only on clicking the calendar button.</p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect2">
-<h3 id="max"><a class="anchor" href="#max"></a>max</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/date-picker#min-max-value" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>Specifies the latest date that can be selected. Accepted format is <code>yyyy-MM-dd</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="min"><a class="anchor" href="#min"></a>min</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/date-picker#min-max-value" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>Specifies the earliest date that can be selected. Accepted format is <code>yyyy-MM-dd</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="name"><a class="anchor" href="#name"></a>name</h3>
-<div class="paragraph">
-<p>Specifies a name for an HTML element that can be used to reference the component.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="opened"><a class="anchor" href="#opened"></a>opened</h3>
-<div class="paragraph">
-<p>Specifies whether the calendar overlay is opened.</p>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following handlers are specific to <code>datePicker</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="ClientValidatedEvent"></a><code>ClientValidatedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired after client-side validation changes the component’s validity.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="InvalidChangeEvent"></a><code>InvalidChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the component’s invalid state changes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="OpenedChangeEvent"></a><code>OpenedChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the component overlay opens or closes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="validator"></a><code>validator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validates the component value.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>datePicker</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
 <a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
-<a href="#ClientValidatedEvent">ClientValidatedEvent</a> -
 <a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
 <a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
 <a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a> -
-<a href="#InvalidChangeEvent">InvalidChangeEvent</a> -
-<a href="#OpenedChangeEvent">OpenedChangeEvent</a> -
 <a class="xref page" href="../common-handlers.html#TypedValueChangeEvent">TypedValueChangeEvent</a> -
-<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a> -
-<a href="#validator">validator</a></p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="ClientValidatedEvent"><a class="anchor" href="#ClientValidatedEvent"></a>ClientValidatedEvent</h3>
-<div class="paragraph">
-<p><code>ClientValidatedEvent</code> is sent by the web component whenever it is validated on the client-side.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="InvalidChangeEvent"><a class="anchor" href="#InvalidChangeEvent"></a>InvalidChangeEvent</h3>
-<div class="paragraph">
-<p><code>com.vaadin.flow.component.datepicker.DatePicker.InvalidChangeEvent</code> is sent when the value of the <a class="xref page" href="../common-attributes.html#invalid">invalid</a> attribute of the component changes.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="OpenedChangeEvent"><a class="anchor" href="#OpenedChangeEvent"></a>OpenedChangeEvent</h3>
-<div class="paragraph">
-<p><code>OpenedChangeEvent</code> is sent every time the <code>opened</code> attribute of the component changes. That is, when the calendar is opened or closed.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="validator"><a class="anchor" href="#validator"></a>validator</h3>
-<div class="paragraph">
-<p>Adds a <a class="xref page" href="../miscellaneous/validator.html">validator</a> instance to the component. The validator must throw <code>ValidationException</code> if the value is not valid. For example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "birthDatePicker", subject = "validator")
-private void birthDatePickerValidator(Date date) {
-        Date now = timeSource.currentTimestamp();
-        if (date != null &amp;&amp; DateUtils.addYears(now,-18).compareTo(date) &lt; 0) {
-            throw new ValidationException("The age must be over 18 years");
-        }
-}</code></pre>
-</div>
-</div>
+<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a></p>
 </div>
 </div>
 </div>
@@ -388,17 +388,19 @@ private void birthDatePickerValidator(Date date) {
 <h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a> -
-<a class="xref page" href="tooltip.html">tooltip</a> -
-<a href="#validation">validator</a></p>
+<p>A <code>datePicker</code> can include <a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a>, <a class="xref page" href="tooltip.html">tooltip</a>, and <a href="#validation">validator</a> as its nested elements.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>See <a href="https://vaadin.com/docs/v25/components/date-picker" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/date-picker" rel="noopener" target="_blank">Vaadin Date Picker documentation</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

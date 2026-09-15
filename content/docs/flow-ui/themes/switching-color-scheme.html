@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Switching Color Scheme :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Switching Color Scheme</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Aura and Lumo each provide light and dark color schemes. You can select a default color scheme and switch it at runtime without changing the application theme.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="color-scheme-options"><a class="anchor" href="#color-scheme-options"></a>Color Scheme Options</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Both themes support the following options:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Light – always uses the light color scheme.</p>
+</li>
+<li>
+<p>Dark – always uses the dark color scheme.</p>
+</li>
+<li>
+<p>System – follows the operating system or browser setting.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setting-the-application-default"><a class="anchor" href="#setting-the-application-default"></a>Setting the Application Default</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, the application uses the light color scheme. Use the <code>@ColorScheme</code> annotation on the main application class to select another option:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.component.page.ColorScheme;
+
+@ColorScheme(ColorScheme.Value.LIGHT_DARK)
+public class MyProjectApplication implements AppShellConfigurator {
+    // ...
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the following <code>ColorScheme.Value</code> values for light and dark color schemes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>LIGHT</code> always uses the light color scheme.</p>
+</li>
+<li>
+<p><code>DARK</code> always uses the dark color scheme.</p>
+</li>
+<li>
+<p><code>LIGHT_DARK</code> follows the operating system or browser setting and falls back to light.</p>
+</li>
+<li>
+<p><code>DARK_LIGHT</code> follows the operating system or browser setting and falls back to dark.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="changing-the-current-ui"><a class="anchor" href="#changing-the-current-ui"></a>Changing the Current UI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use <code>Page.setColorScheme()</code> to change the color scheme of the current UI at runtime:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.page.ColorScheme;
+
+UI.getCurrentOrThrow().getPage()
+        .setColorScheme(ColorScheme.Value.DARK);</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>Page.setColorScheme()</code> does not save the selection. Store the value separately if it must be restored in a later session.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="saving-a-user-preference"><a class="anchor" href="#saving-a-user-preference"></a>Saving a User Preference</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Jmix provides <code>ThemeUtils</code> for saving the color scheme in browser local storage and applying it to the current UI. First, import the Jmix color scheme support script in the main application class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JsModule("./src/theme/color-scheme-switching-support.js")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then call one of the following methods:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.jmix.flowui.kit.theme.ThemeUtils;
+
+ThemeUtils.applyLightTheme();
+ThemeUtils.applyDarkTheme();
+ThemeUtils.applySystemTheme();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>system</strong> option follows the operating system or browser setting. The <a class="xref page" href="../actions/user-menu-actions.html#userMenu_themeSwitch">userMenu_themeSwitch</a> action provides the same three options in a user menu.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Use either the Jmix <code>ThemeUtils</code> mechanism or your own code based on <code>Page.setColorScheme()</code> for the same setting. Using both can produce conflicting results.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="writing-color-scheme-aware-css"><a class="anchor" href="#writing-color-scheme-aware-css"></a>Writing Color-Scheme-Aware CSS</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the CSS <code>light-dark()</code> function to define a value for both color schemes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html {
+    --vaadin-text-color: light-dark(#202124, #f5f5f5);
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_aura"><a class="anchor" href="#_aura"></a>Aura</h3>
+<div class="paragraph">
+<p>Aura provides separate <code>-light</code> and <code>-dark</code> source properties. Define both properties to customize a color for both schemes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html {
+    --aura-accent-color-light: blue;
+    --aura-accent-color-dark: lightskyblue;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_lumo"><a class="anchor" href="#_lumo"></a>Lumo</h3>
+<div class="paragraph">
+<p>For Lumo, assign <code>light-dark()</code> directly to a theme property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html {
+    --lumo-primary-color: light-dark(blue, lightskyblue);
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

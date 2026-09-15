@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumo Theme :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Lumo Theme</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a href="https://vaadin.com/docs/v25/styling/themes/lumo" rel="noopener" target="_blank">Lumo theme</a> is the original Vaadin theme. It provides styles for all Vaadin components, CSS properties for customization, and optional utility classes.</p>
+</div>
+<div class="paragraph">
+<p>Jmix adds its own Lumo stylesheet for Jmix components and standard Jmix views.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="applying-lumo"><a class="anchor" href="#applying-lumo"></a>Applying Lumo</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A Lumo application loads styles in the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The Vaadin Lumo stylesheet applies the standard Lumo theme.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="themes.html#application-theme-files">Jmix Lumo stylesheet</a> provides styles for Jmix components and standard Jmix views.</p>
+</li>
+<li>
+<p>The application stylesheet provides project-specific styles.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The order matters because styles loaded later can override styles loaded earlier. Each layer corresponds to a <code>@StyleSheet</code> annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@StyleSheet(Lumo.STYLESHEET)
+@StyleSheet(JmixLumo.STYLESHEET)
+@StyleSheet("themes/my-project-lumo/styles.css")
+public class MyProjectApplication implements AppShellConfigurator {
+    // ...
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="application-files"><a class="anchor" href="#application-files"></a>Application Files</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Lumo application styles are located in:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">src/main/resources/META-INF/resources/themes/my-project-lumo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="themes.html#application-theme-files">Application Theme Files</a> for the complete directory structure.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="customizing-lumo"><a class="anchor" href="#customizing-lumo"></a>Customizing Lumo</h2>
+<div class="sectionbody">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Use the <a href="https://demo.vaadin.com/lumo-editor/" rel="noopener" target="_blank">Lumo Theme Editor</a> to configure the theme and export the CSS. Use the exported properties in your application as shown below.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Lumo provides CSS properties with the <code>--lumo-</code> prefix. Vaadin components also provide common and component-specific properties with the <code>--vaadin-</code> prefix.</p>
+</div>
+<div class="paragraph">
+<p>Add theme properties to the application CSS file in the active Lumo theme directory. For example, add them to <code>src/main/resources/META-INF/resources/themes/my-project-lumo/my-project.css</code>.</p>
+</div>
+<div class="paragraph">
+<p>Set the properties on the <code>html</code> element to apply them to the whole application:</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/META-INF/resources/themes/my-project-lumo/my-project.css</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">html {
+    --lumo-primary-color: #006b57;
+    --lumo-primary-text-color: #006b57;
+    --lumo-font-family: Arial, sans-serif;
+    --lumo-font-size-m: 14px;
+    --lumo-border-radius-m: 0.5em;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See the <a href="https://vaadin.com/docs/v25/styling/themes/lumo" rel="noopener" target="_blank">Lumo documentation</a> for the complete property reference.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="styling-ui-components.html">Styling UI Components</a> for ways to style UI components.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="utility-classes"><a class="anchor" href="#utility-classes"></a>Utility Classes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Utility classes are predefined CSS classes for common styling tasks. Lumo provides utility classes for backgrounds, borders, sizing, spacing, typography, flexbox and grid layouts, and other common styles.</p>
+</div>
+<div class="paragraph">
+<p>Lumo utility classes are not included in <code>Lumo.STYLESHEET</code>. To use them, add <code>@StyleSheet(Lumo.UTILITY_STYLESHEET)</code> immediately after <code>@StyleSheet(Lumo.STYLESHEET)</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@StyleSheet(Lumo.STYLESHEET)
+@StyleSheet(Lumo.UTILITY_STYLESHEET)
+@StyleSheet(JmixLumo.STYLESHEET)
+@StyleSheet("themes/my-project-lumo/styles.css")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply utility classes using the <code>classNames</code> XML attribute instead of writing a custom CSS rule. For example, the following classes add medium spacing between the elements and medium padding around them:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox classNames="gap-m p-m"&gt;
+    &lt;span text="First"/&gt;
+    &lt;span text="Second"/&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See the <a href="https://vaadin.com/docs/v25/styling/themes/lumo/utility-classes" rel="noopener" target="_blank">Lumo Utility Classes reference</a> for the complete list.</p>
+</div>
+<div class="paragraph">
+<p>When applying Lumo utility classes in Java, use the corresponding constants from <code>com.vaadin.flow.theme.lumo.LumoUtility</code>.</p>
+</div>
+<div class="paragraph">
+<p>The Jmix Lumo stylesheet also includes theme-independent Jmix utility classes. Their Java constants are defined by the <code>io.jmix.flowui.theme.StyleUtility</code> class.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Lumo utility classes are intended mainly for HTML elements, layout components, and custom UI structures. They cannot directly style elements inside a component’s shadow DOM. Use component style properties or documented selectors for component internals. See <a class="xref page" href="styling-ui-components.html#component-parts">Styling Component Parts</a> for examples.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="color-schemes"><a class="anchor" href="#color-schemes"></a>Color Schemes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Lumo supports light and dark color schemes. See <a class="xref page" href="switching-color-scheme.html">Switching Color Scheme</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="compact-preset"><a class="anchor" href="#compact-preset"></a>Compact Preset</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Lumo provides a compact preset that reduces font and component sizes. The following example adds the compact preset to a Lumo application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@StyleSheet(Lumo.STYLESHEET)
+@StyleSheet(Lumo.COMPACT_STYLESHEET)
+@StyleSheet(JmixLumo.STYLESHEET)
+@StyleSheet("themes/my-project-lumo/styles.css")</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

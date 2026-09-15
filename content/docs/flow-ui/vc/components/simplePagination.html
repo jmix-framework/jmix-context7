@@ -10,87 +10,102 @@
 <h1 class="page">simplePagination</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/simple-pagination-simple" target="_blank">LIVE DEMO</a>
-</div>
 <div class="paragraph">
-<p><code>simplePagination</code> is a component used to load data by pages. It is designed to be used together with <a class="xref page" href="dataGrid.html">dataGrid</a>, and <a class="xref page" href="treeDataGrid.html">treeDataGrid</a> components.</p>
+<p><code>simplePagination</code> loads data in pages and provides controls for navigating between them.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML element: <code>simplePagination</code></p>
-</li>
-<li>
-<p>Java class: <code>SimplePagination</code></p>
-</li>
-</ul>
-</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>simplePagination</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SimplePagination</code></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
 <div class="sectionbody">
+<table class="tableblock frame-all grid-none fit-content">
+<colgroup>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="imageblock text-center">
+<div class="content">
+<img alt="Simple pagination" src="../../_images/visual-components/components/simple-pagination.png" width="450"/>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/simple-pagination-simple" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p><code>simplePagination</code> has a simple view with a count of rows and navigation buttons.</p>
 </div>
 <div class="paragraph">
 <p>It can also have a <a href="#items-per-page">drop-down list</a> for the number of items per page.</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="simple pagination" src="../../_images/visual-components/components/simple-pagination.png" width="818"/>
-</div>
-</div>
 <div class="paragraph">
 <p>By default, Jmix Studio generates <code>simplePagination</code> when creating <a class="xref page" href="../../views/view-classes.html#standard-list-view">StandardListView</a> for an entity.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data readOnly="true"&gt;
-    &lt;collection id="usersDc"
-                class="com.company.onboarding.entity.User"&gt;
-        &lt;fetchPlan extends="_base"&gt;
-            &lt;property name="department" fetchPlan="_base"/&gt;
-        &lt;/fetchPlan&gt;
-        &lt;loader id="usersDl"&gt;
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="customersDc"
+                class="io.jmix.uisamples.entity.Customer"&gt;
+        &lt;fetchPlan extends="_local"/&gt;
+        &lt;loader id="customersDl"&gt;
             &lt;query&gt;
-                &lt;![CDATA[select e from User e order by e.username]]&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+                &lt;![CDATA[select e from Customer e]]&gt;
             &lt;/query&gt;
         &lt;/loader&gt;
     &lt;/collection&gt;
 &lt;/data&gt;
-&lt;layout expand="usersTable"&gt;
-        &lt;simplePagination itemsPerPageVisible="true"
-                          id="simplePagination"
-                          dataLoader="usersDl"/&gt; <i class="conum" data-value="2"></i><b>(2)</b>
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;simplePagination alignSelf="CENTER" itemsPerPageDefaultValue="5"
+                      dataLoader="customersDl"/&gt;
+    &lt;dataGrid id="customersDataGrid"
+              dataContainer="customersDc"
+              width="100%"
+              minHeight="15em"&gt;
+        &lt;columns&gt;
+            &lt;column property="name"/&gt;
+            &lt;column property="lastName"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
 &lt;/layout&gt;</code></pre>
 </div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Define a <a class="xref page" href="../../data/data-loaders.html">collection loader</a> to load <code>User</code> entities.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Connect <code>simplePagination</code> to data using the <code>dataLoader</code> attribute.</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="items-per-page"><a class="anchor" href="#items-per-page"></a>Items per Page</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/simple-pagination-items-per-page" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph" id="itemsPerPageVisible">
 <p><code>simplePagination</code> has a special <code>comboBox</code> with options to limit the number of items for one page. To make it visible, set the <code>itemsPerPageVisible</code> attribute to the <code>true</code> value. The default value is <code>false</code>.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="items per page" src="../../_images/visual-components/components/items-per-page.png" width="264"/>
-</div>
 </div>
 <div class="paragraph">
 <p>The default value of this list is specified in the <a class="xref page" href="../../ui-properties.html#jmix.ui.component.pagination-items-per-page-items">jmix.ui.component.pagination-items-per-page-items</a> property.</p>
@@ -100,9 +115,36 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;simplePagination dataLoader="usersDl"
-                  itemsPerPageVisible="true"
-                  itemsPerPageItems="2, 4, 6"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="customersDc"
+                class="io.jmix.uisamples.entity.Customer"&gt;
+        &lt;fetchPlan extends="_local"/&gt;
+        &lt;loader id="customersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Customer e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;simplePagination alignSelf="CENTER"
+                      itemsPerPageVisible="true"
+                      itemsPerPageItems="5, 10, 15"
+                      itemsPerPageDefaultValue="5"
+                      dataLoader="customersDl"/&gt;
+    &lt;dataGrid id="customersDataGrid"
+              dataContainer="customersDc"
+              width="100%"
+              minHeight="15em"&gt;
+        &lt;columns&gt;
+            &lt;column property="name"/&gt;
+            &lt;column property="lastName"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -113,10 +155,36 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;simplePagination dataLoader="usersDl"
-                  itemsPerPageVisible="true"
-                  itemsPerPageItems="2, 4, 6"
-                  itemsPerPageDefaultValue="4"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="customersDc"
+                class="io.jmix.uisamples.entity.Customer"&gt;
+        &lt;fetchPlan extends="_local"/&gt;
+        &lt;loader id="customersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Customer e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;simplePagination alignSelf="CENTER"
+                      itemsPerPageVisible="true"
+                      itemsPerPageItems="5, 10, 15"
+                      itemsPerPageDefaultValue="5"
+                      dataLoader="customersDl"/&gt;
+    &lt;dataGrid id="customersDataGrid"
+              dataContainer="customersDc"
+              width="100%"
+              minHeight="15em"&gt;
+        &lt;columns&gt;
+            &lt;column property="name"/&gt;
+            &lt;column property="lastName"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph" id="itemsPerPageUnlimitedItemVisible">
@@ -139,8 +207,11 @@
 </tr>
 </table>
 </div>
-<div class="sect2">
-<h3 id="items-per-page-empty-label"><a class="anchor" href="#items-per-page-empty-label"></a>Empty Item Label</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="items-per-page-empty-label"><a class="anchor" href="#items-per-page-empty-label"></a>Empty Item Label</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>When <a href="#itemsPerPageUnlimitedItemVisible">itemsPerPageUnlimitedItemVisible</a>=<code>"true"</code>, the dropdown list shows an empty item that allows loading all data (limited by the maximum fetch size). By default, this item is displayed as an empty string.</p>
 </div>
@@ -168,49 +239,182 @@
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="before-refresh"><a class="anchor" href="#before-refresh"></a>Preventing a Refresh</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/simple-pagination-before-refresh" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>BeforeRefreshEvent</code> is fired before the associated data loader loads another page. A handler can call <code>preventRefresh()</code> to cancel the operation.</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="customersDc"
+                class="io.jmix.uisamples.entity.Customer"&gt;
+        &lt;fetchPlan extends="_local"/&gt;
+        &lt;loader id="customersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Customer e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;simplePagination id="simplePagination"
+                      alignSelf="CENTER"
+                      itemsPerPageDefaultValue="5"
+                      dataLoader="customersDl"/&gt;
+    &lt;dataGrid id="customersDataGrid"
+              dataContainer="customersDc"
+              width="100%"
+              minHeight="15em"&gt;
+        &lt;columns&gt;
+            &lt;column property="name"/&gt;
+            &lt;column property="lastName"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+protected Notifications notifications;
+
+@Subscribe("simplePagination")
+protected void onSimplePaginationBeforeRefresh(PaginationComponent.BeforeRefreshEvent&lt;SimplePagination&gt; event) {
+    notifications.show("Before data refresh");
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="after-refresh"><a class="anchor" href="#after-refresh"></a>Handling a Completed Refresh</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/simple-pagination-after-refresh" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p><code>AfterRefreshEvent</code> is fired after the component successfully refreshes data, provided that the operation was not prevented.</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;collection id="customersDc"
+                class="io.jmix.uisamples.entity.Customer"&gt;
+        &lt;fetchPlan extends="_local"/&gt;
+        &lt;loader id="customersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Customer e]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+&lt;layout&gt;
+    &lt;simplePagination id="simplePagination"
+                      alignSelf="CENTER"
+                      itemsPerPageDefaultValue="5"
+                      dataLoader="customersDl"/&gt;
+    &lt;dataGrid id="customersDataGrid"
+              dataContainer="customersDc"
+              width="100%"
+              minHeight="15em"&gt;
+        &lt;columns&gt;
+            &lt;column property="name"/&gt;
+            &lt;column property="lastName"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+protected Notifications notifications;
+
+@Subscribe("simplePagination")
+protected void onSimplePaginationAfterRefresh(PaginationComponent.AfterRefreshEvent&lt;SimplePagination&gt; event) {
+    notifications.show("After data refresh");
+}</code></pre>
+</div>
+</div>
+</div>
 </div>
 <div class="sect1">
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following attributes are specific to <code>simplePagination</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="autoLoad"></a><code>autoLoad</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>autoLoad</code> attribute determines whether the item count should be automatically loaded.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="dataLoader"></a><code>dataLoader</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">To create <code>simplePagination</code> connected to data, use the <code>dataLoader</code> attribute.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>itemsPerPageDefaultValue</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the items per page default value. See <a href="#items-per-page">Items per Page</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>itemsPerPageItems</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the items per page items. See <a href="#items-per-page">Items per Page</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>itemsPerPageUnlimitedItemVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls whether the items-per-page list includes an option to load all available items. See <a href="#items-per-page">Items per Page</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>itemsPerPageVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls whether the items-per-page selector is displayed. See <a href="#items-per-page">Items per Page</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>simplePagination</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
 <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
-<a href="#autoLoad">autoLoad</a> -
 <a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
 <a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
 <a class="xref page" href="../common-attributes.html#css">css</a> -
-<a href="#dataLoader">dataLoader</a> -
-<a href="#itemsPerPageDefaultValue">itemsPerPageDefaultValue</a> -
-<a href="#itemsPerPageItems">itemsPerPageItems</a> -
-<a href="#itemsPerPageUnlimitedItemVisible">itemsPerPageUnlimitedItemVisible</a> -
-<a href="#itemsPerPageVisible">itemsPerPageVisible</a> -
 <a class="xref page" href="../common-attributes.html#visible">visible</a></p>
-</div>
-<div class="sect2">
-<h3 id="autoLoad"><a class="anchor" href="#autoLoad"></a>autoLoad</h3>
-<div class="paragraph">
-<p>The <code>autoLoad</code> attribute determines whether the item count should be automatically loaded. When <code>autoLoad</code> is disabled, the component doesn’t know the total item count and shows a button with a question mark <code>[?]</code>. When it’s enabled, the component makes a query to get the total item count and displays it. The default value is <code>false</code>.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>When <code>autoLoad</code> is set to <code>true</code>, the <a href="#totalCountDelegate">totalCountDelegate</a> may be invoked from a <code>BackgroundTask</code>. In that case, UI updates inside the delegate are not allowed.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="dataLoader"><a class="anchor" href="#dataLoader"></a>dataLoader</h3>
-<div class="paragraph">
-<p>To create <code>simplePagination</code> connected to data, use the <code>dataLoader</code> attribute.</p>
-</div>
 </div>
 </div>
 </div>
@@ -218,112 +422,40 @@
 <h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="#AfterRefreshEvent">AfterRefreshEvent</a> -
-<a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
-<a href="#BeforeRefreshEvent">BeforeRefreshEvent</a> -
-<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
-<a href="#totalCountDelegate">totalCountDelegate</a></p>
+<p>The following handlers are specific to <code>simplePagination</code>:</p>
 </div>
-<div class="admonitionblock tip">
-<table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
 <tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
 </tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="AfterRefreshEvent"></a><code>AfterRefreshEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>io.jmix.flowui.component.PaginationComponent.AfterRefreshEvent</code> is fired after data refresh.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="BeforeRefreshEvent"></a><code>BeforeRefreshEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>io.jmix.flowui.component.PaginationComponent.BeforeRefreshEvent</code> is fired before refreshing the data when the user clicks next, previous, etc.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="totalCountDelegate"></a><code>totalCountDelegate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets delegate which is used to get the total count of items.</p></td>
+</tr>
+</tbody>
 </table>
-</div>
-<div class="sect2">
-<h3 id="AfterRefreshEvent"><a class="anchor" href="#AfterRefreshEvent"></a>AfterRefreshEvent</h3>
 <div class="paragraph">
-<p><code>io.jmix.flowui.component.PaginationComponent.AfterRefreshEvent</code> is fired after data refresh.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="BeforeRefreshEvent"><a class="anchor" href="#BeforeRefreshEvent"></a>BeforeRefreshEvent</h3>
-<div class="paragraph">
-<p><code>io.jmix.flowui.component.PaginationComponent.BeforeRefreshEvent</code> is fired before refreshing the data when the user clicks next, previous, etc. You can prevent the data container refresh by invoking the <code>preventRefresh()</code> method, for example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("simplePagination")
-public void onSimplePaginationBeforeRefresh(
-        final PaginationComponent.BeforeRefreshEvent&lt;SimplePagination&gt; event) {
-    if (Objects.requireNonNull(event.getSource().getPaginationLoader()).size() &gt; 10) <i class="conum" data-value="1"></i><b>(1)</b>
-        event.preventRefresh(); <i class="conum" data-value="2"></i><b>(2)</b>
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Check the number of instances in the data loader.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Prevent refreshing the data.</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="totalCountDelegate"><a class="anchor" href="#totalCountDelegate"></a>totalCountDelegate</h3>
-<div class="paragraph">
-<p>Sets delegate which is used to get the total count of items. For example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
-private DataManager dataManager;
-
-@Install(to = "simplePagination", subject = "totalCountDelegate")
-private Integer simplePaginationTotalCountDelegate(
-        final LoadContext&lt;User&gt; loadContext) {
-    return dataManager.loadValue("select count(e) from User e", Integer.class).one();
-}</code></pre>
-</div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>When <code>simplePagination</code> has <code>autoLoad="true"</code>, the <code>totalCountDelegate</code> may be invoked from a <code>BackgroundTask</code>. This means that code inside the <code>totalCountDelegate</code> handler <strong>cannot update UI components</strong> (such as calling <code>setText()</code> on a <code>TextField</code> or other UI modifications). Attempting to do so will cause an <code>IllegalStateException</code>.</p>
+<p>The following shared handlers are supported by <code>simplePagination</code>:</p>
 </div>
 <div class="paragraph">
-<p>Do not update UI components inside <code>totalCountDelegate</code>. Use this handler only for calculating and returning the total count.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="totalCountByRepositoryDelegate"><a class="anchor" href="#totalCountByRepositoryDelegate"></a>totalCountByRepositoryDelegate</h3>
-<div class="paragraph">
-<p>Sets delegate which is used to get the total count of items from a <a class="xref page" href="../../../data-access/data-repositories.html">data repository</a>. For example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
-private DepartmentRepository repository;
-
-@Install(to = "pagination", subject = "totalCountByRepositoryDelegate")
-private Long paginationTotalCountByRepositoryDelegate(
-        final JmixDataRepositoryContext context) {
-    return repository.count(context);
-}</code></pre>
-</div>
-</div>
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
 </div>
 </div>
 </div>

@@ -10,41 +10,42 @@
 <h1 class="page">timePicker</h1>
 <div id="preamble">
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>timePicker</code> lets users enter or select a time.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timePicker</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TypedTimePicker</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
 <div class="jmix-ui-live-demo-container">
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/time-picker-simple" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p><code>timePicker</code> lets users enter or select a time.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML element: <code>timePicker</code></p>
-</li>
-<li>
-<p>Java class: <code>TypedTimePicker</code></p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
-<div class="sectionbody">
-<div class="paragraph">
 <p>Time can be entered directly using a keyboard or selected from an overlay with a list of time values. The overlay appears on clicking the field or the clock button.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="time picker basic" src="../../_images/visual-components/components/time-picker-basic.png" width="200"/>
-</div>
 </div>
 <div class="paragraph">
 <p>The following example defines a <code>timePicker</code> of <code>localTime</code> type with a label:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;timePicker id="timePicker" datatype="localTime" label="Appointment time"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;timePicker id="timePicker" label="TimePicker" datatype="localTime"/&gt;</code></pre>
 </div>
 </div>
 </div>
@@ -74,8 +75,33 @@
 </div>
 </div>
 <div class="sect1">
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data-aware <code>timePicker</code></h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/time-picker-dataaware" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Use the <code>dataContainer</code> and <code>property</code> attributes to bind <code>timePicker</code> to an entity attribute. The data container provides the entity instance, and <code>property</code> identifies the attribute to edit.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance id="taskDc"
+              class="io.jmix.uisamples.entity.Task"
+              fetchPlan="_local"/&gt;
+&lt;/data&gt;
+    &lt;timePicker id="timePicker" label="TimePicker"
+                     dataContainer="taskDc" property="dueDate"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="step"><a class="anchor" href="#step"></a>Step</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/time-picker-custom-range" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>The default interval between the items displayed in the time overlay is set to one hour. To customize this interval, use the <a class="xref page" href="../common-attributes.html#step">step</a> attribute either in XML or programmatically.</p>
 </div>
@@ -84,23 +110,12 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;timePicker step="30"
-            min="10:00"
-            max="12:00"/&gt; <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;timePicker id="timePicker" label="TimePicker" datatype="localTime"
+            step="15m"/&gt;</code></pre>
 </div>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>A number without a <a href="#suffix">suffix</a> means minutes.</td>
-</tr>
-</table>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="time picker step" src="../../_images/visual-components/components/time-picker-step.png" width="230"/>
-</div>
+<div class="paragraph">
+<p>The <code>m</code> <a href="#suffix">suffix</a> specifies minutes.</p>
 </div>
 <div class="paragraph" id="suffix">
 <p>The <code>step</code> attribute supports flexible time interval configuration using different chrono units. You can specify values with unit suffixes for clarity.</p>
@@ -160,10 +175,39 @@ The overlay doesn’t appear for steps less than 15 minutes, to avoid showing an
 </div>
 </div>
 <div class="sect1">
-<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<h2 id="_time_range"><a class="anchor" href="#_time_range"></a>Time Range</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/time-picker-custom-range" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
-<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+<p>To restrict the input to a specific time range, specify a minimum and maximum value using the <a href="#max">max</a> and <a href="#min">min</a> attributes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected TypedTimePicker&lt;LocalTime&gt; timePicker;
+
+@Subscribe
+protected void onInit(InitEvent event) {
+    timePicker.setMin(LocalTime.of(8, 0));
+    timePicker.setMax(LocalTime.of(17, 0));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply a <a href="#validator">validator</a> to set a more specific time range.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="variants"><a class="anchor" href="#variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/time-picker-theme-variant" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to apply one or more theme variants.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -209,31 +253,51 @@ The overlay doesn’t appear for steps less than 15 minutes, to avoid showing an
 </div>
 </div>
 <div class="sect1">
-<h2 id="_time_range"><a class="anchor" href="#_time_range"></a>Time Range</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>To restrict the input to a specific time range, specify a minimum and maximum value using the <a href="#max">max</a> and <a href="#min">min</a> attributes.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;timePicker min="08:00" max="18:00"/&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Apply a <a href="#validator">validator</a> to set a more specific time range.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>timePicker</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="autoOpen"></a><code>autoOpen</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Defines whether the overlay opens when the user interacts with the component.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="max"></a><code>max</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the latest time that can be selected.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="min"></a><code>min</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the earliest time that can be selected.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>timePicker</code>:</p>
+</div>
 <div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
 <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
 <a class="xref page" href="../common-attributes.html#allowedCharPattern">allowedCharPattern</a> -
 <a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
 <a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
-<a href="#autoOpen">autoOpen</a> -
 <a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
 <a class="xref page" href="../common-attributes.html#clearButtonVisible">clearButtonVisible</a> -
 <a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
@@ -246,13 +310,10 @@ The overlay doesn’t appear for steps less than 15 minutes, to avoid showing an
 <a class="xref page" href="../common-attributes.html#height">height</a> -
 <a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
 <a class="xref page" href="../common-attributes.html#label">label</a> -
-<a href="#max">max</a> -
 <a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
 <a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
-<a href="#min">min</a> -
 <a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
 <a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
-<a class="xref page" href="../common-attributes.html#overlayClass">overlayClass</a> -
 <a class="xref page" href="../common-attributes.html#placeholder">placeholder</a> -
 <a class="xref page" href="../common-attributes.html#property">property</a> -
 <a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
@@ -260,43 +321,9 @@ The overlay doesn’t appear for steps less than 15 minutes, to avoid showing an
 <a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
 <a class="xref page" href="../common-attributes.html#step">step</a> -
 <a class="xref page" href="../common-attributes.html#tabIndex">tabIndex</a> -
-<a href="#themeVariants">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
 <a class="xref page" href="../common-attributes.html#visible">visible</a> -
 <a class="xref page" href="../common-attributes.html#width">width</a></p>
-</div>
-<div class="sect2">
-<h3 id="autoOpen"><a class="anchor" href="#autoOpen"></a>autoOpen</h3>
-<div class="paragraph">
-<p>Defines whether the overlay opens when the user interacts with the component.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If set to <code>true</code>, the overlay opens on user input and on clicking the clock button or the field.</p>
-</li>
-<li>
-<p>If set to <code>false</code>, the overlay opens only on clicking the clock button.</p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect2">
-<h3 id="max"><a class="anchor" href="#max"></a>max</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/time-picker#minimum-maximum-value" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>Specifies the latest time that can be selected. Accepted format is <code>hh:mm</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="min"><a class="anchor" href="#min"></a>min</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/time-picker#minimum-maximum-value" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>Specifies the earliest time that can be selected. Accepted format is <code>hh:mm</code>.</p>
-</div>
 </div>
 </div>
 </div>
@@ -304,58 +331,45 @@ The overlay doesn’t appear for steps less than 15 minutes, to avoid showing an
 <h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following handlers are specific to <code>timePicker</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="ClientValidatedEvent"></a><code>ClientValidatedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired after client-side validation changes the component’s validity.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="InvalidChangeEvent"></a><code>InvalidChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the component’s invalid state changes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="validator"></a><code>validator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validates the component value.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>timePicker</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
 <a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
-<a href="#ClientValidatedEvent">ClientValidatedEvent</a> -
 <a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
 <a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
 <a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a> -
-<a href="#InvalidChangeEvent">InvalidChangeEvent</a> -
 <a class="xref page" href="../common-handlers.html#TypedValueChangeEvent">TypedValueChangeEvent</a> -
-<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a> -
-<a href="#validator">validator</a></p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="ClientValidatedEvent"><a class="anchor" href="#ClientValidatedEvent"></a>ClientValidatedEvent</h3>
-<div class="paragraph">
-<p><code>ClientValidatedEvent</code> is sent by the web component whenever it is validated on the client-side.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="InvalidChangeEvent"><a class="anchor" href="#InvalidChangeEvent"></a>InvalidChangeEvent</h3>
-<div class="paragraph">
-<p><code>com.vaadin.flow.component.timepicker.TimePicker.InvalidChangeEvent</code> is sent when the value of the <a class="xref page" href="../common-attributes.html#invalid">invalid</a> attribute of the component changes.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="validator"><a class="anchor" href="#validator"></a>validator</h3>
-<div class="paragraph">
-<p>Adds a <a class="xref page" href="../miscellaneous/validator.html">validator</a> instance to the component. The validator must throw <code>ValidationException</code> if the value is not valid.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "timePicker", subject = "validator")
-private void timePickerValidator(LocalTime value) {
-    if (value != null &amp;&amp; LocalTime.of(13,0).isBefore(value) &amp;&amp; LocalTime.of(14,0).isAfter(value)) {
-        throw new ValidationException("No appointments between 13:00 to 14:00.");
-    }
-}</code></pre>
-</div>
-</div>
+<a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a></p>
 </div>
 </div>
 </div>
@@ -363,17 +377,19 @@ private void timePickerValidator(LocalTime value) {
 <h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a class="xref page" href="tooltip.html">tooltip</a> -
-<a class="xref page" href="../miscellaneous/validator.html">validator</a> -
-<a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a></p>
+<p>A <code>timePicker</code> can include <a class="xref page" href="tooltip.html">tooltip</a>, <a class="xref page" href="../miscellaneous/validator.html">validator</a>, and <a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a> as its nested elements.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>See <a href="https://vaadin.com/docs/v25/components/time-picker" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/time-picker" rel="noopener" target="_blank">Vaadin Time Picker documentation</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

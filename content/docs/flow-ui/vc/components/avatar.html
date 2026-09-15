@@ -10,45 +10,61 @@
 <h1 class="page">avatar</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/avatar" target="_blank">LIVE DEMO</a>
-</div>
 <div class="paragraph">
 <p><code>avatar</code> is a content area that displays an image, typically a photo of a person or a company logo.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML element: <code>avatar</code></p>
-</li>
-<li>
-<p>Java class: <code>Avatar</code></p>
-</li>
-</ul>
-</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>avatar</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Avatar</code></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
 <h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>The following example demonstrates four possible content options for <code>avatar</code>.</p>
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/avatar" target="_blank">LIVE DEMO</a>
 </div>
-<div class="imageblock text-center">
+<div class="paragraph">
+<p>The following example demonstrates a name-derived abbreviation, an explicit abbreviation, and an image supplied by the view controller.</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
 <div class="content">
-<img alt="avatar basic" src="../../_images/visual-components/components/avatar-basic.png" width="205"/>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox padding="false" wrap="true"&gt;
+    &lt;avatar name="Homer Jay Simpson"/&gt;
+    &lt;avatar name="Homer Jay Simpson" abbreviation="HS"/&gt;
+    &lt;avatar id="avatarWithImage"/&gt;
+&lt;/hbox&gt;</code></pre>
 </div>
 </div>
 <div class="listingblock">
+<div class="title">Java</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;avatar image="/icons/mary.png" abbreviation="MJ" name="Mary Elizabeth Jones"/&gt;
-&lt;avatar abbreviation="MJ" name="Mary Elizabeth Jones"/&gt;
-&lt;avatar name="Mary Elizabeth Jones"/&gt;
-&lt;avatar/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected Avatar avatarWithImage;
+@Subscribe
+protected void onInit(InitEvent event) {
+    avatarWithImage.setImageHandler(
+            DownloadHandler.forClassResource(getClass(), "/META-INF/resources/icons/homer-simpson.png")
+    );
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Note the priority of the attributes. The <a href="#image">image</a> is displayed first. If no image is set or cannot render, it will be substituted with the <a href="#abbreviation">abbreviation</a> value. The first letters in the <a href="#name">name</a> are displayed if neither image nor abbreviation is set. There is also a fallback image that is displayed in case there is no content at all.</p>
+<p>An avatar without any of these attributes displays a fallback image.</p>
 </div>
 </div>
 </div>
@@ -58,8 +74,11 @@
 <div class="paragraph">
 <p>The <code>avatar</code> component can display an image from different resources. You can set a path to the resource declaratively with the <a href="#image">image</a> attribute, or set it programmatically.</p>
 </div>
-<div class="sect2">
-<h3 id="static-image"><a class="anchor" href="#static-image"></a>Static Image</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="static-image"><a class="anchor" href="#static-image"></a>Static Image</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>An image can be served statically by the application.</p>
 </div>
@@ -91,8 +110,10 @@ under <code>/src/main/resources/META-INF/resources</code>, such as <code>/src/ma
 </ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="url-image"><a class="anchor" href="#url-image"></a>URL Image</h3>
+</div>
+<div class="sect1">
+<h2 id="url-image"><a class="anchor" href="#url-image"></a>URL Image</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Similarly, an image can be loaded from an arbitrary URL.</p>
 </div>
@@ -117,8 +138,13 @@ under <code>/src/main/resources/META-INF/resources</code>, such as <code>/src/ma
 </ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="stream-image"><a class="anchor" href="#stream-image"></a>Image Provided by a DownloadHandler</h3>
+</div>
+<div class="sect1">
+<h2 id="stream-image"><a class="anchor" href="#stream-image"></a>Image Provided by a DownloadHandler</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/avatar" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>An image can be provided by a <code>DownloadHandler</code>.</p>
 </div>
@@ -130,20 +156,26 @@ under <code>/src/main/resources/META-INF/resources</code>, such as <code>/src/ma
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">avatar.setImageHandler(
-        DownloadHandler.forClassResource(
-                getClass(), "/META-INF/resources/icons/mary.png")
-);</code></pre>
-</div>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected Avatar avatarWithImage;
+@Subscribe
+protected void onInit(InitEvent event) {
+    avatarWithImage.setImageHandler(
+            DownloadHandler.forClassResource(getClass(), "/META-INF/resources/icons/homer-simpson.png")
+    );
+}</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<h2 id="variants"><a class="anchor" href="#variants"></a>Theme Variants</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/avatar" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
-<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to apply one or more theme variants.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -192,52 +224,61 @@ under <code>/src/main/resources/META-INF/resources</code>, such as <code>/src/ma
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following attributes are specific to <code>avatar</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="abbreviation"></a><code>abbreviation</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets an abbreviation to display in the component.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="colorIndex"></a><code>colorIndex</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies the background color for the avatar component.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="image"></a><code>image</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies a path to an image resource.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="name"></a><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets a name of the avatar holder.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>avatar</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
-<a href="#abbreviation">abbreviation</a> -
 <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
 <a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
-<a href="#colorIndex">colorIndex</a> -
 <a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
 <a class="xref page" href="../common-attributes.html#css">css</a> -
 <a class="xref page" href="../common-attributes.html#height">height</a> -
-<a href="#image">image</a> -
 <a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
 <a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
 <a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
 <a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
-<a href="#name">name</a> -
-<a href="#theme-variants">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
 <a class="xref page" href="../common-attributes.html#visible">visible</a> -
 <a class="xref page" href="../common-attributes.html#width">width</a></p>
-</div>
-<div class="sect2">
-<h3 id="abbreviation"><a class="anchor" href="#abbreviation"></a>abbreviation</h3>
-<div class="paragraph">
-<p>Sets an abbreviation to display in the component. This can be initials, or other short form to identify the avatar owner. It’s better to keep it to 2-3 characters.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="colorIndex"><a class="anchor" href="#colorIndex"></a>colorIndex</h3>
-<div class="paragraph">
-<p>Specifies the background color for the avatar component. There are seven different colors that correspond to index values from 0 to 6.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="avatar colorindex" src="../../_images/visual-components/components/avatar-colorindex.png" width="360"/>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="image"><a class="anchor" href="#image"></a>image</h3>
-<div class="paragraph">
-<p>Specifies a path to an image resource. An image can be served from the <a href="#static-image">static resource</a> directory or obtained from an <a href="#url-image">arbitrary URL</a>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="name"><a class="anchor" href="#name"></a>name</h3>
-<div class="paragraph">
-<p>Sets a name of the avatar holder.</p>
-</div>
 </div>
 </div>
 </div>
@@ -245,30 +286,23 @@ under <code>/src/main/resources/META-INF/resources</code>, such as <code>/src/ma
 <h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following shared handlers are supported by <code>avatar</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
 <a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>See the <a href="https://vaadin.com/docs/v25/components/avatar" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/avatar" rel="noopener" target="_blank">Vaadin Avatar documentation</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

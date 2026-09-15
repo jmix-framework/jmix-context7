@@ -174,6 +174,7 @@ public class MyOidcUserMapper extends BaseOidcUserMapper&lt;MyUser&gt; {
     @Override
     protected void populateUserAttributes(OidcUser oidcUser, MyUser jmixUser) {
         jmixUser.setPosition((String) oidcUser.getClaims().get("position"));
+        jmixUser.setDelegate(oidcUser);
     }
 
     @Override
@@ -183,6 +184,18 @@ public class MyOidcUserMapper extends BaseOidcUserMapper&lt;MyUser&gt; {
     }
 }</code></pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When implementing a custom OIDC user mapper, make sure the Jmix user keeps the original OIDC user data, including the ID token. The ID token is required for logout processing. If your user class extends <code>DefaultJmixOidcUser</code> or <code>JmixOidcUserEntity</code>, call <code>setDelegate(oidcUser)</code> as shown in the example above.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>Note that in the example above, the mapping of claims from OIDC user to Jmix granted authorities is delegated to the <code>ClaimsRolesMapper</code> interface. The default implementation of <code>ClaimsRolesMapper</code> is <code>DefaultClaimsRolesMapper</code>, which gets the claim with the "roles" name from the ID Token. This claim must contain a collection of role names. Then for each role from the claim value resource role and row-level role are searched in Jmix. If found, corresponding granted authorities will be added to the user. The roles claim name can be configured using the following application property:</p>
@@ -319,6 +332,7 @@ public class MySynchronizingOidcUserMapper extends SynchronizingOidcUserMapper&l
         jmixUser.setFirstName(oidcUser.getGivenName());
         jmixUser.setLastName(oidcUser.getFamilyName());
         jmixUser.setEmail(oidcUser.getEmail());
+        jmixUser.setDelegate(oidcUser);
     }
 }</code></pre>
 </div>

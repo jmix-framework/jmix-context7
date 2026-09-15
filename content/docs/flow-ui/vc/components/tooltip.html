@@ -10,16 +10,13 @@
 <h1 class="page">tooltip</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/context-help-tooltip" target="_blank">LIVE DEMO</a>
-</div>
 <div class="paragraph">
-<p>Tooltips are small pop-ups that can provide additional information about a UI element on hover and keyboard focus.</p>
+<p><code>tooltip</code> displays additional information when users hover over or focus a component.</p>
 </div>
-<table class="tableblock frame-all grid-none stretch">
+<table class="tableblock frame-none grid-none fit-content">
 <colgroup>
-<col style="width: 14.2857%;"/>
-<col style="width: 85.7143%;"/>
+<col/>
+<col/>
 </colgroup>
 <tbody>
 <tr>
@@ -27,22 +24,19 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>tooltip</code></p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#focusDelay">focusDelay</a> -
-<a href="#hideDelay">hideDelay</a> -
-<a href="#hoverDelay">hoverDelay</a> -
-<a href="#manual">manual</a> -
-<a href="#opened">opened</a> -
-<a href="#position">position</a> -
-<a href="#text">text</a></p></td>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Tooltip</code></p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/context-help-tooltip" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p><code>tooltip</code> is a nested element of almost all components and layouts.</p>
 </div>
@@ -59,13 +53,13 @@ To add a nested <code>tooltip</code> element in Jmix Studio, select the UI eleme
 </table>
 </div>
 <div class="paragraph">
-<p>An example of defining a <a class="xref page" href="button.html">button</a> with a <code>tooltip</code>:</p>
+<p>An example of defining a <a class="xref page" href="textField.html">textField</a> with a <code>tooltip</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button icon="CREDIT_CARD"&gt;
-    &lt;tooltip text="Add a credit card" position="END_TOP"/&gt;
-&lt;/button&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField label="Field with tooltip"&gt;
+    &lt;tooltip text="Tooltip text"/&gt;
+&lt;/textField&gt;</code></pre>
 </div>
 </div>
 </div>
@@ -93,6 +87,9 @@ public void onInit(final InitEvent event) {
 <div class="sect1">
 <h2 id="about-positioning"><a class="anchor" href="#about-positioning"></a>Positioning</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/context-help-tooltip" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p><code>tooltip</code>, by default, positions itself relative to the target component it’s attached to. It automatically calculates the best location for the tooltip to appear, taking into account the available space on the screen and avoiding overlaps with other elements.</p>
 </div>
@@ -104,8 +101,21 @@ public void onInit(final InitEvent event) {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">programmaticField.getTooltip()
-        .setPosition(Tooltip.TooltipPosition.START);</code></pre>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected JmixSelect&lt;Tooltip.TooltipPosition&gt; position;
+protected void initPositionItems() {
+    ComponentUtils.setItemsMap(position, getPositionItemsMap());
+    position.setValue(Tooltip.TooltipPosition.TOP);
+}
+@Subscribe("position")
+protected void onPositionChange(
+        ComponentValueChangeEvent&lt;JmixSelect&lt;Tooltip.TooltipPosition&gt;, Tooltip.TooltipPosition&gt; event) {
+    customTooltipField.getTooltip().setPosition(event.getValue());
+}
+protected Map&lt;Tooltip.TooltipPosition, String&gt; getPositionItemsMap() {
+    return Arrays.stream(Tooltip.TooltipPosition.values())
+            .collect(Collectors.toMap(Function.identity(),mode -&gt; mode.name().replace('_', ' ')));
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -113,10 +123,7 @@ public void onInit(final InitEvent event) {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="textField"&gt;
-    &lt;tooltip text="Basics tooltip"
-             position="END_BOTTOM"/&gt;
-&lt;/textField&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;select id="position" label="Position"/&gt;</code></pre>
 </div>
 </div>
 </div>
@@ -124,6 +131,9 @@ public void onInit(final InitEvent event) {
 <div class="sect1">
 <h2 id="configuring-delays"><a class="anchor" href="#configuring-delays"></a>Configuring Delays</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/context-help-tooltip" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p><code>tooltip</code> provides the ability to configure delays for its appearance and disappearance, allowing you to control the timing of the tooltip’s interaction with the user.</p>
 </div>
@@ -138,10 +148,16 @@ public void onInit(final InitEvent event) {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField label="Text Field"&gt;
-    &lt;tooltip text="This is a tooltip"
-             focusDelay="500"/&gt;
-&lt;/textField&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("focusDelay")
+protected void onFocusDelayChange(ComponentValueChangeEvent&lt;IntegerField, Integer&gt; event) {
+    Integer value = event.getValue();
+
+    if (value != null &amp;&amp; value &gt; 0 &amp;&amp; value &lt;= 5000) {
+        customTooltipField.getTooltip().setFocusDelay(value);
+    } else {
+        customTooltipField.getTooltip().setFocusDelay(0);
+    }
+}</code></pre>
 </div>
 </div>
 <div class="paragraph" id="about-hide-delay">
@@ -155,10 +171,16 @@ public void onInit(final InitEvent event) {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField label="Text Field"&gt;
-    &lt;tooltip text="This is a tooltip"
-             hideDelay="1000"/&gt;
-&lt;/textField&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("hideDelay")
+protected void onHideDelayChange(ComponentValueChangeEvent&lt;IntegerField, Integer&gt; event) {
+    Integer value = event.getValue();
+
+    if (value != null &amp;&amp; value &gt; 0 &amp;&amp; value &lt;= 5000) {
+        customTooltipField.getTooltip().setHideDelay(value);
+    } else {
+        customTooltipField.getTooltip().setHideDelay(0);
+    }
+}</code></pre>
 </div>
 </div>
 <div class="paragraph" id="about-hover-delay">
@@ -172,10 +194,16 @@ public void onInit(final InitEvent event) {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField label="Text Field"&gt;
-    &lt;tooltip text="This is a tooltip"
-             hoverDelay="500"/&gt;
-&lt;/textField&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("hoverDelay")
+protected void onHoverDelayChange(ComponentValueChangeEvent&lt;IntegerField, Integer&gt; event) {
+    Integer value = event.getValue();
+
+    if (value != null &amp;&amp; value &gt; 0 &amp;&amp; value &lt;= 5000) {
+        customTooltipField.getTooltip().setHoverDelay(value);
+    } else {
+        customTooltipField.getTooltip().setHoverDelay(0);
+    }
+}</code></pre>
 </div>
 </div>
 </div>
@@ -183,6 +211,9 @@ public void onInit(final InitEvent event) {
 <div class="sect1">
 <h2 id="triggering-manually"><a class="anchor" href="#triggering-manually"></a>Triggering Manually</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/context-help-tooltip" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>You can configure tooltips to appear programmatically, meaning they won’t show on hover or focus, but only when triggered by your code. This is particularly useful when:</p>
 </div>
@@ -201,10 +232,8 @@ public void onInit(final InitEvent event) {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="manualTextField"
-           label="Text Field"&gt;
-    &lt;tooltip text="This is a tooltip"
-             manual="true"/&gt;
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="manualTooltipField" label="Manual tooltip"&gt;
+    &lt;tooltip text="Tooltip text" manual="true" position="END_BOTTOM"/&gt;
 &lt;/textField&gt;</code></pre>
 </div>
 </div>
@@ -214,38 +243,33 @@ public void onInit(final InitEvent event) {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
-private TypedTextField&lt;String&gt; manualTextField;
-
+protected TypedTextField&lt;String&gt; manualTooltipField;
 @Autowired
-private UiComponents uiComponents;
-
+protected UiComponents uiComponents;
 @Subscribe
-public void onInit(final InitEvent event) {
-    JmixButton helperButton = createHelperButton();
-    Tooltip tooltip = manualTextField.getTooltip();
-    helperButton.addClickListener(e -&gt;
-            tooltip.setOpened(!tooltip.isOpened())); <i class="conum" data-value="1"></i><b>(1)</b>
-
-    manualTextField.setSuffixComponent(helperButton);
+protected void onInit(InitEvent event) {
+    initManualTooltip();
+    initPositionItems();
 }
+protected void initManualTooltip() {
+    JmixButton helperButton = createHelperButton();
+    Tooltip tooltip = manualTooltipField.getTooltip();
+    helperButton.addClickListener(e -&gt; tooltip.setOpened(!tooltip.isOpened()));
 
+    manualTooltipField.setSuffixComponent(helperButton);
+}
 protected JmixButton createHelperButton() {
     JmixButton helperButton = uiComponents.create(JmixButton.class);
     helperButton.setIcon(VaadinIcon.QUESTION_CIRCLE.create());
-    helperButton.addThemeVariants(ButtonVariant.LUMO_ICON,
-            ButtonVariant.LUMO_TERTIARY_INLINE);
+    helperButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+    helperButton.addClassName(StyleUtility.Button.LINK_BUTTON);
 
     return helperButton;
 }</code></pre>
 </div>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The <code>opened</code> attribute controls whether the tooltip is currently visible. It’s a boolean value, with <code>true</code> indicating the tooltip is open and <code>false</code> indicating it’s closed.</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>The <code>opened</code> attribute controls whether the tooltip is currently visible. It’s a boolean value, with <code>true</code> indicating the tooltip is open and <code>false</code> indicating it’s closed.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -267,62 +291,76 @@ While <code>opened</code> can be set manually, it’s typically managed by the f
 <div class="paragraph">
 <p>The following attributes are specific to <code>tooltip</code>:</p>
 </div>
-<table class="tableblock frame-none grid-rows stretch">
+<table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 14.2857%;"/>
-<col style="width: 71.4285%;"/>
-<col style="width: 14.2858%;"/>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
 </colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
 <tbody>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><strong>Name</strong></p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Default</strong></p></td>
-</tr>
-<tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="focusDelay"></a>focusDelay</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="focusDelay"></a><code>focusDelay</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Defines the delay in milliseconds before the tooltip is opened on keyboard focus, when not in manual mode. See <a href="#about-focus-delay">Focus Delay</a>.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>0</code></p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="hideDelay"></a>hideDelay</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="hideDelay"></a><code>hideDelay</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Defines the delay in milliseconds before the tooltip is closed on losing hover, when not in manual mode. On blur, the tooltip is closed immediately. See <a href="#about-hide-delay">Hide Delay</a>.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>0</code></p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="hoverDelay"></a>hoverDelay</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="hoverDelay"></a><code>hoverDelay</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Defines the delay in milliseconds before the tooltip is opened on hover, when not in manual mode. See <a href="#about-hover-delay">Hover Delay</a>.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>0</code></p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="manual"></a>manual</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="manual"></a><code>manual</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, the tooltip is controlled programmatically instead of reacting to focus and mouse events. See <a href="#triggering-manually">Triggering Manually</a>.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="opened"></a>opened</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="opened"></a><code>opened</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, the tooltip is opened programmatically. Only works if <code>manual</code> is set to <code>true</code>. See <a href="#triggering-manually">Triggering Manually</a>.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="position"></a>position</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="position"></a><code>position</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Defines the position of the tooltip with respect to its target. See <a href="#about-positioning">Positioning</a>.</p></td>
-<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
 </tr>
 <tr>
-<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="text"></a>text</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="text"></a><code>text</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Defines the string used as a tooltip content.</p></td>
-<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>See the <a href="https://vaadin.com/docs/v25/components/tooltip" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<p>The <code>tooltip</code> element does not define handlers. Focus and hover events are handled by the component to which the tooltip is attached.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/tooltip" rel="noopener" target="_blank">Vaadin Tooltip documentation</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

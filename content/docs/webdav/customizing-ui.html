@@ -37,17 +37,20 @@
 <div class="sect2">
 <h3 id="add-last-modified-by-column"><a class="anchor" href="#add-last-modified-by-column"></a>Adding lastModifiedBy Column</h3>
 <div class="paragraph">
-<p>Let’s configure the display of the author of the latest changes to the WebDAV file.</p>
-</div>
-<div class="paragraph">
-<p>Add a new column to <code>webdavDocumentWrappersDataGrid</code>:</p>
+<p>Add the <code>lastModifiedBy</code> column to <code>webdavDocumentWrappersDataGrid</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="webdavDocumentWrappersDataGrid" ...&gt;
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="webdavDocumentWrappersDataGrid"
+          width="100%"
+          minHeight="20em"
+          dataContainer="webdavDocumentWrappersDc"
+          columnReorderingAllowed="true"&gt;
     &lt;columns resizable="true"&gt;
-        &lt;!--..--&gt;
+        &lt;column property="webdavDocument"/&gt;
+        &lt;column property="description"/&gt;
         &lt;column key="lastModifiedBy" header="msg://column.lastModifiedBy"/&gt;
+        &lt;column property="department"/&gt;
     &lt;/columns&gt;
 &lt;/dataGrid&gt;</code></pre>
 </div>
@@ -57,17 +60,6 @@
 </div>
 <div class="paragraph">
 <p>Select the <code>lastModifiedBy</code> column, switch to the <strong>Handlers</strong> tab of the component inspector and create the <code>renderer</code> handler method:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "webdavDocumentWrappersDataGrid.lastModifiedBy", subject = "renderer")
-private Renderer&lt;WebdavDocumentWrapper&gt; webdavDocumentWrappersDataGridLastModifiedByRenderer() {
-    return null;
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Implement the <code>webdavDocumentWrappersDataGridLastModifiedByRenderer</code> method:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -104,14 +96,21 @@ private Renderer&lt;WebdavDocumentWrapper&gt; webdavDocumentWrappersDataGridLast
 <p>In the <code>lastModifiedDate</code> column, let’s configure the display of the date of the latest changes to the WebDAV file.</p>
 </div>
 <div class="paragraph">
-<p>Add a new column to <code>webdavDocumentWrappersDataGrid</code>:</p>
+<p>Add the <code>lastModifiedDate</code> column to <code>webdavDocumentWrappersDataGrid</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="webdavDocumentWrappersDataGrid" ...&gt;
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="webdavDocumentWrappersDataGrid"
+          width="100%"
+          minHeight="20em"
+          dataContainer="webdavDocumentWrappersDc"
+          columnReorderingAllowed="true"&gt;
     &lt;columns resizable="true"&gt;
-        &lt;!--..--&gt;
+        &lt;column property="webdavDocument"/&gt;
+        &lt;column property="description"/&gt;
+        &lt;column key="lastModifiedBy" header="msg://column.lastModifiedBy"/&gt;
         &lt;column key="lastModifiedDate" header="msg://column.lastModifiedDate"/&gt;
+        &lt;column property="department"/&gt;
     &lt;/columns&gt;
 &lt;/dataGrid&gt;</code></pre>
 </div>
@@ -158,20 +157,26 @@ private Renderer&lt;WebdavDocumentWrapper&gt; webdavDocumentWrappersDataGridLast
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;vbox expand="webdavDocumentWrappersDataGrid"&gt;
-     &lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
-         &lt;!--...--&gt;
-         &lt;button id="downloadBtn" action="webdavDocumentWrappersDataGrid.download" icon="vaadin:download"/&gt;
-     &lt;/hbox&gt;
-     &lt;dataGrid width="100%" id="webdavDocumentWrappersDataGrid" dataContainer="webdavDocumentWrappersDc"&gt;
-         &lt;actions&gt;
-             &lt;!--...--&gt;
-             &lt;action id="download" text="msg://download" type="list_itemTracking"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-         &lt;/actions&gt;
-         &lt;!--...--&gt;
-     &lt;/dataGrid&gt;
-     &lt;!--...--&gt;
-&lt;/vbox&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="buttonsPanel" classNames="buttons-panel"&gt;
+    &lt;button id="createBtn" action="webdavDocumentWrappersDataGrid.create"/&gt;
+    &lt;button id="editBtn" action="webdavDocumentWrappersDataGrid.edit"/&gt;
+    &lt;button id="removeBtn" action="webdavDocumentWrappersDataGrid.remove"/&gt;
+    &lt;button id="downloadBtn" action="webdavDocumentWrappersDataGrid.download"
+            icon="vaadin:download"/&gt;
+    &lt;simplePagination id="pagination" dataLoader="webdavDocumentWrappersDl"/&gt;
+&lt;/hbox&gt;
+&lt;dataGrid id="webdavDocumentWrappersDataGrid"
+          width="100%"
+          minHeight="20em"
+          dataContainer="webdavDocumentWrappersDc"
+          columnReorderingAllowed="true"&gt;
+    &lt;actions&gt;
+        &lt;action id="create" type="list_create"/&gt;
+        &lt;action id="edit" type="list_edit"/&gt;
+        &lt;action id="remove" type="list_remove"/&gt;
+        &lt;action id="download" text="msg://download.text" type="list_itemTracking"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;/actions&gt;
+&lt;/dataGrid&gt;</code></pre>
 </div>
 </div>
 <div class="colist arabic">

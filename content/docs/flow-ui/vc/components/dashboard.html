@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dashboard :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">dashboard</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="admonitionblock note addon-component">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This component requires the commercial <a class="xref page" href="../../../vaadin-dashboard/index.html#installation">Vaadin Dashboard add-on</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>dashboard</code> component shows content in a grid of widgets. The grid changes the number of columns to fit the available width. A widget can span several columns and rows, and widgets can be grouped into sections that users can collapse. In the editable mode, users move, resize, and remove widgets themselves.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dashboard</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JmixDashboard</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Declare the <code>dashb</code> namespace in the view descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:dashb="http://jmix.io/schema/vaadin-dashboard/ui"
+      title="msg://dashboardBasicsView.title"&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Studio adds the namespace automatically when you add the component using the <strong>Add Component</strong> action in the top actions panel. See <a class="xref page" href="../../../studio/view-designer.html#component-palette">Component Palette</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The simplest dashboard contains the <code>dashboard</code> element with a few <code>dashboardWidget</code> elements inside:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dashb:dashboard id="dashboard" width="100%"&gt;
+    &lt;dashb:dashboardWidget id="revenueWidget" title="msg://revenueWidget.title"&gt;
+        &lt;dashb:content&gt;
+            &lt;h3 id="revenueValue" text="1,204,500"/&gt;
+        &lt;/dashb:content&gt;
+    &lt;/dashb:dashboardWidget&gt;
+
+    &lt;dashb:dashboardWidget id="ordersWidget" title="msg://ordersWidget.title"&gt;
+        &lt;dashb:content&gt;
+            &lt;h3 id="ordersValue" text="3,182"/&gt;
+        &lt;/dashb:content&gt;
+    &lt;/dashb:dashboardWidget&gt;
+&lt;/dashb:dashboard&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="widgets"><a class="anchor" href="#widgets"></a>Widgets</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A widget is declared by the <code>dashboardWidget</code> element. It requires an <code>id</code> and contains one component in the nested <code>content</code> element. The <code>title</code> attribute sets the text shown in the widget header and accepts a message key:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dashb:dashboardWidget id="revenueWidget" title="msg://revenueWidget.title"&gt;
+    &lt;dashb:content&gt;
+        &lt;vbox id="revenueBox" padding="false"&gt;
+            &lt;h3 id="revenueValue" text="1,204,500"/&gt;
+            &lt;span id="revenueCaption" text="msg://revenueWidget.caption"/&gt;
+        &lt;/vbox&gt;
+    &lt;/dashb:content&gt;
+&lt;/dashb:dashboardWidget&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>content</code> element accepts any component available in the view. To show several components in one widget, put them into a layout, as in the example above.</p>
+</div>
+<div class="sect2">
+<h3 id="widget-header"><a class="anchor" href="#widget-header"></a>Widget Header</h3>
+<div class="paragraph">
+<p>Besides the title, a widget can have the <code>headerContent</code> element. Its component is shown in the widget header. Use it for a refresh button, a filter, or a status badge:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dashb:dashboardWidget id="ordersWidget" title="msg://ordersWidget.title"&gt;
+    &lt;dashb:content&gt;
+        &lt;h3 id="ordersValue" text="3,182"/&gt;
+    &lt;/dashb:content&gt;
+    &lt;dashb:headerContent&gt;
+        &lt;button id="refreshOrdersBtn" icon="REFRESH" themeNames="tertiary-inline"/&gt;
+    &lt;/dashb:headerContent&gt;
+&lt;/dashb:dashboardWidget&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both <code>content</code> and <code>headerContent</code> must contain exactly one element. If you declare more, the application throws a development exception when the view opens.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="widget-size"><a class="anchor" href="#widget-size"></a>Widget Size</h3>
+<div class="paragraph">
+<p>By default, a widget takes one cell of the grid. The <code>colspan</code> and <code>rowspan</code> attributes make it span several columns and rows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dashb:dashboardWidget id="salesWidget" title="msg://salesWidget.title"
+                       colspan="2" rowspan="2"&gt;
+    &lt;dashb:content&gt;
+        &lt;vbox id="salesBox" width="100%" height="100%"&gt;
+            &lt;span id="salesValue" text="msg://salesWidget.caption"/&gt;
+        &lt;/vbox&gt;
+    &lt;/dashb:content&gt;
+&lt;/dashb:dashboardWidget&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A widget never takes more columns than the grid has. On a narrow screen, a wide widget shrinks to the number of columns available.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="creating-widgets-programmatically"><a class="anchor" href="#creating-widgets-programmatically"></a>Creating Widgets Programmatically</h3>
+<div class="paragraph">
+<p>You can create and add widgets at runtime. Create the widget and its content with the <code>UiComponents</code> factory:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponents uiComponents;
+
+private DashboardWidget createWidget(String title, String value) {
+    DashboardWidget widget = uiComponents.create(DashboardWidget.class);
+    widget.setTitle(title);
+
+    H3 valueLabel = uiComponents.create(H3.class);
+    valueLabel.setText(value);
+    widget.setContent(valueLabel); // a widget holds one component; use a layout for several
+
+    return widget;
+}
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    dashboard.add(createWidget("Revenue", "1,204,500"),
+            createWidget("Orders", "3,182"));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also set the position of a new widget, and remove widgets one by one or all together:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">DashboardWidget widget = createWidget("Visitors", "18,420");
+dashboard.addWidgetAtIndex(0, widget);
+dashboard.removeAll();</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="sections"><a class="anchor" href="#sections"></a>Sections</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>dashboardSection</code> element groups widgets under a common heading. Users can collapse a section and hide all its widgets at once:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dashb:dashboard id="dashboard" width="100%"&gt;
+    &lt;dashb:dashboardWidget id="totalsWidget" title="msg://totalsWidget.title"&gt;
+        &lt;dashb:content&gt;
+            &lt;h3 id="totalsValue" text="1,204,500"/&gt;
+        &lt;/dashb:content&gt;
+    &lt;/dashb:dashboardWidget&gt;
+
+    &lt;dashb:dashboardSection id="regionsSection" title="msg://regionsSection.title"&gt;
+        &lt;dashb:dashboardWidget id="northWidget" title="msg://northWidget.title"&gt;
+            &lt;dashb:content&gt;
+                &lt;h3 id="northValue" text="612,100"/&gt;
+            &lt;/dashb:content&gt;
+        &lt;/dashb:dashboardWidget&gt;
+        &lt;dashb:dashboardWidget id="southWidget" title="msg://southWidget.title"&gt;
+            &lt;dashb:content&gt;
+                &lt;h3 id="southValue" text="592,400"/&gt;
+            &lt;/dashb:content&gt;
+        &lt;/dashb:dashboardWidget&gt;
+    &lt;/dashb:dashboardSection&gt;
+&lt;/dashb:dashboard&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Like a widget, a section requires an <code>id</code>. A section can contain only <code>dashboardWidget</code> elements, and you cannot put a section inside another section. Widgets declared directly in the <code>dashboard</code> element and widgets inside sections can be mixed in any order.</p>
+</div>
+<div class="sect2">
+<h3 id="creating-sections-programmatically"><a class="anchor" href="#creating-sections-programmatically"></a>Creating Sections Programmatically</h3>
+<div class="paragraph">
+<p>To create a section, use the <code>addSection()</code> methods, then add widgets to it, for example with the <code>createWidget()</code> method from <a href="#creating-widgets-programmatically">Creating Widgets Programmatically</a>. When you remove a section, its widgets are removed too:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">DashboardSection regionsSection = dashboard.addSection("Regions");
+regionsSection.add(createWidget("North", "612,100"),
+        createWidget("South", "592,400"));</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="responsive-grid"><a class="anchor" href="#responsive-grid"></a>Responsive Grid</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The dashboard calculates the number of columns from its own width and from the column width limits. Columns never become narrower than the <a href="#minimumColumnWidth">minimumColumnWidth</a> value. When the dashboard becomes narrower, the number of columns is reduced instead. The <a href="#maximumColumnCount">maximumColumnCount</a> attribute sets the maximum number of columns on wide screens:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dashb:dashboard id="dashboard"
+                 width="100%"
+                 maximumColumnCount="4"
+                 minimumColumnWidth="18em"
+                 maximumColumnWidth="32em"
+                 minimumRowHeight="12em"
+                 gap="1em"
+                 padding="1em"
+                 denseLayout="true"
+                 themeNames="shaded-background elevated-widgets"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <a href="#denseLayout">denseLayout</a> attribute changes how the grid fills gaps. If it is <code>true</code>, smaller widgets move up into the empty space left by larger ones, and the declared order is not kept.</p>
+</div>
+<div class="paragraph">
+<p>All these attributes have setters, so you can change the grid at runtime:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">dashboard.setMaximumColumnCount(3);
+dashboard.setMinimumColumnWidth("18em");
+dashboard.setMaximumColumnWidth("32em");
+dashboard.setMinimumRowHeight("10em");
+dashboard.setGap("1em");
+dashboard.setPadding("1em");
+dashboard.setDenseLayout(true);</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="editable-mode"><a class="anchor" href="#editable-mode"></a>Editable Mode</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, users see the widgets exactly as they are declared. If you set the <a href="#editable">editable</a> attribute to <code>true</code>, users can move, resize, and remove widgets and change the order of sections:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dashb:dashboard id="dashboard" width="100%" editable="true"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this mode, each widget shows a drag handle, a resize handle, and a remove button. The same actions are available from the keyboard. A user selects a focused widget for editing and then moves or resizes it with the arrow keys.</p>
+</div>
+<div class="paragraph">
+<p>You can switch the editable mode at runtime, for example with a <strong>Customize</strong> button:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixDashboard dashboard;
+
+@Subscribe("customizeBtn")
+public void onCustomizeBtnClick(final ClickEvent&lt;JmixButton&gt; event) {
+    dashboard.setEditable(!dashboard.isEditable());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The dashboard sends an event for every change made by the user. See <a href="#handlers">Handlers</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="persisting-widget-layout"><a class="anchor" href="#persisting-widget-layout"></a>Persisting Widget Layout</h3>
+<div class="paragraph">
+<p>The dashboard does not persist user changes automatically. To preserve a customized layout, define a data model that stores a stable identifier and the layout properties of each widget, such as its order, section, column span, and row span. Save the current widget configuration when the user finishes editing, and recreate the widgets from the stored configuration when the view opens. If every user can have a different layout, associate the stored configuration with the user.</p>
+</div>
+<div class="paragraph">
+<p>For a simple implementation of this approach, see <a href="https://vaadin.com/docs/latest/components/dashboard#persisting-and-loading-widgets" rel="noopener" target="_blank">Persisting and Loading Widgets</a> in the Vaadin documentation.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="localizing-edit-controls"><a class="anchor" href="#localizing-edit-controls"></a>Localizing Edit Controls</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Tooltips and accessible names of the edit mode controls come from the standard Jmix messages, so they are translated together with the rest of the application. To change the default texts, define the following keys in the main message bundle of your project:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">dashboard.i18n.selectSection=Select section for editing
+dashboard.i18n.selectWidget=Select widget for editing
+
+dashboard.i18n.remove=Remove
+dashboard.i18n.resize=Resize
+dashboard.i18n.resizeApply=Apply
+dashboard.i18n.resizeShrinkWidth=Shrink width
+dashboard.i18n.resizeGrowWidth=Grow width
+dashboard.i18n.resizeShrinkHeight=Shrink height
+dashboard.i18n.resizeGrowHeight=Grow height
+
+dashboard.i18n.move=Move
+dashboard.i18n.moveApply=Apply
+dashboard.i18n.moveForward=Move Forward
+dashboard.i18n.moveBackward=Move Backward</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../../../localization/message-bundles.html">Message Bundles</a> for details on overriding messages defined in add-ons.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;"/>
+<col style="width: 80%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variant</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>shaded-background</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds a shaded background to the dashboard, so that widgets stand out.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>elevated-widgets</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows widgets with a shadow.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>flat-widgets</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows widgets without borders and shadows.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>You can add custom CSS class names to the dashboard, its sections, and its widgets with the <a class="xref page" href="../common-attributes.html#classNames">classNames</a> attribute.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>dashboard</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="denseLayout"></a><code>denseLayout</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, smaller widgets move up to fill the gaps left by larger ones, and the declared order is not kept. See <a href="#responsive-grid">Responsive Grid</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="editable"></a><code>editable</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, users can move, resize, and remove widgets and change the order of sections. See <a href="#editable-mode">Editable Mode</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="gap"></a><code>gap</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The space between widgets, as a CSS length, for example <code>1em</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maximumColumnCount"></a><code>maximumColumnCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The maximum number of columns, whatever the width of the dashboard is. If not set, the number of columns depends only on <a href="#minimumColumnWidth">minimumColumnWidth</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maximumColumnWidth"></a><code>maximumColumnWidth</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The maximum width of a column, as a CSS length.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="minimumColumnWidth"></a><code>minimumColumnWidth</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The minimum width of a column, as a CSS length. Columns never become narrower than this value. Instead, their number is reduced. See <a href="#responsive-grid">Responsive Grid</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="minimumRowHeight"></a><code>minimumRowHeight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The minimum height of a row, as a CSS length. A row becomes higher if its content needs more space.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="padding"></a><code>padding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The space between the dashboard border and its widgets, as a CSS length.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="rootHeadingLevel"></a><code>rootHeadingLevel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The heading level for the titles of root-level items in the generated markup. It affects accessibility only.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>2</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>dashboard</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html">Common handlers</a> are configured in the same way for all components.
+The following handlers are specific to <code>dashboard</code>. Their event classes belong to the <code>com.vaadin.flow.component.dashboard</code> package.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="DashboardItemMovedEvent"></a><code>DashboardItemMovedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when a widget or a section is moved to a new position. The <code>getItem()</code> method returns the moved item, and <code>getSection()</code> returns its section.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="DashboardItemMoveModeChangedEvent"></a><code>DashboardItemMoveModeChangedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when an item enters or leaves the keyboard move mode.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="DashboardItemRemovedEvent"></a><code>DashboardItemRemovedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when the user removes a widget or a section.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemRemoveHandler"></a><code>itemRemoveHandler</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intercepts a user-requested widget or section removal. Call <code>removeItem()</code> on the received event to complete the removal, for example, after the user confirms it.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="DashboardItemResizedEvent"></a><code>DashboardItemResizedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when a widget is resized.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="DashboardItemResizeModeChangedEvent"></a><code>DashboardItemResizeModeChangedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when an item enters or leaves the keyboard resize mode.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="DashboardItemSelectedChangedEvent"></a><code>DashboardItemSelectedChangedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sent when an item is selected or deselected for keyboard editing.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>dashboard</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="elements"><a class="anchor" href="#elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <code>dashboard</code> can include <a href="#widgets">dashboardWidget</a> and <a href="#sections">dashboardSection</a> as its nested elements.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/dashboard" rel="noopener" target="_blank">Vaadin Dashboard documentation</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

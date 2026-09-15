@@ -8,14 +8,37 @@
 <body>
 <article class="doc">
 <h1 class="page">Version Control</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>When versioning is enabled for a document, the add-on never overwrites its content. Each change is stored as a separate <code>WebdavDocumentVersion</code> instance, so the document keeps its full history and any earlier version remains available.</p>
+</div>
+<div class="paragraph">
+<p>Versions are created in two ways:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Automatically, whenever the document content is written to the server: when a user saves the document in a desktop application, or when a WebDAV client uploads a new content. The new version is added after the current latest one.</p>
+</li>
+<li>
+<p>Manually, in the <strong>WebDAV document versions</strong> view described below.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Versioning is enabled by default for all attributes of the <code>WebdavDocument</code> type. You can disable it for a particular attribute with the <a class="xref page" href="features.html#webdav-support-annotation">@WebdavSupport</a> annotation, or globally with the <a class="xref page" href="webdav-properties.html#jmix.webdav.versioning-enabled">jmix.webdav.versioning-enabled</a> property.</p>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="webdav-document-versions"><a class="anchor" href="#webdav-document-versions"></a>WebDAV Document Versions</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <strong>WebDAV document versions</strong> view provides you with the ability to manage versions of a document when versioning is enabled for it.</p>
+<p>The <strong>WebDAV document versions</strong> view shows the history of a document and lets you manage it: add versions, base a new version on an older one, open a particular version, and download versions as files. It is the only place in the UI where you work with the version history directly, rather than by editing the document itself.</p>
 </div>
 <div class="paragraph">
-<p>There are two main ways to access the <strong>WebDAV document versions</strong> view:</p>
+<p>There are two ways to access the <strong>WebDAV document versions</strong> view:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -40,19 +63,14 @@
 <img alt="web dav document versions" src="_images/web-dav-document-versions.png" width="1026"/>
 </div>
 </div>
+<div class="sect2">
+<h3 id="pending-versions"><a class="anchor" href="#pending-versions"></a>Pending Versions</h3>
 <div class="paragraph">
-<p>The <strong>WebDAV document versions</strong> dialog supports the following operations:</p>
+<p>Versions that you add in this dialog are not stored immediately. They exist only in the dialog until you save it, and their numbers are marked with the <code>*</code> symbol to show that they are not yet linked to the document.</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>Creating a new document version</strong>: Clicking <strong>Upload</strong> allows you to select files to upload to the system. The uploaded files will be numbered in accordance with the latest document version number, with the numbers of new versions tagged with the * symbol to indicate that they have been uploaded but not yet linked to a document. The version numbers are updated after saving the changes. If you close the dialog window without saving, all versions tagged with * will be removed after the <a class="xref page" href="configuration.html#webdav-document-versions-cleaning-job">WebdavDocumentVersionsCleaningJob</a> is run.</p>
-</li>
-<li>
-<p><strong>Creating a new document version based on another one</strong>: Select a document version and click the <strong>Copy to head</strong> button to copy it and assign it a number in accordance with the latest document version number. The numbers of new versions are tagged with the * symbol to indicate that they have been uploaded but not yet linked to a document. The version numbers are updated after saving the changes. If you close the dialog window without saving, all versions tagged with * will be removed after the <a class="xref page" href="configuration.html#webdav-document-versions-cleaning-job">WebdavDocumentVersionsCleaningJob</a> is run.</p>
-</li>
-<li>
-<p><strong>Opening a document for editing</strong>: Select a document version and click the <strong>Open</strong> button to open the document for editing. Each time a document is saved in an external application, a new version of the document is sent to the database. Use the <strong>Refresh</strong> button to update the list of document versions displayed in the <strong>WebDAV document versions</strong> dialog.</p>
+<div class="paragraph">
+<p>When you save the dialog, the pending versions are stored and their numbers are finalized. If you close the dialog without saving, they are never linked to the document and are eventually deleted by the <a class="xref page" href="configuration.html#webdav-document-versions-cleaning-job">WebdavDocumentVersionsCleaningJob</a>.</p>
+</div>
 <div class="admonitionblock caution">
 <table>
 <tr>
@@ -60,19 +78,36 @@
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-Clicking <strong>Refresh</strong> deletes all unsaved document versions. Therefore, if a document version was copied but not saved, the changes will be discarded.
+The <strong>Refresh</strong> button reloads the history from the database and discards all pending versions. If you copied or uploaded a version but have not saved the dialog yet, those versions are lost.
 </td>
 </tr>
 </table>
 </div>
+</div>
+<div class="sect2">
+<h3 id="versions-operations"><a class="anchor" href="#versions-operations"></a>Operations</h3>
+<div class="paragraph">
+<p>The <strong>WebDAV document versions</strong> dialog supports the following operations:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Creating a new version</strong>: click <strong>Upload</strong> and select files to upload. The uploaded files are numbered after the current latest version and marked as <a href="#pending-versions">pending</a>.</p>
 </li>
 <li>
-<p><strong>Opening a document for reading (read-only)</strong>: To open a document for reading, click on the link with the file name.</p>
+<p><strong>Creating a new version based on an existing one</strong>: select a version and click <strong>Copy to head</strong>. Its content is copied into a new version numbered after the current latest version and marked as <a href="#pending-versions">pending</a>. Use it to return to an earlier state of the document without losing the versions created in between.</p>
 </li>
 <li>
-<p><strong>Downloading a ZIP archive with one or several document versions</strong>: The <strong>Download</strong> button provides two options for downloading selected documents/versions. The first option allows you to download documents as separate files. The <strong>Download as ZIP</strong> option allows you to send all selected documents to a ZIP archive and download it. For convenience, file names contain <code>-v</code> suffixes with the corresponding version numbers, for example, <code>example-v3.docx</code>, <code>document-v1.docx</code>.</p>
+<p><strong>Opening the document for editing</strong>: click <strong>Open</strong> to open the document in the associated desktop application. This always opens the latest version with full access, regardless of the version selected in the table. Each time the document is saved in the desktop application, a new version is sent to the server, so use <strong>Refresh</strong> to see it in the table.</p>
+</li>
+<li>
+<p><strong>Opening a version for reading</strong>: click the link with the file name. The selected version is opened in read-only mode.</p>
+</li>
+<li>
+<p><strong>Downloading versions</strong>: the <strong>Download</strong> button downloads the selected versions as separate files. The <strong>Download as ZIP</strong> option packs them into a single <code>files.zip</code> archive. In both cases the version number is added to the file name, for example, <code>example-v3.docx</code> and <code>document-v1.docx</code>.</p>
 </li>
 </ol>
+</div>
 </div>
 </div>
 </div>
@@ -80,39 +115,88 @@ Clicking <strong>Refresh</strong> deletes all unsaved document versions. Therefo
 <h2 id="conflict-resolution-policies"><a class="anchor" href="#conflict-resolution-policies"></a>Conflict Resolution Policies</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Several policies are available to resolve conflicts that may occur when multiple users edit the same document simultaneously.</p>
+<p>A conflict resolution policy defines how the add-on reconciles the versions you added in the <strong>WebDAV document versions</strong> dialog with the versions that appeared in the database while the dialog was open.</p>
 </div>
 <div class="paragraph">
-<p>For example, consider a scenario where two users open the same document in <strong>WebDAV document versions</strong> and add several new versions. The first user completes their work on their versions and saves the changes. Subsequently, the second user does the same. As a result, the database contains versions created by both users. However, each user can only see their own versions in <strong>WebDAV document versions</strong>.</p>
+<p>A conflict is possible only when you save that dialog. It occurs if the document has been modified after the dialog loaded it, regardless of the source of the modification: another user working in the same dialog, a desktop application saving the document, a WebDAV client, or application code calling the add-on services.</p>
 </div>
 <div class="paragraph">
-<p>This situation can lead to problems with ordering and saving these conflicting document versions. To resolve such conflicts, you can utilize the policies described below.</p>
+<p>The add-on provides the following conflict resolution policies:</p>
 </div>
-<div class="paragraph">
-<p>By default, the <code>RejectMergePolicy</code> is applied.</p>
-</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Policy</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="reject-merge-policy"></a><code>RejectMergePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applied by default if a conflict occurs. Nothing is saved: a warning is displayed and the versions you added in the dialog are discarded. The stored history remains unchanged.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="rebase-merge-policy"></a><code>RebaseMergePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keeps both sets of versions. Your versions are renumbered to continue after the last version stored in the database, so nothing is lost.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="cancel-their-merge-policy"></a><code>CancelTheirMergePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keeps the versions you added in the dialog and deletes the versions that were stored in the database meanwhile.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="cancel-my-merge-policy"></a><code>CancelMyMergePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keeps the versions stored in the database and deletes the versions you added in the dialog.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FastForwardMergePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applied automatically when there is no conflict. All versions from the dialog are saved. You cannot select it as a conflict resolution policy.</p></td>
+</tr>
+</tbody>
+</table>
 <div class="sect2">
-<h3 id="rebase-merge-policy"><a class="anchor" href="#rebase-merge-policy"></a>RebaseMergePolicy</h3>
+<h3 id="comparing-policy-outcomes"><a class="anchor" href="#comparing-policy-outcomes"></a>Comparing Policy Outcomes</h3>
 <div class="paragraph">
-<p>The <code>RebaseMergePolicy</code> allows for the insertion of new document versions after those already existing in the database. New versions are numbered in accordance with the latest document version number present in the database.</p>
+<p>To illustrate the difference between the policies, consider a document that has versions 1, 2, and 3. You open the <strong>WebDAV document versions</strong> dialog and upload a file, which appears as <a href="#pending-versions">pending</a> version <code>4*</code>. Meanwhile, another user saves the same document twice from a desktop application, so the document in the database now has versions 4 and 5. Then you save the dialog.</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="cancel-my-merge-policy"><a class="anchor" href="#cancel-my-merge-policy"></a>CancelMyMergePolicy</h3>
 <div class="paragraph">
-<p>If document versions have changed while working in <strong>WebDAV document versions</strong>, all non-persistent versions (marked with *) are deleted.</p>
+<p>The result depends on the policy:</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="cancel-their-merge-policy"><a class="anchor" href="#cancel-their-merge-policy"></a>CancelTheirMergePolicy</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;"/>
+<col style="width: 66.6667%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Policy</th>
+<th class="tableblock halign-left valign-top">Versions after saving</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RejectMergePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>1, 2, 3, 4, 5</code> - your upload is not saved, and a warning is displayed</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RebaseMergePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>1, 2, 3, 4, 5, 6</code> - your upload is saved as version 6</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CancelTheirMergePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>1, 2, 3, 4</code> - version 4 is your upload, while versions 4 and 5 saved by the other user are deleted</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CancelMyMergePolicy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>1, 2, 3, 4, 5</code> - your upload is deleted</p></td>
+</tr>
+</tbody>
+</table>
 <div class="paragraph">
-<p>If document versions have changed while working in <strong>WebDAV document versions</strong>, all versions marked with * are saved instead of those added in <strong>WebDAV document versions</strong>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="reject-merge-policy"><a class="anchor" href="#reject-merge-policy"></a>RejectMergePolicy</h3>
-<div class="paragraph">
-<p>If a conflict occurs, a warning is displayed, and all new versions are discarded.</p>
+<p>If the other user had not saved the document, there would be no conflict: the <code>FastForwardMergePolicy</code> would be applied and your upload would be saved as version 4.</p>
 </div>
 </div>
 <div class="sect2">

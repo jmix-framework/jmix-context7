@@ -12,6 +12,7 @@ radio-button-group-simple.xml
                        itemsEnum="io.jmix.uisamples.entity.CustomerGrade"/>
         <radioButtonGroup id="horizontalRadioButtonGroup"
                        label="Horizontal"
+                       themeNames="horizontal"
                        itemsEnum="io.jmix.uisamples.entity.CustomerGrade"/>
     </layout>
 </view>

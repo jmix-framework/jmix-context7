@@ -10,34 +10,35 @@
 <h1 class="page">twinColumn</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/twin-column-simple" target="_blank">LIVE DEMO</a>
-</div>
 <div class="paragraph">
-<p>A component to intuitively select items from a list or collection by moving them between two columns.</p>
+<p><code>twinColumn</code> lets users select items by moving them between available and selected columns.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML element: <code>twinColumn</code></p>
-</li>
-<li>
-<p>Java class: <code>TwinColumn</code></p>
-</li>
-</ul>
-</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>twinColumn</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TwinColumn</code></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
 <h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/twin-column-dataaware" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>The component puts two columns side by side. The left column contains items that the user can select from. The right column displays currently selected items. Users can select one or more items and click buttons to move them between columns, adding or removing them from the selection.</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="twin column basics" src="../../_images/visual-components/components/twin-column-basics.png" width="553"/>
-</div>
 </div>
 <div class="paragraph">
 <p>To create the component, use <code>twinColumn</code> XML element and set its <code>itemsContainer</code> attribute to a <a class="xref page" href="../../data/collection-container.html">collection container</a>. The items within this container will appear in the columns.</p>
@@ -47,36 +48,33 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
-    &lt;collection id="usersDc" class="com.company.onboarding.entity.User"&gt;
-        &lt;loader id="usersDl" readOnly="true"&gt;
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data readOnly="true"&gt;
+    &lt;instance id="productDc"
+              class="io.jmix.uisamples.entity.Product"
+              fetchPlan="_local"&gt;
+    &lt;/instance&gt;
+    &lt;collection id="productTagsDc"
+                class="io.jmix.uisamples.entity.ProductTag"
+                fetchPlan="_local"&gt;
+        &lt;loader id="productTagsDl" readOnly="true"&gt;
             &lt;query&gt;
-                &lt;![CDATA[select e from User e]]&gt;
+                &lt;![CDATA[select e from ProductTag e order by e.name]]&gt;
             &lt;/query&gt;
         &lt;/loader&gt;
-        &lt;fetchPlan extends="_base"/&gt;
     &lt;/collection&gt;
 &lt;/data&gt;
 &lt;facets&gt;
-    &lt;dataLoadCoordinator auto="true"/&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+    &lt;dataLoadCoordinator auto="true"/&gt;
 &lt;/facets&gt;
-&lt;layout&gt;
-    &lt;twinColumn itemsContainer="usersDc"/&gt;
-&lt;/layout&gt;</code></pre>
+    &lt;twinColumn id="twinColumn" label="Tags" itemsColumnLabel="Available tags"
+                selectedItemsColumnLabel="Selected tags" itemsContainer="productTagsDc"
+                dataContainer="productDc" property="tags"/&gt;</code></pre>
 </div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Include the <a class="xref page" href="../../facets/dataLoadCoordinator.html">dataLoadCoordinator</a> facet to load data automatically.</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data-aware <code>twinColumn</code></h2>
 <div class="sectionbody">
 <div class="jmix-ui-live-demo-container">
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/twin-column-dataaware" target="_blank">LIVE DEMO</a>
@@ -87,22 +85,85 @@
 <div class="paragraph">
 <p>To create <code>twinColumn</code> connected to data, use the <a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> and <a class="xref page" href="../common-attributes.html#property">property</a> attributes. The <code>itemsContainer</code> attribute is used to create a list of items.</p>
 </div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data readOnly="true"&gt;
+    &lt;instance id="productDc"
+              class="io.jmix.uisamples.entity.Product"
+              fetchPlan="_local"&gt;
+    &lt;/instance&gt;
+    &lt;collection id="productTagsDc"
+                class="io.jmix.uisamples.entity.ProductTag"
+                fetchPlan="_local"&gt;
+        &lt;loader id="productTagsDl" readOnly="true"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from ProductTag e order by e.name]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+&lt;/facets&gt;
+    &lt;twinColumn id="twinColumn" label="Tags" itemsColumnLabel="Available tags"
+                selectedItemsColumnLabel="Selected tags" itemsContainer="productTagsDc"
+                dataContainer="productDc" property="tags"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected InstanceContainer&lt;Product&gt; productDc;
+@ViewComponent
+protected Span spanValue;
+
+@Autowired
+protected Metadata metadata;
+
+@Subscribe
+protected void onInit(InitEvent event) {
+    Product product = metadata.create(Product.class);
+    productDc.setItem(product);
+}
+
+@Subscribe("twinColumn")
+protected void onTwinColumnValueChange(ComponentValueChangeEvent&lt;TwinColumn&lt;Product&gt;, Product&gt; event) {
+    if (productDc.getItem().getTags() == null) {
+        return;
+    }
+
+    spanValue.setText(getSelectedTagsInstanceName());
+}
+
+protected String getSelectedTagsInstanceName() {
+    return productDc.getItem().getTags()
+            .stream()
+            .map(ProductTag::getInstanceName)
+            .collect(Collectors.joining(", "));
+}</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="multi-select"><a class="anchor" href="#multi-select"></a>Multi Select</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/twin-column-simple" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>The <code>twinColumn</code> component is always in multi-select mode, allowing users to select and move multiple items. You can also provide the ability to move all items at once by setting the <code>selectAllButtonsVisible</code> attribute:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;twinColumn itemsContainer="usersDc" selectAllButtonsVisible="true"/&gt;</code></pre>
-</div>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="twin column select all buttons" src="../../_images/visual-components/components/twin-column-select-all-buttons.png" width="553"/>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected TwinColumn&lt;String&gt; twinColumn;
+@Subscribe("selectAllButtonsCheckbox")
+public void onSelectAllButtonsCheckboxValueChange(ComponentValueChangeEvent&lt;JmixCheckbox, Boolean&gt; event) {
+    twinColumn.setSelectAllButtonsVisible(event.getValue());
+}</code></pre>
 </div>
 </div>
 </div>
@@ -110,19 +171,16 @@
 <div class="sect1">
 <h2 id="column-labels"><a class="anchor" href="#column-labels"></a>Column Labels</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/twin-column-simple" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>You can provide descriptive labels for each column with the <code>itemsColumnLabel</code> and <code>selectedItemsColumnLabel</code> attributes:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;twinColumn itemsContainer="usersDc"
-            itemsColumnLabel="Users"
-            selectedItemsColumnLabel="Moderators"/&gt;</code></pre>
-</div>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="twin column labels" src="../../_images/visual-components/components/twin-column-labels.png" width="553"/>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;twinColumn id="twinColumn" label="Shopping list" itemsColumnLabel="Need to buy"
+            selectedItemsColumnLabel="Purchased"/&gt;</code></pre>
 </div>
 </div>
 </div>
@@ -130,21 +188,85 @@
 <div class="sect1">
 <h2 id="items-order"><a class="anchor" href="#items-order"></a>Items Order</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/twin-column-simple" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>By default, items do not maintain their original position in the list. Each time an item is moved to another column, it is added to the bottom of the list. You can choose to preserve the original order of items at all times by setting <code>reorderable = "true"</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;twinColumn itemsContainer="usersDc" reorderable="true"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected TwinColumn&lt;String&gt; twinColumn;
+@Subscribe("reorderableCheckbox")
+public void onReorderableCheckboxValueChange(ComponentValueChangeEvent&lt;JmixCheckbox, Boolean&gt; event) {
+    twinColumn.setReorderable(event.getValue());
+}</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<h2 id="custom-items"><a class="anchor" href="#custom-items"></a>Custom Items</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/twin-column-custom-items" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
-<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+<p>Populate <code>twinColumn</code> programmatically from a list, a value-to-label map, or an enumeration.</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;twinColumn id="twinColumnWithList"
+            label="Items List"/&gt;
+&lt;twinColumn id="twinColumnWithMap"
+            label="Items Map"/&gt;
+&lt;twinColumn id="twinColumnWithEnum"
+            label="Items Enum"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected TwinColumn&lt;Integer&gt; twinColumnWithList;
+@ViewComponent
+protected TwinColumn&lt;Integer&gt; twinColumnWithMap;
+@ViewComponent
+protected TwinColumn&lt;CustomerGrade&gt; twinColumnWithEnum;
+
+@Subscribe
+protected void onInit(InitEvent event) {
+    twinColumnWithList.setItems(getItemsList());
+    ComponentUtils.setItemsMap(twinColumnWithMap, getItemsMap());
+    twinColumnWithEnum.setItems(CustomerGrade.class);
+}
+
+protected List&lt;Integer&gt; getItemsList() {
+    return List.of(2, 4, 5, 7);
+}
+
+protected Map&lt;Integer, String&gt; getItemsMap() {
+    Map&lt;Integer, String&gt; itemsMap = new LinkedHashMap&lt;&gt;();
+    itemsMap.put(2, "Two");
+    itemsMap.put(4, "Four");
+    itemsMap.put(5, "Five");
+    itemsMap.put(7, "Seven");
+    return itemsMap;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="variants"><a class="anchor" href="#variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/twin-column-theme-variant" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to apply one or more theme variants.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -188,6 +310,53 @@
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following attributes are specific to <code>twinColumn</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemsColumnLabel"></a><code>itemsColumnLabel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the items column label. See <a href="#column-labels">Column Labels</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="itemsContainer"></a><code>itemsContainer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the items container. See <a href="#basics">Basics</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="reorderable"></a><code>reorderable</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls whether users can reorder items in the component. See <a href="#items-order">Items Order</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="selectAllButtonsVisible"></a><code>selectAllButtonsVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls whether buttons for selecting and clearing all items are displayed. See <a href="#multi-select">Multi Select</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="selectedItemsColumnLabel"></a><code>selectedItemsColumnLabel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the selected items column label. See <a href="#column-labels">Column Labels</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>twinColumn</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
 <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
 <a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
@@ -199,8 +368,6 @@
 <a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
 <a class="xref page" href="../common-attributes.html#height">height</a> -
 <a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
-<a href="#column-labels">itemsColumnLabel</a> -
-<a href="#basics">itemsContainer</a> -
 <a class="xref page" href="../common-attributes.html#label">label</a> -
 <a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
 <a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
@@ -208,11 +375,8 @@
 <a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
 <a class="xref page" href="../common-attributes.html#property">property</a> -
 <a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
-<a href="#items-order">reorderable</a> -
 <a class="xref page" href="../common-attributes.html#required">required</a> -
 <a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
-<a href="#multi-select">selectAllButtonsVisible</a> -
-<a href="#column-labels">selectedItemsColumnLabel</a> -
 <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
 <a class="xref page" href="../common-attributes.html#visible">visible</a> -
 <a class="xref page" href="../common-attributes.html#width">width</a></p>
@@ -223,10 +387,33 @@
 <h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following handlers are specific to <code>twinColumn</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="validator"></a><code>validator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validates the component value.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>twinColumn</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
 <a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
-<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
-<a class="xref page" href="textField.html#validator">validator</a></p>
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
 </div>
 </div>
 </div>
@@ -234,7 +421,7 @@
 <h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a class="xref page" href="../miscellaneous/validator.html">validator</a></p>
+<p>A <code>twinColumn</code> can include <a class="xref page" href="../miscellaneous/validator.html">validator</a> as its nested elements.</p>
 </div>
 </div>
 </div>

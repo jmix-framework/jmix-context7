@@ -62,15 +62,14 @@ private FileStorageUploadField fileField;
 private TemporaryStorage temporaryStorage;
 
 @Subscribe("fileField")
-public void onFileFieldFileUploadSucceeded(final FileUploadSucceededEvent&lt;FileStorageUploadField, FileRef&gt; event) {
-    if (event.getReceiver() instanceof FileTemporaryStorageBuffer buffer) {
-        UUID fileId = buffer.getFileData().getFileInfo().getId();
-        File file = temporaryStorage.getFile(fileId); <i class="conum" data-value="1"></i><b>(1)</b>
-        if (file != null) {
-            FileRef fileRef = temporaryStorage.putFileIntoStorage(fileId, event.getFileName()); <i class="conum" data-value="2"></i><b>(2)</b>
-            fileField.setValue(fileRef);
-        }
-    }
+public void onFileFieldFileUploadSucceeded(
+        FileUploadSucceededEvent&lt;FileStorageUploadField, TemporaryStorage.FileInfo&gt; event) {
+    TemporaryStorage.FileInfo fileInfo = event.getData();
+    File file = fileInfo.getFile(); <i class="conum" data-value="1"></i><b>(1)</b>
+    // here you have full access to the file
+    FileRef fileRef = temporaryStorage.putFileIntoStorage(
+            fileInfo.getId(), event.getFileName()); <i class="conum" data-value="2"></i><b>(2)</b>
+    fileField.setValue(fileRef);
 }</code></pre>
 </div>
 </div>
@@ -94,10 +93,9 @@ public void onFileFieldFileUploadSucceeded(final FileUploadSucceededEvent&lt;Fil
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">File file = temporaryStorage.getFile(fileId);
-if (file != null) {
-    processFile(file);
-    temporaryStorage.deleteFile(fileId);
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private void processAndDeleteFile(TemporaryStorage.FileInfo fileInfo) {
+    processFile(fileInfo.getFile());
+    temporaryStorage.deleteFile(fileInfo.getId());
 }</code></pre>
 </div>
 </div>

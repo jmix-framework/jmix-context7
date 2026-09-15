@@ -31,6 +31,7 @@ virtual-list-inline-editor.xml
 
 
 
+
 VirtualListInlineEditorSample.java
 
 package io.jmix.uisamples.view.flowui.components.virtuallist.inlineeditor;

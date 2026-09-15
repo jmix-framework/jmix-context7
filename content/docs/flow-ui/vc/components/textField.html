@@ -10,42 +10,61 @@
 <h1 class="page">textField</h1>
 <div id="preamble">
 <div class="sectionbody">
+<div class="paragraph">
+<p><code>textField</code> is an input field for editing text or values of other supported data types.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>textField</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TypedTextField</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
 <div class="jmix-ui-live-demo-container">
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/text-field-simple" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>An input field for editing text or values of arbitrary data types.</p>
+<p>The following example defines a standard text field and a field with a maximum input length:</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML element: <code>textField</code></p>
-</li>
-<li>
-<p>Java class: <code>TypedTextField</code></p>
-</li>
-</ul>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="textField" label="TextField"/&gt;
+&lt;textField id="textLengthField" label="MaxLength = 10" maxLength="10"/&gt;</code></pre>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_basics"><a class="anchor" href="#_basics"></a>Basics</h2>
+<h2 id="data-types"><a class="anchor" href="#data-types"></a>Text Fields with Different Data Types</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/text-field-datatype" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>The <code>textField</code> component is a typed component, which means it enables you to work with input of different data types. You can set its type by <a href="#data-binding">binding the component</a> to an entity attribute of certain type or by setting type explicitly using the <a class="xref page" href="../common-attributes.html#datatype">datatype</a> attribute.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="nameField"
-           label="Name"
-           datatype="string"
-           clearButtonVisible="true"
-           helperText="msg://textField.helper" placeholder="Test placeholder"/&gt;</code></pre>
-</div>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="text field basic" src="../../_images/visual-components/components/text-field-basic.png" width="211"/>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="stringTextField" label="String"
+           datatype="string"/&gt;
+&lt;textField id="integerTextField" label="Integer"
+           datatype="int"/&gt;
+&lt;textField id="doubleTextField" label="Double"
+           datatype="double"/&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -57,24 +76,54 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data Binding</h2>
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data-aware <code>textField</code></h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/text-field-dataaware" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>To create <code>textField</code> connected to data, use <a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> and <a class="xref page" href="../common-attributes.html#property">property</a> attributes.</p>
 </div>
 <div class="listingblock">
+<div class="title">XML</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
-    &lt;instance class="com.company.onboarding.entity.Department"
-              id="departmentDc"&gt;
-        &lt;fetchPlan extends="_base"/&gt;
-        &lt;loader id="departmentDl"/&gt;
-    &lt;/instance&gt;
+    &lt;instance id="customerDc"
+              class="io.jmix.uisamples.entity.Customer"
+              fetchPlan="_local"/&gt;
 &lt;/data&gt;
 &lt;layout&gt;
-    &lt;textField dataContainer="departmentDc"
-               property="name"/&gt;
+    &lt;textField id="textField" label="Name"
+               dataContainer="customerDc" property="name"/&gt;
+    &lt;hbox&gt;
+        &lt;span text="Value in the container:"/&gt;
+        &lt;span id="spanValue"/&gt;
+    &lt;/hbox&gt;
 &lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected InstanceContainer&lt;Customer&gt; customerDc;
+@ViewComponent
+protected Span spanValue;
+
+@Autowired
+protected Metadata metadata;
+
+@Subscribe
+protected void onInit(InitEvent event) {
+    Customer customer = metadata.create(Customer.class);
+    customer.setName("John");
+    customerDc.setItem(customer);
+}
+
+@Subscribe("textField")
+protected void onTextFieldValueChange(TypedValueChangeEvent&lt;TypedTextField&lt;String&gt;, String&gt; changeEvent) {
+    spanValue.setText(customerDc.getItem().getName());
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -83,10 +132,122 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<h2 id="value-change"><a class="anchor" href="#value-change"></a>Value Change Modes</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/text-field-value-change" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Use <code>valueChangeMode</code> to control when user input updates the server-side value. The example also uses a value-change handler to update helper text as the user types.</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;details summaryText="Default value change" opened="true" width="AUTO"&gt;
+    &lt;textField id="textField" placeholder="Start typing"/&gt;
+&lt;/details&gt;
+&lt;details summaryText="Custom value change" opened="true" width="50%"&gt;
+    &lt;vbox padding="false"&gt;
+        &lt;textField id="valueChangeModeTextField" maxLength="140" helperText="0/140"/&gt;
+        &lt;radioButtonGroup id="valueChangeModeRadioButtonGroup" label="ValueChangeMode"/&gt;
+    &lt;/vbox&gt;
+&lt;/details&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected TypedTextField&lt;String&gt; valueChangeModeTextField;
+@ViewComponent
+protected JmixRadioButtonGroup&lt;ValueChangeMode&gt; valueChangeModeRadioButtonGroup;
+
+@Autowired
+protected Notifications notifications;
+
+@Subscribe
+protected void onInit(InitEvent event) {
+    ComponentUtils.setItemsMap(valueChangeModeRadioButtonGroup, getValueChangeModeItemsMap());
+    valueChangeModeRadioButtonGroup.setValue(ValueChangeMode.ON_CHANGE);
+}
+
+@Subscribe("valueChangeModeRadioButtonGroup")
+protected void onValueChangeModeRadioButtonValueChange(
+        ComponentValueChangeEvent&lt;JmixRadioButtonGroup&lt;ValueChangeMode&gt;, ValueChangeMode&gt; event) {
+    valueChangeModeTextField.setValueChangeMode(event.getValue());
+}
+
+@Subscribe("textField")
+protected void onTextFieldValueChange(TypedValueChangeEvent&lt;TypedTextField&lt;String&gt;, String&gt; event) {
+    notifications.show("Text Changed: " + event.getValue());
+}
+
+@Subscribe("valueChangeModeTextField")
+protected void onValueChangeModeTextFieldValueChange(TypedValueChangeEvent&lt;TypedTextField&lt;String&gt;, String&gt; event) {
+    TypedTextField&lt;String&gt; sourceTextField = event.getSource();
+    sourceTextField.setHelperText(Strings.nullToEmpty(event.getValue()).length() + "/" + sourceTextField.getMaxLength());
+}
+
+protected Map&lt;ValueChangeMode, String&gt; getValueChangeModeItemsMap() {
+    return Arrays.stream(ValueChangeMode.values())
+            .collect(Collectors.toMap(Function.identity(), mode -&gt; mode.name().replace('_', ' ')));
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="validation"><a class="anchor" href="#validation"></a>Validation</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/text-field-validator" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Add nested validators to check converted field values. The example combines built-in numeric range validators with a custom Spring bean validator.</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="integerTextField" label="Positive TextField"
+           helperText="Value must be positive"
+           datatype="int"&gt;
+    &lt;validators&gt;
+        &lt;custom bean="uisamples_PositiveIntegerValidator"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;
+&lt;textField id="doubleTextField" label="Double range validator"
+           helperText="Value must be between 1.0 and 100.0"
+           datatype="double"&gt;
+    &lt;validators&gt;
+        &lt;doubleMin value="1.0" inclusive="true"/&gt;
+        &lt;doubleMax value="100.0" inclusive="true"/&gt;
+    &lt;/validators&gt;
+&lt;/textField&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Override
+public void accept(Integer value) {
+    if (value != null) {
+        if (value &lt;= 0) {
+            fireValidationException(
+                    messages.getMessage("validation.constraints.positive"),
+                    ParamsMap.of("value", value)
+            );
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="variants"><a class="anchor" href="#variants"></a>Theme Variants</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to apply one or more theme variants.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -145,6 +306,48 @@
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following attributes are specific to <code>textField</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="autoselect"></a><code>autoselect</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set to <code>true</code> to always have the field value automatically selected when the field gains focus, <code>false</code> otherwise.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="clearButtonVisible"></a><code>clearButtonVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Controls whether the field displays a clear button.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="trimEnabled"></a><code>trimEnabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, the component trims spaces at the beginning and at the end of the entered string.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="value"></a><code>value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the component value.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>textField</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
 <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
 <a class="xref page" href="../common-attributes.html#allowedCharPattern">allowedCharPattern</a> -
@@ -154,9 +357,7 @@
 <a class="xref page" href="../common-attributes.html#autocomplete">autocomplete</a> -
 <a class="xref page" href="../common-attributes.html#autocorrect">autocorrect</a> -
 <a class="xref page" href="../common-attributes.html#autofocus">autofocus</a> -
-<a href="#autoselect">autoselect</a> -
 <a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
-<a href="#clearButtonVisible">clearButtonVisible</a> -
 <a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
 <a class="xref page" href="../common-attributes.html#css">css</a> -
 <a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> -
@@ -180,58 +381,41 @@
 <a class="xref page" href="../common-attributes.html#required">required</a> -
 <a class="xref page" href="../common-attributes.html#requiredMessage">requiredMessage</a> -
 <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
-<a href="#trimEnabled">trimEnabled</a> -
 <a class="xref page" href="../common-attributes.html#title">title</a> -
-<a href="#value">value</a> -
 <a class="xref page" href="../common-attributes.html#valueChangeMode">valueChangeMode</a> -
 <a class="xref page" href="../common-attributes.html#valueChangeTimeout">valueChangeTimeout</a> -
 <a class="xref page" href="../common-attributes.html#visible">visible</a> -
 <a class="xref page" href="../common-attributes.html#width">width</a></p>
-</div>
-<div class="sect2">
-<h3 id="autoselect"><a class="anchor" href="#autoselect"></a>autoselect</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/text-field/#autoselect" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>Set to <code>true</code> to always have the field value automatically selected when the field gains focus, <code>false</code> otherwise.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="clearButtonVisible"><a class="anchor" href="#clearButtonVisible"></a>clearButtonVisible</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/text-field/#clear-button" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>Sets the visibility of the button which clears the field.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="trimEnabled"><a class="anchor" href="#trimEnabled"></a>trimEnabled</h3>
-<div class="paragraph">
-<p>If <code>true</code>, the component trims spaces at the beginning and at the end of the entered string. For example, if user enters " aaa bbb ", the value of the field saved to the linked entity attribute will be "aaa bbb".</p>
-</div>
-<div class="paragraph">
-<p>You can disable trimming of spaces by setting <code>trimEnabled</code> to false.</p>
-</div>
-<div class="paragraph">
-<p>The default value of this attribute for the whole application can be set using the <a class="xref page" href="../../ui-properties.html#jmix.ui.component.default-trim-enabled">jmix.ui.component.default-trim-enabled</a> application property.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="value"><a class="anchor" href="#value"></a>value</h3>
-<div class="paragraph">
-<p>Defines the value of <code>textField</code>.</p>
-</div>
-<div class="paragraph">
-<p>If the value cannot be parsed to a required <a class="xref page" href="../common-attributes.html#datatype">data type</a>, the default conversion error message appears.</p>
-</div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>The following handlers are specific to <code>textField</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="validator"></a><code>validator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Validates the component value.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>textField</code>:</p>
+</div>
 <div class="paragraph">
 <p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
 <a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
@@ -247,37 +431,7 @@
 <a class="xref page" href="../common-handlers.html#KeyPressEvent">KeyPressEvent</a> -
 <a class="xref page" href="../common-handlers.html#KeyUpEvent">KeyUpEvent</a> -
 <a class="xref page" href="../common-handlers.html#statusChangeHandler">statusChangeHandler</a> -
-<a class="xref page" href="../common-handlers.html#TypedValueChangeEvent">TypedValueChangeEvent</a> -
-<a href="#validator">validator</a></p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="validator"><a class="anchor" href="#validator"></a>validator</h3>
-<div class="paragraph">
-<p>Adds a <a class="xref page" href="../miscellaneous/validator.html">validator</a> instance to the component. The validator must throw <code>ValidationException</code> if the value is not valid.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "zipField", subject = "validator")
-protected void zipFieldValidator(Integer value) {
-    if (value != null &amp;&amp; String.valueOf(value).length() != 6)
-        throw new ValidationException("Zip must be of 6 digits length");
-}</code></pre>
-</div>
-</div>
+<a class="xref page" href="../common-handlers.html#TypedValueChangeEvent">TypedValueChangeEvent</a></p>
 </div>
 </div>
 </div>
@@ -285,18 +439,19 @@ protected void zipFieldValidator(Integer value) {
 <h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a class="xref page" href="tooltip.html">tooltip</a> -
-<a class="xref page" href="../miscellaneous/validator.html">validator</a> -
-<a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a> -
-<a class="xref page" href="../miscellaneous/prefix-suffix.html">suffix</a></p>
+<p>A <code>textField</code> can include <a class="xref page" href="tooltip.html">tooltip</a>, <a class="xref page" href="../miscellaneous/validator.html">validator</a>, <a class="xref page" href="../miscellaneous/prefix-suffix.html">prefix</a>, and <a class="xref page" href="../miscellaneous/prefix-suffix.html">suffix</a> as its nested elements.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>See the <a href="https://vaadin.com/docs/v25/components/text-field" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/text-field" rel="noopener" target="_blank">Vaadin Text Field documentation</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

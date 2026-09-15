@@ -11,7 +11,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this guide, you will learn how to set up centralized logging for your Jmix applications using OpenTelemetry, Grafana Loki, and Grafana.</p>
+<p>This guide demonstrates how to export structured logs from two Jmix applications through OpenTelemetry and inspect them centrally in Grafana. For the local environment, we use the preconfigured Grafana OpenTelemetry LGTM stack, which includes the OpenTelemetry Collector, Loki, and Grafana in a single container.</p>
 </div>
 </div>
 </div>
@@ -55,13 +55,13 @@ git checkout release_3</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p>Configuring both applications to send their logs to a centralized logging system.</p>
+<p>Running the Grafana OpenTelemetry LGTM stack as the local logging environment.</p>
 </li>
 <li>
-<p>Setting up the supporting infrastructure, including the OpenTelemetry Collector, Grafana Loki as the logging database, and Grafana as the visualization UI.</p>
+<p>Configuring both applications to export structured logs through OTLP.</p>
 </li>
 <li>
-<p>Configuring the applications to export their logs in a format compatible with the OpenTelemetry Collector.</p>
+<p>Exploring logs from both applications in Grafana.</p>
 </li>
 </ul>
 </div>
@@ -506,69 +506,55 @@ public class PetListView extends StandardListView&lt;Pet&gt; {
 <p>To fully benefit from centralized logging, applications should produce structured logs natively. Structured data makes it possible to query specific fields and build rich, user-specific dashboards across distributed systems.</p>
 </div>
 <div class="paragraph">
-<p>In our petclinic example, we will use OpenTelemetry in combination with Spring Boot Actuator to export structured logs from the applications and send them to the centralized logging backend.</p>
+<p>In our petclinic example, we will use Spring Boot’s OpenTelemetry support to export structured logs from the applications and send them to the centralized logging backend.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="grafana-loki"><a class="anchor" href="#grafana-loki"></a>Loki and Grafana</h3>
 <div class="paragraph">
-<p>In this guide, we use <a href="https://grafana.com/oss/loki/" rel="noopener" target="_blank">Loki</a> as the centralized backend for storing and querying application logs, and <a href="https://grafana.com/grafana/" rel="noopener" target="_blank">Grafana</a> as the user interface for visualization.</p>
+<p>In this guide, <a href="https://grafana.com/oss/loki/" rel="noopener" target="_blank">Loki</a> stores and queries the application logs, while <a href="https://grafana.com/grafana/" rel="noopener" target="_blank">Grafana</a> provides the user interface for exploring them.</p>
 </div>
 <div class="paragraph">
 <p>Unlike the Elastic Stack (ELK), which indexes the full content of log messages, Loki only indexes a small set of pre-defined labels (like <code>app</code>, <code>env</code>, or <code>service</code>) and stores the actual log content separately. This design makes Loki much more efficient in terms of storage and memory usage, while still enabling powerful filtering and search capabilities for common queries.</p>
 </div>
 <div class="paragraph">
-<p>For the purpose of this guide we chose Loki because it integrates seamlessly into the broader Grafana observability stack, alongside Tempo for distributed tracing and Prometheus for metrics, offering a consistent and unified monitoring experience.</p>
-</div>
-<div class="paragraph">
-<p>We also use Grafana as a unified observability interface where all telemetry data — logs, metrics, and traces — can be visualized and explored in one place.</p>
-</div>
-<div class="paragraph">
-<p>Initially, we connect it to Loki to collect and analyze application logs. In follow-up guides, we will extend the setup to include metrics from Prometheus and distributed traces from Tempo, all integrated into Grafana for a seamless observability experience.</p>
+<p>Loki is part of the broader Grafana observability stack alongside Tempo for distributed tracing and Prometheus for metrics. For the local observability environment, this guide introduces the Grafana OpenTelemetry LGTM stack instead of configuring and running the Collector, Loki, and Grafana as separate services.</p>
 </div>
 <div class="sect3">
-<h4 id="setting-up-using-docker"><a class="anchor" href="#setting-up-using-docker"></a>Setting up using Docker</h4>
+<h4 id="running-the-grafana-opentelemetry-lgtm-stack"><a class="anchor" href="#running-the-grafana-opentelemetry-lgtm-stack"></a>Running the Grafana OpenTelemetry LGTM Stack</h4>
 <div class="paragraph">
-<p>Let’s run Loki and Grafana locally via Docker for centralized logging and visualization.</p>
+<p>For local development, we use the <a href="https://grafana.com/docs/opentelemetry/docker-lgtm/" rel="noopener" target="_blank">Grafana OpenTelemetry LGTM stack</a>. It packages the OpenTelemetry Collector, Loki, Grafana, Tempo, Prometheus, and Pyroscope into a single preconfigured Docker image.</p>
 </div>
 <div class="paragraph">
-<p>A minimal setup for running both Loki and Grafana using Docker is provided below.</p>
+<p>The sample project’s Docker Compose configuration contains one <code>lgtm</code> service for the complete stack:</p>
 </div>
 <div class="listingblock">
-<div class="title">docker-compose.yaml</div>
+<div class="title">docker-compose.yaml - LGTM service</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">loki:
-  image: grafana/loki:3.5
-
-grafana:
-  image: grafana/grafana:11.6.1
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">lgtm:
+  image: grafana/otel-lgtm:latest
   ports:
-    - "3000:3000"
-  volumes:
-    - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/grafana-datasources.yaml</code></pre>
+    - "3000:3000" # Grafana
+    - "4317:4317" # OTLP gRPC
+    - "4318:4318" # OTLP HTTP</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Additionally, we need to configure Grafana with a data source configuration that connects it automatically to Loki:</p>
+<p>Port <code>4318</code> accepts OTLP over HTTP, port <code>4317</code> accepts OTLP over gRPC, and port <code>3000</code> exposes Grafana. Loki, Tempo, and Prometheus are already configured as Grafana data sources, so no separate Collector, Tempo, Loki, or Grafana configuration files are needed.</p>
 </div>
-<div class="listingblock">
-<div class="title">grafana-datasources.yaml</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: 1
-
-datasources:
-
-  - name: Loki
-    type: loki
-    uid: loki
-    url: http://loki:3100</code></pre>
-</div>
-</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
 <div class="paragraph">
-<p>We are now ready to start forwarding logs from our applications into Loki.</p>
+<p>The LGTM image is intended for development, demo, and testing environments. In production, applications typically send telemetry to dedicated managed or self-hosted observability backend services instead of running all components in a single container.</p>
 </div>
-<div class="paragraph">
-<p>To do this, we need an intermediate component that receives the logs and forwards them to Loki: the OpenTelemetry Collector. But before looking into this, let’s take a broader look at what the OpenTelemetry project is all about.</p>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -578,88 +564,36 @@ datasources:
 <h2 id="open-telemetry"><a class="anchor" href="#open-telemetry"></a>OpenTelemetry</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>OpenTelemetry is an vendor-neutral open-source project that defines standards and components for collecting, transmitting, and processing telemetry data such as logs, metrics, and traces.</p>
+<p>OpenTelemetry is a vendor-neutral open-source project that defines standards and components for collecting, transmitting, and processing telemetry data such as logs, metrics, and traces.</p>
 </div>
 <div class="paragraph">
-<p>In this guide, OpenTelemetry is mainly relevant as the mechanism we use to transport logs from the applications to the centralized backend. We use the OpenTelemetry Collector as an intermediary: it receives telemetry data from the applications and forwards it to Grafana Loki. This approach decouples the applications from the backend and gives flexibility to switch or extend targets easily.</p>
+<p>In this guide, OpenTelemetry provides the mechanism for transporting logs from the applications to the centralized backend. Communication uses the OpenTelemetry Protocol (OTLP), a standardized protocol for logs, metrics, and traces. The applications therefore export to an OTLP endpoint instead of integrating directly with Loki.</p>
 </div>
 <div class="paragraph">
-<p>Communication happens via the OpenTelemetry Protocol (OTLP), a standardized and vendor-neutral protocol for transmitting logs, metrics, and traces. In our example, we use the Grafana stack as the target backend — but since OTLP is widely supported, this setup can just as easily be used with other observability tools and vendors. This keeps the applications decoupled from any specific backend technology and ensures long-term flexibility.</p>
+<p>This keeps the application configuration independent of the local Grafana stack. An OTLP-compatible managed service or another Collector deployment can replace the local endpoint without changing the logging code.</p>
 </div>
 <div class="sect2">
 <h3 id="open-telemetry-collector"><a class="anchor" href="#open-telemetry-collector"></a>OpenTelemetry Collector</h3>
 <div class="paragraph">
-<p>As already mentioned before, we use the OpenTelemetry Collector to receive logs via OTLP from both petclinic applications and forward them to Grafana Loki.</p>
+<p>The OpenTelemetry Collector receives telemetry, optionally processes it, and forwards it to one or more backends. The Collector included in the LGTM image is already configured to accept OTLP logs and write them to the bundled Loki instance.</p>
 </div>
 <div class="paragraph">
-<p>Similarly to the logging backend, the OpenTelemetry Collector can run as a Docker container. The <code>docker-compose.yaml</code> contains the necessary definition:</p>
-</div>
-<div class="listingblock">
-<div class="title">docker-compose.yaml</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">otel-collector:
-  image: otel/opentelemetry-collector-contrib:0.123.0
-  ports:
-    - "4318:4318"
-  volumes:
-    - ./otelcol-config.yaml:/config.yaml
-  command:
-    - --config=file:/config.yaml</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The configuration file (<code>otelcol-config.yaml</code>) looks like this:</p>
-</div>
-<div class="listingblock">
-<div class="title">otelcol-config.yaml</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">receivers:
-  otlp:
-    protocols:
-      http:
-        endpoint: 0.0.0.0:4318
-
-processors:
-  batch:
-
-exporters:
-  loki:
-    endpoint: "http://loki:3100/loki/api/v1/push"
-
-service:
-  pipelines:
-    logs:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [loki]</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We configure it to receive logs over OTLP (on port <code>4318</code>), process them in batches, and export them to Grafana Loki. Since the collector and Loki service run in the same Docker network, the <code>loki</code> hostname is resolvable and used as the endpoint target.</p>
-</div>
-<div class="paragraph">
-<p>With this, our infrastructure setup is complete — now we can configure the applications to emit logs into loki.</p>
+<p>As a result, this sample does not need a custom <code>otelcol-config.yaml</code>. We only need to point the applications to the Collector endpoint.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="spring-boot-actuator"><a class="anchor" href="#spring-boot-actuator"></a>Spring Boot Actuator</h2>
+<h2 id="exporting-logs-with-opentelemetry"><a class="anchor" href="#exporting-logs-with-opentelemetry"></a>Exporting Logs with OpenTelemetry</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>There are multiple ways to forward logs to the OpenTelemetry Collector. For example, OpenTelemetry provides a <a href="https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/" rel="noopener" target="_blank">Spring Boot starter</a> that can be used to integrate logging and tracing directly. Alternatively, one could use sidecar agents or log collectors that forward container stdout logs to the collector.</p>
+<p>There are multiple ways to forward logs to the OpenTelemetry Collector. Applications can export log records directly, or infrastructure agents can collect and forward container output.</p>
 </div>
 <div class="paragraph">
-<p>We use Spring Boot Actuator as the main way to expose operational data from our applications.</p>
+<p>In this sample, the applications export Logback events directly. Spring Boot’s OpenTelemetry integration configures the OpenTelemetry SDK and OTLP exporter.</p>
 </div>
 <div class="paragraph">
-<p>Although Actuator has a lot of features, the most relevant functionality Actuator brings for observability is the integration with <a href="https://micrometer.io" rel="noopener" target="_blank">Micrometer</a>, a metrics and observation library that enables applications to export telemetry data such as metrics and traces. This integration forms the basis for structured telemetry collection in Spring Boot applications.</p>
-</div>
-<div class="paragraph">
-<p>In this part of the guide, we focus on configuring structured logging. In later parts, we will build on the same foundation to add metrics and distributed tracing.</p>
-</div>
-<div class="paragraph">
-<p>For log collection, we configure the OpenTelemetry OTLP exporter to work together with Spring Boot Actuator and the logging system. The application itself sends structured logs directly to the OpenTelemetry Collector using the OpenTelemetry Protocol (OTLP), where they are further processed and forwarded to Grafana Loki.</p>
+<p>The OpenTelemetry Logback appender converts each Logback event into a structured OpenTelemetry log record and passes it to the SDK. The OTLP exporter then sends those records to the Collector, which forwards them to Loki.</p>
 </div>
 <div class="paragraph">
 <p>First, let’s add the required dependencies to the <code>build.gradle</code>:</p>
@@ -667,10 +601,7 @@ service:
 <div class="listingblock">
 <div class="title">build.gradle</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">// actuator includes also micrometer core &amp; micrometer observation
-implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
-// This appender sends log events to the OpenTelemetry Collector via OTLP.
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">// This appender sends log events to the OpenTelemetry Collector via OTLP.
 implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:1.32.1-alpha'
 
 // Required to export log records via the OTLP protocol to the OpenTelemetry Collector.
@@ -687,6 +618,8 @@ implementation 'org.springframework.boot:spring-boot-opentelemetry'</code></pre>
 <div class="title">application.properties</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># Enables exporting logback logs via OTLP to the collector.
+management.logging.export.otlp.enabled=true
+management.opentelemetry.logging.export.otlp.transport=http
 management.opentelemetry.logging.export.otlp.endpoint=http://localhost:4318/v1/logs</code></pre>
 </div>
 </div>
@@ -749,7 +682,7 @@ import org.springframework.stereotype.Component;
  * This instance must be set programmatically during application startup."
  * See also logback-spring.xml:
  *     &lt;appender name="OpenTelemetry" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender" /&gt;
- * see: &lt;a href="https://docs.spring.io/spring-boot/reference/actuator/loggers.html"&gt;Spring Boot Actuator Loggers&lt;/a&gt;
+ * see: &lt;a href="https://docs.spring.io/spring-boot/reference/actuator/loggers.html"&gt;Spring Boot OpenTelemetry Logging&lt;/a&gt;
  */
 @Component
 class OpenTelemetryAppenderInitializer implements InitializingBean {
@@ -771,6 +704,24 @@ class OpenTelemetryAppenderInitializer implements InitializingBean {
 <div class="paragraph">
 <p>With this configuration, both the Petclinic and the Petclinic Portal applications export their structured logs via OTLP. All application logs are now structured and sent directly to the OpenTelemetry Collector.</p>
 </div>
+<div class="sect2">
+<h3 id="configuring-the-docker-environment"><a class="anchor" href="#configuring-the-docker-environment"></a>Configuring the Docker Environment</h3>
+<div class="paragraph">
+<p>The endpoint in <code>application.properties</code> uses <code>localhost:4318</code>, which is correct when the applications run from Jmix Studio or through Gradle and the LGTM container runs on the same machine.</p>
+</div>
+<div class="paragraph">
+<p>When the applications run as Docker containers, <code>localhost</code> refers to the application container itself. The Compose configuration therefore overrides the endpoint with the internal <code>lgtm</code> service address:</p>
+</div>
+<div class="listingblock">
+<div class="title">docker-compose.yaml - OTLP logging endpoint</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">MANAGEMENT_OPENTELEMETRY_LOGGING_EXPORT_OTLP_ENDPOINT: http://lgtm:4318/v1/logs</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both application services use the same override and send their logs to the Collector inside the LGTM container.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -782,46 +733,47 @@ class OpenTelemetryAppenderInitializer implements InitializingBean {
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Open the terminal in the project root folder.</p>
-</li>
-<li>
-<p>Build the Petclinic application JAR:</p>
+<p>Start PostgreSQL and the LGTM service from the sample project root:</p>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">./gradlew -Pvaadin.productionMode=true --include-build jmix-petclinic-2 :jmix-petclinic-2:clean :jmix-petclinic-2:bootJar -x test --no-build-cache</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker compose -f docker/docker-compose.yaml up -d</code></pre>
 </div>
 </div>
 </li>
 <li>
-<p>Build the Petclinic Portal application JAR:</p>
+<p>Start the Petclinic Backend and Portal applications from Jmix Studio. Their local configuration sends logs to <code>localhost:4318</code>.</p>
+<div class="paragraph">
+<p>Alternatively, build both application JAR files:</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">./gradlew -Pvaadin.productionMode=true --include-build jmix-petclinic-portal :jmix-petclinic-portal:clean :jmix-petclinic-portal:bootJar -x test --no-build-cache</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./gradlew -Pvaadin.productionMode=true --include-build jmix-petclinic-2 :jmix-petclinic-2:clean :jmix-petclinic-2:bootJar -x test --no-build-cache
+./gradlew -Pvaadin.productionMode=true --include-build jmix-petclinic-portal :jmix-petclinic-portal:clean :jmix-petclinic-portal:bootJar -x test --no-build-cache</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then start the applications with the Compose <code>app</code> profile:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker compose -f docker/docker-compose.yaml --profile app up --build -d</code></pre>
 </div>
 </div>
 </li>
 <li>
-<p>Start the infrastructure components and the applications using Docker Compose:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">docker compose -f docker/docker-compose.yaml up --build -d</code></pre>
-</div>
-</div>
+<p>Open Grafana at <a class="bare" href="http://localhost:3000">http://localhost:3000</a> (username: <code>admin</code>, password: <code>admin</code>) and navigate to <strong>Drilldown &gt; Logs</strong>.</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>The Petclinic and Petclinic Portal applications start sending logs to the OpenTelemetry Collector.</p>
+<p>The Petclinic and Petclinic Portal applications now send their logs to the Collector inside the LGTM container. The Collector forwards the records to Loki, where they become available in Grafana.</p>
 </div>
 <div class="paragraph">
-<p>With the applications running, we can now open Grafana in the browser (<a class="bare" href="http://localhost:3000" rel="noopener" target="_blank">http://localhost:3000</a>; username: <code>admin</code>; password: <code>admin</code>) and explore the collected logs.</p>
-</div>
-<div class="paragraph">
-<p>To stop all services use the following command:</p>
+<p>To stop the infrastructure and any application containers, use:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">docker compose -f docker/docker-compose.yaml down</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker compose -f docker/docker-compose.yaml down</code></pre>
 </div>
 </div>
 <div class="sect2">
@@ -907,13 +859,13 @@ public class VisitListView extends StandardListView&lt;Visit&gt; {
 <h2 id="summary"><a class="anchor" href="#summary"></a>Summary</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this guide, we first created a lightweight, consumer‑facing Petclinic Portal application to sit alongside the classic Petclinic backend, giving us two independent Jmix services to showcase centralized logging across multiple systems. With that pair in place, we then built a complete, end‑to‑end logging pipeline: Docker‑based Grafana Loki for log storage, Grafana for exploration, and an OpenTelemetry Collector that receives OTLP data and forwards it to Loki. Both apps were configured to emit structured logs instead of plain text, giving every entry machine‑readable fields like <code>service_name</code>, <code>attributes_logback_ownerId</code>, and other custom MDC values.</p>
+<p>In this guide, we used the Petclinic Backend and the consumer-facing Petclinic Portal to demonstrate centralized logging across two Jmix applications. Both applications convert their Logback events into structured OpenTelemetry log records and export them through OTLP.</p>
 </div>
 <div class="paragraph">
-<p>On the application side we used Spring Boot Actuator, Micrometer, and the OpenTelemetry Logback appender send logs directly to the Collector. Because everything travels over the vendor‑neutral OTLP protocol, the two services stay decoupled from any single observability backend – you can swap Loki for another system (or add metrics and traces later) without touching application code. The guide also showed how to enrich logs with domain context and how Grafana lets you filter instantly on those fields.</p>
+<p>The Grafana OpenTelemetry LGTM image provides the complete local pipeline in one container: the Collector receives the records, Loki stores them, and Grafana displays them. Its preconfigured pipeline and data sources remove the need to maintain separate Collector and Grafana configuration files for this development environment.</p>
 </div>
 <div class="paragraph">
-<p>Centralized, structured logging gives you a single pane of glass across services, faster troubleshooting, and the foundation for deeper observability. With the logging pipeline in place, you’re ready to layer on distributed tracing and metrics in the next parts of the series – all reusing the same OpenTelemetry stack and the unified Grafana UI.</p>
+<p>The OpenTelemetry Logback appender also preserves MDC attributes such as <code>ownerId</code> and <code>jmixUser</code>. These machine-readable fields make the logs easier to filter and connect to application context. Because the applications export through the vendor-neutral OTLP protocol, the same application configuration can target another compatible Collector or observability service.</p>
 </div>
 <div class="sect2">
 <h3 id="further-information"><a class="anchor" href="#further-information"></a>Further Information</h3>
@@ -929,10 +881,13 @@ public class VisitListView extends StandardListView&lt;Visit&gt; {
 <p><a href="https://grafana.com/docs/loki/latest/" rel="noopener" target="_blank">Loki Documentation</a></p>
 </li>
 <li>
+<p><a href="https://grafana.com/docs/opentelemetry/docker-lgtm/" rel="noopener" target="_blank">Grafana OpenTelemetry LGTM Stack</a></p>
+</li>
+<li>
 <p><a href="https://opentelemetry.io/docs/collector/" rel="noopener" target="_blank">OpenTelemetry Collector</a></p>
 </li>
 <li>
-<p><a href="https://docs.spring.io/spring-boot/reference/actuator/index.html" rel="noopener" target="_blank">Spring Boot Actuator</a></p>
+<p><a href="https://docs.spring.io/spring-boot/reference/actuator/loggers.html#actuator.loggers.opentelemetry" rel="noopener" target="_blank">Spring Boot OpenTelemetry Logging</a></p>
 </li>
 <li>
 <p><a href="https://micrometer.io/" rel="noopener" target="_blank">Micrometer</a></p>

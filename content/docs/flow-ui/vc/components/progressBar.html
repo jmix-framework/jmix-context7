@@ -10,179 +10,184 @@
 <h1 class="page">progressBar</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="jmix-ui-live-demo-container">
-<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/progress-bar-simple" target="_blank">LIVE DEMO</a>
-</div>
 <div class="paragraph">
-<p>A visual indicator to provide feedback about the status and completion of an ongoing task, such as a file transfer, loading data, complex computations, or any other lengthy task. It helps users understand how much time a task will take.</p>
+<p><code>progressBar</code> shows the completion status of a long-running task.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>XML-element: <code>progressBar</code></p>
-</li>
-<li>
-<p>Java class: <code>ProgressBar</code></p>
-</li>
-</ul>
-</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>progressBar</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ProgressBar</code></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect1">
 <h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/progress-bar-simple" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>A standard progress bar takes values between 0.0 and 1.0, representing the progress of a task from 0% to 100%.</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="progress bar determinate" src="../../_images/visual-components/components/progress-bar-determinate.png" width="380"/>
-</div>
-</div>
-<details open="">
-<summary class="title">XML code</summary>
-<div class="content">
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;progressBar value="0.5"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;progressBar id="progressBar" width="100%"/&gt;</code></pre>
 </div>
 </div>
-</div>
-</details>
 </div>
 </div>
 <div class="sect1">
 <h2 id="progress-updates"><a class="anchor" href="#progress-updates"></a>Progress Updates</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/progress-bar-simple" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>The progress value is commonly updated within the context of an ongoing task. This allows the progress bar to accurately reflect the current state of the task.</p>
 </div>
 <div class="paragraph">
 <p>Consider an example of a simple <a class="xref page" href="../../background-tasks.html">background task</a> that updates the <code>progressBar</code> value:</p>
 </div>
-<details open="">
-<summary class="title">XML code</summary>
-<div class="content">
 <div class="listingblock">
+<div class="title">XML</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;progressBar id="progressBar"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox padding="false"&gt;
+    &lt;h4 text="ProgressBar with indicator"/&gt;
+    &lt;button id="controlButton"
+            icon="PLAY" classNames="link-button"/&gt;
+&lt;/hbox&gt;
+&lt;hbox padding="false" justifyContent="BETWEEN" width="100%"&gt;
+    &lt;span id="labelSpan" text="Ready to start"/&gt;
+    &lt;span id="percentSpan" text="0%"/&gt;
+&lt;/hbox&gt;
+&lt;progressBar id="progressBar" width="100%"/&gt;
+&lt;h4 text="Indeterminate ProgressBar"/&gt;
+&lt;progressBar indeterminate="true" width="100%"/&gt;</code></pre>
 </div>
 </div>
-</div>
-</details>
-<details open="">
-<summary class="title">Java code</summary>
-<div class="content">
 <div class="listingblock">
+<div class="title">Java</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
-protected ProgressBar progressBar; <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">protected static final int ITERATIONS = 20;
+
+@ViewComponent
+protected ProgressBar progressBar;
+@ViewComponent
+protected Span labelSpan;
+@ViewComponent
+protected Span percentSpan;
+@ViewComponent
+protected JmixButton controlButton;
+
 @Autowired
 protected BackgroundWorker backgroundWorker;
 
 protected BackgroundTaskHandler&lt;Void&gt; taskHandler;
 
-private static final int ITERATIONS = 6;
-
-@Subscribe
-protected void onInit(InitEvent event) {  <i class="conum" data-value="2"></i><b>(2)</b>
+protected void runNewTask() {
     taskHandler = backgroundWorker.handle(createBackgroundTask());
     taskHandler.execute();
 }
 
-protected BackgroundTask&lt;Integer, Void&gt; createBackgroundTask () { <i class="conum" data-value="3"></i><b>(3)</b>
+protected BackgroundTask&lt;Integer, Void&gt; createBackgroundTask() {
     return new BackgroundTask&lt;&gt;(100, TimeUnit.SECONDS) {
+
         @Override
         public Void run(TaskLifeCycle&lt;Integer&gt; taskLifeCycle) throws Exception {
-            for (int i=1; i&lt; ITERATIONS; i++) {
+            for (int i = 1; i &lt;= ITERATIONS; i++) {
                 TimeUnit.SECONDS.sleep(1);
                 taskLifeCycle.publish(i);
             }
+
             return null;
         }
 
         @Override
-        public void progress (List&lt;Integer&gt; changes) {
+        public void progress(List&lt;Integer&gt; changes) {
             double lastValue = changes.get(changes.size() - 1);
-            double value = lastValue/ITERATIONS;
-            progressBar.setValue(value); <i class="conum" data-value="4"></i><b>(4)</b>
+            double value = lastValue / ITERATIONS;
+
+            if (value &lt; 1) {
+                labelSpan.setText("In progress");
+            } else {
+                labelSpan.setText("Done");
+                controlButton.setIcon(VaadinIcon.REFRESH.create());
+            }
+
+            progressBar.setValue(value);
+            percentSpan.setText(Double.valueOf(value * 100).intValue() + "%");
         }
     };
+}
+
+@Subscribe("controlButton")
+protected void onControlButtonClick(ClickEvent&lt;JmixButton&gt; event) {
+    if (taskHandler == null || taskHandler.isDone() || taskHandler.isCancelled()) {
+        runNewTask();
+
+        event.getSource().setIcon(VaadinIcon.STOP.create());
+    } else if (taskHandler != null &amp;&amp; taskHandler.isAlive()) {
+        taskHandler.cancel();
+
+        labelSpan.setText("Canceled");
+        event.getSource().setIcon(VaadinIcon.REFRESH.create());
+    }
 }</code></pre>
 </div>
-</div>
-</div>
-</details>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Inject the progress bar to access it in the controller class.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>When this view opens, initiate a task to run in the background.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Define a method to create a simple background task.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>As the task progresses, update the progress value to reflect its current status.</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_modes"><a class="anchor" href="#_modes"></a>Modes</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/progress-bar-simple" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
 <p>A progress bar can either be determinate or indeterminate depending on the nature of the task and the availability of progress information.</p>
 </div>
-<div class="sect2">
-<h3 id="determinate-mode"><a class="anchor" href="#determinate-mode"></a>Determinate</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="determinate-mode"><a class="anchor" href="#determinate-mode"></a>Determinate Progress</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>By default, <code>progressBar</code> shows progress in the determinate mode. This mode provide users with a visual representation of remaining time to complete the task.</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="progress bar determinate" src="../../_images/visual-components/components/progress-bar-determinate.png" width="380"/>
-</div>
-</div>
-<details open="">
-<summary class="title">XML code</summary>
-<div class="content">
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;progressBar id="determinateMode"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;progressBar id="progressBar" width="100%"/&gt;</code></pre>
 </div>
 </div>
-</div>
-</details>
 <div class="paragraph">
 <p>Use a determinate progress bar when the time required for completion is known in advance or the progress can be tracked.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="indeterminate-mode"><a class="anchor" href="#indeterminate-mode"></a>Indeterminate</h3>
+</div>
+<div class="sect1">
+<h2 id="indeterminate-mode"><a class="anchor" href="#indeterminate-mode"></a>Indeterminate Progress</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>By setting the <a href="#indeterminate">indeterminate</a> attribute to <code>true</code> you can switch the progress bar to operate in the indeterminate mode. When in indeterminate mode <code>progressBar</code> cycles repeatedly along the length of the bar without showing a specific progress value.</p>
 </div>
-<details open="">
-<summary class="title">XML code</summary>
-<div class="content">
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;progressBar id="indeterminateMode" indeterminate="true"/&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;progressBar indeterminate="true" width="100%"/&gt;</code></pre>
 </div>
 </div>
-</div>
-</details>
 <div class="paragraph">
 <p>Use this mode for tasks which do not share a progress value or to communicate that the task is running continuously.</p>
-</div>
 </div>
 </div>
 </div>
@@ -195,21 +200,11 @@ protected BackgroundTask&lt;Integer, Void&gt; createBackgroundTask () { <i class
 <div class="paragraph">
 <p>For instance, if you have a task with 10 steps, you can set <code>min="1"</code> and <code>max="10"</code> to match the task’s progress range. Reaching the 5th step indicates that the progress value has reached 5 as well:</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="progress bar determinate" src="../../_images/visual-components/components/progress-bar-determinate.png" width="380"/>
-</div>
-</div>
-<details open="">
-<summary class="title">XML code</summary>
-<div class="content">
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;progressBar min="0" max="10" value="5"/&gt;</code></pre>
 </div>
 </div>
-</div>
-</details>
 </div>
 </div>
 <div class="sect1">
@@ -218,21 +213,19 @@ protected BackgroundTask&lt;Integer, Void&gt; createBackgroundTask () { <i class
 <div class="paragraph">
 <p>If it is necessary for the user to wait for the completion of a task, a <a class="xref page" href="../../dialogs.html#background-task-dialog">background task dialog</a> can be used.</p>
 </div>
-<div class="imageblock text-center">
-<div class="content">
-<img alt="backgroundtask dialog" src="../../_images/dialogs/backgroundtask-dialog.png" width="402"/>
-</div>
-</div>
 <div class="paragraph">
 <p>This dialog blocks user interaction with the rest of the application until the task is either completed or is canceled by the user.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="themeNames"><a class="anchor" href="#themeNames"></a>Theme Variants</h2>
+<h2 id="variants"><a class="anchor" href="#variants"></a>Theme Variants</h2>
 <div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/progress-bar-theme-variant" target="_blank">LIVE DEMO</a>
+</div>
 <div class="paragraph">
-<p>Use <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to apply one or more theme variants.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -271,90 +264,85 @@ protected BackgroundTask&lt;Integer, Void&gt; createBackgroundTask () { <i class
 <h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>The following attributes are specific to <code>progressBar</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="indeterminate"></a><code>indeterminate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables the <a href="#indeterminate-mode">indeterminate progress</a> mode.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="max"></a><code>max</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the maximum progress value.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="min"></a><code>min</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the minimum progress value.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="value"></a><code>value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the component value.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>progressBar</code>:</p>
+</div>
+<div class="paragraph">
 <p><a class="xref page" href="../common-attributes.html#id">id</a> -
 <a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
 <a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
 <a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
 <a class="xref page" href="../common-attributes.html#css">css</a> -
 <a class="xref page" href="../common-attributes.html#height">height</a> -
-<a href="#indeterminate">indeterminate</a> -
-<a href="#max">max</a> -
 <a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
 <a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
-<a href="#min">min</a> -
 <a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
 <a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
-<a href="#themeNames">themeNames</a> -
-<a href="#value">value</a> -
+<a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> -
 <a class="xref page" href="../common-attributes.html#visible">visible</a> -
 <a class="xref page" href="../common-attributes.html#width">width</a></p>
-</div>
-<div class="sect2">
-<h3 id="indeterminate"><a class="anchor" href="#indeterminate"></a>indeterminate</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/progress-bar/#modes" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>Enables or disables the <a href="#indeterminate-mode">indeterminate progress</a> mode.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="max"><a class="anchor" href="#max"></a>max</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/progress-bar/#bounds-and-initial-value" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>Sets the maximum progress value. Default is <code>1.0</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="min"><a class="anchor" href="#min"></a>min</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/progress-bar/#bounds-and-initial-value" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>Sets the minimum progress value. Default is <code>0.0</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="value"><a class="anchor" href="#value"></a>value</h3>
-<div class="jmix-ui-live-demo-container">
-<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/progress-bar/#bounds-and-initial-value" target="_blank">Vaadin</a>
-</div>
-<div class="paragraph">
-<p>Defines a value of <code>progressBar</code>. The value must be within the default <code>0.0</code> and <code>1.0</code> range or custom <code>min</code> and <code>max</code> range, if specified.</p>
-</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h2>
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>progressBar</code>:</p>
+</div>
 <div class="paragraph">
 <p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
 <a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>To generate a handler stub in Jmix Studio, use the <strong>Handlers</strong> tab of the <strong>Jmix UI</strong> inspector panel or the <strong>Generate Handler</strong> action available in the top panel of the view class and through the <strong>Code</strong> → <strong>Generate</strong> menu (<strong>Alt+Insert</strong> / <strong>Cmd+N</strong>).</p>
-</div>
-</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>See <a href="https://vaadin.com/docs/v25/components/progress-bar" rel="noopener" target="_blank">Vaadin Docs</a> for more information.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/progress-bar" rel="noopener" target="_blank">Vaadin Progress Bar documentation</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

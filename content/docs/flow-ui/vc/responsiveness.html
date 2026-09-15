@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsiveness :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Responsiveness</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A responsive view remains easy to understand and use as the available space changes. It should work in a resized desktop window, on a tablet or phone, and at every size in between.</p>
+</div>
+<div class="paragraph">
+<p>Jmix provides much of the required behavior through standard views, layouts, and adaptable visual components.  When more control is needed, use the techniques described below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="built-in-responsiveness"><a class="anchor" href="#built-in-responsiveness"></a>Built-in Responsiveness</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Standard Jmix views combine layout and visual components that adapt to the available space and input method. For example:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The main menu collapses on a narrow screen.</p>
+</li>
+<li>
+<p>On touchscreen devices, <a class="xref page" href="components/datePicker.html">datePicker</a> and <a class="xref page" href="components/select.html">select</a> display their overlays at the bottom of the screen.</p>
+</li>
+<li>
+<p>Dialog actions can stack vertically when horizontal space is limited.</p>
+</li>
+<li>
+<p><a class="xref page" href="layouts/tabSheet.html">tabSheet</a> and <a class="xref page" href="components/tabs.html">tabs</a> become scrollable.</p>
+</li>
+<li>
+<p><a class="xref page" href="layouts/formLayout.html">formLayout</a> can change the number of columns.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="designing-responsive-views"><a class="anchor" href="#designing-responsive-views"></a>Designing Responsive Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When building a responsive view from scratch start with a simple layout for the narrowest screen and add columns, context, or actions when more space is available. Use layout components before adding custom CSS.</p>
+</div>
+<div class="sect2">
+<h3 id="layouts"><a class="anchor" href="#layouts"></a>Layouts</h3>
+<div class="paragraph">
+<p>Layout components control how content grows, shrinks, and moves as the available space changes. Use <a class="xref page" href="layouts/formLayout.html">formLayout</a> for responsive forms. Use <a class="xref page" href="layouts/gridLayout.html">gridLayout</a> to arrange components in a responsive grid. <code>gridLayout</code> fits as many columns as the available width allows and moves the remaining items onto new rows.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="layout-rules.html">Layout Rules</a> for guidance on combining layouts and sizing their content.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="css-media-and-container-queries"><a class="anchor" href="#css-media-and-container-queries"></a>CSS Media and Container Queries</h3>
+<div class="paragraph">
+<p>A <a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Responsive_Design#media_queries" rel="noopener" target="_blank">media query</a> checks a condition, such as whether the browser window is wider than a given value, and applies a group of CSS rules only when the condition is true.</p>
+</div>
+<div class="paragraph">
+<p>Use a media query when components and layouts cannot provide the required change. First, add a class name in the view descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox classNames="view-toolbar" width="100%"&gt;
+    &lt;!-- Content --&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then define the narrow layout and its wide-screen enhancement in the <a class="xref page" href="../themes/themes.html#application-theme-files">application theme CSS</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.view-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+@media (min-width: 48rem) {
+    .view-toolbar {
+        flex-direction: row;
+        align-items: center;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>48rem</code> value is a <em>breakpoint</em> – the width where the layout changes. Below <code>48rem</code>, the controls are stacked and stretch to the full width. At <code>48rem</code> and above, they are arranged horizontally and aligned vertically in the center. You can define several media queries when the layout needs more than one change.</p>
+</div>
+<div class="paragraph">
+<p>Media queries use the width of the browser window. In a resizable content area, use a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Containment/Container_queries" rel="noopener" target="_blank">container query</a> to apply CSS based on the width of the containing element instead. This lets a component adapt wherever it is placed.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="wrapping"><a class="anchor" href="#wrapping"></a>Wrapping at In-between Sizes</h3>
+<div class="paragraph">
+<p>At intermediate widths, components may share the available row space but not fit on a single line. Allow the row to wrap onto additional lines:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox id="viewToolbar" width="100%" wrap="true"&gt;
+    &lt;!-- Content --&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In Java, call <code>viewToolbar.setWrap(true)</code>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Resize the browser slowly when testing. Check intermediate widths, browser zoom, split-screen windows, long translated labels, and both portrait and landscape orientation.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="lumo-utility-classes"><a class="anchor" href="#lumo-utility-classes"></a>Lumo Utility Classes</h3>
+<div class="paragraph">
+<p>Applications that use <a class="xref page" href="../themes/lumo.html">Lumo Theme</a> can handle some common responsive changes with utility classes instead of custom CSS.</p>
+</div>
+<div class="paragraph">
+<p>Apply the responsive classes in the view descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox classNames="flex-col md:flex-row" width="100%"&gt;
+    &lt;!-- Content --&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example the layout starts as a column and changes to a row at the <code>md</code> breakpoint.</p>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../themes/lumo.html#utility-classes">Lumo utility classes</a> for setup and the <a href="https://vaadin.com/docs/latest/styling/themes/lumo/lumo-breakpoint" rel="noopener" target="_blank">responsive utility class reference</a> for the available breakpoints.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dedicated-mobile-views"><a class="anchor" href="#dedicated-mobile-views"></a>Dedicated Mobile Views</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Whenever possible, use a single responsive view for both desktop and mobile. It is easier to maintain and provides consistent behavior across screen sizes. Some data-heavy views, however, cannot provide an equally effective desktop and mobile experience with one layout. Consider separate desktop and mobile views when both require a carefully polished interface or when the interaction is genuinely different. For example, field workers may need a shorter workflow with fewer actions, camera access, or swipe gestures.</p>
+</div>
+<div class="paragraph">
+<p>Separate views increase development and maintenance work. Use <a class="xref page" href="../fragments/fragments.html">fragments</a> to reuse fields, forms, and other UI sections across the views and minimize duplicated presentation code. Keep shared business logic in services.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Jmix does not automatically choose between desktop and mobile views according to screen size. The application must <a class="xref page" href="../views/opening-views.html">open the appropriate view</a> explicitly.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="designing-responsive-views-for-mobile"><a class="anchor" href="#designing-responsive-views-for-mobile"></a>Designing Responsive Views for Mobile</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If a dedicated mobile view is necessary, design it using the <a href="#designing-responsive-views">responsive patterns for regular views</a>. Additionally, adapt common interactions for touch input and limited screen space.</p>
+</div>
+<div class="sect2">
+<h3 id="virtual-list"><a class="anchor" href="#virtual-list"></a>Virtual List</h3>
+<div class="paragraph">
+<p>On small screens, a <a class="xref page" href="components/dataGrid.html">dataGrid</a> may require too much horizontal space and can be difficult to use with touch input. For lists where users open individual items, <a class="xref page" href="components/virtualList.html">virtualList</a> is usually a better fit. Use a fragment renderer to create a compact card layout for each item.</p>
+</div>
+<div class="paragraph">
+<p>The <a href="https://demo.jmix.io/windturbines" rel="noopener" target="_blank">Wind Turbines</a> demo uses this pattern for its turbine list:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;virtualList itemsContainer="turbinesDc" width="100%"&gt;
+    &lt;fragmentRenderer class="io.jmix.windturbines.view.turbine.TurbineCard"/&gt;
+&lt;/virtualList&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="side-panels"><a class="anchor" href="#side-panels"></a>Side Panels</h3>
+<div class="paragraph">
+<p>Keep secondary elements out of the main workflow until the user needs them. A closable panel provides access without permanently occupying screen space. Use <a class="xref page" href="layouts/sidePanelLayout.html">sidePanelLayout</a> to add such a panel to the view descriptor. Use <a class="xref page" href="../dialogs.html#side-dialog">Side Dialog</a> to create one from Java code.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="switch"><a class="anchor" href="#switch"></a>Switch</h3>
+<div class="paragraph">
+<p><a class="xref page" href="components/switch.html">switch</a> is a touchscreen-friendly control for a binary setting. Use it when the application applies the setting immediately, without separate confirmation. Its larger control is easy to tap and can save screen space by eliminating an additional confirmation button.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="step-by-step-wizard"><a class="anchor" href="#step-by-step-wizard"></a>Step-by-step Wizard</h3>
+<div class="paragraph">
+<p>For long input forms, show one step at a time. Provide clear <strong>Back</strong>, <strong>Next</strong>, and <strong>Complete</strong> actions, and validate the current step before moving forward. This keeps the user focused and avoids a long page of fields.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Jmix does not have a dedicated wizard component. The <a href="https://demo.jmix.io/ui-samples/sample/wizard" rel="noopener" target="_blank">Wizard sample</a> builds this pattern with <a class="xref page" href="layouts/tabSheet.html">tabSheet</a> for navigation and a <a class="xref page" href="../fragments/fragments.html">fragment</a> for each step.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="drag-and-drop"><a class="anchor" href="#drag-and-drop"></a>Drag and Drop</h3>
+<div class="paragraph">
+<p>Drag and drop can make moving, grouping, or reordering items more direct on a touch screen and can reduce the number of visible action buttons. Vaadin allows you to make components drag sources and drop targets. See the <a href="https://demo.jmix.ru/ui-samples/sample/dnd-components" rel="noopener" target="_blank">Drag and Drop</a> cookbook.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

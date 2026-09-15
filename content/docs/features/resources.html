@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Resources</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>io.jmix.core.Resources</code> interface is a central infrastructure API for loading resources from different locations.</p>
+</div>
+<div class="paragraph">
+<p>It is useful when application code or framework configuration needs to load files that can be supplied either from the classpath or from the external configuration directory.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="resource-locations"><a class="anchor" href="#resource-locations"></a>Resource Locations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>Resources</code> searches for a resource according to the following rules:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>If the location is a URL, the resource is loaded from this URL.</p>
+</li>
+<li>
+<p>If the location starts with the <code>classpath:</code> prefix, the resource is loaded from the classpath.</p>
+</li>
+<li>
+<p>If the location is not a URL and does not start with <code>classpath:</code>, Jmix first searches for the file in the directory specified by the <a class="xref page" href="../app-properties.html#jmix.core.conf-dir">jmix.core.conf-dir</a> application property, using the provided location as a relative path.</p>
+</li>
+<li>
+<p>If the file is not found in the configuration directory, Jmix searches for it in the classpath.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>In practice, resources are usually loaded either from the external configuration directory or from the classpath. A file in the configuration directory overrides a classpath resource with the same location.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="loading-resources"><a class="anchor" href="#loading-resources"></a>Loading Resources</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Inject <code>Resources</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Resources resources;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use <code>getResourceAsStream()</code> to get an <code>InputStream</code> for the resource. The method returns <code>null</code> if the resource is not found. Close the stream after use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private Resources resources;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    try (InputStream stream = resources.getResourceAsStream(SRC_PATH)) {
+        if (stream == null) {
+            // resource not found
+            return;
+        }
+        // use the stream
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use <code>getResourceAsString()</code> to load the resource content as a UTF-8 string. The method returns <code>null</code> if the resource is not found:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">String content = resources.getResourceAsString("com/company/demo/sample.txt");</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="getting-spring-resource"><a class="anchor" href="#getting-spring-resource"></a>Getting Spring Resource</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Because <code>Resources</code> extends Spring’s <code>ResourceLoader</code>, you can also use <code>getResource()</code> when you need a <code>org.springframework.core.io.Resource</code> object:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Resource resource = resources.getResource("classpath:com/company/demo/sample.txt");</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>
