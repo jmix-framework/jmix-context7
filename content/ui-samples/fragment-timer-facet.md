@@ -61,7 +61,7 @@ timer-facet-fragment.xml
         <vbox classNames="horizontal-layout" alignItems="CENTER" padding="false">
             <button id="timerStartBtn" text="Start" icon="PLAY" themeNames="primary"/>
             <button id="timerStopBtn" text="Stop" icon="PAUSE" themeNames="primary error" enabled="false"/>
-            <span id="timerIndicator" text="Timer is ready to start" themeNames="badge contrast pill"/>
+            <badge id="timerIndicator" text="Timer is ready to start"/>
         </vbox>
     </content>
 </fragment>
@@ -74,7 +74,8 @@ TimerFacetFragment.java
 package io.jmix.uisamples.view.flowui.fragments.facets.timer;
 
 import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -93,7 +94,7 @@ public class TimerFacetFragment extends Fragment<VerticalLayout> {
     @ViewComponent
     private Timer timer;
     @ViewComponent
-    private Span timerIndicator;
+    private Badge timerIndicator;
     @ViewComponent
     private JmixButton timerStartBtn;
     @ViewComponent
@@ -111,7 +112,7 @@ public class TimerFacetFragment extends Fragment<VerticalLayout> {
 
         timerIndicator.setText("Timer started");
         timerIndicator.getElement().getThemeList().clear();
-        timerIndicator.getElement().getThemeList().add("badge pill success");
+        timerIndicator.addThemeVariants(BadgeVariant.SUCCESS);
 
         notifications.create("Timer started")
                 .withPosition(Notification.Position.BOTTOM_END)
@@ -129,7 +130,7 @@ public class TimerFacetFragment extends Fragment<VerticalLayout> {
 
         timerIndicator.setText("Timer stopped");
         timerIndicator.getElement().getThemeList().clear();
-        timerIndicator.getElement().getThemeList().add("badge pill error");
+        timerIndicator.addThemeVariants(BadgeVariant.ERROR);
 
         timerStartBtn.setEnabled(true);
         timerStopBtn.setEnabled(false);

@@ -14,7 +14,7 @@
 <p>The Maps add-on enables users to visually edit geometries of geo-objects. Instead of editing geometry data as text in a field, users can now interact with geometries directly on a map. This intuitive interface allows users to move geometries, modify lines, and perform other edits visually, simplifying the geo-data management process.</p>
 </div>
 <div class="paragraph">
-<p>Both <a class="xref page" href="layers-sources.html#vector-source">VectorSource</a> and <a class="xref page" href="layers-sources.html#data-vector-source">DataVectorSource</a> support three feature editing modes:</p>
+<p>Both <a class="xref page" href="layers-sources.html#vector-source">VectorSource</a> and <a class="xref page" href="layers-sources.html#data-vector-source">DataVectorSource</a> support the following feature editing modes:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -26,6 +26,9 @@
 </li>
 <li>
 <p><strong>Modify Mode</strong>: allows users to modify the geometry of features, such as vertices and lines.</p>
+</li>
+<li>
+<p><strong>Delete Mode</strong>: allows users to delete features from the map.</p>
 </li>
 </ul>
 </div>
@@ -121,17 +124,7 @@ When the select mode is used in conjunction with drag or modify modes, only the 
 </div>
 </div>
 <div class="paragraph">
-<p>This will activate control buttons on the map:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><span class="image"><img alt="layers modify icon" src="_images/layers-modify-icon.png" width="24"/></span> - activates modify mode. In this mode, a vertex is rendered that can be dragged to modify a feature or clicked to remove it.</p>
-</li>
-<li>
-<p><span class="image"><img alt="layers delete icon" src="_images/layers-delete-icon.png" width="24"/></span> - activates delete mode. When this mode is active, users can click on a feature, and a confirmation dialog will appear before deletion.</p>
-</li>
-</ul>
+<p>This will activate a control button <span class="image"><img alt="layers modify icon" src="_images/layers-modify-icon.png" width="24"/></span> on the map that enables modify mode. In this mode, a vertex is rendered that can be dragged to modify a feature or clicked to remove it.</p>
 </div>
 <div class="paragraph">
 <p>For example, here’s how the modify mode looks when enabled:</p>
@@ -142,11 +135,91 @@ When the select mode is used in conjunction with drag or modify modes, only the 
 </div>
 </div>
 <div class="paragraph">
-<p>This mode provides events to handle the start and end of modifications. Additionally, the <a class="xref page" href="layers-sources.html#vector-source">vector source</a> has a delete event. For more information, see the <a class="xref page" href="events.html#source-events">Source Events</a> section.</p>
+<p>This mode provides events to handle the start and end of modifications. For more information, see the <a class="xref page" href="events.html#source-events">Source Events</a> section.</p>
 </div>
 <div class="paragraph">
 <p>You can also style the generated vertex points. See the <a class="xref page" href="style.html#modify-mode-styles">Modify Mode Styles</a> section for more details.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="delete-mode"><a class="anchor" href="#delete-mode"></a>Delete Mode</h2>
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>To enable feature deletion, set the <code>featureDeleteEnabled</code> attribute of the <a class="xref page" href="layers-sources.html#vector-source">vector source</a> to <code>true</code>. Deletion doesn’t depend on modify mode, so you can enable each of them separately.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:vector id="featureLayer"&gt;
+    &lt;maps:vectorSource id="featureSource"
+                       featureModifyEnabled="true"
+                       featureDeleteEnabled="true"/&gt;
+&lt;/maps:vector&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will activate a control button <span class="image"><img alt="layers delete icon" src="_images/layers-delete-icon.png" width="24"/></span> on the map that enables delete mode. When this mode is active, users can click on a feature, and a confirmation dialog will appear before deletion. The button is shown if at least one source on the map has deletion enabled.</p>
+</div>
+<div class="paragraph">
+<p>When a feature is deleted, the source fires an event. See the <a class="xref page" href="events.html#SourceFeatureDeleteEvent">SourceFeatureDeleteEvent</a> section.</p>
+</div>
+<div class="paragraph" id="jmix.maps.ui.feature-modify-includes-delete">
+<p>If <code>featureDeleteEnabled</code> is not set, deletion is disabled by default. If the <code>jmix.maps.ui.feature-modify-includes-delete</code> application property is <code>true</code>, modify mode also enables deletion for such a source. This was the behavior before Jmix 3.1, when <code>featureModifyEnabled="true"</code> always enabled deletion as well. The default value of the property is <code>false</code>. When you upgrade a project from an earlier version, Studio sets it to <code>true</code> to keep the previous behavior. To control deletion for each source separately, set <code>featureDeleteEnabled</code> on the sources that need it and remove the property.</p>
+</div>
+<div class="paragraph">
+<p>The following table shows when deletion is enabled for a source:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 25%;"/>
+<col style="width: 25%;"/>
+<col style="width: 25%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><code>featureDeleteEnabled</code></th>
+<th class="tableblock halign-left valign-top"><code>jmix.maps.ui.feature-modify-includes-delete</code></th>
+<th class="tableblock halign-left valign-top"><code>featureModifyEnabled</code></th>
+<th class="tableblock halign-left valign-top">Deletion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">not set</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">any</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">disabled</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">not set</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code> or not set</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">disabled</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">not set</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">enabled</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">any</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">any</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">disabled</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">any</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">any</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">enabled</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 

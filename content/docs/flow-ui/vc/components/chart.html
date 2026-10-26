@@ -141,6 +141,39 @@ public void onInit(final InitEvent event) {
 </div>
 </div>
 <div class="sect1">
+<h2 id="responsive-sizing"><a class="anchor" href="#responsive-sizing"></a>Responsive Sizing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>chart</code> component is rendered by Apache ECharts and needs a calculable non-zero size when it is rendered or re-rendered. This is important when charts are placed in responsive layouts, hidden containers, or containers whose size changes dynamically, for example when the application menu is collapsed or expanded.</p>
+</div>
+<div class="paragraph">
+<p>If several charts are placed next to each other, avoid relying only on <code>width="100%"</code> for their parent containers. A chart can expand when the available area grows, but it may not shrink correctly when the surrounding container becomes narrower. In such cases, use a flex layout and apply <code>flex-grow</code> to the chart containers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox width="100%"&gt;
+    &lt;vbox classNames="flex-grow"&gt;
+        &lt;charts:chart id="barChart" width="100%" minHeight="30em"&gt;
+            &lt;!-- chart configuration --&gt;
+        &lt;/charts:chart&gt;
+    &lt;/vbox&gt;
+    &lt;vbox classNames="flex-grow"&gt;
+        &lt;charts:chart id="pieChart" width="100%" minHeight="30em"&gt;
+            &lt;!-- chart configuration --&gt;
+        &lt;/charts:chart&gt;
+    &lt;/vbox&gt;
+&lt;/hbox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also make sure that the chart or its parent container has an explicit <code>height</code> or <code>minHeight</code>. If a chart is placed into a container with <code>height="100%"</code>, but none of the parent containers has a calculable height, the chart may be rendered with zero height.</p>
+</div>
+<div class="paragraph">
+<p>This is especially important for charts or containers that are initially hidden with <code>visible="false"</code> and later shown programmatically.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="data-set"><a class="anchor" href="#data-set"></a>Data Set</h2>
 <div class="sectionbody">
 <div class="jmix-ui-live-demo-container">

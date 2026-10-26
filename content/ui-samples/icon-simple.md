@@ -8,7 +8,7 @@ icon-simple.xml
     <layout>
         <hbox id="content" padding="false" alignItems="CENTER" wrap="true">
             <button icon="CHECK" themeNames="icon"/>
-            <icon icon="vaadin:smiley-o"/>
+            <icon icon="vaadin:smiley"/>
             <textField id="field" placeholder="Field"/>
         </hbox>
     </layout>

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aiMessageList :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">aiMessageList</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>aiMessageList</code> component shows the conversation of a chat. It renders user messages as plain text in a bubble and assistant messages as Markdown, with per-message actions, a thinking indicator, and an error banner.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aiMessageList</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AiMessageList</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><a class="xref page" href="aiChat.html">aiChat</a> embeds it and drives it for you. Use it on its own to display a stored conversation, or to build your own chat out of the base components. The application can drive the list from end to end, as described in <a href="#driving">Driving the Generation</a>.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="A conversation in the message list" src="_images/aichat-message-list-transcript.png" width="672"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Declare the <code>aichat</code> namespace in the view’s XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:aichat="http://jmix.io/schema/aichat/ui"
+      title="msg://MessageListView.title"&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Studio adds the namespace automatically when you add the component using the <strong>Add Component</strong> action in the top actions panel. See <a class="xref page" href="../studio/view-designer.html#component-palette">Component Palette</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A list needs nothing but its element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageList id="transcriptList" width="100%"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="messages"><a class="anchor" href="#messages"></a>Messages</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Messages are items built with the <code>AiMessageListItem</code> factory methods, not components you add to the list:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">transcriptList.setItems(
+        AiMessageListItem.user("How do I load orders for a customer?"),
+        AiMessageListItem.assistant("""
+                ## Loading orders
+
+                Use `DataManager` with a JPQL query:
+
+                ```java
+                List&lt;Order&gt; orders = dataManager.load(Order.class)
+                        .query("select o from Order o where o.customer = :customer")
+                        .parameter("customer", customer)
+                        .list();
+                ```
+
+                A few things to keep in mind:
+
+                - add a fetch plan when you need referenced entities
+                - use `maxResults` to page the result
+                """),
+        AiMessageListItem.user(LONG_QUESTION)
+);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Assistant messages are rendered as Markdown: headings, lists, tables, links, and inline code. A fenced code block becomes a real <a class="xref page" href="aiCodeBlock.html">aiCodeBlock</a>, with its language label, highlighting, and its own copy and wrap actions. User messages are rendered as plain text in a bubble, so Markdown in a user message is shown as typed.</p>
+</div>
+<div class="paragraph">
+<p><code>addItem</code> appends a single message to a list that is already on screen:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("addItemButton")
+public void onAddItemButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    transcriptList.addItem(AiMessageListItem.user("And how do I page the result?"));
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+An item instance belongs to one list and may appear in it only once. Adding the same instance twice, or to a second list, is rejected.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="driving"><a class="anchor" href="#driving"></a>Driving the Generation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An application can run a whole turn against the list itself, without <code>aiChat</code>. The sequence is: append the user message, append an empty assistant message to stream into, switch the list to <code>GENERATING</code>, append the answer as it arrives, then return the list to <code>IDLE</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("generateButton")
+public void onGenerateButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    drivenList.addItem(AiMessageListItem.user("What is a fetch plan?"));
+
+    AiMessageListItem answer = AiMessageListItem.assistant("");
+    drivenList.addItem(answer);
+    drivenList.setState(GenerationState.GENERATING);
+
+    backgroundWorker.handle(new AnswerTask(answer)).execute();
+}
+
+private class AnswerTask extends BackgroundTask&lt;String, Void&gt; {
+
+    private final AiMessageListItem answer;
+
+    private AnswerTask(AiMessageListItem answer) {
+        super(30, TimeUnit.SECONDS, MessageListView.this);
+        this.answer = answer;
+    }
+
+    @Override
+    public Void run(TaskLifeCycle&lt;String&gt; taskLifeCycle) throws Exception {
+        ThinkingStatusPublisher statuses = drivenList.getThinkingStatusPublisher();
+
+        ThinkingStatusItem searching = statuses.start("Searching the documentation");
+        Thread.sleep(1200);
+        searching.complete("4 pages");
+
+        ThinkingStatusItem writing = statuses.start("Writing the answer");
+
+        for (String chunk : ANSWER_CHUNKS) {
+            Thread.sleep(400);
+            taskLifeCycle.publish(chunk);
+        }
+
+        writing.complete();
+        return null;
+    }
+
+    @Override
+    public void progress(List&lt;String&gt; chunks) { <i class="conum" data-value="1"></i><b>(1)</b>
+        chunks.forEach(answer::appendText);
+    }
+
+    @Override
+    public void done(Void result) {
+        drivenList.setState(GenerationState.IDLE);
+        drivenList.getThinkingStatusPublisher().clear();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>progress</code> runs on the UI thread, which is what <code>appendText</code> requires. The chunks are published from the background task and appended here.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The two halves of a turn have different threading rules.</p>
+</div>
+<div class="paragraph">
+<p><code>appendText</code>, <code>addItem</code>, and <code>setState</code> must be called on the UI thread. Calling <code>appendText</code> directly from a background thread fails with an error about the session lock. In the example above the answer chunks are published from the background task and appended in <code>progress</code>, which Jmix runs on the UI thread.</p>
+</div>
+<div class="paragraph">
+<p>The thinking status feed described <a href="#thinking-status">below</a> is the exception: it takes the UI lock itself, so it can be called from any thread.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The thinking indicator is attached to the message being generated. Setting the list to <code>GENERATING</code> while the last message is a user message shows nothing at all: no indicator, no error. Append the empty assistant message first, as above, and the indicator appears on it.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><code>getActiveItem()</code> returns that trailing assistant message while the list is generating, and <code>null</code> otherwise.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="thinking-indicator"><a class="anchor" href="#thinking-indicator"></a>Thinking Indicator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>While the list is generating and the answer is still empty, it shows an animated indicator of three pulsing dots, with a label beside it:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="The built-in thinking indicator" src="_images/aichat-message-list-thinking-default.png" width="968"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Replace the indicator with any component through the <code>thinkingIndicator</code> element. Only the animation is replaced; the label beside it stays:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:thinkingIndicator&gt;
+    &lt;image id="customIndicator"
+           resource="public/images/logo.png"
+           alternateText="msg://customIndicator.alternateText"
+           width="1.75em"
+           height="1.75em"/&gt;
+&lt;/aichat:thinkingIndicator&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="A replaced thinking indicator" src="_images/aichat-message-list-thinking-custom.png" width="672"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The label escalates the longer generation takes, so that a slow answer does not look like a stalled one. The <code>thinkingStages</code> element defines it. Each stage gives the delay after which its text replaces the previous one:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:thinkingStages&gt;
+    &lt;aichat:thinkingStage delayMillis="600"
+                          text="msg://thinkingStage.thinking"/&gt;
+    &lt;aichat:thinkingStage delayMillis="4000"
+                          text="msg://thinkingStage.stillThinking"/&gt;
+&lt;/aichat:thinkingStages&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="thinking-status"><a class="anchor" href="#thinking-status"></a>Thinking Status Feed</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The status feed reports what the assistant is doing, one line per step, rendered above the thinking indicator. Each line has a spinner that turns into a check mark when the step completes:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Thinking status feed" src="_images/aichat-message-list-thinking.png" width="672"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Obtain the publisher from the list, start a status when a step begins, and complete it when the step ends, optionally with a short result:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">ThinkingStatusPublisher statuses = drivenList.getThinkingStatusPublisher();
+
+ThinkingStatusItem searching = statuses.start("Searching the documentation");
+Thread.sleep(1200);
+searching.complete("4 pages");
+
+ThinkingStatusItem writing = statuses.start("Writing the answer");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The publisher takes the UI lock itself, so these calls are safe from a background thread, as in the example above, where they run inside the task’s <code>run</code> method. Statuses are transient, so clear them when the turn ends.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="error-retry"><a class="anchor" href="#error-retry"></a>Error and Retry</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Setting the list to <code>ERROR</code> reveals a banner with a <strong>Retry</strong> button. The banner is the component’s own, and the application supplies no markup for it:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="The error banner" src="_images/aichat-message-list-error.png" width="672"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("failButton")
+public void onFailButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    drivenList.addItem(AiMessageListItem.user("Why did that fail?"));
+    drivenList.setState(GenerationState.ERROR);
+}
+
+private void registerRetryListener() {
+    drivenList.addRetryListener(event -&gt; {
+        AiMessageListItem userMessage = event.getUserMessage();
+        notifications.show(messageBundle.formatMessage("retry.notification",
+                userMessage != null ? userMessage.getText() : "-"));
+        drivenList.setState(GenerationState.IDLE);
+    });
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><code>getUserMessage()</code> returns the last user message in the list at the moment <strong>Retry</strong> is clicked, not the message whose generation failed. The two are the same in the usual case. They differ if the application appended another user message after the failure.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="actions"><a class="anchor" href="#actions"></a>Message Actions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Actions are declared per role and appear in a bar on the message, revealed on hover or focus:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Message actions" src="_images/aichat-message-list-actions.png" width="672"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageList id="actionsList" width="100%"&gt;
+    &lt;aichat:userActions&gt;
+        &lt;aichat:action id="userCopy" type="aichat_messageCopy"/&gt;
+    &lt;/aichat:userActions&gt;
+    &lt;aichat:assistantActions&gt;
+        &lt;aichat:action id="assistantCopy" type="aichat_messageCopy"/&gt;
+        &lt;aichat:action id="reportAction"
+                       icon="FLAG"
+                       description="msg://reportAction.description"/&gt;
+    &lt;/aichat:assistantActions&gt;
+&lt;/aichat:aiMessageList&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>aichat_messageCopy</code> is built in and copies the message source to the clipboard. Any other action is an ordinary Jmix action: give it an id, an icon, and a description, and handle it in the controller. The event carries the message the action was invoked on:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("actionsList.reportAction")
+public void onReportAction(final AiMessageActionPerformedEvent event) {
+    AiMessageListItem item = event.getItem();
+    notifications.show(messageBundle.formatMessage("reportAction.notification",
+            item.getText()));
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The other built-in action type, <code>aichat_messageRegenerate</code>, works only inside <a class="xref page" href="aiChat.html">aiChat</a>, which wires itself as its target. Declared on a standalone list it renders normally and throws when clicked.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="long-messages"><a class="anchor" href="#long-messages"></a>Long Messages</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A long user message is collapsed to a fixed height with a fade and a <strong>Show more</strong> toggle. Assistant messages are never collapsed.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="A collapsed user message" src="_images/aichat-message-list-collapsed.png" width="642"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The threshold is a rendered height, not a number of characters, and a message only slightly over it is shown in full rather than collapsed for the sake of a few lines. The same text may therefore collapse in a narrow container and not collapse in a wide one, because the width decides how it wraps.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="scrolling"><a class="anchor" href="#scrolling"></a>Scrolling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>While an answer is streaming, the list keeps its viewport at the bottom so that new text stays in view.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="The scroll-to-bottom button" src="_images/aichat-scroll-to-bottom.png" width="968"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Scrolling up detaches that: the list stops following, and content is never pulled away from under the reader, however much arrives meanwhile. A circular button appears at the bottom of the list to go back; clicking it scrolls down and re-engages the following. Scrolling down by hand re-engages it as well, and programmatic scrolling never detaches it.</p>
+</div>
+<div class="paragraph">
+<p>Arrow keys move focus from message to message, scrolling each into view, so the conversation can be read without a mouse.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="accessibility"><a class="anchor" href="#accessibility"></a>Accessibility</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Set <code>announceMessages</code> to make the list announce arriving messages to screen readers through an ARIA live region:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageList id="announceList"
+                      width="100%"
+                      announceMessages="true"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="localization"><a class="anchor" href="#localization"></a>Localization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The list’s own labels come from the add-on’s message bundle, under the <code>aiMessageList.i18n.*</code> keys: the error banner, the <strong>Retry</strong> button, the scroll-to-bottom button, the copy action, and the <strong>Show more</strong> / <strong>Show less</strong> toggle. Override them in the application’s message bundle to re-word every list.</p>
+</div>
+<div class="paragraph">
+<p>To re-word a single list, add a nested <code>i18n</code> element. It carries a nested <code>codeBlock</code> element as well, which re-words the code blocks rendered inside the assistant messages of this list:</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageList id="i18nList" width="100%"&gt;
+    &lt;aichat:i18n showMore="msg://i18nList.showMore"
+                 showLess="msg://i18nList.showLess"&gt;
+        &lt;aichat:codeBlock copy="msg://i18nList.codeCopy"/&gt;
+    &lt;/aichat:i18n&gt;
+&lt;/aichat:aiMessageList&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Message bundle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo.view.messagelist/i18nList.showMore=Read the whole question
+com.company.demo.view.messagelist/i18nList.showLess=Collapse the question
+com.company.demo.view.messagelist/i18nList.codeCopy=Copy this snippet</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="localization.html#precedence">Precedence</a> for how the two levels combine.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styling"><a class="anchor" href="#styling"></a>Styling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The message list exposes its internals as shadow parts, addressable with the <code>::part()</code> selector.</p>
+</div>
+<div class="paragraph">
+<p>The following style properties can be used in CSS stylesheets to customize the appearance of this component.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;"/>
+<col style="width: 60%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-list-max-width</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Width the conversation column is centered within.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-list-padding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Padding around the conversation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-list-scrollbar-color</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of the scrollbar.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-list-scroll-button-icon-size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Size of the glyph in the scroll-to-bottom button.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-list-icon-scroll-down</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph of the scroll-to-bottom button.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-list-icon-error</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph shown in the error banner.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-list-icon-retry</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph of the <strong>Retry</strong> button.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-list-icon-check</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph marking a completed thinking status.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-text-color</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of message text.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-font-size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Font size of message text.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-line-height</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Line height of message text.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-padding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Padding inside a message.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-success-color</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of the check mark that confirms a copy.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-action-padding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Padding of a message action button.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-action-icon-size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Size of a message action icon.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-action-border-radius</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Corner radius of a message action button.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-icon-copy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph of the built-in copy action.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-icon-check</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph shown while a copy is confirmed.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-icon-regenerate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph of the built-in regenerate action.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-icon-file</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph shown on an attachment that is not an image.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-attachment-image-size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Size of an image attachment thumbnail.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-markdown-link-color</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of links in an assistant message.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-user-message-collapsed-max-height</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Height a long user message is collapsed to. See <a href="#long-messages">Long Messages</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-user-message-icon-chevron</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph of the <strong>Show more</strong> toggle.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-thinking-indicator-color</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of the thinking indicator.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-thinking-indicator-gap</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gap between the dots of the thinking indicator.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-thinking-indicator-animation-duration</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Duration of one pulse of the thinking indicator.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-thinking-status-max-height</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Height the status feed grows to before it scrolls. See <a href="#thinking-status">Thinking Status Feed</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The icon properties hold an image applied as a mask, so overriding one replaces that glyph.</p>
+</div>
+<div class="paragraph">
+<p>The components are styled for both Jmix themes, Aura and Lumo, and follow the theme’s own tokens for focus rings, borders, radii, and spacing, which is why the properties above have no single default value. Dark mode, high-contrast mode, and reduced motion are handled, and layout is expressed in direction-agnostic properties, so the components follow the text direction of the document.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attachments"><a class="anchor" href="#attachments"></a>Attachments</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Messages can carry files, shown as thumbnails or chips under the message text. Attachments span several components, so they are described together in <a class="xref page" href="attachments.html">Attachments</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attribute is specific to <code>aiMessageList</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="announceMessages"></a><code>announceMessages</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether arriving messages are announced to screen readers. See <a href="#accessibility">Accessibility</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>aiMessageList</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-attributes.html#id">id</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#css">css</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#height">height</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following handlers are specific to <code>aiMessageList</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="AttachmentClickEvent"></a><code>AttachmentClickEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the user clicks an attachment in a message. Carries the message and the file. See <a class="xref page" href="attachments.html#downloading">Downloading from the Conversation</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="RetryEvent"></a><code>RetryEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the user clicks <strong>Retry</strong> on the error banner. See <a href="#error-retry">Error and Retry</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>aiMessageList</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../flow-ui/vc/common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An <code>aiMessageList</code> can include <code>thinkingIndicator</code>, <code>thinkingStages</code>, <code>userActions</code>, <code>assistantActions</code>, and <code>i18n</code> as its nested elements.</p>
+</div>
+<div class="sect2">
+<h3 id="thinkingIndicator-element"><a class="anchor" href="#thinkingIndicator-element"></a>thinkingIndicator</h3>
+<div class="paragraph">
+<p>The <code>thinkingIndicator</code> element holds one component that replaces the built-in indicator. See <a href="#thinking-indicator">Thinking Indicator</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="thinkingStages-element"><a class="anchor" href="#thinkingStages-element"></a>thinkingStages</h3>
+<div class="paragraph">
+<p>The <code>thinkingStages</code> element contains <code>thinkingStage</code> elements, each with a required <code>delayMillis</code> and a required <code>text</code>, which define the escalating label beside the indicator. See <a href="#thinking-indicator">Thinking Indicator</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="userActions-element"><a class="anchor" href="#userActions-element"></a>userActions, assistantActions</h3>
+<div class="paragraph">
+<p>These elements contain the <code>action</code> elements offered on user and assistant messages respectively. An <code>action</code> requires an <code>id</code> and accepts <code>type</code>, <code>description</code>, <code>classNames</code>, and icon attributes. See <a href="#actions">Message Actions</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="i18n-element"><a class="anchor" href="#i18n-element"></a>i18n</h3>
+<div class="paragraph">
+<p>The <code>i18n</code> element re-words this list. It supports the <code>error</code>, <code>retry</code>, <code>scrollToBottom</code>, <code>copy</code>, <code>copied</code>, <code>showMore</code>, and <code>showLess</code> attributes, each accepting a message key, and a nested <code>codeBlock</code> element for the code blocks rendered inside its messages. See <a href="#localization">Localization</a>.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

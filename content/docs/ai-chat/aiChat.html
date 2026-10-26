@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aiChat :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">aiChat</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>aiChat</code> component is a complete chat: a message list, a message input, an empty state, and the generation cycle that connects them to a language model.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aiChat</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AiChat</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>It composes <a class="xref page" href="aiMessageList.html">aiMessageList</a> and <a class="xref page" href="aiMessageInput.html">aiMessageInput</a> and configures both on your behalf, so most of what those pages describe is reachable from here as well.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="A conversation" src="_images/aichat-chat-conversation.png" width="1068"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A chat needs an element and a provider. The element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiChat id="chat" width="100%" height="100%"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And the provider, which is the one function the component asks the application for, described in <a class="xref page" href="getting-started.html#connecting-a-model">Connecting a Model</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ChatClient.Builder chatClientBuilder;
+
+private ChatClient chatClient;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    chatClient = chatClientBuilder.build();
+}
+
+@Install(to = "chat", subject = "llmProvider")
+private Flux&lt;String&gt; llmProvider(final LLMProvider.LLMRequest request) {
+    return chatClient.prompt()
+            .user(request.userMessage())
+            .stream()
+            .content();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That is a working chat. It keeps the conversation in memory and loses it when the view closes. <a href="#data">Bind it to data</a> to make the conversation outlive the view.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="system-prompt"><a class="anchor" href="#system-prompt"></a>System Prompt</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The system prompt tells the model what it is: its role, the language it answers in, what it must refuse. Declare it as a nested element, which takes a multi-line value verbatim:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">            &lt;aichat:systemPrompt&gt;&lt;![CDATA[You are the support assistant for an order management application.
+
+Answer only questions about orders, customers and deliveries. If a question is
+about anything else, say so and suggest the user contact their account manager.
+
+Always answer in the language the question was asked in. Keep answers short:
+two or three sentences unless the user asks for detail. When you refer to an
+order, always include its number.
+
+Never invent an order number, a delivery date or a price. If the answer is not
+in the conversation, say that you do not have it.]]&gt;&lt;/aichat:systemPrompt&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>systemPrompt</code> attribute takes a one-line value instead, and accepts a message key.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>A declared system prompt does nothing on its own. The chat puts it on the request, and the provider decides what to send. A provider that reads only the user message drops it, and the model answers as though no prompt existed.</p>
+</div>
+<div class="paragraph">
+<p>Forward it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "chat", subject = "llmProvider")
+private Flux&lt;String&gt; llmProvider(final LLMProvider.LLMRequest request) {
+    ChatClient.ChatClientRequestSpec prompt = chatClient.prompt();
+
+    String systemPrompt = request.systemPrompt(); <i class="conum" data-value="1"></i><b>(1)</b>
+    if (systemPrompt != null &amp;&amp; !systemPrompt.isBlank()) {
+        prompt = prompt.system(systemPrompt);
+    }
+
+    return prompt.user(request.userMessage())
+            .stream()
+            .content();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The declared prompt arrives here, and reaches the model only because the provider passes it on. The value is absent when nothing is declared, and <code>ChatClient.system(String)</code> rejects blank text.</td>
+</tr>
+</table>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The same is true of attachments, which travel on the request beside the prompt and the message. See <a class="xref page" href="attachments.html#sending-to-the-model">Sending Files to the Model</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data"><a class="anchor" href="#data"></a>Messages and Data</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A message is data. The chat reads it through the <code>AiChatMessage</code> contract: a role, the text, an optional time, and any attachments. The chat never writes to the message directly.</p>
+</div>
+<div class="paragraph">
+<p>Out of the box the chat keeps a list of built-in messages in memory. To persist a conversation, supply your own entity implementing that contract:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@JmixEntity
+@Table(name = "CHAT_MESSAGE")
+@Entity
+public class ChatMessage implements AiChatMessage {
+
+    @JmixGeneratedValue
+    @Column(name = "ID", nullable = false)
+    @Id
+    private UUID id;
+
+    @Version
+    @Column(name = "VERSION", nullable = false)
+    private Integer version;
+
+    @Column(name = "ROLE", nullable = false, length = 50)
+    private String role;
+
+    @Column(name = "CONTENT")
+    @Lob
+    private String content;
+
+    @CreatedDate
+    @Column(name = "CREATED_DATE")
+    private OffsetDateTime createdDate;
+
+    @ElementCollection
+    @CollectionTable(name = "CHAT_MESSAGE_ATTACHMENTS",
+            joinColumns = @JoinColumn(name = "CHAT_MESSAGE_ID"))
+    @OrderColumn(name = "ATTACHMENTS_ORDER")
+    @Convert(converter = FileRefConverter.class)
+    @Column(name = "ATTACHMENTS", length = 1024)
+    private List&lt;FileRef&gt; attachments;
+
+    @Override
+    public AiMessageRole getRole() {
+        return role == null ? null : AiMessageRole.fromId(role);
+    }
+
+    public void setRole(AiMessageRole role) {
+        this.role = role == null ? null : role.getId();
+    }
+
+    @Override
+    public String getContent() {
+        return content == null ? "" : content;
+    }
+
+    public void setContent(@Nullable String content) {
+        this.content = content;
+    }
+
+    @Override
+    public @Nullable Instant getTime() {
+        return createdDate == null ? null : createdDate.toInstant();
+    }
+
+    @Override
+    public List&lt;FileRef&gt; getAttachments() {
+        return attachments == null ? List.of() : attachments; <i class="conum" data-value="1"></i><b>(1)</b>
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The contract requires a list and never a <code>null</code>, while an empty element collection comes back from the database as <code>null</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Then load it into a collection container and point the chat at it:</p>
+</div>
+<div class="listingblock">
+<div class="title">Data</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;collection id="messagesDc" class="com.company.demo.entity.ChatMessage"&gt;
+    &lt;fetchPlan extends="_base"/&gt;
+    &lt;loader id="messagesDl"&gt;
+        &lt;query&gt;
+            &lt;![CDATA[select e from ChatMessage e order by e.createdDate]]&gt;
+        &lt;/query&gt;
+    &lt;/loader&gt;
+&lt;/collection&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Layout</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">        &lt;aichat:aiChat id="chat"
+                       dataContainer="messagesDc"
+                       autoSave="true"
+                       width="100%"
+                       height="100%"&gt;
+            &lt;aichat:actions&gt;
+                &lt;aichat:action id="clearAction"
+                               text="msg://clearAction.text"
+                               icon="TRASH"/&gt;
+            &lt;/aichat:actions&gt;
+            &lt;aichat:systemPrompt&gt;&lt;![CDATA[You are the support assistant for an order management application.
+
+Answer only questions about orders, customers and deliveries. If a question is
+about anything else, say so and suggest the user contact their account manager.
+
+Always answer in the language the question was asked in. Keep answers short:
+two or three sentences unless the user asks for detail. When you refer to an
+order, always include its number.
+
+Never invent an order number, a delivery date or a price. If the answer is not
+in the conversation, say that you do not have it.]]&gt;&lt;/aichat:systemPrompt&gt;
+            &lt;aichat:inputHeader&gt;
+                &lt;span id="contextSpan" text="msg://contextSpan.text"/&gt;
+            &lt;/aichat:inputHeader&gt;
+            &lt;aichat:inputFooter&gt;
+                &lt;span text="msg://disclaimer.text"/&gt;
+            &lt;/aichat:inputFooter&gt;
+            &lt;aichat:emptyStateHeader&gt;
+                &lt;h3 text="msg://emptyStateHeader.text"/&gt;
+            &lt;/aichat:emptyStateHeader&gt;
+            &lt;aichat:emptyStateFooter&gt;
+                &lt;span text="msg://emptyStateFooter.text"/&gt;
+            &lt;/aichat:emptyStateFooter&gt;
+        &lt;/aichat:aiChat&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Order the query by a persistent attribute, as above. The contract’s <code>time</code> is derived from your entity and JPQL cannot resolve it. Messages saved in the same second need a tiebreaker if their order is to survive a reload.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The component cannot create your entity, therefore install a factory that does:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "chat", subject = "messageFactory")
+private ChatMessage messageFactory(final AiChatMessageContext context) {
+    ChatMessage message = dataManager.create(ChatMessage.class);
+    message.setRole(context.getRole());
+    message.setContent(context.getContent());
+    return message;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The factory is called once per committed message: for the user’s message when it is submitted, and for the answer when it completes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="persistence"><a class="anchor" href="#persistence"></a>Persistence</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>autoSave="true"</code>, shown in the example above, makes the chat persist through the view’s <code>DataContext</code>: each committed message is merged and saved, and a message removed by a rewind is deleted.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><code>autoSave</code> saves the whole <code>DataContext</code>, not only the message, so sending a message also commits unrelated edits made elsewhere in the view. It is also an XML attribute with no Java equivalent: from a controller you install a save delegate and a remove delegate instead, which is also what an application does when it needs to persist differently.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Without <code>autoSave</code>, persist the messages yourself by installing the two delegates. <code>saveDelegate</code> runs for every committed message, before it enters the conversation, and the chat adopts the instance it returns. A persistence layer usually answers with a different object than it was handed, and that is the one the container and the <code>DataContext</code> go on tracking. <code>removeDelegate</code> runs for each message a rewind drops, newest first.</p>
+</div>
+<div class="paragraph">
+<p>An application that would rather persist on its own terms can install neither and listen for <code>MessageChangeEvent</code>, which reports every message added or removed.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="empty-state"><a class="anchor" href="#empty-state"></a>Empty State</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before the first message the chat centers its message input in the space and offers two slots around it, for a greeting, suggestions, or a disclaimer:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:emptyStateHeader&gt;
+    &lt;h3 text="msg://emptyStateHeader.text"/&gt;
+&lt;/aichat:emptyStateHeader&gt;
+&lt;aichat:emptyStateFooter&gt;
+    &lt;span text="msg://emptyStateFooter.text"/&gt;
+&lt;/aichat:emptyStateFooter&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="The empty state" src="_images/aichat-chat-empty-state.png" width="1068"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The empty state collapses into the normal bottom-pinned layout as soon as the first message lands.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="bands"><a class="anchor" href="#bands"></a>Message Input Bands</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>inputHeader</code> and <code>inputFooter</code> put application content inside the message input but outside its box, such as a context line above the field or a disclaimer below it:</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:inputHeader&gt;
+    &lt;span id="contextSpan" text="msg://contextSpan.text"/&gt;
+&lt;/aichat:inputHeader&gt;
+&lt;aichat:inputFooter&gt;
+    &lt;span text="msg://disclaimer.text"/&gt;
+&lt;/aichat:inputFooter&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Message bundle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo.view.chat/disclaimer.text=AI can make mistakes. Check important information.</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Both bands are hidden while the chat is empty, because the empty state has its own slots for that space. Send a message and the band appears. To keep a band visible when the chat is empty, apply the <code>input-header-component-always-visible</code> or <code>input-footer-component-always-visible</code> theme variant.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="generation"><a class="anchor" href="#generation"></a>Generation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The chat moves between three states (idle, generating, and error) and reports every transition:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("chat")
+public void onChatGenerationStateChange(
+        final GenerationStateChangeEvent&lt;SimpleAiChatMessage&gt; event) {
+    stateSpan.setText(event.getNewState().name());
+    stopButton.setEnabled(event.getNewState() == GenerationState.GENERATING);
+}</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="A chat generating an answer" src="_images/aichat-chat-generating.png" width="1068"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Stopping and regenerating need no code to be available to the user: while an answer is generating the message input’s send button becomes a stop button, and a <strong>Retry</strong> button appears on the error banner. The partial answer of a stopped generation stays on screen and is never committed.</p>
+</div>
+<div class="paragraph">
+<p>The same operations are available from the application, for a chat that offers them somewhere else as well, such as a toolbar above the conversation, a menu, or a shortcut. The example below wires two such buttons; none of it is needed for the built-in affordances to work:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("stopButton")
+public void onStopButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    chat.stop();
+}
+
+@Subscribe("regenerateButton")
+public void onRegenerateButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    chat.regenerate();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To let the user regenerate any answer rather than only the last, declare the built-in message action. It rewinds the conversation to that message and runs it again:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:assistantActions&gt;
+    &lt;aichat:action id="assistantRegenerate"
+                   type="aichat_messageRegenerate"/&gt;
+&lt;/aichat:assistantActions&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When generation fails, the message list shows an error banner with a <strong>Retry</strong> button, and the application is notified with the error and whatever text had arrived before it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("chat")
+public void onChatGenerationFailed(
+        final GenerationFailedEvent&lt;SimpleAiChatMessage&gt; event) {
+    notifications.show(messageBundle.formatMessage("generationFailed.notification",
+            event.getError().getMessage()));
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+A failed save and a failed generation share the error state, and <strong>Retry</strong> generates the answer again rather than retrying the save.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="actions"><a class="anchor" href="#actions"></a>Chat Actions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The chat holds ordinary Jmix actions, which can be bound to any component in the view:</p>
+</div>
+<div class="listingblock">
+<div class="title">Declaration</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:actions&gt;
+    &lt;aichat:action id="clearAction"
+                   text="msg://clearAction.text"
+                   icon="TRASH"/&gt;
+&lt;/aichat:actions&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Binding</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="clearButton" action="chat.clearAction"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These are the chat’s own actions, not the per-message actions described in <a class="xref page" href="aiMessageList.html#actions">Message Actions</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuring"><a class="anchor" href="#configuring"></a>Configuring the Parts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Everything the message list and the message input offer is reachable from the chat. The <code>maxRows</code>, <code>enterAction</code>, and attachment attributes configure the message input; <code>announceMessages</code> configures the message list; the <code>thinkingIndicator</code>, <code>thinkingStages</code>, <code>userActions</code>, and <code>assistantActions</code> elements are declared on the chat and applied to the message list; and <code>inputPrefix</code> and <code>inputSuffix</code> fill the message input’s slots. See <a class="xref page" href="aiMessageList.html">aiMessageList</a> and <a class="xref page" href="aiMessageInput.html">aiMessageInput</a> for what each does.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styling"><a class="anchor" href="#styling"></a>Styling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>aiChat</code> has no custom element of its own. It renders as a plain <code>div</code> containing the message list and the message input. It therefore exposes no shadow parts, and it cannot be selected by a tag name in CSS or found by one in the browser’s inspector. Style it through the class or id you give it, and address its parts through the components inside it:</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiChat id="chat"
+               classNames="branded-chat"
+               themeNames="fixed-toolbar"
+               width="100%"
+               height="100%"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">CSS</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.branded-chat jmix-ai-message-input::part(input-container) {
+    border-radius: 0;
+    border-color: var(--vaadin-border-color-secondary);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following style properties can be used in CSS stylesheets to customize the appearance of this component.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;"/>
+<col style="width: 60%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-chat-max-width</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Width of the conversation column. It is projected onto the message list and the message input, so it resizes the conversation, the input, and the empty state together.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Everything else is styled on the components it composes. See <a class="xref page" href="aiMessageList.html#styling">aiMessageList</a>, <a class="xref page" href="aiMessageInput.html#styling">aiMessageInput</a>, and <a class="xref page" href="aiCodeBlock.html#styling">aiCodeBlock</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="chat-theme-variants"><a class="anchor" href="#chat-theme-variants"></a>Theme Variants</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;"/>
+<col style="width: 60%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Theme name</th>
+<th class="tableblock halign-left valign-top">Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>fixed-toolbar</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keeps the message input’s controls in a row of their own at all times. Projected onto the message input.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>input-footer-component-always-visible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keeps the <code>inputFooter</code> band visible while the chat is empty. See <a href="#bands">Message Input Bands</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>input-header-component-always-visible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keeps the <code>inputHeader</code> band visible while the chat is empty. See <a href="#bands">Message Input Bands</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>no-header-footer-gap</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Removes the gap between the bands and the input box. Projected onto the message input.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="localization"><a class="anchor" href="#localization"></a>Localization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The chat’s own announcements come from the add-on’s message bundle, under the <code>aiChat.i18n.*</code> keys. Its nested <code>i18n</code> element mirrors the component tree: attributes on the element itself re-word the chat, and nested <code>messageList</code>, <code>messageInput</code>, and <code>codeBlock</code> elements reach the parts it composes. See <a class="xref page" href="localization.html">Localization</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attachments"><a class="anchor" href="#attachments"></a>Attachments</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The chat threads attachments end to end: the message input collects them, the message factory stores them, and the message list renders them. See <a class="xref page" href="attachments.html">Attachments</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>aiChat</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="acceptedFileExtensions"></a><code>acceptedFileExtensions</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Restricts attachments to the listed file extensions. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="acceptedMimeTypes"></a><code>acceptedMimeTypes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Restricts attachments to the listed media types. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="announceMessages"></a><code>announceMessages</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether arriving messages are announced to screen readers. See <a class="xref page" href="aiMessageList.html#accessibility">Accessibility</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="attachmentsEnabled"></a><code>attachmentsEnabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether the message input accepts attachments. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="autoSave"></a><code>autoSave</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persists committed messages through the view’s <code>DataContext</code>. See <a href="#persistence">Persistence</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="dataContainer"></a><code>dataContainer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Binds the chat to a collection container of messages. See <a href="#data">Messages and Data</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="enterAction"></a><code>enterAction</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets what <strong>Enter</strong> does in the message input. See <a class="xref page" href="aiMessageInput.html#text-area">Text Area</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SEND</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maxFileSize"></a><code>maxFileSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the maximum size of a single attachment in bytes. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>26214400</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maxFiles"></a><code>maxFiles</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets how many files can be attached to one message. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maxRows"></a><code>maxRows</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets how many lines the message input grows to before it scrolls. See <a class="xref page" href="aiMessageInput.html#text-area">Text Area</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="systemPrompt"></a><code>systemPrompt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the system prompt sent with every request. Can also be declared as a nested element for a multi-line value.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="themeNames"></a><code>themeNames</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applies theme variants, including <code>input-header-component-always-visible</code> and <code>input-footer-component-always-visible</code>, which keep a band visible while the chat is empty. See <a href="#bands">Message Input Bands</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="uploadDropZoneEnabled"></a><code>uploadDropZoneEnabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether files can be dropped onto the message input. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>aiChat</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-attributes.html#id">id</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#css">css</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#height">height</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following handlers are specific to <code>aiChat</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="AttachmentClickEvent"></a><code>AttachmentClickEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the user clicks an attachment in a message. See <a class="xref page" href="attachments.html#downloading">Downloading from the Conversation</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="AttachmentRejectedEvent"></a><code>AttachmentRejectedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when a file is refused by one of the attachment limits. See <a class="xref page" href="attachments.html#rejected">Rejected Files</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="GenerationFailedEvent"></a><code>GenerationFailedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when generation fails. Carries the error and the text received before it. See <a href="#generation">Generation</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="GenerationStateChangeEvent"></a><code>GenerationStateChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired on every transition between idle, generating, and error. See <a href="#generation">Generation</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="MessageChangeEvent"></a><code>MessageChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when a message is committed or removed. See <a href="#persistence">Persistence</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="llmProvider"></a><code>llmProvider</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supplies the answer for a request, as a stream of text. Required. See <a href="#basics">Basics</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="messageFactory"></a><code>messageFactory</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Creates a message instance for the bound source. Required when the chat is bound to your own entity. See <a href="#data">Messages and Data</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="removeDelegate"></a><code>removeDelegate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deletes a message that a rewind has dropped from the conversation. See <a href="#persistence">Persistence</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="saveDelegate"></a><code>saveDelegate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persists a committed message and returns the instance the chat should hold from then on. See <a href="#persistence">Persistence</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>aiChat</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../flow-ui/vc/common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An <code>aiChat</code> can include <code>actions</code>, <code>systemPrompt</code>, <code>inputPrefix</code>, <code>inputSuffix</code>, <code>inputHeader</code>, <code>inputFooter</code>, <code>thinkingIndicator</code>, <code>thinkingStages</code>, <code>userActions</code>, <code>assistantActions</code>, <code>emptyStateHeader</code>, <code>emptyStateFooter</code>, and <code>i18n</code> as its nested elements.</p>
+</div>
+<div class="sect2">
+<h3 id="actions-element"><a class="anchor" href="#actions-element"></a>actions</h3>
+<div class="paragraph">
+<p>The <code>actions</code> element contains the chat’s own <code>action</code> elements. See <a href="#actions">Chat Actions</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="systemPrompt-element"><a class="anchor" href="#systemPrompt-element"></a>systemPrompt</h3>
+<div class="paragraph">
+<p>The <code>systemPrompt</code> element holds a multi-line system prompt, as an alternative to the attribute of the same name.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="input-slots-elements"><a class="anchor" href="#input-slots-elements"></a>inputPrefix, inputSuffix, inputHeader, inputFooter</h3>
+<div class="paragraph">
+<p>These elements fill the message input’s slots: the first two inside its box, the last two as bands outside it. See <a href="#bands">Message Input Bands</a> and <a class="xref page" href="aiMessageInput.html#slots">Prefix and Suffix</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="empty-state-elements"><a class="anchor" href="#empty-state-elements"></a>emptyStateHeader, emptyStateFooter</h3>
+<div class="paragraph">
+<p>These elements hold the content shown above and below the message input while the chat is empty. See <a href="#empty-state">Empty State</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="message-list-elements"><a class="anchor" href="#message-list-elements"></a>thinkingIndicator, thinkingStages, userActions, assistantActions</h3>
+<div class="paragraph">
+<p>These elements configure the message list and behave as described for <a class="xref page" href="aiMessageList.html#thinking-indicator">aiMessageList</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="i18n-element"><a class="anchor" href="#i18n-element"></a>i18n</h3>
+<div class="paragraph">
+<p>The <code>i18n</code> element re-words this chat and, through its nested <code>messageList</code>, <code>messageInput</code>, and <code>codeBlock</code> elements, the parts it composes. See <a href="#localization">Localization</a>.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

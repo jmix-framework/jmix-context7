@@ -34,6 +34,9 @@ spring.mail.password=password</code></pre>
 <pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.mail.properties.mail.smtp.auth=true</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>See <a class="xref page" href="authentication.html">Mail Server Authentication</a> for the properties of basic and OAuth2 authentication.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -189,37 +192,58 @@ spring.mail.password=password</code></pre>
 <div class="sect2">
 <h3 id="jmix.email.oauth2.enabled"><a class="anchor" href="#jmix.email.oauth2.enabled"></a>jmix.email.oauth2.enabled</h3>
 <div class="paragraph">
-<p>If <code>true</code> enables using OAuth 2.0 token-based authorization to connect to email server.</p>
+<p>If <code>true</code>, the add-on uses <a class="xref page" href="authentication.html#oauth2-authentication">OAuth2 authentication</a> to connect to the mail server. Otherwise, it uses <a class="xref page" href="authentication.html#basic-authentication">basic authentication</a>.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>false</code></p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="jmix.email.oauth2.provider"><a class="anchor" href="#jmix.email.oauth2.provider"></a>jmix.email.oauth2.provider</h3>
 <div class="paragraph">
-<p>Specifies email OAuth provider.</p>
+<p>Specifies the OAuth2 provider of the mail server. Available values: <code>google</code>, <code>microsoft</code>.</p>
+</div>
+<div class="paragraph">
+<p>Required when OAuth2 authentication is enabled, unless the application defines its own <code>OAuth2TokenProvider</code> bean.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="jmix.email.oauth2.client-id"><a class="anchor" href="#jmix.email.oauth2.client-id"></a>jmix.email.oauth2.client-id</h3>
 <div class="paragraph">
-<p>Specifies OAuth client id.</p>
+<p>Specifies the client ID of the application registered with the OAuth2 provider. Required when OAuth2 authentication is enabled.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="jmix.email.oauth2.secret"><a class="anchor" href="#jmix.email.oauth2.secret"></a>jmix.email.oauth2.secret</h3>
 <div class="paragraph">
-<p>Specifies OAuth client secret.</p>
+<p>Specifies the client secret of the application registered with the OAuth2 provider. Required when OAuth2 authentication is enabled.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="jmix.email.oauth2.tenant-id"><a class="anchor" href="#jmix.email.oauth2.tenant-id"></a>jmix.email.oauth2.tenant-id</h3>
 <div class="paragraph">
-<p>Specifies OAuth tenant id.</p>
+<p>Specifies the Microsoft Entra tenant (directory) ID of the application. Used with the <code>microsoft</code> provider.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>common</code></p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="jmix.email.oauth2.refresh-token"><a class="anchor" href="#jmix.email.oauth2.refresh-token"></a>jmix.email.oauth2.refresh-token</h3>
 <div class="paragraph">
-<p>Specifies OAuth refresh token.</p>
+<p>Specifies the initial refresh token value. The add-on uses it only while no refresh token is stored in the database. See <a class="xref page" href="authentication.html#refresh-token">Refresh Token</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.email.oauth2.redirect-uri"><a class="anchor" href="#jmix.email.oauth2.redirect-uri"></a>jmix.email.oauth2.redirect-uri</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>Specifies the redirect URI used by the authorization code flow when you <a class="xref page" href="authentication.html#connecting-mailbox">connect a mailbox account</a>. The URI must be registered as a redirect URI of the OAuth client.</p>
+</div>
+<div class="paragraph">
+<p>If the property is not set, the add-on builds the URI from the request to the application: <code>&lt;application URL&gt;/email/oauth2/callback</code>. Set the property when the application runs behind a reverse proxy and the built URI is wrong.</p>
 </div>
 </div>
 </div>

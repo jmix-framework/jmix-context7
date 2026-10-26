@@ -48,6 +48,9 @@ You can find examples of various bands and datasets in the <a class="xref page" 
 <div class="sect1">
 <h2 id="bands"><a class="anchor" href="#bands"></a>Bands</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>You can define bands at runtime on the <a href="#bands-tab"><strong>Bands</strong> tab</a> of the report detail view or at design time with the <a href="#band-def">@BandDef</a> annotation.</p>
+</div>
 <div class="sect2">
 <h3 id="bands-tab"><a class="anchor" href="#bands-tab"></a>Bands Tab</h3>
 <div class="paragraph">
@@ -101,6 +104,9 @@ If the band name starts with <strong>header</strong>, its data will not be print
 <p><strong>Multiple Datasets</strong> — select this checkbox if you want to define more than one dataset for the band.</p>
 </li>
 <li>
+<p><strong>Streaming</strong> — select this checkbox to make the band a <a href="#streaming-bands">streaming band</a>.</p>
+</li>
+<li>
 <p><strong>Dataset type</strong> — <a href="#datasets">the type</a> of dataset.</p>
 </li>
 </ul>
@@ -138,6 +144,9 @@ If the band name starts with <strong>header</strong>, its data will not be print
 <p><code>orientation</code> — band’s orientation defined by the <code>Orientation</code> enum: <code>HORIZONTAL</code>, <code>VERTICAL</code>, <code>CROSS</code>. It’s <code>HORIZONTAL</code> by default.</p>
 </li>
 <li>
+<p><code>streaming</code> — if <code>true</code>, the band is a <a href="#streaming-bands">streaming band</a>. It’s <code>false</code> by default.</p>
+</li>
+<li>
 <p><code>dataSets</code> — datasets defined by the array of <code>@DataSetDef</code> annotations.</p>
 </li>
 </ul>
@@ -153,6 +162,55 @@ If the band name starts with <strong>header</strong>, its data will not be print
 </td>
 <td class="content">
 The order of <code>@BandDef</code> annotations in the report definition Java class is important. It affects the printing order of bands on the same level of the hierarchy.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="streaming-bands"><a class="anchor" href="#streaming-bands"></a>Streaming Bands</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>A streaming band reads its rows one by one from a database cursor and writes them to the XLSX document right away. The reporting engine keeps only the last rendered rows in memory and writes older rows to a temporary file. The data of other bands is loaded into memory as usual. To make a band streaming, select the <strong>Streaming</strong> checkbox on the <a href="#bands-tab"><strong>Bands</strong> tab</a> or set <code>streaming = true</code> in the <a href="#band-def">@BandDef</a> annotation.</p>
+</div>
+<div class="paragraph">
+<p>A report with a streaming band must meet the following requirements:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The report has only one streaming band.</p>
+</li>
+<li>
+<p>The streaming band is a first-level band, that is, a direct child of the <code>Root</code> band, and has no child bands.</p>
+</li>
+<li>
+<p>The streaming band has exactly one dataset of the <a href="#structure_sql">SQL</a> or <a href="#structure_jpql">JPQL</a> type.</p>
+</li>
+<li>
+<p>All bands of the report are horizontal.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The report detail view does not save a report definition that breaks these requirements. When the reporting engine renders the streaming band, it checks them and fails with an error that lists the unmet requirements.</p>
+</div>
+<div class="paragraph">
+<p>Streaming works only with an <code>.xlsx</code> template that is not custom. With other templates, the reporting engine ignores the streaming setting, writes a warning to the log, and loads all data into memory. An <code>.xlsx</code> template must also follow the rules described in <a class="xref page" href="templates.html#template_xlsx_streaming">Templates with a Streaming Band</a>.</p>
+</div>
+<div class="paragraph">
+<p>The query of the streaming band runs in a separate read-only transaction that stays open while the band rows are written.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+To tune streaming, use the <a class="xref page" href="../configuration.html#jmix.reports.streaming.fetch-size">jmix.reports.streaming.fetch-size</a>, <a class="xref page" href="../configuration.html#jmix.reports.streaming.cursor-clear-interval">jmix.reports.streaming.cursor-clear-interval</a>, and <a class="xref page" href="../configuration.html#jmix.reports.streaming.row-access-window-size">jmix.reports.streaming.row-access-window-size</a> application properties.
 </td>
 </tr>
 </table>
@@ -330,6 +388,211 @@ where u.group.id = ${group.groupId}
 </div>
 <div class="paragraph">
 <p>You can also use <strong>Link field</strong> to <a href="#link_field">merge multiple datasets</a>, use <strong>Data store</strong> to <a href="#data_store">query additional data store</a> or activate <a href="#query_preprocessing">query preprocessing</a> by checking the <strong>Preprocess query as Groovy template</strong> checkbox below the band editor.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="structure_llm"><a class="anchor" href="#structure_llm"></a>AI-generated JPQL Dataset</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p><strong>AI-generated JPQL</strong> dataset is produced as a result of JPQL query execution. The query itself is generated by a Large Language Model (LLM) from your description in natural language. The query is stored with the dataset. When the report runs, the stored query is executed through <a class="xref page" href="../../data-access/data-manager.html">DataManager</a>, and the LLM is not called.</p>
+</div>
+<div class="sect3">
+<h4 id="llm-requirements"><a class="anchor" href="#llm-requirements"></a>Requirements</h4>
+<div class="paragraph">
+<p>The query is generated by the <a class="xref page" href="../../ai-tools/index.html">AI Tools</a> add-on. The <strong>AI-generated JPQL</strong> dataset type is available in the report detail view if the add-on is installed in the application and its <a class="xref page" href="../../ai-tools/properties.html#jmix.aitools.dataload.enabled">data load functionality</a> is enabled. The <strong>Generate query</strong> button also requires a <a class="xref page" href="../../ai-tools/getting-started.html#configure-model">configured model</a>. Without a model, you can edit a stored query only by hand.</p>
+</div>
+<div class="paragraph">
+<p>The add-on is not required to run reports that contain such datasets, for example, after <a class="xref page" href="../report-import-export.html">import</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Instead of the AI Tools add-on, you can generate queries with your own bean that implements the <code>io.jmix.reports.llm.LlmDataQueryService</code> interface.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="llm-generating-query"><a class="anchor" href="#llm-generating-query"></a>Generating Query</h4>
+<div class="paragraph">
+<p>The model reads the data model through the <a class="xref page" href="../../ai-tools/tools.html#data-loading">Data Load tools</a> of the AI Tools add-on, so it sees only the entities that the add-on <a class="xref page" href="../../ai-tools/tools.html#exposed-model">exposes</a> to the current user. The add-on validates the generated query and asks the model to fix it if needed, as many times as the <a class="xref page" href="../../ai-tools/properties.html#jmix.aitools.dataload.max-repair-attempts">jmix.aitools.dataload.max-repair-attempts</a> property allows.</p>
+</div>
+<div class="paragraph">
+<p>To create a dataset of this type:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select <strong>AI-generated JPQL</strong> in the <strong>Dataset type</strong> field.</p>
+</li>
+<li>
+<p>In the <strong>Prompt</strong> field, describe the data the band needs, for example: <code>Orders placed since :dateFrom with the customer name and the order amount</code>, where <code>dateFrom</code> is a report parameter. Refer to parameters by the names described in <a href="#llm-parameters">Parameters</a>.</p>
+</li>
+<li>
+<p>Click <strong>Generate query</strong>. The maximum generation time is defined by the <a class="xref page" href="../configuration.html#jmix.reports.client.llm-query-generation-timeout">jmix.reports.client.llm-query-generation-timeout</a> application property.</p>
+</li>
+<li>
+<p>Check the query in the <strong>Generated query</strong> field and the band fields in the <strong>Columns</strong> list.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The <strong>Columns</strong> list contains the names you use for the band fields in the report template, for example, <code>${customerName}</code>. The columns match the values of the <code>select</code> clause by position.</p>
+</div>
+<div class="paragraph">
+<p>To change the query and the columns by hand, click the <strong>Edit</strong> button (pencil icon) next to the <strong>Generate query</strong> button. If you add, remove, or reorder values in the <code>select</code> clause, change the <strong>Columns</strong> list the same way. Otherwise, band fields get wrong values or stay empty. The view does not check this. Generating the query again replaces your changes.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="llm-parameters"><a class="anchor" href="#llm-parameters"></a>Parameters</h4>
+<div class="paragraph">
+<p>The query refers to values by JPQL named parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Report <a class="xref page" href="parameters.html">input parameters</a> are available by their aliases, for example, <code>:dateFrom</code>.</p>
+</li>
+<li>
+<p>Fields of parent bands are available as <code>:&lt;band&gt;_&lt;field&gt;</code>, for example, <code>:Orders_customerId</code> for the <code>customerId</code> field of the <code>Orders</code> band. Fields of the <code>Root</code> band are not available.</p>
+<div class="paragraph">
+<p>The model knows the fields of a parent band only if the parent band has an AI-generated JPQL dataset with a stored query. For other parent datasets, such as JPQL or SQL, name the parameters in the prompt.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Some parameters need special handling:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>An empty optional parameter is passed as <code>null</code>. To make such a condition work, the query must check the parameter, for example, <code>(:customer is null or o.customer = :customer)</code>. The model is asked to add such checks. When you save the report definition, the view warns you about optional parameters that are compared without a check, because otherwise the band would be empty with no error.</p>
+</li>
+<li>
+<p>A parameter of the <strong>List of entities</strong> type is matched with <code>in</code>. If such a parameter is empty, the report run fails with an error.</p>
+</li>
+<li>
+<p>The case-insensitive parameter syntax <code>:(?i)name</code> is not supported, and a report run fails with an error. Use <code>lower(…​) like :name</code> instead.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the prompt asks for a number of rows, for example, <code>the top 5 customers by revenue</code>, the limit is stored with the query. In a child band, the limit is applied for each row of the parent band.</p>
+</div>
+<div class="paragraph">
+<p>In a cross-tab band, you can use an AI-generated JPQL dataset for the cells. The fields of the column header dataset (<code>&lt;band&gt;_dynamic_header</code>) and the row header dataset (<code>&lt;band&gt;_master_data</code>) are passed to the query as list parameters named <code>:&lt;dataset&gt;_&lt;field&gt;</code>, for example, <code>:Sales_dynamic_header_month</code> for the <code>month</code> field of the <code>Sales_dynamic_header</code> dataset. To let the reporting engine link each result row to a cell, the query must return a column with the same name for both the column headers and the row headers, for example, <code>Sales_dynamic_header_month</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="llm-jpql-differences"><a class="anchor" href="#llm-jpql-differences"></a>Differences from JPQL Dataset</h4>
+<div class="paragraph">
+<p>The query syntax and behavior differ from the <a href="#structure_jpql">JPQL dataset</a>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;"/>
+<col style="width: 40%;"/>
+<col style="width: 40%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">JPQL dataset</th>
+<th class="tableblock halign-left valign-top">AI-generated JPQL dataset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Report parameter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>${dateFrom}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:dateFrom</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parent band field</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>${Orders.customerId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:Orders_customerId</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Field names</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aliases after <code>as</code>, optionally in double quotes. The aliases are removed from the query before execution.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <strong>Columns</strong> list. Aliases stay in the query, so they cannot be in double quotes and cannot be JPQL reserved words, such as <code>count</code>, <code>date</code>, or <code>order</code>. If you replace a JPQL dataset with an AI-generated one, rename such aliases, for example, <code>count</code> to <code>orderCount</code>, and update the field names in the template.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Query preprocessing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#query_preprocessing">Groovy template</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Not supported</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data store</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set in the <strong>Data store</strong> field. The main data store is used by default.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Determined from the query: the data store of the entity that the first value in <code>select</code> belongs to. There is no <strong>Data store</strong> field.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data access checks</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Not applied, because the query bypasses <code>DataManager</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applied, see <a href="#llm-data-access-checks">Data Access Checks</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="llm-data-access-checks"><a class="anchor" href="#llm-data-access-checks"></a>Data Access Checks</h4>
+<div class="paragraph">
+<p>Unlike the <a href="#structure_jpql">JPQL dataset</a>, an AI-generated JPQL dataset applies the <a class="xref page" href="../../security/authorization.html#data-access-checks">data access checks</a> of the current user:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The user must have the read permission for every entity that the query uses, including joined entities and subqueries. Otherwise, the report run fails with an access error.</p>
+</li>
+<li>
+<p>Attributes that the user cannot read are returned as <code>null</code>.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../../security/row-level-roles.html#jpql-policy">JPQL policies</a> of all entities that the query reads are added to the query.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To keep these checks effective, a report run fails with an error if the stored query:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Is not a <code>select</code> query, or uses the <code>SQL</code>, <code>FUNCTION</code>, <code>FUNC</code>, <code>OPERATOR</code>, <code>COLUMN</code>, or <code>TABLE</code> functions of EclipseLink.</p>
+</li>
+<li>
+<p>Selects whole entities, such as <code>select o</code> or <code>select o.customer</code>, instead of their attributes.</p>
+</li>
+<li>
+<p>Reads an entity that has a <a class="xref page" href="../../security/row-level-roles.html#predicate-policy">predicate policy</a> for the <code>READ</code> operation. Use a JPQL policy instead.</p>
+</li>
+<li>
+<p>Reads an entity with a row-level policy that cannot be applied to the query: the entity is used only in a subquery or under more than one alias, or its policy has a join clause and it is not the entity that the query selects from.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="llm-limitations"><a class="anchor" href="#llm-limitations"></a>Limitations</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>A band with an AI-generated JPQL dataset cannot be a <a href="#streaming-bands">streaming band</a>.</p>
+</li>
+<li>
+<p>Reports created at design time cannot use this dataset type, because the query is generated in the report detail view and stored in the report definition.</p>
+</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -630,7 +893,7 @@ return simpleNewDateFormat.format(oldDate)</code></pre>
 </div>
 </li>
 <li>
-<p><code>type</code> — dataset type defined by the <code>DataSetType</code> enum. Values of this enum correspond to the types of runtime datasets described above.</p>
+<p><code>type</code> — dataset type defined by the <code>DataSetType</code> enum. Values of this enum correspond to the types of runtime datasets described above. The <code>LLM</code> value (<a href="#structure_llm">AI-generated JPQL dataset</a>) cannot be used at design time.</p>
 <div class="paragraph">
 <p>Usually, design-time reports use datasets of the <code>DELEGATE</code> type. In this case, they are linked by name with methods annotated with <code>@DataSetDelegate</code> annotation.</p>
 </div>

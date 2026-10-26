@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localization :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Localization</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every label the components show comes from the add-on’s message bundle: the message input’s placeholder, the accessible names of its buttons, the error banner and its <strong>Retry</strong>, the copy and wrap actions of a code block, the <strong>Show more</strong> toggle of a long message. There are two ways to change them, and they compose.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="message-bundle"><a class="anchor" href="#message-bundle"></a>Changing Every Chat</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on’s keys are grouped by component:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Key family</th>
+<th class="tableblock halign-left valign-top">Covers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aiChat.i18n.*</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The chat’s own announcements of the generation lifecycle, read to screen readers.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aiMessageInput.i18n.*</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The message input: placeholder, send, stop, attach, and the messages shown on a rejected file.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aiMessageList.i18n.*</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The message list: error banner, retry, scroll-to-bottom, copy, and the collapse toggle.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aiCodeBlock.i18n.*</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A code block: copy, copied, and the two wrap labels.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Redefine any of them in the application’s own message bundle, and every component in the application follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">aiChat.i18n.generating=Generating the answer
+aiMessageInput.i18n.send=Send the message</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is also how the components are translated: define the keys in the message bundle for each locale, as for any other Jmix message.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="per-instance"><a class="anchor" href="#per-instance"></a>Changing One Chat</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A nested <code>i18n</code> element re-words a single instance. On <code>aiChat</code> it mirrors the component tree: attributes on the element itself reach the chat, and nested <code>messageInput</code>, <code>messageList</code>, and <code>codeBlock</code> elements reach the parts it composes:</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiChat id="chat" width="100%" height="100%"&gt;
+    &lt;aichat:i18n generating="msg://chat.generating"
+                 failed="msg://chat.failed"&gt;
+        &lt;aichat:messageInput placeholder="msg://chat.placeholder"
+                             send="msg://chat.send"/&gt;
+        &lt;aichat:messageList retry="msg://chat.retry"
+                            showMore="msg://chat.showMore"&gt;
+            &lt;aichat:codeBlock copy="msg://chat.codeCopy"
+                              wrapOn="msg://chat.codeWrapOn"/&gt;
+        &lt;/aichat:messageList&gt;
+    &lt;/aichat:i18n&gt;
+&lt;/aichat:aiChat&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Message bundle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo.view.localization/chat.generating=Working on it
+com.company.demo.view.localization/chat.failed=That did not work
+com.company.demo.view.localization/chat.placeholder=Ask about this ticket
+com.company.demo.view.localization/chat.send=Send the question
+com.company.demo.view.localization/chat.retry=Try again
+com.company.demo.view.localization/chat.showMore=Read the whole question
+com.company.demo.view.localization/chat.codeCopy=Copy this snippet
+com.company.demo.view.localization/chat.codeWrapOn=Wrap the lines</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same elements are available on the components themselves when they are used standalone. See <a class="xref page" href="aiMessageInput.html#localization">aiMessageInput</a>, <a class="xref page" href="aiMessageList.html#localization">aiMessageList</a>, and <a class="xref page" href="aiCodeBlock.html#localization">aiCodeBlock</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="precedence"><a class="anchor" href="#precedence"></a>Precedence</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The two mechanisms layer, with the more specific winning:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The add-on’s own message bundle supplies every label.</p>
+</li>
+<li>
+<p>A key redefined in the application’s message bundle replaces it everywhere.</p>
+</li>
+<li>
+<p>An attribute on a nested <code>i18n</code> element replaces it for that one instance.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>An element overrides rather than replaces: a label you do not declare keeps the value from the level below, and an empty <code>i18n</code> element changes nothing. So a chat that declares no <code>i18n</code> at all still shows an application-wide override, and a chat that declares one still shows the application’s wording for every label it does not mention.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

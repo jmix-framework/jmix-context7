@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>badge :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">badge</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p><code>badge</code> displays a small piece of information, such as a status, a count or a label.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>badge</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Badge</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/badge-simple" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../common-attributes.html#text">text</a> attribute sets the label of the badge. Keep it short: one or two words. The <code>success</code>, <code>warning</code> and <code>error</code> <a href="#theme-variants">theme variants</a> set the color of the badge. Without a variant, the badge uses the accent color of the theme.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;badge id="pendingBadge" text="Pending"/&gt;
+&lt;badge id="confirmedBadge" text="Confirmed" themeNames="success"/&gt;
+&lt;badge id="warningBadge" text="Warning" themeNames="warning"/&gt;
+&lt;badge id="deniedBadge" text="Denied" themeNames="error"/&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Badges with the default and success, warning and error colors" src="../../_images/visual-components/components/badge-basics.png" width="322"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Badges look like buttons, but they are not interactive.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-binding"><a class="anchor" href="#data-binding"></a>Data-aware <code>badge</code></h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/badge-dataaware" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>A badge can show the value of an entity attribute. Bind it to a <a class="xref page" href="../../data/data-containers.html">data container</a> using the <a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> and <a class="xref page" href="../common-attributes.html#property">property</a> attributes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data&gt;
+    &lt;instance id="customerDc"
+              class="io.jmix.uisamples.entity.Customer"
+              fetchPlan="_local"/&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;hbox alignItems="CENTER"&gt;
+        &lt;badge id="nameBadge" icon="USER" dataContainer="customerDc" property="name"/&gt;
+        &lt;badge id="gradeBadge" themeNames="success" dataContainer="customerDc" property="grade"/&gt;
+    &lt;/hbox&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The binding is read-only. The badge shows the attribute value as text and updates it when the value changes. The value is formatted according to its datatype. For example, an enumeration value is shown as its localized caption, and a <code>null</code> value is shown as an empty badge.</p>
+</div>
+<div class="paragraph">
+<p>If the current user has no permission to view the attribute, the badge is hidden.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="icons"><a class="anchor" href="#icons"></a>Icons</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/badge-icons" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>A badge can show an icon before its text. Set the icon using the <a href="#icon">icon</a> attribute or the nested <code>icon</code> element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;badge id="pendingBadge" text="Pending" icon="CLOCK"/&gt;
+&lt;badge id="confirmedBadge" text="Confirmed" icon="CHECK" themeNames="success"/&gt;
+&lt;badge id="warningBadge" text="Warning" icon="WARNING" themeNames="warning"/&gt;
+&lt;badge id="deniedBadge" text="Denied" themeNames="error"&gt;
+    &lt;icon&gt;
+        &lt;icon icon="EXCLAMATION_CIRCLE"/&gt;
+    &lt;/icon&gt;
+&lt;/badge&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Badges with an icon before the text" src="../../_images/visual-components/components/badge-icons.png" width="374"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>icon-only</code> variant shows only the icon. Set the text anyway. It is hidden on the screen, but screen readers announce it.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;badge id="confirmedIconBadge" text="Confirmed" icon="CHECK" themeNames="success icon-only"/&gt;
+&lt;badge id="deniedIconBadge" text="Denied" icon="CLOSE" themeNames="error icon-only"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="numbers"><a class="anchor" href="#numbers"></a>Number</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/badge-theme-variant" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>The <a href="#number">number</a> attribute shows a number in the badge, for example, the number of unread messages. If the badge has both text and a number, it shows both.</p>
+</div>
+<div class="paragraph">
+<p>The <code>number-only</code> variant shows only the number. As with <code>icon-only</code>, set the text for screen readers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;badge id="numberOnlyBadge" text="unread messages" number="5" themeNames="number-only"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the view controller, use the <code>setNumber()</code> method to change the number and <code>setNumber(null)</code> to remove it.</p>
+</div>
+<div class="paragraph">
+<p>Screen readers read only the content of the badge. A number alone can confuse users, so set a text that says what is counted. If the number changes while the view is open, set <a href="#ariaRole">ariaRole</a> to <code>status</code>, and screen readers will announce the new value.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/badge-theme-variant" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to apply variants. You can combine several variants, for example, <code>themeNames="success filled"</code>. In the view controller, use the <code>addThemeVariants()</code> method with the <code>BadgeVariant</code> enumeration.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Badges with the filled, icon-only, number-only and dot variants" src="../../_images/visual-components/components/badge-visual-variants.png" width="191"/>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 66.6666%;"/>
+<col style="width: 16.6668%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variant</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Supported By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code>, <code>warning</code>, <code>error</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applies a semantic color.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>contrast</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applies a neutral high-contrast color.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>filled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Uses a solid background instead of a tinted one to draw more attention. Can be combined with all other variants.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>small</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Makes the badge smaller.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>icon-only</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows only the icon. See <a href="#icons">Icons</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>number-only</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows only the number. See <a href="#numbers">Number</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dot</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows the badge as a small dot and hides all its content.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html">Common attributes</a> serve the same purpose for all components.
+The following attributes are specific to <code>badge</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="ariaRole"></a><code>ariaRole</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the ARIA role of the badge, which screen readers use. For example, <code>status</code> makes screen readers announce changes of the badge content. See <a href="#numbers">Number</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="icon"></a><code>icon</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the icon displayed before the text. See <a href="#icons">Icons</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="number"></a><code>number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the number displayed in the badge. See <a href="#numbers">Number</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="themeNames"></a><code>themeNames</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applies one or more variants listed in <a href="#theme-variants">Theme Variants</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>badge</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#dataContainer">dataContainer</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#property">property</a> -
+<a class="xref page" href="../common-attributes.html#text">text</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#whiteSpace">whiteSpace</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>badge</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="elements"><a class="anchor" href="#elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <code>badge</code> can include the <code>icon</code> nested element. See <a href="#icons">Icons</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/badge" rel="noopener" target="_blank">Vaadin Badge documentation</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

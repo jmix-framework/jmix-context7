@@ -339,6 +339,30 @@ public void onHrManagerFilterFieldComponentValueChange(final AbstractField.Compo
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="filter-components-and-loader-condition"><a class="anchor" href="#filter-components-and-loader-condition"></a>Filter Components and the Loader Condition</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Filter components (<a class="xref page" href="../vc/components/genericFilter.html">genericFilter</a>, <a class="xref page" href="../vc/components/propertyFilter.html">propertyFilter</a>, <a class="xref page" href="../vc/components/genericFilter-components.html#jpql-filter">jpqlFilter</a>, standalone <a class="xref page" href="../vc/components/genericFilter-components.html#group-filter">groupFilter</a>, and property filters in <a class="xref page" href="../vc/components/dataGrid.html">dataGrid</a> column headers) add their conditions to the condition of the data loader they are bound to. Because of this, the application code must follow these rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Set the base loader condition before filter components are bound to the loader: declaratively in the <code>&lt;condition&gt;</code> element, or programmatically in the <code>InitEvent</code> handler of the view. Filters combine their conditions with this base.</p>
+</li>
+<li>
+<p>After the view is initialized, do not replace the loader condition with <code>setCondition()</code> and do not modify the object returned by <code>getCondition()</code>. From this point the filter components own the loader condition: a composite filter (<code>genericFilter</code>, standalone <code>groupFilter</code>) rebuilds it as the user works with conditions, so a replaced condition or a condition added in place may be overwritten on the next rebuild without any error. Exception: when <code>genericFilter</code> is the only filter component on the loader, it picks up a condition set with <code>setCondition()</code> as its new base.</p>
+</li>
+<li>
+<p>A data loader can have multiple filter components: any number of <code>propertyFilter</code> and <code>jpqlFilter</code> components and at most one composite filter (<code>genericFilter</code> or standalone <code>groupFilter</code>). Bind all of them to the loader when the view is initialized, not later at runtime.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If a filter component is connected to the loader and you need to filter data by a condition that changes at runtime, for example, by a session attribute, use loader <a href="#query-conditions">query conditions</a> with parameters instead of modifying the loader condition object.</p>
+</div>
+</div>
+</div>
 
 </article>
 </body>

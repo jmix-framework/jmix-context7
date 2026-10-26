@@ -36,6 +36,30 @@
 <div class="paragraph">
 <p>Review the list and click <strong>Apply changes</strong> to confirm. The model is validated and, if valid, the changes are applied and published as a new model version that becomes active immediately. Closing the <strong>Dynamic model changes</strong> view without applying discards the pending changes and leaves the active model unchanged.</p>
 </div>
+<div class="sect2">
+<h3 id="attribute-order"><a class="anchor" href="#attribute-order"></a>Attribute Order</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>On the <strong>Attributes</strong> tab, select an attribute and use the <strong>Move the attribute up</strong> and <strong>Move the attribute down</strong> buttons to change its position. The order of attributes is saved in the model. It defines the order of fields in generated detail views and of columns in generated list views, and the order of properties in metadata, which is used by the REST API, the entity inspector and the generic filter. The new order takes effect when you apply the model.</p>
+</div>
+<div class="paragraph">
+<p>Only dynamic attributes can be moved. The own properties of a static entity and the identifier of a dynamic entity keep their positions. The order of columns in the database does not change.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="model-history"><a class="anchor" href="#model-history"></a>Model History</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>In the <strong>Code</strong> presentation, click <strong>History</strong> to see all saved versions of the model, newest first. For each version, the dialog shows the date, the user who applied it, and whether it is the active one. Select a version to see its YAML, and click <strong>Copy to clipboard</strong> to copy it.</p>
+</div>
+<div class="paragraph">
+<p>The dialog does not apply an earlier model. To return to an earlier version, copy its YAML, paste it into the <strong>Code</strong> presentation, and apply the model.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -159,6 +183,7 @@
       menuItem:
         parentMenu: "application"
         insertBefore: "Customer.list"
+        icon: "vaadin:star"
         title:
           en: "Loyalty levels"
         resourceRoles:
@@ -171,7 +196,17 @@
       viewTitle:
         en: "Loyalty level"
       descriptor:
-        template: "default"</code></pre>
+        template: "default"
+      handlers:
+        - event: "initEntity"
+          expression: "entity.name = 'New level'"
+        - event: "valueChange"
+          componentId: "discountField"
+          expression: "components.setRequired('descriptionField', event.value != null)"
+    - type: "read"
+      viewId: "LoyaltyLevel.read"
+      viewTitle:
+        en: "Loyalty level"</code></pre>
 </div>
 </div>
 </div>
@@ -190,9 +225,30 @@
 <div class="paragraph">
 <p>For the full list of supported types, see <a class="xref page" href="yaml-reference.html#javaclass">supported types</a>.</p>
 </div>
+<div class="sect3">
+<h4 id="file-ref-attributes"><a class="anchor" href="#file-ref-attributes"></a>File Reference Attributes</h4>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>An attribute of the <code>FileRef</code> type holds a reference to a file in the <a class="xref page" href="../files/file-storage.html">file storage</a>. Both dynamic attributes of static entities and attributes of dynamic entities can have this type. The value is stored in a string column.</p>
+</div>
+<div class="paragraph">
+<p>In the attribute dialog, select <code>FileRef</code> as the type. The <strong>Length</strong> and <strong>Lob</strong> fields are hidden for this type, so the column gets the default length of 1024 characters. In YAML, use <code>io.jmix.core.FileRef</code> as the <code>javaClass</code>.</p>
+</div>
+<div class="paragraph">
+<p>Generated views, and the XML created by <a class="xref page" href="views.html#generate-xml">Generate XML</a>, use <a class="xref page" href="../flow-ui/vc/components/fileStorageUploadField.html">fileStorageUploadField</a> for this attribute.</p>
+</div>
+</div>
 </div>
 <div class="sect2">
-<h3 id="_reference_attributes"><a class="anchor" href="#_reference_attributes"></a>Reference Attributes</h3>
+<h3 id="instance-name"><a class="anchor" href="#instance-name"></a>Instance Name</h3>
+<div class="paragraph">
+<p>Select <strong>Instance name</strong> for an attribute to use its value as the <a class="xref page" href="../data-model/entities.html#instance-name">instance name</a> of the entity. An entity can have only one instance name attribute. If another attribute already has this flag, the attribute dialog shows its name, and selecting the flag moves it to the current attribute. A calculated attribute can also be the instance name.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="reference-attributes"><a class="anchor" href="#reference-attributes"></a>Reference Attributes</h3>
 <div class="paragraph">
 <p>A reference attribute is a single-valued link to another entity. You select the target entity, and at runtime the attribute stores a reference to one instance of it.</p>
 </div>
@@ -200,8 +256,44 @@
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "loyaltyLevel"
   entityName: "LoyaltyLevel"
+  lookup:
+    type: "DROPDOWN"
+    actions:
+      - "entity_lookup"
+      - "entity_clear"
   messages:
     en: "Loyalty level"</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="lookup-field"><a class="anchor" href="#lookup-field"></a>Lookup Field</h4>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>For a single-valued reference, you can choose the UI component that generated views use to select the referenced instance. Set it in the <strong>Lookup field type</strong> and <strong>Lookup actions</strong> fields of the attribute dialog. The <code>loyaltyLevel</code> attribute in the example above uses a drop-down list.</p>
+</div>
+<div class="paragraph">
+<p><strong>Lookup field type</strong> can have the following values:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>DROPDOWN</code> – an <a class="xref page" href="../flow-ui/vc/components/entityComboBox.html">entityComboBox</a>. Items are loaded while the user types, by the instance name of the referenced entity, so this type works for large tables. If the instance name of the referenced entity is not based on string attributes, the field uses a lookup view instead.</p>
+</li>
+<li>
+<p><code>VIEW</code> – an <a class="xref page" href="../flow-ui/vc/components/entityPicker.html">entityPicker</a> that opens a lookup view. If no actions are set, the field gets the standard lookup and clear actions.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the type is not set, the default component is used.</p>
+</div>
+<div class="paragraph">
+<p><strong>Lookup actions</strong> sets the buttons of the field: <code>entity_lookup</code>, <code>entity_open</code>, <code>entity_clear</code>.</p>
+</div>
+<div class="paragraph">
+<p>These settings work like the <a class="xref page" href="../data-model/entities.html#lookup-field">@LookupField</a> annotation on a reference attribute of a regular entity.</p>
 </div>
 </div>
 </div>
@@ -388,6 +480,104 @@
 </div>
 <div class="paragraph">
 <p>For more about resource roles, see <a class="xref page" href="../security/resource-roles.html">resource roles</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="inherited-roles"><a class="anchor" href="#inherited-roles"></a>Inherited Roles</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>Access granted to a role also applies to the users whose assigned role has this role as a base role, at any depth. For example, if the model grants read access to the <code>employee</code> role, a user who has only the <code>manager</code> role gets this access when <code>employee</code> is a base role of <code>manager</code>. This works for the following kinds of roles:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Roles created at runtime that have <a class="xref page" href="../security/combining-roles.html">base roles</a>.</p>
+</li>
+<li>
+<p>Annotated role interfaces that extend other role interfaces.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The same rule applies to all <code>resourceRoles</code> grants in the model, including grants for views and menu items, and to the roles listed in the <a class="xref page" href="app-properties.html#jmix.dynmodel.security.full-access-roles">jmix.dynmodel.security.full-access-roles</a> property.</p>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../security/resource-roles.html#role-scope">role scope</a> is checked only for the role assigned to the user. The scopes of its base roles are not checked.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="settings-access"><a class="anchor" href="#settings-access"></a>Access to the Model Settings</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on provides the following resource roles for the <strong>Dynamic model settings</strong> view. Assign one of them to users who work with the model.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 25%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Role name</th>
+<th class="tableblock halign-left valign-top">Code</th>
+<th class="tableblock halign-left valign-top">Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic model: view settings</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dynmod-view-settings</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Open the model settings and the model history. The model cannot be changed.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic model: modify settings</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dynmod-modify-settings</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Full access. Apply any change, including changes that delete data.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic model: modify settings without data loss</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dynmod-safe-modify-settings</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Apply only changes that cannot lose stored data.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="safe-modify-role"><a class="anchor" href="#safe-modify-role"></a>Changes Without Data Loss</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>The "Dynamic model: modify settings without data loss" role lets users extend the model without the risk of losing stored data. A user with this role can edit the model in the <strong>Visual</strong> and <strong>Code</strong> presentations and apply the following changes: new entities, attributes, enumerations and enumeration values, and changes to validation, views, menu items, messages and resource roles.</p>
+</div>
+<div class="paragraph">
+<p>The user cannot apply changes that can lose data:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>removing an applied entity or attribute;</p>
+</li>
+<li>
+<p>renaming an applied entity or attribute in YAML, because a rename is applied as a removal and a creation;</p>
+</li>
+<li>
+<p>removing an applied enumeration;</p>
+</li>
+<li>
+<p>removing a value from an applied enumeration.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the <strong>Visual</strong> presentation, applied items cannot be removed. Items added after the last apply can still be removed. If the edited model contains changes that are not allowed, the <strong>Dynamic model changes</strong> view lists them, and the model cannot be applied until you remove these changes.</p>
+</div>
+<div class="paragraph">
+<p>The restriction is checked on the server. It cannot be avoided by saving the model settings in another way, for example through the entity inspector.</p>
+</div>
 </div>
 </div>
 </div>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deleting Expired Drafts :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Deleting Expired Drafts</h1>
+<div class="paragraph">
+<p>A draft expires when it is older than the period set in the <a class="xref page" href="app-properties.html#jmix.uirecovery.drafts.retention">jmix.uirecovery.drafts.retention</a> property. The add-on deletes an expired draft when it finds the draft, that is when the user opens the view of the draft or the <a class="xref page" href="drafts-list.html">Unsaved drafts</a> view. Drafts of the views that users never open again stay in the database. To delete them, set up a regular job.</p>
+</div>
+<div class="paragraph">
+<p>The job calls the <code>deleteExpired()</code> method of the <code>ViewDraftService</code> bean. The method deletes expired drafts of all users and doesn’t require an authenticated user, so you can call it from any scheduled task.</p>
+</div>
+<div class="paragraph">
+<p>For example, the following bean uses the Spring <code>@Scheduled</code> annotation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class DraftsCleanupJob {
+
+    private static final Logger log = LoggerFactory.getLogger(DraftsCleanupJob.class);
+
+    private final ViewDraftService viewDraftService;
+
+    public DraftsCleanupJob(ViewDraftService viewDraftService) {
+        this.viewDraftService = viewDraftService;
+    }
+
+    @Scheduled(cron = "0 0 3 * * *") <i class="conum" data-value="1"></i><b>(1)</b>
+    public void deleteExpiredDrafts() {
+        int count = viewDraftService.deleteExpired(); <i class="conum" data-value="2"></i><b>(2)</b>
+        log.info("Deleted {} expired drafts", count);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Runs the method every day at 3 a.m.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Deletes the expired drafts and returns their number.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Scheduling with <code>@Scheduled</code> must be enabled in a configuration class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Configuration
+@EnableScheduling
+public class SchedulingConfiguration {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also call the method from a job of the <a class="xref page" href="../quartz/index.html">Quartz</a> add-on.</p>
+</div>
+
+</article>
+</body>
+</html>

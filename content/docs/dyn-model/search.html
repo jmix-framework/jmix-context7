@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full-Text Search :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Full-Text Search</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>If the application uses the <a class="xref page" href="../search/index.html">Search</a> add-on, dynamic attributes can be indexed for full-text search. You decide which attributes are searchable in the dynamic model, where the attributes are defined. No Java index definition and no redeploy are needed.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="searchable-attributes"><a class="anchor" href="#searchable-attributes"></a>Searchable Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To index an attribute, select the <strong>Searchable</strong> checkbox in the attribute dialog, or set <code>searchable: true</code> in YAML:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "Customer"
+  attributes:
+    - name: "taxId"
+      javaClass: "java.lang.String"
+      length: 20
+      searchable: true
+      messages:
+        en: "Tax ID"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following attributes can be searchable:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>java.lang.String</code> attributes;</p>
+</li>
+<li>
+<p>enumeration attributes;</p>
+</li>
+<li>
+<p>single-valued references. A reference is indexed by the instance name of the referenced entity, the same as a static reference.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Calculated and collection attributes cannot be searchable. A model with such an attribute marked as searchable is refused.</p>
+</div>
+<div class="paragraph">
+<p>The <strong>Searchable</strong> checkbox is shown only if the Search add-on is in the application. If an index definition of the application already indexes the attribute, for example with the <code>*</code> wildcard, the checkbox is selected and read-only.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="indexed-entities"><a class="anchor" href="#indexed-entities"></a>Indexed Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An entity, static or dynamic, is indexed if at least one of its dynamic attributes is searchable, or if the application has a <a class="xref page" href="../search/index-definitions.html">Java index definition</a> for it. If both exist, the searchable attributes are added to the Java index definition, and the fields that the Java definition already indexes are kept.</p>
+</div>
+<div class="paragraph">
+<p>When you apply the model, the index definitions are updated, and the index schemas are synchronized according to the <a class="xref page" href="../search/search-properties.html#jmix.search.indexSchemaManagementStrategy">jmix.search.index-schema-management-strategy</a> property. Existing rows are not indexed again automatically. To add the values of a new searchable attribute for existing rows, run the <code>enqueueIndexAll</code> operation of the <a class="xref page" href="../search/search-api.html#entity-indexing-mbean">EntityIndexing MBean</a> for the entity.</p>
+</div>
+<div class="paragraph">
+<p>After that, indexing works the same as for static entities:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Creating, changing and deleting an instance of a dynamic entity, or changing the indexed dynamic attributes of a static entity, adds the instance to the <a class="xref page" href="../search/indexing-queue.html">indexing queue</a>.</p>
+</li>
+<li>
+<p>If an entity referenced by a dynamic reference is changed or deleted, the entities that refer to it are indexed again.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="searching"><a class="anchor" href="#searching"></a>Searching</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dynamic entities are found in the same way as static ones, with the <a class="xref page" href="../flow-ui/vc/components/searchField.html">searchField</a> component and the <a class="xref page" href="../search/search-api.html">search API</a>. You can also use the <a class="xref page" href="../flow-ui/vc/components/fullTextFilter.html">fullTextFilter</a> component in a list view of a dynamic entity. If a search result belongs to an entity that has no detail view, a warning is shown when the user opens it.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -39,7 +39,7 @@ data-grid-context-menu.xml
                 <item action="customersDataGrid.greeting" icon="COMMENT"/>
                 <separator/>
                 <item id="customerItem"/>
-                <item action="customersDataGrid.getInfo" icon="INFO_CIRCLE_O"/>
+                <item action="customersDataGrid.getInfo" icon="INFO_CIRCLE"/>
             </contextMenu>
             <actions showInContextMenuEnabled="false">
                 <action id="create" type="list_create">
@@ -54,7 +54,7 @@ data-grid-context-menu.xml
                 </action>
                 <action id="remove" type="list_remove"/>
                 <action id="greeting" type="list_itemTracking" icon="COMMENT" text="Greeting"/>
-                <action id="getInfo" type="list_itemTracking" icon="INFO_CIRCLE_O" text="Get info"/>
+                <action id="getInfo" type="list_itemTracking" icon="INFO_CIRCLE" text="Get info"/>
             </actions>
             <columns>
                 <column property="name"/>

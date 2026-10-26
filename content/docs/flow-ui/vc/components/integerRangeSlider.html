@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>integerRangeSlider :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">integerRangeSlider</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p><code>integerRangeSlider</code> lets users select a range of <code>Integer</code> values. It has two handles on a track: one sets the start of the range, and the other sets the end.</p>
+</div>
+<div class="paragraph">
+<p>To work with <code>Double</code> values, use <a class="xref page" href="decimalRangeSlider.html">decimalRangeSlider</a>. To select a single value, use <a class="xref page" href="integerSlider.html">integerSlider</a>.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>integerRangeSlider</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>IntegerRangeSlider</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/range-slider-simple" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>By default, the slider takes values from 0 to 100 with a step of 1, and the selected range covers the whole track. Use the <a href="#startValue">startValue</a> and <a href="#endValue">endValue</a> attributes to set the initial range. If you set only one of them, the other one gets the <a href="#min">min</a> or <a href="#max">max</a> value.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;integerRangeSlider id="integerRangeSlider" label="IntegerRangeSlider" width="20em"
+                    startValue="20" endValue="80"
+                    accessibleNameStart="Minimum" accessibleNameEnd="Maximum"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="value"><a class="anchor" href="#value"></a>Value</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The value of <code>integerRangeSlider</code> is an <code>IntegerRangeSliderValue</code> record. Its <code>start()</code> and <code>end()</code> methods return the start and the end of the selected range. The start cannot be greater than the end.</p>
+</div>
+<div class="paragraph">
+<p>To set the range in code, pass a new <code>IntegerRangeSliderValue(start, end)</code> object to the <code>setValue()</code> method. The <code>clear()</code> method selects the whole range from <code>min</code> to <code>max</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>integerRangeSlider</code> cannot be bound to a data container and does not support validators. Read its value in the view controller, as shown in the <a href="#filter">example below</a>. To show an error, set the <a class="xref page" href="../common-attributes.html#errorMessage">errorMessage</a> attribute and call <code>setInvalid(true)</code> in the controller.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="filter"><a class="anchor" href="#filter"></a>Using as a Filter</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/range-slider-filter" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>A range slider is a good choice for filtering data by a number attribute. In the following example, the user selects an age range, and the view loads the customers whose age is within this range.</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;data readOnly="true"&gt;
+    &lt;collection id="customersDc"
+                class="io.jmix.uisamples.entity.Customer"
+                fetchPlan="_local"&gt;
+        &lt;loader id="customersDl"&gt;
+            &lt;query&gt;
+                &lt;![CDATA[select e from Customer e
+                         where e.age &gt;= :minAge and e.age &lt;= :maxAge
+                         order by e.age]]&gt;
+            &lt;/query&gt;
+        &lt;/loader&gt;
+    &lt;/collection&gt;
+&lt;/data&gt;
+&lt;layout&gt;
+    &lt;integerRangeSlider id="ageRangeSlider" label="Age" width="20em"
+                        min="18" max="90" step="1"
+                        startValue="25" endValue="50"
+                        minMaxVisible="true"
+                        accessibleNameStart="Minimum age" accessibleNameEnd="Maximum age"/&gt;
+    &lt;dataGrid id="customersDataGrid" dataContainer="customersDc"
+              width="100%" minHeight="20em"&gt;
+        &lt;columns&gt;
+            &lt;column property="name"/&gt;
+            &lt;column property="lastName"/&gt;
+            &lt;column property="age"/&gt;
+        &lt;/columns&gt;
+    &lt;/dataGrid&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+protected IntegerRangeSlider ageRangeSlider;
+@ViewComponent
+protected CollectionLoader&lt;Customer&gt; customersDl;
+
+@Subscribe
+protected void onBeforeShow(BeforeShowEvent event) {
+    loadCustomers(ageRangeSlider.getValue());
+}
+
+@Subscribe("ageRangeSlider")
+protected void onAgeRangeSliderValueChange(
+        ComponentValueChangeEvent&lt;IntegerRangeSlider, IntegerRangeSliderValue&gt; event) {
+    loadCustomers(event.getValue());
+}
+
+protected void loadCustomers(IntegerRangeSliderValue range) {
+    customersDl.setParameter("minAge", range.start());
+    customersDl.setParameter("maxAge", range.end());
+    customersDl.load();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>ComponentValueChangeEvent</code> handler passes the start and the end of the selected range to the loader query parameters and loads the data again. The slider sends a new value to the server when the user releases a handle, so the view loads the data once for each new range. To send the value on every step of the drag, set <a class="xref page" href="../common-attributes.html#valueChangeMode">valueChangeMode</a> to <code>EAGER</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="range-and-step"><a class="anchor" href="#range-and-step"></a>Range and Step</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/range-slider-simple" target="_blank">LIVE DEMO</a>
+</div>
+<div class="paragraph">
+<p>The <a href="#min">min</a> and <a href="#max">max</a> attributes set the range of values, and <a href="#step">step</a> sets the interval between them. The values that the user can select are counted from <code>min</code>: <code>min</code>, <code>min + step</code>, <code>min + 2 * step</code>, and so on.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;integerRangeSlider id="stepRangeSlider" label="With min, max and step" width="20em"
+                    min="0" max="50" step="5"
+                    startValue="10" endValue="35"
+                    minMaxVisible="true"
+                    helperText="Values from 0 to 50 with a step of 5"/&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="value-display"><a class="anchor" href="#value-display"></a>Value Display</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/slider#persistent-value-display" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>By default, the slider shows the current values above the handles only while the user interacts with them. Set <a href="#valueAlwaysVisible">valueAlwaysVisible</a> to <code>true</code> to show the values all the time.</p>
+</div>
+<div class="paragraph">
+<p>The <a href="#minMaxVisible">minMaxVisible</a> attribute shows the <code>min</code> and <code>max</code> values below the track, as in the <a href="#range-and-step">example above</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="accessible-names"><a class="anchor" href="#accessible-names"></a>Accessible Names</h2>
+<div class="sectionbody">
+<div class="jmix-ui-live-demo-container">
+<a class="vaadin-docs-btn" href="https://vaadin.com/docs/v25/components/slider#accessible-thumb-names" target="_blank">Vaadin</a>
+</div>
+<div class="paragraph">
+<p>Screen readers announce each handle by its own accessible name. By default, the names are based on the label. Use the <a href="#accessibleNameStart">accessibleNameStart</a> and <a href="#accessibleNameEnd">accessibleNameEnd</a> attributes to set other names, as in the <a href="#basics">example above</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>integerRangeSlider</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="accessibleNameEnd"></a><code>accessibleNameEnd</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the accessible name of the handle that sets the end of the range. See <a href="#accessible-names">Accessible Names</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="accessibleNameStart"></a><code>accessibleNameStart</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the accessible name of the handle that sets the start of the range. See <a href="#accessible-names">Accessible Names</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="endValue"></a><code>endValue</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the end of the initial range. If only <code>startValue</code> is set, the end is <code>max</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="max"></a><code>max</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the maximum value of the slider. See <a href="#range-and-step">Range and Step</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>100</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="min"></a><code>min</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the minimum value of the slider. See <a href="#range-and-step">Range and Step</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="minMaxVisible"></a><code>minMaxVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows the <code>min</code> and <code>max</code> values below the track.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="required"></a><code>required</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows the required indicator. The component does not check its value.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="startValue"></a><code>startValue</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the start of the initial range. If only <code>endValue</code> is set, the start is <code>min</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="step"></a><code>step</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the interval between the values that the user can select. The step must be greater than 0. See <a href="#range-and-step">Range and Step</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>1</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="valueAlwaysVisible"></a><code>valueAlwaysVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows the current values above the handles all the time. If <code>false</code>, the values are shown only while the user interacts with the slider.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>integerRangeSlider</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#errorMessage">errorMessage</a> -
+<a class="xref page" href="../common-attributes.html#focusShortcut">focusShortcut</a> -
+<a class="xref page" href="../common-attributes.html#height">height</a> -
+<a class="xref page" href="../common-attributes.html#helperText">helperText</a> -
+<a class="xref page" href="../common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../common-attributes.html#label">label</a> -
+<a class="xref page" href="../common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../common-attributes.html#readOnly">readOnly</a> -
+<a class="xref page" href="../common-attributes.html#tabIndex">tabIndex</a> -
+<a class="xref page" href="../common-attributes.html#valueChangeMode">valueChangeMode</a> -
+<a class="xref page" href="../common-attributes.html#valueChangeTimeout">valueChangeTimeout</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>integerRangeSlider</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#BlurEvent">BlurEvent</a> -
+<a class="xref page" href="../common-handlers.html#ComponentValueChangeEvent">ComponentValueChangeEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a> -
+<a class="xref page" href="../common-handlers.html#FocusEvent">FocusEvent</a> -
+<a class="xref page" href="../common-handlers.html#KeyDownEvent">KeyDownEvent</a> -
+<a class="xref page" href="../common-handlers.html#KeyPressEvent">KeyPressEvent</a> -
+<a class="xref page" href="../common-handlers.html#KeyUpEvent">KeyUpEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An <code>integerRangeSlider</code> can include a <a class="xref page" href="tooltip.html">tooltip</a> as its nested element.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/slider#range-slider" rel="noopener" target="_blank">Vaadin Range Slider documentation</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

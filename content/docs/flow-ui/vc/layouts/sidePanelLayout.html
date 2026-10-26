@@ -85,13 +85,8 @@ A side panel can also be created programmatically using <a class="xref page" hre
 &lt;/sidePanelLayout&gt;</code></pre>
 </div>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>A side panel typically includes a close button. Use the dedicated <code>sidePanelLayoutCloser</code> component to add that button.</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>A side panel typically includes a close button. Use the dedicated <code>sidePanelLayoutCloser</code> component to add that button.</p>
 </div>
 </div>
 </div>
@@ -111,6 +106,48 @@ public void onToggleButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
     sidePanelLayout.toggleSidePanel();
 }</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="resizing"><a class="anchor" href="#resizing"></a>Resizing the Side Panel</h2>
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>Set the <a href="#sidePanelResizable">sidePanelResizable</a> attribute to <code>true</code> to let users resize the side panel by dragging the handle on its inner edge.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;facets&gt;
+    &lt;settings auto="true"/&gt;
+&lt;/facets&gt;
+    &lt;sidePanelLayout id="sidePanelLayout"
+                     width="100%"
+                     height="100%"
+                     sidePanelResizable="true"&gt;
+        &lt;!-- ... --&gt;
+    &lt;/sidePanelLayout&gt;
+&lt;/layout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For the <code>LEFT</code>, <code>RIGHT</code>, <code>INLINE_START</code>, and <code>INLINE_END</code> positions, dragging changes the panel width. For the <code>TOP</code> and <code>BOTTOM</code> positions, it changes the panel height. The size remains within the limits defined by the corresponding minimum and maximum size attributes.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To save and restore the size selected by the current user, add the <a class="xref page" href="../../facets/settings.html"><code>settings</code></a> facet and set its <code>auto</code> attribute to <code>true</code>. A saved size overrides the initial size defined in XML. Horizontal and vertical sizes are stored independently.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -216,6 +253,51 @@ Values set in XML or using the Java API override CSS variables.
 </table>
 </div>
 <div class="sect2">
+<h3 id="_resize_handle"><a class="anchor" href="#_resize_handle"></a>Resize Handle</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>The resize handle uses the following CSS variables. Their default values match the current theme’s <code>SplitLayout</code> splitter and can change when the <code>resizer-small</code> theme variant is applied.</p>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<colgroup>
+<col style="width: 50%;"/>
+<col style="width: 50%;"/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Variable</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-side-panel-layout-splitter-size</code></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Width of a vertical splitter or height of a horizontal splitter.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-side-panel-layout-splitter-target-size</code></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Size of the pointer target across the splitter.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-side-panel-layout-splitter-background</code></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Splitter background.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-side-panel-layout-handle-size</code></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Thickness of the grip inside the splitter.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-side-panel-layout-handle-target-size</code></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length of the grip inside the splitter.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-side-panel-layout-handle-background</code></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Grip background.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
 <h3 id="_appearance"><a class="anchor" href="#_appearance"></a>Appearance</h3>
 <table class="tableblock frame-all grid-rows stretch">
 <colgroup>
@@ -272,6 +354,10 @@ Values set in XML or using the Java API override CSS variables.
 <th class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix-side-panel-layout::part(sidePanelContent)</code></p></th>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Side panel content container.</p></td>
 </tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix-side-panel-layout::part(resizeHandle)</code></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resize handle on the inner edge of the side panel.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -305,6 +391,14 @@ Values set in XML or using the Java API override CSS variables.
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix-side-panel-layout[side-panel-overlay]</code></p></th>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Applied when the panel overlays content instead of pushing it.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix-side-panel-layout[side-panel-resizable]</code></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applied when user resizing is enabled.</p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix-side-panel-layout[resizing]</code></p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applied while the user is dragging the resize handle.</p></td>
 </tr>
 </tbody>
 </table>
@@ -364,6 +458,16 @@ If <code>false</code>, the panel pushes the content aside as it opens.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a id="displayAsOverlayOnSmallDevices"></a>displayAsOverlayOnSmallDevices</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, the side panel is displayed as a full-screen overlay on small devices, ensuring that the content remains usable on mobile layouts.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="sidePanelResizable"></a>sidePanelResizable</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>If <code>true</code>, the user can resize the side panel by dragging the handle on its inner edge. The panel remains within the minimum and maximum size limits. The resize handle is not displayed when the panel switches to a full-screen overlay on small devices.</p>
+</div>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a id="sidePanelHorizontalSize"></a>sidePanelHorizontalSize</p></td>
@@ -433,6 +537,15 @@ If <code>false</code>, the panel pushes the content aside as it opens.</p></td>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a id="SidePanelCloseEvent"></a>SidePanelCloseEvent</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Fires when the side panel closes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="SidePanelAfterResizeEvent"></a>SidePanelAfterResizeEvent</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Fires once after the user finishes dragging the resize handle and the panel size has changed. The <code>getSize()</code> method returns the new width or height as a CSS length in pixels.</p>
+</div>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div></div></td>
 </tr>
 </tbody>
 </table>

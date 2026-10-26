@@ -13,7 +13,7 @@ image-dataaware.xml
     <layout>
         <fileUploadField label="Load new image" dataContainer="pictureDc" property="content"
                          clearButtonVisible="true" fileNameVisible="true" acceptedFileTypes=".png"/>
-        <image id="numberField" height="10em" width="10em"
+        <image height="10em" width="10em"
                alternateText="No picture loaded"
                dataContainer="pictureDc" property="content"/>
     </layout>
@@ -34,25 +34,32 @@ import io.jmix.uisamples.entity.Picture;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 @ViewController("image-dataaware")
 @ViewDescriptor("image-dataaware.xml")
 public class ImageDataawareSample extends StandardView {
 
-    protected static final String SRC_PATH = "META-INF/resources/icons/jmix-icon.png";
+    private static final String SRC_PATH = "META-INF/resources/icons/jmix-icon.png";
 
     @ViewComponent
-    protected InstanceContainer<Picture> pictureDc;
+    private InstanceContainer<Picture> pictureDc;
 
     @Autowired
-    protected Metadata metadata;
+    private Metadata metadata;
     @Autowired
-    protected Resources resources;
+    private Resources resources;
 
     @Subscribe
-    protected void onInit(InitEvent event) throws IOException {
+    public void onInit(InitEvent event) {
         Picture picture = metadata.create(Picture.class);
-        picture.setContent(resources.getResource(SRC_PATH).getContentAsByteArray());
+
+        try {
+            picture.setContent(resources.getResource(SRC_PATH).getContentAsByteArray());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
         pictureDc.setItem(picture);
     }
 }

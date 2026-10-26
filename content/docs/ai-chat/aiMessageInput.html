@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aiMessageInput :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">aiMessageInput</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>aiMessageInput</code> component is where the user writes a message: a growing text area with a send button, optional controls beside the field, and optional application content above and below it.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aiMessageInput</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AiMessageInput</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Use it on its own wherever an application collects a message from the user. <a class="xref page" href="aiChat.html">aiChat</a> embeds it and configures it on your behalf, so everything on this page is reachable through the chat as well.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="overview"><a class="anchor" href="#overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The message input keeps its controls on one row while the text fits a single line:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Message input in its collapsed state" src="_images/aichat-message-input-collapsed.png" width="672"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Once the text grows past one line, the field takes the full width and the controls reflow into a toolbar row beneath it:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Message input in its expanded state" src="_images/aichat-message-input-expanded.png" width="672"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Declare the <code>aichat</code> namespace in the view’s XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:aichat="http://jmix.io/schema/aichat/ui"
+      title="msg://MessageInputView.title"&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Studio adds the namespace automatically when you add the component using the <strong>Add Component</strong> action in the top actions panel. See <a class="xref page" href="../studio/view-designer.html#component-palette">Component Palette</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A message input needs nothing but its element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageInput id="basicsComposer"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A standalone message input fills the width of its container. Unlike inside a chat, it has no width of its own, so give it a width or place it in a container that constrains one.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="submitting"><a class="anchor" href="#submitting"></a>Submitting a Message</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The text reaches the application through the submit event:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("basicsComposer")
+public void onBasicsComposerSubmit(final AiMessageInput.SubmitEvent event) {
+    lastMessageSpan.setText(event.getValue());
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The event carries the submitted text, and the field clears itself afterwards, so the application does not have to.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The message input does not expose the text it holds. There is no <code>getValue()</code> or <code>setValue()</code>, so the application cannot read what the user is typing, pre-fill the field with a suggested prompt, or clear it early. The text becomes available only when the user submits it.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="text-area"><a class="anchor" href="#text-area"></a>Text Area</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The field grows with its content up to <code>maxRows</code> lines, ten by default, and scrolls internally beyond that:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageInput id="maxRowsComposer" maxRows="3"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, <strong>Enter</strong> submits the message and <strong>Shift+Enter</strong> inserts a line break. Set <code>enterAction</code> to <code>NEWLINE</code> to swap the two, so that <strong>Enter</strong> inserts a line break and <strong>Ctrl/Cmd+Enter</strong> submits:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageInput id="newlineComposer" enterAction="NEWLINE"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The setting also tells mobile keyboards how to label their action key.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="slots"><a class="anchor" href="#slots"></a>Prefix and Suffix</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>prefix</code> and <code>suffix</code> elements put application controls inside the input box, before and after the field:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageInput id="slotsComposer"&gt;
+    &lt;aichat:prefix&gt;
+        &lt;button id="promptLibraryButton"
+                icon="PLUS"
+                themeNames="tertiary"
+                title="msg://promptLibraryButton.title"/&gt;
+    &lt;/aichat:prefix&gt;
+    &lt;aichat:suffix&gt;
+        &lt;button id="clearButton"
+                icon="MICROPHONE"
+                themeNames="tertiary"
+                title="msg://clearButton.title"/&gt;
+    &lt;/aichat:suffix&gt;
+&lt;/aichat:aiMessageInput&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A component declared in either element is injectable by id, exactly like a top-level component of the view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixButton promptLibraryButton;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    promptLibraryButton.addClickListener(clickEvent -&gt;
+            notifications.show(messageBundle.getMessage("promptLibraryButton.notification")));
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="bands"><a class="anchor" href="#bands"></a>Header and Footer Bands</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>header</code> and <code>footer</code> elements hold application content inside the message input but outside the input box, such as a context line above the field or a disclaimer under it:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Message input with header and footer bands" src="_images/aichat-message-input-bands.png" width="672"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageInput id="bandsComposer"&gt;
+    &lt;aichat:header&gt;
+        &lt;span id="contextSpan" text="msg://contextSpan.text"/&gt;
+    &lt;/aichat:header&gt;
+    &lt;aichat:footer&gt;
+        &lt;span text="msg://disclaimer.text"/&gt;
+    &lt;/aichat:footer&gt;
+&lt;/aichat:aiMessageInput&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Message bundle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo.view.messageinput/disclaimer.text=AI can make mistakes. Check important information.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Bands follow the width and centering of the box, so they line up with the field rather than with the surrounding layout. Their content is injectable by id and is disabled together with the message input.</p>
+</div>
+<div class="paragraph">
+<p>To pull a band tight against the box, removing the gap that separates them, apply the <code>no-header-footer-gap</code> theme variant:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageInput id="noGapComposer"
+                       themeNames="no-header-footer-gap"&gt;
+    &lt;aichat:footer&gt;
+        &lt;span text="msg://disclaimer.text"/&gt;
+    &lt;/aichat:footer&gt;
+&lt;/aichat:aiMessageInput&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The variant affects both bands at once and leaves the spacing inside the box untouched.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="fixed-toolbar"><a class="anchor" href="#fixed-toolbar"></a>Fixed Toolbar</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default the message input switches between the two layouts shown in the <a href="#overview">overview</a> as the text grows. The <code>fixed-toolbar</code> theme variant keeps the toolbar layout at all times, so the controls stay in a row of their own even when the field holds a single line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageInput id="fixedToolbarComposer"
+                       themeNames="fixed-toolbar"&gt;
+    &lt;aichat:prefix&gt;
+        &lt;button id="modelButton"
+                text="msg://modelButton.text"
+                themeNames="tertiary"/&gt;
+    &lt;/aichat:prefix&gt;
+&lt;/aichat:aiMessageInput&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="localization"><a class="anchor" href="#localization"></a>Localization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The placeholder and the accessible names of the buttons come from the add-on’s message bundle, under the <code>aiMessageInput.i18n.*</code> keys. Override them in the application’s message bundle to re-word the message input everywhere.</p>
+</div>
+<div class="paragraph">
+<p>To re-word a single message input, add a nested <code>i18n</code> element:</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiMessageInput id="i18nComposer"&gt;
+    &lt;aichat:i18n placeholder="msg://i18nComposer.placeholder"/&gt;
+&lt;/aichat:aiMessageInput&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Message bundle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo.view.messageinput/i18nComposer.placeholder=Ask about this ticket</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="localization.html#precedence">Precedence</a> for how the two levels combine.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styling"><a class="anchor" href="#styling"></a>Styling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The message input exposes its internals as shadow parts, addressable with the <code>::part()</code> selector.</p>
+</div>
+<div class="paragraph">
+<p>The following style properties can be used in CSS stylesheets to customize the appearance of this component.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;"/>
+<col style="width: 60%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-input-background</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Background of the input box.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-input-padding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Padding inside the input box.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-input-gap</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gap between the parts of the message input: the bands, the chips tray, the field, and the buttons.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-input-max-width</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Width the component is centered within. Unset outside a chat, so a standalone message input fills its container.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-input-icon-send</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph of the send button.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-message-input-icon-stop</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph the send button shows while an answer is generating.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="theme-variants"><a class="anchor" href="#theme-variants"></a>Theme Variants</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;"/>
+<col style="width: 60%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Theme name</th>
+<th class="tableblock halign-left valign-top">Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>fixed-toolbar</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keeps the controls in a row of their own at all times, instead of only once the text grows past one line. See <a href="#fixed-toolbar">Fixed Toolbar</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>no-header-footer-gap</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Removes the gap between the bands and the input box, so a band reads as a continuation of the field. See <a href="#bands">Header and Footer Bands</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Applied to a chat, both reach its message input. See <a class="xref page" href="aiChat.html#styling">Styling</a> there.</p>
+</div>
+<div class="paragraph">
+<p>The components are styled for both Jmix themes, Aura and Lumo, and follow the theme’s own tokens for focus rings, borders, radii, and spacing, which is why the properties above have no single default value. Dark mode, high-contrast mode, and reduced motion are handled, and layout is expressed in direction-agnostic properties, so the components follow the text direction of the document.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attachments"><a class="anchor" href="#attachments"></a>Attachments</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The message input can accept files, by drag and drop or from a file picker, and pass them along with the message. Attachments span several components, so they are described together in <a class="xref page" href="attachments.html">Attachments</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>aiMessageInput</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="acceptedFileExtensions"></a><code>acceptedFileExtensions</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Restricts attachments to the listed file extensions. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="acceptedMimeTypes"></a><code>acceptedMimeTypes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Restricts attachments to the listed media types. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="attachmentsEnabled"></a><code>attachmentsEnabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether the message input accepts attachments. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="enterAction"></a><code>enterAction</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets what <strong>Enter</strong> does: <code>SEND</code> submits the message, <code>NEWLINE</code> inserts a line break. See <a href="#text-area">Text Area</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SEND</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maxFileSize"></a><code>maxFileSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the maximum size of a single attachment in bytes. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>26214400</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maxFiles"></a><code>maxFiles</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets how many files can be attached to one message. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="maxRows"></a><code>maxRows</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets how many lines the field grows to before it scrolls internally. See <a href="#text-area">Text Area</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="uploadDropZoneEnabled"></a><code>uploadDropZoneEnabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether files can be dropped onto the message input. See <a class="xref page" href="attachments.html">Attachments</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="themeNames"></a><code>themeNames</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applies theme variants: <code>fixed-toolbar</code> keeps the toolbar layout at all times, <code>no-header-footer-gap</code> removes the gap between the bands and the box.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>aiMessageInput</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-attributes.html#id">id</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#css">css</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#focusShortcut">focusShortcut</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#height">height</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#tabIndex">tabIndex</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following handlers are specific to <code>aiMessageInput</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="AttachmentRejectedEvent"></a><code>AttachmentRejectedEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when a file is refused by one of the attachment limits. Carries the file name and the reason. See <a class="xref page" href="attachments.html#rejected">Rejected Files</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="StopEvent"></a><code>StopEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the user clicks the stop button while an answer is generating.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="SubmitEvent"></a><code>SubmitEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fired when the user submits a message. Carries the submitted text and its attachments. See <a href="#submitting">Submitting a Message</a>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>aiMessageInput</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../flow-ui/vc/common-handlers.html#BlurEvent">BlurEvent</a> -
+<a class="xref page" href="../flow-ui/vc/common-handlers.html#DetachEvent">DetachEvent</a> -
+<a class="xref page" href="../flow-ui/vc/common-handlers.html#FocusEvent">FocusEvent</a></p>
+</div>
+<div class="paragraph">
+<p>Focus and blur are reported for the message input as a whole: moving focus from the field to the send button, or to a control in a slot, does not fire them.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An <code>aiMessageInput</code> can include <code>prefix</code>, <code>suffix</code>, <code>header</code>, <code>footer</code>, <code>tooltip</code>, and <code>i18n</code> as its nested elements.</p>
+</div>
+<div class="sect2">
+<h3 id="prefix-suffix-elements"><a class="anchor" href="#prefix-suffix-elements"></a>prefix, suffix</h3>
+<div class="paragraph">
+<p>The <code>prefix</code> and <code>suffix</code> elements each hold one component placed inside the input box, before and after the field. See <a href="#slots">Prefix and Suffix</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="header-footer-elements"><a class="anchor" href="#header-footer-elements"></a>header, footer</h3>
+<div class="paragraph">
+<p>The <code>header</code> and <code>footer</code> elements each hold one component placed inside the message input but outside the input box. See <a href="#bands">Header and Footer Bands</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="i18n-element"><a class="anchor" href="#i18n-element"></a>i18n</h3>
+<div class="paragraph">
+<p>The <code>i18n</code> element re-words this message input. It supports the <code>placeholder</code>, <code>send</code>, <code>stop</code>, and <code>attach</code> attributes, each accepting a message key. Omitted attributes keep their values from the message bundle. See <a href="#localization">Localization</a>.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

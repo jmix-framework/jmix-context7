@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>popover :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">popover</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p><code>popover</code> is an overlay that opens next to another component, called the target. Unlike <a class="xref page" href="tooltip.html">tooltip</a>, a popover can contain any components, such as fields, buttons and layouts, and users can work with them.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>popover</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Popover</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Declare <code>popover</code> in the view layout and set the <code>target</code> attribute to the id of a component:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="infoButton" text="About" icon="INFO_CIRCLE_O"/&gt;
+&lt;popover id="infoPopover" target="infoButton" width="20em"&gt;
+    &lt;vbox padding="false"&gt;
+        &lt;h4 text="Onboarding"/&gt;
+        &lt;span text="New employees complete the onboarding steps during their first weeks."/&gt;
+        &lt;button id="closeButton" text="Close"/&gt;
+    &lt;/vbox&gt;
+&lt;/popover&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Popover opened under its target" src="../../_images/visual-components/components/popover-basics.png" width="400"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The popover does not take space in the layout. Its content is shown only when the popover opens. By default, the popover opens when the user clicks the target. It closes when the user clicks the target again, clicks outside the popover, or presses <strong>Esc</strong>.</p>
+</div>
+<div class="paragraph">
+<p>The popover and its content are regular components of the view. You can inject them into the view controller and subscribe to their events. In the example above, the button in the popover closes it using the <code>close()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private Popover infoPopover;
+
+@Subscribe(id = "closeButton", subject = "clickListener")
+public void onCloseButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    infoPopover.close();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="about-target"><a class="anchor" href="#about-target"></a>Target</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>target</code> attribute contains the id of a component in the same view or fragment. The target can be declared before or after the popover. If there is no component with this id, the view fails to open with a <code>GuiDevelopmentException</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>target</code> attribute is optional. If the target component is created in the view controller, declare the popover without <code>target</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textField id="emailField" label="Email"/&gt;
+&lt;popover id="emailHelpPopover" width="16em"&gt;
+    &lt;span text="Use your corporate address."/&gt;
+&lt;/popover&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then set the target using the <code>setTarget()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private Popover emailHelpPopover;
+@ViewComponent
+private TypedTextField&lt;String&gt; emailField;
+@Autowired
+private UiComponents uiComponents;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    JmixButton helpButton = uiComponents.create(JmixButton.class);
+    helpButton.setIcon(VaadinIcon.QUESTION_CIRCLE.create());
+    helpButton.addThemeVariants(ButtonVariant.TERTIARY);
+    emailField.setSuffixComponent(helpButton);
+
+    emailHelpPopover.setTarget(helpButton);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A popover without a target does not open on user actions. If you open it with the <code>open()</code> method, it is shown in the center of the screen.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="opening-and-closing"><a class="anchor" href="#opening-and-closing"></a>Opening and Closing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>openOnClick</code>, <code>openOnHover</code> and <code>openOnFocus</code> attributes define which user actions open the popover. Only <code>openOnClick</code> is enabled by default. You can enable several of them.</p>
+</div>
+<div class="paragraph" id="open-on-hover">
+<p><strong>Opening on Hover</strong></p>
+</div>
+<div class="paragraph">
+<p>The following popover opens when the user moves the pointer over an avatar:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;avatar id="userAvatar" name="Alice Brown"/&gt;
+&lt;popover target="userAvatar"
+         openOnClick="false"
+         openOnHover="true"
+         hoverDelay="300"
+         hideDelay="300"&gt;
+    &lt;vbox padding="false" spacing="false"&gt;
+        &lt;h5 text="Alice Brown"/&gt;
+        &lt;span text="HR manager"/&gt;
+        &lt;anchor href="mailto:alice@company.com" text="alice@company.com"/&gt;
+    &lt;/vbox&gt;
+&lt;/popover&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The popover closes when the pointer leaves both the target and the popover, so the user can move the pointer to the popover and click the link in it.</p>
+</div>
+<div class="paragraph">
+<p>The <code>hoverDelay</code> attribute sets the delay before the popover opens, and <code>hideDelay</code> sets the delay before it closes. Both delays are in milliseconds, and both are 500 by default.</p>
+</div>
+<div class="paragraph" id="open-on-focus">
+<p><strong>Opening on Focus</strong></p>
+</div>
+<div class="paragraph">
+<p>The following popover opens when the password field receives focus:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;passwordField id="passwordField" label="Password"/&gt;
+&lt;popover target="passwordField"
+         openOnClick="false"
+         openOnFocus="true"
+         position="END"&gt;
+    &lt;span text="Use at least 8 characters, including a letter and a digit."/&gt;
+&lt;/popover&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The popover closes when the focus leaves both the target and the popover. The <code>focusDelay</code> attribute sets the delay before the popover opens, 500 milliseconds by default.</p>
+</div>
+<div class="paragraph" id="open-programmatically">
+<p><strong>Opening Programmatically</strong></p>
+</div>
+<div class="paragraph">
+<p>If all three attributes are <code>false</code>, user actions on the target do not open the popover. Open it in the view controller instead:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;hbox alignItems="BASELINE"&gt;
+    &lt;textField id="promoCodeField" label="Promo code"/&gt;
+    &lt;button id="promoCodeHelpButton" text="Where do I find it?" themeNames="tertiary"/&gt;
+&lt;/hbox&gt;
+&lt;popover id="promoCodePopover"
+         target="promoCodeField"
+         openOnClick="false"
+         width="16em"&gt;
+    &lt;span text="The promo code is printed on the back of your loyalty card."/&gt;
+&lt;/popover&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private Popover promoCodePopover;
+
+@Subscribe(id = "promoCodeHelpButton", subject = "clickListener")
+public void onPromoCodeHelpButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    promoCodePopover.open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>open()</code> and <code>close()</code> methods open and close the popover, and <code>isOpened()</code> returns its current state.</p>
+</div>
+<div class="paragraph" id="closing">
+<p><strong>Closing</strong></p>
+</div>
+<div class="paragraph">
+<p>However the popover was opened, a click outside it and the <strong>Esc</strong> key close it. Set the <code>closeOnOutsideClick</code> and <code>closeOnEsc</code> attributes to <code>false</code> to turn this off.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="about-positioning"><a class="anchor" href="#about-positioning"></a>Positioning</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>position</code> attribute defines where the popover opens relative to the target: above (<code>TOP_START</code>, <code>TOP</code>, <code>TOP_END</code>), below (<code>BOTTOM_START</code>, <code>BOTTOM</code>, <code>BOTTOM_END</code>), before (<code>START_TOP</code>, <code>START</code>, <code>START_BOTTOM</code>) or after (<code>END_TOP</code>, <code>END</code>, <code>END_BOTTOM</code>) it. The default is <code>BOTTOM</code>. If there is not enough space on that side, the popover opens on the opposite side.</p>
+</div>
+<div class="paragraph">
+<p>The following popover opens after the button and shows an arrow that points to it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;button id="statusButton" text="Status"/&gt;
+&lt;popover target="statusButton" position="END" themeNames="arrow"&gt;
+    &lt;span text="3 of 5 steps completed"/&gt;
+&lt;/popover&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="modal-popover"><a class="anchor" href="#modal-popover"></a>Modal Popover</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A modal popover works as a small dialog next to its target. When it is open, users cannot interact with the rest of the UI, and the focus stays in the popover. Set <code>modal="true"</code> to make the popover modal and <code>backdropVisible="true"</code> to dim the UI behind it.</p>
+</div>
+<div class="paragraph">
+<p>A click outside a modal popover closes it by default. The following popover sets <code>closeOnOutsideClick="false"</code>, so it stays open until the user clicks a button in it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;h3 id="reportTitle" text="Quarterly report"/&gt;
+&lt;button id="renameButton" text="Rename"/&gt;
+&lt;popover id="renamePopover"
+         target="renameButton"
+         modal="true"
+         backdropVisible="true"
+         closeOnOutsideClick="false"
+         width="18em"&gt;
+    &lt;vbox padding="false"&gt;
+        &lt;textField id="titleField" label="Title" width="100%"/&gt;
+        &lt;hbox&gt;
+            &lt;button id="saveButton" text="Save" themeNames="primary"/&gt;
+            &lt;button id="cancelButton" text="Cancel"/&gt;
+        &lt;/hbox&gt;
+    &lt;/vbox&gt;
+&lt;/popover&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Modal popover with a dimmed backdrop" src="../../_images/visual-components/components/popover-modal.png" width="420"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The controller fills the field when the popover opens and saves the value when the user clicks <strong>Save</strong>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private Popover renamePopover;
+@ViewComponent
+private H3 reportTitle;
+@ViewComponent
+private TypedTextField&lt;String&gt; titleField;
+
+@Subscribe("renamePopover")
+public void onRenamePopoverOpenedChange(final Popover.OpenedChangeEvent event) {
+    if (event.isOpened()) {
+        titleField.setValue(reportTitle.getText());
+    }
+}
+
+@Subscribe(id = "saveButton", subject = "clickListener")
+public void onSaveButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    reportTitle.setText(titleField.getValue());
+    renamePopover.close();
+}
+
+@Subscribe(id = "cancelButton", subject = "clickListener")
+public void onCancelButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+    renamePopover.close();
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="size-and-styling"><a class="anchor" href="#size-and-styling"></a>Size and Styling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>width</code> and <code>height</code> attributes set the size of the popover content. Use absolute units, such as <code>px</code> or <code>em</code>. Relative units, such as <code>%</code>, give unexpected results. Without these attributes, the popover takes the size of its content. The <code>minWidth</code>, <code>maxWidth</code>, <code>minHeight</code> and <code>maxHeight</code> attributes are not supported.</p>
+</div>
+<div class="paragraph">
+<p>The popover is shown outside the view layout, so it does not support the <code>css</code> attribute. In Java, <code>getStyle()</code> throws <code>UnsupportedOperationException</code>. To style a popover, add class names to it with the <a class="xref page" href="../common-attributes.html#classNames">classNames</a> attribute and define the styles in the application theme.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="variants"><a class="anchor" href="#variants"></a>Theme Variants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the <a class="xref page" href="../common-attributes.html#themeNames">themeNames</a> attribute to set a component theme.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 66.6666%;"/>
+<col style="width: 16.6668%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variant</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Supported By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>arrow</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows an arrow that points to the target.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>no-padding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Removes the padding around the content.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aura, Lumo</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>popover</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="ariaRole"></a><code>ariaRole</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the ARIA role of the popover, which screen readers use.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dialog</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="autofocus"></a><code>autofocus</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, the popover content receives focus when the popover opens. Modal popovers do this by default.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="backdropVisible"></a><code>backdropVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, the UI behind the popover is dimmed while the popover is open. See <a href="#modal-popover">Modal Popover</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="closeOnEsc"></a><code>closeOnEsc</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, the <strong>Esc</strong> key closes the popover. See <a href="#closing">Closing</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="closeOnOutsideClick"></a><code>closeOnOutsideClick</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, a click outside the popover closes it. See <a href="#closing">Closing</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="focusDelay"></a><code>focusDelay</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the delay in milliseconds before the popover opens when the target receives focus. See <a href="#open-on-focus">Opening on Focus</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>500</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="height"></a><code>height</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the height of the popover content. See <a href="#size-and-styling">Size and Styling</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="hideDelay"></a><code>hideDelay</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the delay in milliseconds before the popover closes when the pointer leaves the target and the popover. When the target loses focus, the popover closes at once. See <a href="#open-on-hover">Opening on Hover</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>500</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="hoverDelay"></a><code>hoverDelay</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the delay in milliseconds before the popover opens when the pointer moves over the target. See <a href="#open-on-hover">Opening on Hover</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>500</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="modal"></a><code>modal</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, users cannot interact with the rest of the UI while the popover is open. See <a href="#modal-popover">Modal Popover</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="openOnClick"></a><code>openOnClick</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, a click on the target opens the popover. See <a href="#opening-and-closing">Opening and Closing</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="openOnFocus"></a><code>openOnFocus</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, the popover opens when the target receives focus. See <a href="#open-on-focus">Opening on Focus</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="openOnHover"></a><code>openOnHover</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, the popover opens when the pointer moves over the target. See <a href="#open-on-hover">Opening on Hover</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="position"></a><code>position</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the position of the popover relative to the target. See <a href="#about-positioning">Positioning</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BOTTOM</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="tabFocusEnabled"></a><code>tabFocusEnabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When <code>true</code>, the user can move the focus from the target to the popover content with the <strong>Tab</strong> key. When <code>false</code>, <strong>Tab</strong> skips the popover. It has no effect on modal popovers.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="target"></a><code>target</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the id of the target component. See <a href="#about-target">Target</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="themeNames"></a><code>themeNames</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applies one or more variants listed in <a href="#variants">Theme Variants</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="width"></a><code>width</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the width of the popover content. See <a href="#size-and-styling">Size and Styling</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>popover</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabel">ariaLabel</a> -
+<a class="xref page" href="../common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;"/>
+<col style="width: 71.4286%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-handlers.html#AttachEvent"><code>AttachEvent</code></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fires when the popover is attached to the UI.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="xref page" href="../common-handlers.html#DetachEvent"><code>DetachEvent</code></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fires when the popover is detached from the UI.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="OpenedChangeEvent"></a><code>OpenedChangeEvent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fires when the popover opens or closes. Use <code>isOpened()</code> of the event to find out which. See <a href="#modal-popover">Modal Popover</a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A <code>popover</code> can contain any components and layouts.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://vaadin.com/docs/v25/components/popover" rel="noopener" target="_blank">Vaadin Popover documentation</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

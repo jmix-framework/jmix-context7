@@ -23,7 +23,7 @@
 <p>When opening a view in a dialog window, the browser URL is not changed, but the opened view instance is available to the calling code. It enables passing any values directly to the view instance and returning results after the view is closed. This approach is used when opening list views for selecting and returning entity instances in lookup fields.</p>
 </div>
 <div class="paragraph">
-<p>The main menu opens views by navigation. Standard <a class="xref page" href="../actions/list-actions.html#list_create">list_create</a> and <a class="xref page" href="../actions/list-actions.html#list_edit">list_edit</a> actions also open detail views by navigation, but can be configured to use dialogs. The <a class="xref page" href="../actions/entity-picker-actions.html#entity_lookup">entity_lookup</a> standard action always opens a list view in a dialog to be able to get back selected entities.</p>
+<p>The main menu opens views by navigation. Standard <a class="xref page" href="../actions/list-actions.html#list_create">list_create</a>, <a class="xref page" href="../actions/list-actions.html#list_edit">list_edit</a>, and <a class="xref page" href="../actions/list-actions.html#list_read">list_read</a> actions also open detail and read views by navigation, but can be configured to use dialogs. The <a class="xref page" href="../actions/entity-picker-actions.html#entity_lookup">entity_lookup</a> standard action always opens a list view in a dialog to be able to get back selected entities. The <a class="xref page" href="../actions/entity-picker-actions.html#entity_read">entity_read</a> action always uses a dialog.</p>
 </div>
 <div class="paragraph">
 <p>Below we describe how to open views programmatically in your application code.</p>
@@ -163,6 +163,27 @@ private void navigateToEditEntity(Department entity) {
 </div>
 <div class="paragraph">
 <p>You can specify the detail view id or class explicitly using <code>withViewId()</code> and <code>withViewClass()</code> methods.</p>
+</div>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>To navigate to a <a class="xref page" href="view-classes.html#standard-read-view">read view</a>, use the <code>readView()</code> method accepting the entity class or a visual component bound to the entity. The read view class will be chosen by <a href="#view-inference-conventions">convention</a>. Invoke <code>readEntity()</code> to set the entity instance to show. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewNavigators viewNavigators;
+
+private void navigateToReadEntity(Department entity) {
+    viewNavigators.readView(this, Department.class)
+            .readEntity(entity)
+            .navigate();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you pass a list component, such as <code>dataGrid</code>, or an entity picker to <code>readView()</code>, the navigator takes the selected entity or the component value. You can specify the read view id or class explicitly using <code>withViewId()</code> and <code>withViewClass()</code> methods.</p>
 </div>
 <div class="sect2">
 <h3 id="passing-parameters"><a class="anchor" href="#passing-parameters"></a>Passing Parameters</h3>
@@ -360,6 +381,73 @@ private void openViewWithSize() {
 </div>
 </div>
 <div class="sect2">
+<h3 id="maximizing-dialog-windows"><a class="anchor" href="#maximizing-dialog-windows"></a>Maximizing and Restoring Dialog Windows</h3>
+<div class="paragraph">
+<p>A view opened in a <code>DialogWindow</code> can be maximized to fill the viewport and restored to its previous size and position. By default, the maximize button is hidden. Set <code>maximizable = true</code> in <code>@DialogMode</code> to show it in the dialog header next to the close button:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@DialogMode(width = "50em", height = "40em", modality = DialogModalityMode.STRICT,
+        resizable = true, maximizable = true)
+public class MyOnboardingView extends StandardView {</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Clicking the button maximizes the dialog. Clicking it again restores the dialog, including any size and position set by dragging or resizing it before maximizing.</p>
+</div>
+<div class="paragraph">
+<p>To configure this behavior programmatically, use <code>setMaximizable(boolean)</code>. Use <code>setMaximized(true)</code> to maximize a dialog and <code>setMaximized(false)</code> to restore it. These methods are available on <code>AbstractDialogWindow</code>, the base class of <code>DialogWindow</code>. The <code>isMaximizable()</code> and <code>isMaximized()</code> methods return the corresponding settings.</p>
+</div>
+<div class="paragraph">
+<p>The following example opens a dialog already maximized and registers a listener before changing its state:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+
+private void openMaximizedDialog() {
+    DialogWindow&lt;MyOnboardingView&gt; window =
+            dialogWindows.view(this, MyOnboardingView.class).build();
+    window.setMaximizable(true);
+    window.addMaximizedChangeListener(event -&gt;
+            log.debug("Maximized: {}, from client: {}",
+                    event.isMaximized(), event.isFromClient()));
+    window.setMaximized(true);
+    window.open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>MaximizedChangeEvent</code> provides the new state through <code>isMaximized()</code>. Its <code>isFromClient()</code> method returns <code>true</code> when the user clicks the header button and <code>false</code> when the state changes programmatically. Use <code>getSource()</code> to access the dialog window and <code>getView()</code> to access its view.</p>
+</div>
+<div class="paragraph">
+<p>While a dialog is maximized, dragging and resizing are disabled. Calls to <code>setDraggable()</code> and <code>setResizable()</code> in this state update the settings that will apply after restoring the dialog. The corresponding getters return these configured settings.</p>
+</div>
+<div class="paragraph">
+<p>The Aura and Lumo themes support the following CSS custom properties for the maximized layout:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>--jmix-dialog-maximized-position</code></p>
+</li>
+<li>
+<p><code>--jmix-dialog-maximized-inset</code></p>
+</li>
+<li>
+<p><code>--jmix-dialog-maximized-width</code></p>
+</li>
+<li>
+<p><code>--jmix-dialog-maximized-height</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These styles apply when the dialog element has the <code>jmix-maximized</code> attribute.</p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="passing-parameters-into-dialog"><a class="anchor" href="#passing-parameters-into-dialog"></a>Passing Parameters</h3>
 <div class="paragraph">
 <p>If you need to pass parameters to the opened view, invoke the <code>build()</code> terminal method, set parameters to the view, then open the window:</p>
@@ -434,6 +522,46 @@ private void openViewWithResults() {
             .open();
 }</code></pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="opened-dialog-windows"><a class="anchor" href="#opened-dialog-windows"></a>Getting Opened Dialog Windows</h3>
+<div class="paragraph">
+<p>The <code>DialogWindows</code> bean also allows you to get <code>OpenedDialogWindows</code>, an object that keeps the list of views opened as dialog windows. This can be useful, for example, in UI integration tests when you need to access a view opened with <code>OpenMode.DIALOG</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+
+private DepartmentDetailView getOpenedDepartmentDetailView() {
+    return dialogWindows.getOpenedDialogWindows()
+            .getDialogs()
+            .stream()
+            .filter(DepartmentDetailView.class::isInstance)
+            .map(DepartmentDetailView.class::cast)
+            .reduce((previous, current) -&gt; current)
+            .orElseThrow();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>getDialogs()</code> method returns all dialog views of the current UI. The <code>getDialogs(UI)</code> method returns dialog views of the provided <code>UI</code>.</p>
+</div>
+<div class="paragraph">
+<p>Dialog views are added to the list in the order they are opened, so the last opened dialog is the last item in the list.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>OpenedDialogWindows</code> has Vaadin session scope and is available only when a Vaadin session is active.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -570,13 +698,40 @@ private void openDetailViewToEditEntity(Department department) {
 <p>The exact setup depends on the view data model and entity relationship configuration. For complete examples, see <a class="xref page" href="../../data-modeling-composition-guide/index.html">Composition Guide</a>. For more information about parent-child data contexts, see <a class="xref page" href="../data/data-context.html#parent-data-context">Parent DataContext</a>. Additional examples are available in <a href="https://demo.jmix.io/ui-samples" rel="noopener" target="_blank">UI Samples</a>.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="reading-entities"><a class="anchor" href="#reading-entities"></a>Showing Entities in Read Views</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>To show an entity instance in a <a class="xref page" href="view-classes.html#standard-read-view">read view</a>, invoke the <code>read()</code> method and provide the instance using <code>readEntity()</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private DialogWindows dialogWindows;
+
+private void openReadViewToReadEntity(Department department) {
+    dialogWindows.read(this, Department.class)
+            .readEntity(department)
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>read()</code> method also accepts a list component, such as <code>dataGrid</code>, or an entity picker. In this case, the builder takes the selected entity or the component value.</p>
+</div>
+<div class="paragraph">
+<p>The read view class is chosen by <a href="#view-inference-conventions">convention</a>. To open a particular view, use the <code>withViewId()</code> or <code>withViewClass()</code> method of the builder.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="view-inference-conventions"><a class="anchor" href="#view-inference-conventions"></a>View Inference Conventions</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A list or detail view can be inferred from the entity class.</p>
+<p>A list, detail, or read view can be inferred from the entity class.</p>
 </div>
 <div class="paragraph">
 <p>When navigating to a list view using <code>viewNavigators.listView(this, SomeEntity.class)</code>, the framework selects a view in the following order:</p>
@@ -622,6 +777,28 @@ private void openDetailViewToEditEntity(Department department) {
 <p>A view with <code>SomeEntity.detail</code> id.</p>
 </li>
 </ol>
+</div>
+<div class="paragraph">
+<p>When navigating to a read view or opening it in a dialog window, the framework selects a view in the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A view annotated with <code>@PrimaryReadView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with <code>SomeEntity.read</code> id.</p>
+</li>
+<li>
+<p>A view annotated with <code>@PrimaryDetailView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with <code>SomeEntity.detail</code> id.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>If the framework selects a detail view, it opens the view in read-only mode.</p>
 </div>
 </div>
 </div>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">AI Chat</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>The AI Chat add-on provides Flow UI components for building AI chat interfaces in a Jmix application: a complete chat, the parts it is assembled from, and a code block that renders source code in and outside a conversation.</p>
+</div>
+<div class="paragraph">
+<p>The add-on supplies the user interface, not the model. Answers are produced by an <code>LLMProvider</code> that the application implements, so the components work with any backend: Spring AI, a vendor SDK, or your own service.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="A chat in an application" src="_images/aichat-chat-conversation.png" width="1068"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Key features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Ready-made chat</strong>: <a class="xref page" href="aiChat.html">aiChat</a> composes <a class="xref page" href="aiMessageList.html">aiMessageList</a> and <a class="xref page" href="aiMessageInput.html">aiMessageInput</a> with an empty state over a streaming provider. One element and a provider are enough to get a working chat.</p>
+</li>
+<li>
+<p><strong>Streaming answers</strong>: tokens appear as they arrive, with a thinking indicator and an optional live feed of what the assistant is doing.</p>
+</li>
+<li>
+<p><strong>Markdown messages</strong>: assistant messages render Markdown, including fenced code blocks, which become real <a class="xref page" href="aiCodeBlock.html">aiCodeBlock</a> components.</p>
+</li>
+<li>
+<p><strong>Attachments</strong>: files are attached by drag and drop or from a file picker, stored in Jmix file storage, and remain downloadable from the conversation history.</p>
+</li>
+<li>
+<p><strong>Data binding and persistence</strong>: bind the chat to a collection container over your own message entity and persist the conversation.</p>
+</li>
+<li>
+<p><strong>Per-message actions</strong>: ordinary Jmix actions per message role, with built-in copy and regenerate actions.</p>
+</li>
+<li>
+<p><strong>Standalone components</strong>: the message list, the message input, and the code block are usable on their own, outside a chat.</p>
+</li>
+<li>
+<p><strong>Your own chat</strong>: the application can drive the message list from end to end, appending a message, streaming an answer into it, and reporting progress and errors. A chat that the ready-made one does not fit can be assembled from the parts.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The add-on is experimental. Its API may change in future releases, and Studio and IntelliJ IDEA mark calls to its classes with an <strong>experimental API</strong> warning. The warning is expected on correct code.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="relation-to-ai-tools"><a class="anchor" href="#relation-to-ai-tools"></a>Relation to the AI Tools Add-on</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a class="xref page" href="../ai-tools/index.html">AI Tools</a> add-on solves a different problem. It ships a finished assistant: a chat UI with conversation history, a registry of tools the assistant can call, and predefined tools that inspect and query application data. You install it and configure a model.</p>
+</div>
+<div class="paragraph">
+<p>This add-on ships the building blocks. There is no assistant, no tool registry, and no persistence. You decide what a message is, where it is stored, and what answers it.</p>
+</div>
+<div class="paragraph">
+<p>Choose AI Tools when you want an assistant over your application data. Choose AI Chat when the conversation is part of your own domain, or when you need a chat interface the ready-made one does not provide.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Installation</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This add-on requires the Enterprise <a href="https://www.jmix.io/subscription-plans-and-prices/" rel="noopener" target="_blank">subscription</a>. If you don’t have the subscription, see the <a class="xref page" href="../account-management.html#enterprise-trial">Enterprise Trial</a> section for how to get a trial version.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For automatic installation through Jmix Marketplace, follow instructions in the <a class="xref page" href="../add-ons.html#installation">Add-ons</a> section.</p>
+</div>
+<div class="paragraph">
+<p>For manual installation, follow the steps below.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Configure access to the premium repository.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the premium repository to your <code>build.gradle</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">repositories {
+    // ...
+    maven {
+        url = 'https://global.repo.jmix.io/repository/premium'
+        credentials {
+            username = rootProject['premiumRepoUser']
+            password = rootProject['premiumRepoPass']
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add premium repository credentials to <code>~/.gradle/gradle.properties</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">premiumRepoUser=123456123456
+premiumRepoPass=abcdefabcdef</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Get the repository credentials from your license key: the first part of the key before dash is the repository user name, the part after dash is the password. For example, if your key is <code>123456123456-abcdefabcdef</code>, then the user name is <code>123456123456</code> and the password is <code>abcdefabcdef</code>.</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Add dependency to your <code>build.gradle</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.aichat:jmix-aichat-flowui-starter'</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The components stream their answers over a server push connection, so the application must enable push. Add <code>@Push</code> to the application class if it is not there already:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Push
+@SpringBootApplication
+public class AiChatEx1Application implements AppShellConfigurator {</code></pre>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

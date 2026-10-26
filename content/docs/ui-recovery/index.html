@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Recovery :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">UI Recovery</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The UI Recovery add-on protects users from losing unsaved changes in views. Users can spend a long time filling in a large form, and all their input is lost if the server node restarts or fails, the HTTP session expires, or the browser closes before they click <strong>OK</strong>.</p>
+</div>
+<div class="paragraph">
+<p>The add-on saves the unsaved changes of a view to the database while the user works. This saved state is called a <em>draft</em>. When the user opens the same view again, the add-on offers to restore the draft. Drafts are kept in the main data store, so they are available in a cluster and after a full restart of the application.</p>
+</div>
+<div class="paragraph">
+<p>You choose which views keep drafts by adding the <a class="xref page" href="drafts-facet.html">drafts facet</a> to their descriptors. No Java code is required.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Installation</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This add-on requires the Enterprise <a href="https://www.jmix.io/subscription-plans-and-prices/" rel="noopener" target="_blank">subscription</a>. If you don’t have the subscription, see the <a class="xref page" href="../account-management.html#enterprise-trial">Enterprise Trial</a> section for how to get a trial version.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For automatic installation through Jmix Marketplace, follow instructions in the <a class="xref page" href="../add-ons.html#installation">Add-ons</a> section.</p>
+</div>
+<div class="paragraph">
+<p>For manual installation, follow the steps below.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Configure access to the premium repository.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the premium repository to your <code>build.gradle</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">repositories {
+    // ...
+    maven {
+        url = 'https://global.repo.jmix.io/repository/premium'
+        credentials {
+            username = rootProject['premiumRepoUser']
+            password = rootProject['premiumRepoPass']
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Add premium repository credentials to <code>~/.gradle/gradle.properties</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">premiumRepoUser=123456123456
+premiumRepoPass=abcdefabcdef</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Get the repository credentials from your license key: the first part of the key before dash is the repository user name, the part after dash is the password. For example, if your key is <code>123456123456-abcdefabcdef</code>, then the user name is <code>123456123456</code> and the password is <code>abcdefabcdef</code>.</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Add dependencies to your <code>build.gradle</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">implementation 'io.jmix.uirecovery:jmix-uirecovery-flowui-starter'</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The add-on adds the <code>UIREC_VIEW_DRAFT</code> table to the main data store.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="how-it-works"><a class="anchor" href="#how-it-works"></a>How It Works</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When a view with the <code>drafts</code> facet is opened and the user changes data in it, the facet saves the changes to the database. It does this regularly, but not more often than once in a configured interval. When the user saves the changes or closes the view and discards them, the facet deletes the draft.</p>
+</div>
+<div class="paragraph">
+<p>If the work is interrupted, for example because the server was restarted, the draft stays in the database. When the user opens the view for the same record again, the facet finds the draft and shows a dialog that offers to restore it:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="restore dialog" src="_images/restore-dialog.png" width="425"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The user can restore the changes, discard them, or postpone the decision until the next time the view is opened. The view can also be configured to restore drafts without asking.</p>
+</div>
+<div class="paragraph">
+<p>The add-on also provides the <a class="xref page" href="drafts-list.html">Unsaved drafts</a> view that shows all drafts of the current user. It can be opened automatically after login.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="drafts"><a class="anchor" href="#drafts"></a>Drafts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A draft belongs to a user, a view and an edited record:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Only the latest state is kept. Each save replaces the previous draft of the same user, view and record. There is no history of drafts.</p>
+</li>
+<li>
+<p>A detail view of an existing record has a draft for each record. A detail view of a new record has one draft at a time.</p>
+</li>
+<li>
+<p>A draft is visible only to the user who created it.</p>
+</li>
+<li>
+<p>A draft contains only the attributes that the user changed. When the draft is restored, the attributes that the user did not change keep their current values, even if another user changed them after the draft was saved.</p>
+</li>
+<li>
+<p>A draft expires after the retention period, which is 30 days by default. An expired draft is not offered to the user and is deleted. See <a class="xref page" href="deleting-expired-drafts.html">Deleting Expired Drafts</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="limitations"><a class="anchor" href="#limitations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The add-on saves only the changes that reached the server and were registered in the view’s <a class="xref page" href="../flow-ui/data/data-context.html">DataContext</a>. Keep in mind the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>By default, a text field sends its value to the server when the field loses focus or the user presses <strong>Enter</strong>. A value that the user is still typing is not saved. You can send the value more often using the <a class="xref page" href="../flow-ui/vc/common-attributes.html#valueChangeMode">valueChangeMode</a> attribute. See <a class="xref page" href="drafts-facet.html#saving-typed-values">Saving Typed Values</a>.</p>
+</li>
+<li>
+<p>Values of components that are not bound to data are not saved.</p>
+</li>
+<li>
+<p>A change of the order of elements in a collection is not saved if nothing else in the collection changed.</p>
+</li>
+<li>
+<p>A change of an attribute of an embedded entity that is nested in another embedded entity is not saved.</p>
+</li>
+<li>
+<p>The add-on does not merge changes made by different users. If the record was changed by another user after the draft was saved, the restore dialog warns about it. If the user restores the draft, the changed attributes are overwritten by the values from the draft. The same applies to the list of elements of a collection: restoring a draft replaces it.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

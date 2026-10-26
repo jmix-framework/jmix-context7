@@ -204,29 +204,32 @@ protected void initTabSheet() {
 
 protected Tab createIssueTab() {
     Tab tab = uiComponents.create(Tab.class);
-    tab.add(new Span("Issues"), createBadge(15, "contrast"));
+    tab.add(new Span("Issues"), createBadge(15));
 
     return tab;
 }
 
 protected Tab createFeatureTab() {
     Tab tab = uiComponents.create(Tab.class);
-    tab.add(new Span("Features"), createBadge(132, "success"));
+    tab.add(new Span("Features"), createBadge(132, BadgeVariant.SUCCESS));
 
     return tab;
 }
 
 protected Tab createBugTab() {
     Tab tab = uiComponents.create(Tab.class);
-    tab.add(new Span("Bugs"), createBadge(32, "error"));
+    tab.add(new Span("Bugs"), createBadge(32, BadgeVariant.ERROR));
 
     return tab;
 }
 
-protected Span createBadge(int value, String theme) {
-    Span badge = new Span(String.valueOf(value));
-    badge.getElement().getThemeList().add("badge small " + theme);
+protected Badge createBadge(int value, BadgeVariant... variants) {
+    Badge badge = new Badge();
+    badge.setNumber(value);
+    badge.addThemeVariants(BadgeVariant.SMALL);
+    badge.addThemeVariants(variants);
     badge.addClassName("tab-badge");
+
     return badge;
 }</code></pre>
 </div>
@@ -241,6 +244,18 @@ protected Span createBadge(int value, String theme) {
 </div>
 <div class="paragraph">
 <p>A lazy tab creates its content only when selected, reducing the number of initially instantiated components. The example adds <code>LazyComponent</code> instances programmatically and observes selected-tab changes to show when their content has been created.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When the <a class="xref page" href="../../../uiconstraints/index.html">UI Constraints</a> add-on is installed, it applies UI component policies to lazy tab content when the tab is selected. See <a class="xref page" href="../../../uiconstraints/index.html#tab-selection">Tab Selection</a> for details and configuration.
+</td>
+</tr>
+</table>
 </div>
 <div class="listingblock">
 <div class="title">XML</div>

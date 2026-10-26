@@ -889,16 +889,16 @@ protected double getAverage(String propertyId) {
 </div>
 </div>
 <div class="sect1">
-<h2 id="column-filtering"><a class="anchor" href="#column-filtering"></a>Column Headers Filtering</h2>
+<h2 id="column-filtering"><a class="anchor" href="#column-filtering"></a>Column Header Filtering</h2>
 <div class="sectionbody">
 <div class="jmix-ui-live-demo-container">
 <a class="live-demo-btn" href="https://demo.jmix.io/ui-samples/sample/data-grid-header-filter" target="_blank">LIVE DEMO</a>
 </div>
 <div class="paragraph">
-<p>You can filter data by individual columns using <a class="xref page" href="propertyFilter.html">property filters</a> embedded in column headers.</p>
+<p>You can filter data by individual columns using <a class="xref page" href="propertyFilter.html">property filters</a> embedded in column headers. Filterable columns display a funnel icon (<span class="image"><img alt="funnel" src="../../_images/visual-components/components/funnel.svg"/></span>) in their headers. Clicking the icon opens the filter dialog.</p>
 </div>
 <div class="paragraph">
-<p>Filterable columns display a funnel icon (<span class="image"><img alt="funnel" src="../../_images/visual-components/components/funnel.svg"/></span>) in their headers. Clicking the icon opens the filter dialog. Set the <code>filterable</code> attribute to <code>true</code> on a <code>column</code> element to enable filtering:</p>
+<p>Set the <code>filterable</code> attribute to <code>true</code> on the <code>columns</code> element to enable filtering for all columns mapped to entity properties. To enable or disable filtering for an individual column, set <code>filterable</code> on its <code>column</code> element. The setting on <code>column</code> takes precedence over the setting on <code>columns</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -930,7 +930,33 @@ You can configure a keyboard shortcut for applying column header filters. See <a
 </table>
 </div>
 <div class="paragraph">
-<p>Like standalone <code>propertyFilter</code> and <a class="xref page" href="genericFilter.html">genericFilter</a> components, column header filters add conditions to the <a class="xref page" href="../../data/data-loaders.html">data loader</a>. Their state can also be bound to the page URL using the <code>dataGridFilter</code> element of the <a class="xref page" href="../../facets/urlQueryParameters.html">urlQueryParameters</a> facet. In the standard data-loading flow, conditions are translated into JPQL and applied at the database level. Conditions from all filters are combined using logical <code>AND</code>.</p>
+<p>Like standalone <code>propertyFilter</code> and <a class="xref page" href="genericFilter.html">genericFilter</a> components, column header filters add conditions to the <a class="xref page" href="../../data/data-loaders.html">data loader</a>. In the standard data-loading flow, conditions are translated into JPQL and applied at the database level. Conditions from all filters are combined using logical <code>AND</code>.</p>
+</div>
+<div class="admonitionblock tip" id="url-query-parameter-binding">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can preserve the applied column header filters in the URL by adding the <code>dataGridFilter</code> element to the <a class="xref page" href="../../facets/urlQueryParameters.html#dataGridFilter">urlQueryParameters</a> facet.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Header filters add their conditions to the data loader condition, so the rules from <a class="xref page" href="../../data/data-loaders.html#filter-components-and-loader-condition">Filter Components and the Loader Condition</a> apply. In particular, do not replace the loader condition programmatically after the view is initialized. Otherwise, the header filter conditions may be excluded from the query while the columns still appear filtered.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -1052,7 +1078,7 @@ protected void onCustomersDataGridGreetingActionPerformed(ActionPerformedEvent e
         &lt;item action="customersDataGrid.greeting" icon="COMMENT"/&gt;
         &lt;separator/&gt;
         &lt;item id="customerItem"/&gt;
-        &lt;item action="customersDataGrid.getInfo" icon="INFO_CIRCLE_O"/&gt;
+        &lt;item action="customersDataGrid.getInfo" icon="INFO_CIRCLE"/&gt;
     &lt;/contextMenu&gt;
     &lt;actions showInContextMenuEnabled="false"&gt;
         &lt;action id="create" type="list_create"&gt;
@@ -1067,7 +1093,7 @@ protected void onCustomersDataGridGreetingActionPerformed(ActionPerformedEvent e
         &lt;/action&gt;
         &lt;action id="remove" type="list_remove"/&gt;
         &lt;action id="greeting" type="list_itemTracking" icon="COMMENT" text="Greeting"/&gt;
-        &lt;action id="getInfo" type="list_itemTracking" icon="INFO_CIRCLE_O" text="Get info"/&gt;
+        &lt;action id="getInfo" type="list_itemTracking" icon="INFO_CIRCLE" text="Get info"/&gt;
     &lt;/actions&gt;
     &lt;columns&gt;
         &lt;column property="name"/&gt;
@@ -1153,7 +1179,7 @@ protected Component getMessageDialogContent(Customer customer) {
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Declaratively in XML</strong>: use predefined renderers such as <code>numberRenderer</code>, <code>localDateRenderer</code>, <code>localDateTimeRenderer</code>, <code>detailLinkRenderer</code>, and <code>detailButtonRenderer</code> inside a <code>column</code> element.</p>
+<p><strong>Declaratively in XML</strong>: use predefined renderers such as <code>numberRenderer</code>, <code>localDateRenderer</code>, <code>localDateTimeRenderer</code>, <code>detailLinkRenderer</code>, <code>detailButtonRenderer</code>, and <code>popoverRenderer</code> inside a <code>column</code> element.</p>
 </li>
 <li>
 <p><strong>Using <code>@Supply</code> annotation</strong>: provide a custom renderer from the view controller.</p>
@@ -1360,6 +1386,90 @@ public void onInit(InitEvent event) {
 </div>
 </div>
 <div class="sect2">
+<h3 id="popover-renderer"><a class="anchor" href="#popover-renderer"></a>Popover Renderer</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>Renders the value of the column property as text that is cut with an ellipsis if it does not fit in the cell. When the user clicks the cell, a popover shows the full text. Use this renderer for long text attributes, such as descriptions and comments.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img alt="Popover renderer" src="../../_images/visual-components/components/data-grid-popover-renderer.png" width="957"/>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dataGrid id="hobbiesDataGrid" width="100%" dataContainer="hobbiesDc"&gt;
+    &lt;columns&gt;
+        &lt;column property="name" width="10em" flexGrow="0"/&gt;
+        &lt;column property="description"&gt;
+            &lt;popoverRenderer position="TOP_START"
+                             classNames="hobby-description"/&gt;
+        &lt;/column&gt;
+    &lt;/columns&gt;
+&lt;/dataGrid&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Supported attributes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>position</code> sets the popover position relative to the cell. Use one of the <code>PopoverPosition</code> values, for example <code>BOTTOM_START</code> (default), <code>TOP_START</code>, or <code>END</code>.</p>
+</li>
+<li>
+<p><code>classNames</code> adds class names to the cell and to the popover.</p>
+</li>
+<li>
+<p><code>css</code> sets inline CSS declarations for the cell. They are not applied to the popover.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In XML, the renderer takes the text from the column <code>property</code>, so the column must have this attribute. If the property value is empty, the cell is empty.</p>
+</div>
+<div class="paragraph">
+<p>The popover is not a child of the cell, so CSS selectors for the cell do not reach it. To style the popover of a particular column, use the class names from the <code>classNames</code> attribute. The size of the popover is limited by the <code>--jmix-popover-renderer-max-width</code> (<code>30rem</code> by default) and <code>--jmix-popover-renderer-max-height</code> (<code>20rem</code> by default) CSS custom properties. If the text is longer, the user can scroll it in the popover. The following CSS changes the popover size for the example above:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-css hljs" data-lang="css">.jmix-popover-renderer-popover.hobby-description {
+    --jmix-popover-renderer-max-width: 40rem;
+    --jmix-popover-renderer-max-height: 15rem;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The built-in styles use the <code>jmix-popover-renderer-button</code> class name for the cell, <code>jmix-popover-renderer-popover</code> for the popover, and <code>jmix-popover-renderer-content</code> for the text in the popover.</p>
+</div>
+<div class="paragraph">
+<p>For Java configuration, create <code>PopoverRenderer</code> with a function that returns the text for an item. The text does not have to be a property value, so the renderer also works in columns with <code>key</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;column key="details" header="Details"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Supply(to = "hobbiesKeyDataGrid.details", subject = "renderer")
+private Renderer&lt;Hobby&gt; hobbiesKeyDataGridDetailsRenderer() {
+    return new PopoverRenderer&lt;Hobby&gt;(hobby -&gt;
+            hobby.getDescription() == null
+                    ? null
+                    : hobby.getName() + ": " + hobby.getDescription())
+            .withPosition(PopoverPosition.END)
+            .withClassNames("hobby-description");
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>withPosition()</code>, <code>withClassNames()</code>, and <code>withCss()</code> methods match the XML attributes. To show a different component in the cell, pass a function that creates it as the second constructor argument.</p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="text-renderer"><a class="anchor" href="#text-renderer"></a>Text Renderer</h3>
 <div class="paragraph">
 <p>Renders plain text provided from Java code.</p>
@@ -1448,24 +1558,25 @@ protected Renderer&lt;Customer&gt; statusComponentRenderer() {
     return new ComponentRenderer&lt;&gt;(this::createGradeComponent, this::gradeComponentUpdater);
 }
 
-protected Span createGradeComponent() {
-    Span span = uiComponents.create(Span.class);
-    span.getElement().getThemeList().add("badge");
-
-    return span;
+protected Badge createGradeComponent() {
+    return uiComponents.create(Badge.class);
 }
 
-protected void gradeComponentUpdater(Span span, Customer customer) {
-    if (customer.getGrade() != null) {
-        span.setText(messages.getMessage(CustomerGrade.class, customer.getGrade().name()));
+protected void gradeComponentUpdater(Badge badge, Customer customer) {
+    badge.getElement().getThemeList().clear();
 
-        switch (customer.getGrade()) {
-            case STANDARD -&gt; span.getElement().getThemeList().add("contrast");
-            case HIGH -&gt; span.getElement().getThemeList().add("success");
-            case PREMIUM -&gt; span.getElement().getThemeList().add("primary");
-        }
-    } else {
-        span.setText("No data");
+    CustomerGrade grade = customer.getGrade();
+    if (grade == null) {
+        badge.setText("No data");
+        return;
+    }
+
+    badge.setText(messages.getMessage(CustomerGrade.class, grade.name()));
+
+    if (grade == CustomerGrade.HIGH) {
+        badge.addThemeVariants(BadgeVariant.SUCCESS);
+    } else if (grade == CustomerGrade.PREMIUM) {
+        badge.addThemeVariants(BadgeVariant.FILLED);
     }
 }</code></pre>
 </div>
@@ -1747,7 +1858,7 @@ protected Renderer&lt;User&gt; fullNameUsersDataGridFullNameRenderer() {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
-public Messages messages;
+private Messages messages;
 
 @Override
 public String aggregate(Collection&lt;CustomerGrade&gt; propertyValues) {
@@ -2189,7 +2300,7 @@ Setting this element overrides any empty state text defined using the <code>setE
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#exclude">exclude</a> - <a href="#headerFilterApplyShortcut">headerFilterApplyShortcut</a> - <a href="#includeAll">includeAll</a> - <a href="#resizable-columns">resizable</a> - <a href="#sortable-columns">sortable</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#exclude">exclude</a> - <a href="#filterable-columns">filterable</a> - <a href="#headerFilterApplyShortcut">headerFilterApplyShortcut</a> - <a href="#includeAll">includeAll</a> - <a href="#resizable-columns">resizable</a> - <a href="#sortable-columns">sortable</a></p></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
@@ -2216,8 +2327,13 @@ Setting this element overrides any empty state text defined using the <code>setE
 <td class="tableblock halign-left valign-top"><p class="tableblock">–</p></td>
 </tr>
 <tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="filterable-columns"></a>filterable</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, columns mapped to entity properties are filterable by default. The <code>filterable</code> attribute of an individual <code>column</code> takes precedence. See <a href="#column-filtering">Column Header Filtering</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="headerFilterApplyShortcut"></a>headerFilterApplyShortcut</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the keyboard shortcut for applying column header filters. For example: <code>CONTROL-ENTER</code>. Overrides the <a class="xref page" href="../../ui-properties.html#jmix.ui.component.data-grid-header-filter-apply-shortcut">global setting</a>. See <a href="#column-filtering">Column Headers Filtering</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the keyboard shortcut for applying column header filters. For example: <code>CONTROL-ENTER</code>. Overrides the <a class="xref page" href="../../ui-properties.html#jmix.ui.component.data-grid-header-filter-apply-shortcut">global setting</a>. See <a href="#column-filtering">Column Header Filtering</a>.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">–</p></td>
 </tr>
 <tr>
@@ -2255,7 +2371,7 @@ Setting this element overrides any empty state text defined using the <code>setE
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock">Attributes</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#autowidth">autowidth</a> - <a href="#editable">editable</a> - <a href="#filterable">filterable</a> - <a href="#flexGrow">flexGrow</a> - <a href="#footer">footer</a> - <a href="#frozen">frozen</a> - <a href="#header">header</a> - <a href="#key">key</a> - <a href="#property">property</a> - <a href="#resizable-column">resizable</a> - <a href="#sortable-column">sortable</a> - <a href="#textAlign">textAlign</a> - <a href="#visible">visible</a> - <a href="#width">width</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#autowidth">autowidth</a> - <a href="#editable">editable</a> - <a href="#filterable">filterable</a> - <a href="#flexGrow">flexGrow</a> - <a href="#footer">footer</a> - <a href="#frozen">frozen</a> - <a href="#frozenToEnd">frozenToEnd</a> - <a href="#header">header</a> - <a href="#key">key</a> - <a href="#property">property</a> - <a href="#resizable-column">resizable</a> - <a href="#sortable-column">sortable</a> - <a href="#textAlign">textAlign</a> - <a href="#visible">visible</a> - <a href="#width">width</a></p></td>
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock">Handlers</p></th>
@@ -2263,7 +2379,7 @@ Setting this element overrides any empty state text defined using the <code>setE
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock">Elements</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#aggregating">Aggregation</a> - <a class="xref page" href="../miscellaneous/renderers.html#fragment-renderer">FragmentRenderer</a> - <a href="#local-date-renderer">LocalDateRenderer</a> - <a href="#local-date-time-renderer">LocalDateTimeRenderer</a> - <a href="#number-renderer">NumberRenderer</a> - <a href="#detail-link-renderer">DetailLinkRenderer</a> - <a href="#detail-button-renderer">DetailButtonRenderer</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#aggregating">Aggregation</a> - <a class="xref page" href="../miscellaneous/renderers.html#fragment-renderer">FragmentRenderer</a> - <a href="#local-date-renderer">LocalDateRenderer</a> - <a href="#local-date-time-renderer">LocalDateTimeRenderer</a> - <a href="#number-renderer">NumberRenderer</a> - <a href="#detail-link-renderer">DetailLinkRenderer</a> - <a href="#detail-button-renderer">DetailButtonRenderer</a> - <a href="#popover-renderer">PopoverRenderer</a></p></td>
 </tr>
 </tbody>
 </table>
@@ -2311,6 +2427,11 @@ Setting this element overrides any empty state text defined using the <code>setE
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
 </tr>
 <tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock"><a id="frozenToEnd"></a>frozenToEnd</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, freezes (locks in place) the column at the end of the data grid, so that it remains visible as the user scrolls the table horizontally. It’s generally recommended to freeze columns from right to left. See <a href="https://demo.jmix.io/ui-samples/sample/data-grid-frozen-column" rel="noopener" target="_blank">live demo</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="header"></a>header</p></th>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Sets the column header text. The attribute value can either be the text itself or a key in the <a class="xref page" href="../../../localization/message-bundles.html">message bundle</a>. In case of a key, the value should begin with the <code>msg://</code> prefix.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">–</p></td>
@@ -2348,7 +2469,7 @@ Setting this element overrides any empty state text defined using the <code>setE
 </tr>
 <tr>
 <th class="tableblock halign-left valign-top"><p class="tableblock"><a id="width"></a>width</p></th>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the width of the column as a CSS string.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the width of the column as a CSS string using units such as <code>px</code>, <code>%</code>, <code>rem</code>, or <code>em</code>. Prefer <code>rem</code> over <code>em</code> for font-relative widths because differences between header, body, and footer font sizes can cause misalignment.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">–</p></td>
 </tr>
 </tbody>

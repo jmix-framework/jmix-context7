@@ -8,43 +8,120 @@
 <body>
 <article class="doc">
 <h1 class="page">History</h1>
+<div id="preamble">
+<div class="sectionbody">
 <div class="paragraph">
-<p>History is the component that captures what happened during process execution and stores it permanently.
-In contrast to the runtime data,
-the history data will remain present in the DB also after process instances have completed.</p>
+<p>History captures what happens during process execution and stores it permanently.
+Unlike runtime data, history data stays in the database after process instances complete.</p>
 </div>
 <div class="paragraph">
-<p>There are six history entities:</p>
+<p>The process engine stores history in six entities:</p>
 </div>
 <div class="ulist" id="historic-process-instances">
 <ul>
 <li>
-<p><strong>Historic Process Instances</strong> — containing information about current and past process instances.</p>
+<p><strong>Historic Process Instances</strong> — current and past process instances.</p>
 </li>
 <li>
-<p><strong>Historic Variable Instances</strong> — containing the latest value of a process variable or task variable.</p>
+<p><strong>Historic Variable Instances</strong> — the latest value of each process or task variable.</p>
 </li>
 <li>
-<p><strong>Historic Activity Instances</strong> — containing information about a single execution of an activity (node in the process).</p>
+<p><strong>Historic Activity Instances</strong> — single executions of activities (nodes in the process).</p>
 </li>
 <li>
-<p><strong>Historic Task Instances</strong> — containing information about current and past (completed and deleted) task instances.</p>
+<p><strong>Historic Task Instances</strong> — current and past (completed and deleted) task instances.</p>
 </li>
 <li>
-<p><strong>Historic Identity Links</strong> — containing information about current and past identity links on tasks and process instances.</p>
+<p><strong>Historic Identity Links</strong> — current and past identity links of tasks and process instances.</p>
 </li>
 <li>
-<p><strong>Historic Details</strong> — containing various kinds of information related to either a historic process instances, an activity instance or a task instance.</p>
+<p><strong>Historic Details</strong> — additional information about a historic process instance, activity instance, or task instance, such as variable changes.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Since the database contains historic entities for past as well as ongoing instances,
-you might want to consider querying these tables
-to minimize access to the runtime process instance data and that way keeping the runtime execution performant.</p>
+<p>Historic entities cover both ongoing and completed instances.
+To keep process execution fast, consider querying historic entities instead of runtime data where possible, for example, for reporting and monitoring.
+The available data depends on the <a href="#history-levels">history level</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="history-levels"><a class="anchor" href="#history-levels"></a>History Levels</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The history level defines which history entities the process engine stores:</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 14.2857%;"/>
+<col style="width: 85.7143%;"/>
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Level</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stored entities</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>none</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">None.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>instance</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Historic process instances.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>task</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Historic process instances and task instances.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>activity</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Historic process instances, activity instances, and variable instances.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>audit</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Historic process instances, task instances, activity instances, variable instances, and identity links. This is the default level.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>full</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All entities stored by <code>audit</code>, plus historic details with every change of variable values. This level produces a lot of data.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>To set the level for the whole process engine, use the <code>flowable.history-level</code> <a href="https://www.flowable.com/open-source/docs/bpmn/ch05a-Spring-Boot#flowable-application-properties" rel="noopener" target="_blank">application property</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">flowable.history-level=activity</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To set the level for a specific process, use the <strong>History level</strong> <a class="xref page" href="bpmn/bpmn-process.html#properties">process property</a> in the <a class="xref page" href="menu-views/modeler-web.html">Modeler</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To ignore the history levels of specific processes and always use the history level of the process engine, set the following application property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">flowable.process.enable-process-definition-history-level=false</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>For details, see <a href="https://www.flowable.com/open-source/docs/bpmn/ch10-History" rel="noopener" target="_blank">Flowable documentation</a>.</p>
+</div>
+</div>
 </div>
 
 </article>

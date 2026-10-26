@@ -1409,6 +1409,150 @@ private UUID id;</code></pre>
 </div>
 </div>
 <div class="sect2">
+<h3 id="lookup-field"><a class="anchor" href="#lookup-field"></a>@LookupField</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p><code>@LookupField</code> annotation defines the UI component that the framework generates for selecting a reference to an entity. It affects only the fields that the framework creates at runtime: parameters of <a class="xref page" href="../flow-ui/vc/components/genericFilter.html">genericFilter</a> and <a class="xref page" href="../flow-ui/vc/components/propertyFilter.html">propertyFilter</a>, editable <a class="xref page" href="../flow-ui/vc/components/dataGrid.html">dataGrid</a> cells, and fields of <a class="xref page" href="../flow-ui/views/view-templates.html">runtime view templates</a>. Components that you define in a view descriptor are not affected.</p>
+</div>
+<div class="paragraph">
+<p>You can put the annotation on an entity class or on a reference attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>On an entity class, it applies to every reference to this entity. Subclasses inherit it.</p>
+</li>
+<li>
+<p>On a reference attribute, it applies only to this attribute.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The annotation has the following parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>type</code> – the component to generate:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>LookupType.DROPDOWN</code> – an <a class="xref page" href="../flow-ui/vc/components/entityComboBox.html">entityComboBox</a> that shows a drop-down list of instances.</p>
+</li>
+<li>
+<p><code>LookupType.VIEW</code> – an <a class="xref page" href="../flow-ui/vc/components/entityPicker.html">entityPicker</a> that opens a lookup view.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>actions</code> – optional ids of <a class="xref page" href="../flow-ui/actions/entity-picker-actions.html">entity picker actions</a> to add to the component, for example <code>entity_lookup</code>, <code>entity_open</code>, <code>entity_clear</code>. If not set, the component gets the default actions.</p>
+</li>
+<li>
+<p><code>itemsQuery</code> – optional <code>@LookupItemsQuery</code> annotation that defines how to load the drop-down items for the <code>DROPDOWN</code> type.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If <code>itemsQuery</code> is not set, a <code>DROPDOWN</code> component loads all instances of the entity at once. Use this only for small entities, such as reference tables of cities or categories. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@LookupField(type = LookupType.DROPDOWN)
+@JmixEntity
+@Table(name = "CITY")
+@Entity
+public class City {
+    // ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For larger entities, set <code>itemsQuery</code> to load the items in pages while the user types. You can do it in one of two ways.</p>
+</div>
+<div class="paragraph">
+<p>The first way is to search by the instance name. Set <code>byInstanceName = true</code>, and the component finds the instances whose <a href="#instance-name">instance name</a> attributes of the <code>String</code> type contain the entered text, ignoring case. This works with any data store, including <a href="#dto">DTO entities</a> in custom data stores. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@LookupField(type = LookupType.DROPDOWN,
+        itemsQuery = @LookupItemsQuery(byInstanceName = true))
+@JoinColumn(name = "HR_MANAGER_ID")
+@ManyToOne(fetch = FetchType.LAZY)
+private User hrManager;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The second way is to define a JPQL query. The query must contain the <code>:searchString</code> parameter, which receives the entered text. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@LookupField(type = LookupType.DROPDOWN,
+        actions = {"entity_lookup", "entity_clear"},
+        itemsQuery = @LookupItemsQuery(
+                query = "select e from Department e where e.name like :searchString escape '\\' order by e.name",
+                searchStringFormat = "(?i)%${inputString}%",
+                escapeValueForLike = true))
+@JoinColumn(name = "PARENT_DEPARTMENT_ID")
+@ManyToOne(fetch = FetchType.LAZY)
+private Department parentDepartment;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>@LookupItemsQuery</code> annotation has the following parameters:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>byInstanceName</code></dt>
+<dd>
+<p>If <code>true</code>, the items are found by the instance name. If you also set <code>query</code>, the query is used.</p>
+</dd>
+<dt class="hdlist1"><code>query</code></dt>
+<dd>
+<p>A JPQL query with the <code>:searchString</code> parameter.</p>
+</dd>
+<dt class="hdlist1"><code>searchStringFormat</code></dt>
+<dd>
+<p>A format of the <code>:searchString</code> parameter value. The <code>${inputString}</code> placeholder is replaced with the entered text, for example <code>(?i)%${inputString}%</code>. Applies only to <code>query</code>.</p>
+</dd>
+<dt class="hdlist1"><code>escapeValueForLike</code></dt>
+<dd>
+<p>If <code>true</code>, special characters in the entered text are escaped for the <code>like</code> operator. The query must then contain the <code>escape '\'</code> clause. Applies only to <code>query</code>.</p>
+</dd>
+<dt class="hdlist1"><code>fetchPlan</code></dt>
+<dd>
+<p>The name of a fetch plan of the referenced entity to load the items with. With <code>byInstanceName</code>, the default is <code>_instance_name</code>.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>The items are loaded through <code>DataManager</code>, so <a class="xref page" href="../security/row-level-roles.html">row-level roles</a> apply to them.</p>
+</div>
+<div class="paragraph">
+<p>If several settings exist for the same reference, the framework uses the first one found in this order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>@LookupField</code> on the reference attribute.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../flow-ui/ui-properties.html#jmix.ui.component.entity-field-fqn">jmix.ui.component.entity-field-fqn</a> and <a class="xref page" href="../flow-ui/ui-properties.html#jmix.ui.component.entity-field-actions">jmix.ui.component.entity-field-actions</a> application properties.</p>
+</li>
+<li>
+<p><code>@LookupField</code> on the referenced entity class.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The application properties take precedence over the annotation on the class, so you can change the component for an entity that comes from an add-on.</p>
+</div>
+<div class="paragraph">
+<p>If the configuration is invalid, the framework does not throw an exception. It logs a warning, ignores the invalid settings and creates a component that still works.</p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="number-format"><a class="anchor" href="#number-format"></a>@NumberFormat</h3>
 <div class="paragraph">
 <p>Specifies a format for an attribute of the <code>Number</code> type (it can be <code>BigDecimal</code>, <code>Integer</code>, <code>Long</code>, or <code>Double</code>). Values of such attribute will be formatted and parsed throughout the UI according to the provided annotation parameters:</p>

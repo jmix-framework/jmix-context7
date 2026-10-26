@@ -14,7 +14,7 @@
 <p>Dynamic Model can generate UI views for dynamic entities and add the corresponding menu items, so that a runtime-defined entity becomes immediately usable in the application’s UI without writing any Java or XML. It can also override existing views of static entities, which is the way to display dynamic attributes that you have added to those entities.</p>
 </div>
 <div class="paragraph">
-<p>Views are declared per entity in the model, under the entity’s <code>views</code> list. See <a class="xref page" href="yaml-reference.html">YAML Reference</a> for the full list of view fields, and <a class="xref page" href="defining-model.html">Defining the Model</a> for how the data model itself is defined.</p>
+<p>Views are declared per entity in the model, under the entity’s <code>views</code> list. See <a class="xref page" href="yaml-reference.html">YAML Reference</a> for the full list of view fields, and <a class="xref page" href="defining-model.html">Defining the Model</a> for how the data model itself is defined. To add behavior to views, see <a class="xref page" href="handlers.html">UI Handlers</a>.</p>
 </div>
 </div>
 </div>
@@ -22,7 +22,7 @@
 <h2 id="dynamic-entity-views"><a class="anchor" href="#dynamic-entity-views"></a>Views for Dynamic Entities</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A dynamic entity has no views of its own until you declare them. To make it visible and editable in the UI, add at least a list view, a detail view, or both. Each view has a <code>type</code> of either <code>list</code> or <code>detail</code>, and from these declarations the framework generates the UI views automatically — no descriptor XML is required.</p>
+<p>A dynamic entity has no views of its own until you declare them. To make it visible and editable in the UI, add at least a list view, a detail view, or both. Each view has a <code>type</code> of <code>list</code>, <code>detail</code>, or <code>read</code>, and from these declarations the framework generates the UI views automatically — no descriptor XML is required.</p>
 </div>
 <div class="paragraph">
 <p>The example below declares a <code>list</code> view for the <code>LoyaltyLevel</code> dynamic entity. The surrounding model also declares a <code>detail</code> view for the same entity, so the entity can be both browsed and edited:</p>
@@ -45,6 +45,7 @@
     menuItem:
       parentMenu: "application"
       insertBefore: "Customer.list"
+      icon: "vaadin:star"
       title:
         en: "Loyalty levels"
       resourceRoles:
@@ -73,6 +74,18 @@
 <div class="paragraph">
 <p>Supplying the descriptor as literal XML is the way to define an arbitrary layout that the default template cannot express — for example, custom components, grouping, or additional actions. The XML must be a valid UI view descriptor; a list view descriptor must contain the lookup component (<code>dataGrid</code> by default) and a detail view descriptor must contain the edited entity container (<code>entityDc</code> by default). See <a class="xref page" href="yaml-reference.html#views">the views reference</a> for the exact rules and defaults.</p>
 </div>
+<div class="sect2">
+<h3 id="generate-xml"><a class="anchor" href="#generate-xml"></a>Generating XML from a Template</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>To get a custom layout without writing the XML from scratch, generate it from the template and then edit it. In the view dialog, open the <strong>Descriptor</strong> tab and click <strong>Generate XML</strong>. The framework renders the selected template, or the default one, for the current state of the entity, puts the result into the descriptor source, and switches the descriptor type to source. If the source already has content, you are asked to confirm that it will be replaced.</p>
+</div>
+<div class="paragraph">
+<p>The XML is generated from the edited model, so you can do it before the model is applied. Entities and attributes that you added since the last apply are included. Template parameters such as <code>excludeProperties</code> are taken into account.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -91,6 +104,9 @@
 </li>
 <li>
 <p><code>title</code> — the menu item caption, as a localized value. When omitted, the view title is used.</p>
+</li>
+<li>
+<p><code>icon</code> (since Jmix 3.1) — the icon of the menu item, for example <code>vaadin:star</code>. In the view dialog, you can select an icon from a list or type its ID. If the icon cannot be found, the menu item is shown without an icon.</p>
 </li>
 <li>
 <p><code>resourceRoles</code> — the role codes whose holders can see and use the menu item.</p>
@@ -128,6 +144,9 @@
 </div>
 <div class="paragraph">
 <p>For static entity view overrides, only <code>descriptor.source</code> is supported — the template, route, title, and menu fields used for dynamic entity views are not allowed here. The override changes only the view’s descriptor: the generated controller subclasses the existing one, so the original route and the view’s existing behavior are preserved.</p>
+</div>
+<div class="paragraph">
+<p>A static entity view declaration can also contain <a class="xref page" href="handlers.html">handlers</a>. If you only need to add behavior to an existing view, declare the handlers without a <code>descriptor</code>. The XML of the view is not changed in this case.</p>
 </div>
 </div>
 </div>

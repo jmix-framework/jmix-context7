@@ -25,7 +25,7 @@ bar-series-simple.xml
             <charts:tooltip trigger="AXIS">
                 <charts:axisPointer type="SHADOW"/>
             </charts:tooltip>
-            <charts:legend/>
+            <charts:legend top="0"/>
 
             <charts:xAxes>
                 <charts:xAxis/>

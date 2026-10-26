@@ -175,20 +175,22 @@ The component cannot be created using the <code>UiComponents</code> bean, as it 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">protected static final String SRC_PATH = "META-INF/resources/html/html-component.html";
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">private static final String SRC_PATH = "META-INF/resources/html/html-component.html";
 
 @ViewComponent
-protected JmixTabSheet tabSheet;
+private JmixTabSheet tabSheet;
 
 @Autowired
-protected Resources resources;
+private Resources resources;
 
 @Subscribe
-protected void onInit(InitEvent event) {
-    InputStream resourceAsStream = resources.getResourceAsStream(SRC_PATH);
-
-    Html html = new Html(resourceAsStream);
-    tabSheet.add("Programmatically added component", html);
+public void onInit(InitEvent event) {
+    try (InputStream resourceAsStream = resources.getResourceAsStream(SRC_PATH)) {
+        Html html = new Html(resourceAsStream);
+        tabSheet.add("Programmatically added component", html);
+    } catch (IOException e) {
+        throw new UncheckedIOException(e);
+    }
 }</code></pre>
 </div>
 </div>

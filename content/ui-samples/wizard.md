@@ -1,6 +1,20 @@
 <Path>Cookbook > Other recipes > Wizard</Path>
 
-Wizard is a component for step-by-step data filling. This example demonstrates the wizard for creating the Employee entity (see Employee.java). The wizard opens in the dialog by clicking the button and consists of three steps: Filling in basic information about the employee Filling in the address Checking the entered information Each step is associated with data, information about which is stored in the main view WizardDialog. The first two steps have fields that will be validated when moving to the next step. The user can switch between steps at any time (if the data at the current step is correct) using the corresponding buttons, which change their behavior and state depending on the current step. The wizard is based on the tabSheet component. The steps are implemented as separate tabs. The content of each tab is implemented as a fragment. Useful links: Composite Component – implementation of the AddressComponent component, which is used in the second step Fragments – a composite component, which is used to create steps
+The sample shows a wizard, a dialog that guides the user through data entry step by step. The wizard creates an `Employee` entity (see `Employee.java`) and has three steps:
+
+- basic information about the employee;
+- address;
+- confirmation of the entered data.
+
+Each step is a `fragment`. The fragments declare the data containers of `WizardDialog` with `provided="true"` and bind their components to them in XML, so all steps work with the same `Employee` instance. The fields on the first two steps are validated before the wizard moves to the next step. The **Back** and **Next** buttons switch steps, and a click on a finished step returns to it.
+
+The wizard is based on the `tabSheet` component, and each step is a tab. `WizardDialog` enables the tabs of the current and finished steps and disables the next ones. Based on this state, `wizard-dialog.css` turns the tabs into a step indicator: the selected tab is the current step, other enabled tabs are finished steps. The styles hide the tab background, connect the steps with lines, and highlight the finished and current steps with the accent color.
+
+Useful links:
+
+- [Composite Component]({contextPath}/sample/composite-component): the `AddressComponent` used on the second step;
+- [Fragments]({contextPath}/sample/fragments): fragments that implement the steps.
+
 
 wizard.xml
 
@@ -18,10 +32,11 @@ WizardSample.java
 package io.jmix.uisamples.view.flowui.cookbook.wizard;
 
 import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Fragments;
+import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.view.StandardView;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewController;
@@ -40,6 +55,8 @@ public class WizardSample extends StandardView {
     private DialogWindows dialogWindows;
     @Autowired
     private Fragments fragments;
+    @Autowired
+    private Icons icons;
 
     @Subscribe(id = "button", subject = "clickListener")
     public void onButtonClick(final ClickEvent<JmixButton> event) {
@@ -52,15 +69,15 @@ public class WizardSample extends StandardView {
 
     private void wizardConfigurer(WizardDialog wizardDialog) {
         wizardDialog.addStep(
-                        new WizardStep<>(VaadinIcon.USER_CARD.create(), "Employee information",
+                        new WizardStep(icons.get(JmixFontIcon.USER_CARD), "Employee information",
                                 fragments.create(wizardDialog, FirstStep.class))
                 )
                 .addStep(
-                        new WizardStep<>(VaadinIcon.BUILDING.create(), "Address",
+                        new WizardStep(icons.get(JmixFontIcon.BUILDING), "Address",
                                 fragments.create(wizardDialog, SecondStep.class))
                 )
                 .addStep(
-                        new WizardStep<>(VaadinIcon.CHECK_CIRCLE_O.create(), "Confirmation",
+                        new WizardStep(icons.get(JmixFontIcon.CHECK_CIRCLE), "Confirmation",
                                 fragments.create(wizardDialog, ThirdStep.class))
                 );
     }
@@ -75,21 +92,17 @@ package io.jmix.uisamples.view.flowui.cookbook.wizard;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.ThemableLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.component.validation.ValidationErrors;
+import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.view.*;
 import io.jmix.uisamples.entity.Employee;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.function.Supplier;
 
 @ViewController("wizard-dialog")
 @ViewDescriptor("wizard-dialog.xml")
@@ -107,40 +120,38 @@ public class WizardDialog extends StandardDetailView<Employee> {
 
     @Autowired
     private ViewValidation viewValidation;
-
-    private int tabsCount;
+    @Autowired
+    private Icons icons;
 
     @Subscribe
     public void onBeforeShow(final BeforeShowEvent event) {
-        if (tabsCount == 0) {
+        if (wizardContent.getTabCount() == 0) {
             throw new IllegalStateException("No steps added");
         }
 
-        wizardContent.getTabAt(0).setEnabled(true);
         wizardContent.setSelectedIndex(0);
 
+        updateStepsState();
         updateControlsState();
     }
 
-    public WizardDialog addStep(WizardStep<?> step) {
-        Tab tab = createTab(step, ++tabsCount);
-        tab.setEnabled(false);
-        step.content().setupData(getViewData());
-        wizardContent.add(tab, step.content());
+    public WizardDialog addStep(WizardStep step) {
+        wizardContent.add(createTab(step), step.content());
+
+        updateStepsState();
+        updateControlsState();
         return this;
     }
 
     @Subscribe("wizardContent")
     public void onWizardContentSelectedChange(final JmixTabSheet.SelectedChangeEvent event) {
+        updateStepsState();
         updateControlsState();
     }
 
     @Subscribe(id = "backButton", subject = "clickListener")
     public void onBackButtonClick(final ClickEvent<JmixButton> event) {
-        wizardContent.getSelectedTab().setEnabled(false);
-        int selectedIndex = wizardContent.getSelectedIndex();
-        wizardContent.getTabAt(--selectedIndex).setEnabled(true);
-        wizardContent.setSelectedIndex(selectedIndex);
+        wizardContent.setSelectedIndex(wizardContent.getSelectedIndex() - 1);
     }
 
     @Subscribe(id = "nextButton", subject = "clickListener")
@@ -153,13 +164,19 @@ public class WizardDialog extends StandardDetailView<Employee> {
         ValidationErrors validationErrors = validateCurrentStep();
 
         if (validationErrors.isEmpty()) {
-            wizardContent.getSelectedTab().setEnabled(false);
-            int selectedIndex = wizardContent.getSelectedIndex();
-            wizardContent.getTabAt(++selectedIndex).setEnabled(true);
-            wizardContent.setSelectedIndex(selectedIndex);
+            int nextIndex = wizardContent.getSelectedIndex() + 1;
+            wizardContent.getTabAt(nextIndex).setEnabled(true);
+            wizardContent.setSelectedIndex(nextIndex);
         } else {
             viewValidation.focusProblemComponent(validationErrors);
             viewValidation.showValidationErrors(validationErrors);
+        }
+    }
+
+    private void updateStepsState() {
+        int selectedIndex = wizardContent.getSelectedIndex();
+        for (int i = 0; i < wizardContent.getTabCount(); i++) {
+            wizardContent.getTabAt(i).setEnabled(i <= selectedIndex);
         }
     }
 
@@ -168,48 +185,27 @@ public class WizardDialog extends StandardDetailView<Employee> {
 
         if (isLastTabSelected()) {
             nextButton.setText("Complete");
-            nextButton.setIcon(VaadinIcon.CHECK.create());
+            nextButton.setIcon(icons.get(JmixFontIcon.CHECK));
             nextButton.addThemeVariants(ButtonVariant.PRIMARY);
         } else {
             nextButton.setText("Next");
-            nextButton.setIcon(VaadinIcon.ARROW_CIRCLE_RIGHT_O.create());
+            nextButton.setIcon(icons.get(JmixFontIcon.ARROW_CIRCLE_RIGHT));
             nextButton.removeThemeVariants(ButtonVariant.PRIMARY);
         }
     }
 
     private boolean isLastTabSelected() {
-        return wizardContent.getSelectedIndex() == tabsCount - 1;
+        return wizardContent.getSelectedIndex() == wizardContent.getTabCount() - 1;
     }
 
     private ValidationErrors validateCurrentStep() {
         return viewValidation.validateUiComponents(wizardContent.getContentByTab(wizardContent.getSelectedTab()));
     }
 
-    private Tab createTab(WizardStep<?> step, int index) {
-        VerticalLayout layout = createLayout(VerticalLayout::new);
-        layout.setAlignItems(FlexComponent.Alignment.CENTER);
-        layout.addClassName("tab-container");
-
-        HorizontalLayout horizontalLayout = createLayout(HorizontalLayout::new);
-        horizontalLayout.addClassName("label-container");
-
-        Span label = new Span("Step #" + index);
-        label.addClassName("label");
-        horizontalLayout.add(step.icon(), label);
-
-        Span text = new Span(step.text());
-        text.addClassNames("sublabel");
-
-        layout.add(horizontalLayout, text);
-
-        return new Tab(layout);
-    }
-
-    private <T extends ThemableLayout & FlexComponent> T createLayout(Supplier<T> factory) {
-        T layout = factory.get();
-        layout.setPadding(false);
-        layout.setSpacing(false);
-        return layout;
+    private Tab createTab(WizardStep step) {
+        Div stepContent = new Div(step.icon(), new Span(step.text()));
+        stepContent.addClassName("wizard-step");
+        return new Tab(stepContent);
     }
 }
 
@@ -229,11 +225,10 @@ wizard-dialog.xml
         </instance>
     </data>
     <layout classNames="wizard-dialog">
-        <tabSheet id="wizardContent" themeNames="equal-width-tabs"
-                  width="100%" height="100%"/>
+        <tabSheet id="wizardContent" themeNames="minimal" width="100%" height="100%"/>
         <hbox width="100%" justifyContent="END">
-            <button id="backButton" text="Back" icon="ARROW_CIRCLE_LEFT_O"/>
-            <button id="nextButton" text="Next" icon="ARROW_CIRCLE_RIGHT_O" iconAfterText="true"/>
+            <button id="backButton" text="Back" icon="ARROW_CIRCLE_LEFT"/>
+            <button id="nextButton" text="Next" icon="ARROW_CIRCLE_RIGHT" iconAfterText="true"/>
         </hbox>
     </layout>
 </view>
@@ -246,9 +241,9 @@ WizardStep.java
 package io.jmix.uisamples.view.flowui.cookbook.wizard;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.icon.Icon;
+import io.jmix.flowui.fragment.Fragment;
 
-public record WizardStep<T extends Component & WizardStepFragment>(Icon icon, String text, T content) {
+public record WizardStep(Component icon, String text, Fragment<?> content) {
 }
 
 
@@ -257,35 +252,63 @@ public record WizardStep<T extends Component & WizardStepFragment>(Icon icon, St
 wizard-dialog.css
 
 
-.wizard-dialog .tab-container {
-    line-height: var(--aura-line-height-m);
+.wizard-dialog vaadin-tabs {
+    --vaadin-tabs-background: transparent;
 }
 
-.wizard-dialog .label-container {
-    gap: var(--vaadin-gap-xs);
+.wizard-dialog vaadin-tab {
+    --vaadin-tab-background: transparent;
+    flex: 1 1 0;
+    opacity: 1;
+    cursor: default;
 }
 
-.wizard-dialog .label {
-    font-size: var(--aura-font-size-s);
+.wizard-dialog vaadin-tab[selected] {
+    border-color: transparent;
+    box-shadow: none;
 }
 
-.wizard-dialog .sublabel {
-    font-size: var(--aura-font-size-s);
+.wizard-dialog vaadin-tab:not([disabled], [selected]) {
+    cursor: var(--vaadin-clickable-cursor);
+}
+
+.wizard-dialog vaadin-tab:last-of-type {
+    flex: none;
+}
+
+.wizard-dialog .wizard-step {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
     color: var(--vaadin-text-color-secondary);
 }
 
+.wizard-dialog .wizard-step::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: var(--vaadin-border-color);
+}
 
+.wizard-dialog vaadin-tab:last-of-type .wizard-step::after {
+    display: none;
+}
 
+.wizard-dialog vaadin-tab:not([disabled]) .wizard-step {
+    color: var(--vaadin-text-color);
+}
 
-WizardStepFragment.java
+.wizard-dialog vaadin-tab:not([disabled]) vaadin-icon {
+    color: var(--aura-accent-color);
+}
 
-package io.jmix.uisamples.view.flowui.cookbook.wizard;
+.wizard-dialog vaadin-tab:not([disabled], [selected]) .wizard-step::after {
+    background-color: var(--aura-accent-color);
+}
 
-import io.jmix.flowui.model.ViewData;
-
-public interface WizardStepFragment {
-
-    void setupData(ViewData viewData);
+.wizard-dialog vaadin-tab:not([disabled], [selected]):hover .wizard-step {
+    color: var(--aura-accent-text-color);
 }
 
 
@@ -295,44 +318,12 @@ FirstStep.java
 
 package io.jmix.uisamples.view.flowui.cookbook.wizard.step;
 
-import com.vaadin.flow.component.Component;
-import io.jmix.flowui.component.ComponentContainer;
 import io.jmix.flowui.component.formlayout.JmixFormLayout;
-import io.jmix.flowui.data.SupportsValueSource;
-import io.jmix.flowui.data.value.ContainerValueSource;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
-import io.jmix.flowui.fragment.FragmentUtils;
-import io.jmix.flowui.model.ViewData;
-import io.jmix.uisamples.view.flowui.cookbook.wizard.WizardStepFragment;
-
-import java.util.Collection;
-import java.util.Optional;
 
 @FragmentDescriptor("first-step.xml")
-public class FirstStep extends Fragment<JmixFormLayout>
-        implements WizardStepFragment, ComponentContainer {
-
-    public void setupData(ViewData viewData) {
-        getOwnComponents().forEach(component -> {
-            if (component instanceof SupportsValueSource<?> valueSourceComponent) {
-                valueSourceComponent.setValueSource(
-                        new ContainerValueSource<>(viewData.getContainer("employeeDc"),
-                                FragmentUtils.getComponentId(component).orElseThrow())
-                );
-            }
-        });
-    }
-
-    @Override
-    public Optional<Component> findOwnComponent(String id) {
-        return getContent().findOwnComponent(id);
-    }
-
-    @Override
-    public Collection<Component> getOwnComponents() {
-        return getContent().getOwnComponents();
-    }
+public class FirstStep extends Fragment<JmixFormLayout> {
 }
 
 
@@ -341,12 +332,15 @@ public class FirstStep extends Fragment<JmixFormLayout>
 first-step.xml
 
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <data>
+        <instance id="employeeDc" class="io.jmix.uisamples.entity.Employee" provided="true"/>
+    </data>
     <content>
-        <formLayout>
-            <textField id="firstName" label="First name"/>
-            <textField id="lastName" label="Last name"/>
-            <emailField id="email" label="Email"/>
-            <textField id="department" label="Department"/>
+        <formLayout dataContainer="employeeDc">
+            <textField id="firstNameField" property="firstName"/>
+            <textField id="lastNameField" property="lastName"/>
+            <emailField id="emailField" property="email"/>
+            <textField id="departmentField" property="department"/>
         </formLayout>
     </content>
 </fragment>
@@ -358,34 +352,28 @@ SecondStep.java
 
 package io.jmix.uisamples.view.flowui.cookbook.wizard.step;
 
-import com.vaadin.flow.component.Component;
-import io.jmix.flowui.component.ComponentContainer;
 import io.jmix.flowui.fragment.Fragment;
-import io.jmix.flowui.model.ViewData;
+import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.uisamples.component.addresscomponent.AddressComponent;
-import io.jmix.uisamples.view.flowui.cookbook.wizard.WizardStepFragment;
 
-import java.util.Collection;
-import java.util.Optional;
-
-public class SecondStep extends Fragment<AddressComponent>
-        implements WizardStepFragment, ComponentContainer {
-
-    @Override
-    public void setupData(ViewData viewData) {
-        getContent().setDataContainer(viewData.getContainer("addressDc"));
-    }
-
-    @Override
-    public Optional<Component> findOwnComponent(String id) {
-        return getContent().getContent().findOwnComponent(id);
-    }
-
-    @Override
-    public Collection<Component> getOwnComponents() {
-        return getContent().getContent().getOwnComponents();
-    }
+@FragmentDescriptor("second-step.xml")
+public class SecondStep extends Fragment<AddressComponent> {
 }
+
+
+
+
+second-step.xml
+
+<fragment xmlns="http://jmix.io/schema/flowui/fragment"
+          xmlns:address="http://io.jmix.uisamples/address-component.xsd">
+    <data>
+        <instance id="addressDc" class="io.jmix.uisamples.entity.Address" provided="true"/>
+    </data>
+    <content>
+        <address:address id="addressComponent" dataContainer="addressDc"/>
+    </content>
+</fragment>
 
 
 
@@ -499,56 +487,110 @@ public class AddressComponent extends Composite<JmixFormLayout> implements Compo
 
 
 
+address-component.xsd
+
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns="http://io.jmix.uisamples/address-component.xsd"
+           elementFormDefault="qualified"
+           targetNamespace="http://io.jmix.uisamples/address-component.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:layout="http://jmix.io/schema/flowui/layout">
+
+    <xs:element name="address">
+        <xs:complexType>
+            <xs:complexContent>
+                <xs:extension base="layout:baseComponent">
+                    <xs:attribute name="dataContainer" type="xs:string"/>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
+
+
+
+AddressComponentLoader.java
+
+package io.jmix.uisamples.component.addresscomponent;
+
+import io.jmix.flowui.exception.GuiDevelopmentException;
+import io.jmix.flowui.model.InstanceContainer;
+import io.jmix.flowui.xml.layout.loader.AbstractComponentLoader;
+import io.jmix.uisamples.entity.Address;
+import org.dom4j.Element;
+
+public class AddressComponentLoader extends AbstractComponentLoader<AddressComponent> {
+
+    @Override
+    protected AddressComponent createComponent() {
+        return factory.create(AddressComponent.class);
+    }
+
+    @Override
+    public void loadComponent() {
+        loadDataContainer(resultComponent, element);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected void loadDataContainer(AddressComponent resultComponent, Element element) {
+        String dataContainerIsNullErrorMessage = String.format(
+                "%s doesn't have data binding. Set dataContainer attribute.",
+                resultComponent.getClass().getSimpleName()
+        );
+        String containerId = loadString(element, "dataContainer")
+                .orElseThrow(() -> new GuiDevelopmentException(dataContainerIsNullErrorMessage, context));
+
+        InstanceContainer container = getContext().getDataHolder().getContainer(containerId);
+        if (!Address.class.isAssignableFrom(container.getEntityMetaClass().getJavaClass())) {
+            String improperDataBindingMessage = String.format(
+                    "%s have improper data binding. The value for the " +
+                            "dataContainer attribute should be associated with the Address embeddable entity.",
+                    resultComponent.getClass().getSimpleName());
+            throw new GuiDevelopmentException(improperDataBindingMessage, context);
+        }
+
+        resultComponent.setDataContainer(container);
+    }
+}
+
+
+
+
+AddressComponentRegistration.java
+
+package io.jmix.uisamples.view.flowui.customcomponents.composite;
+
+import io.jmix.flowui.sys.registration.ComponentRegistration;
+import io.jmix.flowui.sys.registration.ComponentRegistrationBuilder;
+import io.jmix.uisamples.component.addresscomponent.AddressComponent;
+import io.jmix.uisamples.component.addresscomponent.AddressComponentLoader;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class AddressComponentRegistration {
+
+    @Bean
+    public ComponentRegistration address() {
+        return ComponentRegistrationBuilder.create(AddressComponent.class)
+                .withComponentLoader("address", AddressComponentLoader.class)
+                .build();
+    }
+}
+
+
+
+
 ThirdStep.java
 
 package io.jmix.uisamples.view.flowui.cookbook.wizard.step;
 
-import com.vaadin.flow.component.HtmlContainer;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import io.jmix.flowui.data.binding.HtmlContainerReadonlyDataBinding;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
-import io.jmix.flowui.fragment.FragmentUtils;
-import io.jmix.flowui.model.InstanceContainer;
-import io.jmix.flowui.model.ViewData;
-import io.jmix.flowui.view.ViewComponent;
-import io.jmix.uisamples.entity.Employee;
-import io.jmix.uisamples.view.flowui.cookbook.wizard.WizardStepFragment;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @FragmentDescriptor("third-step.xml")
-public class ThirdStep extends Fragment<VerticalLayout> implements WizardStepFragment {
-
-    @Autowired
-    private HtmlContainerReadonlyDataBinding htmlDataBinding;
-
-    @ViewComponent
-    private Div employeeData;
-    @ViewComponent
-    private Div addressData;
-
-    @Override
-    public void setupData(ViewData viewData) {
-        InstanceContainer<Employee> employeeDc = viewData.getContainer("employeeDc");
-        InstanceContainer<Employee> addressDc = viewData.getContainer("addressDc");
-
-        bindChildData(employeeData, employeeDc);
-        bindChildData(addressData, addressDc);
-    }
-
-    private void bindChildData(Div div, InstanceContainer<?> dataContainer) {
-        div.getChildren().forEach(component -> {
-            if (component instanceof HtmlContainer htmlContainer) {
-                FragmentUtils.getComponentId(htmlContainer)
-                        .ifPresent(id -> bindHtmlContainer(htmlContainer, id, dataContainer));
-            }
-        });
-    }
-
-    private void bindHtmlContainer(HtmlContainer htmlContainer, String id, InstanceContainer<?> dataContainer) {
-        htmlDataBinding.bind(htmlContainer, dataContainer, id);
-    }
+public class ThirdStep extends Fragment<VerticalLayout> {
 }
 
 
@@ -557,7 +599,7 @@ public class ThirdStep extends Fragment<VerticalLayout> implements WizardStepFra
 third-step.css
 
 
-.third-step .reminded {
+.third-step .reminder {
     color: var(--vaadin-text-color-secondary);
 }
 
@@ -578,31 +620,35 @@ third-step.css
 third-step.xml
 
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <data>
+        <instance id="employeeDc" class="io.jmix.uisamples.entity.Employee" provided="true"/>
+        <instance id="addressDc" class="io.jmix.uisamples.entity.Address" provided="true"/>
+    </data>
     <content>
         <vbox padding="false" spacing="false" classNames="third-step">
             <h4 text="Employee information confirmation"/>
             <span text="Please check the information before saving" classNames="reminder"/>
             <hr width="100%"/>
-            <div id="employeeData" classNames="grid-container">
+            <div classNames="grid-container">
                 <span text="First name:" classNames="bold"/>
-                <span id="firstName"/>
-                <span text="Last name" classNames="bold"/>
-                <span id="lastName"/>
+                <span dataContainer="employeeDc" property="firstName"/>
+                <span text="Last name:" classNames="bold"/>
+                <span dataContainer="employeeDc" property="lastName"/>
                 <span text="Email:" classNames="bold"/>
-                <span id="email"/>
+                <span dataContainer="employeeDc" property="email"/>
                 <span text="Department:" classNames="bold"/>
-                <span id="department"/>
+                <span dataContainer="employeeDc" property="department"/>
             </div>
             <hr width="100%"/>
-            <div id="addressData" classNames="grid-container">
+            <div classNames="grid-container">
                 <span text="Zip:" classNames="bold"/>
-                <span id="zip"/>
+                <span dataContainer="addressDc" property="zip"/>
                 <span text="Country:" classNames="bold"/>
-                <span id="country"/>
+                <span dataContainer="addressDc" property="country"/>
                 <span text="City:" classNames="bold"/>
-                <span id="city"/>
+                <span dataContainer="addressDc" property="city"/>
                 <span text="Address Line:" classNames="bold"/>
-                <span id="addressLine"/>
+                <span dataContainer="addressDc" property="addressLine"/>
             </div>
         </vbox>
     </content>

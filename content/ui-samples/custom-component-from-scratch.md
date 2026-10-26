@@ -77,7 +77,7 @@ public class ThemeToggleUsage extends StandardView {
     }
 
     protected String getThemeValue(ThemeToggle.ThemeToggleThemeChangedEvent event) {
-        return event.getValue().isEmpty() ? "Light" : "Dark";
+        return "dark".equals(event.getValue()) ? "Dark" : "Light";
     }
 }
 
@@ -128,7 +128,7 @@ public class ThemeToggle extends Component implements ClickNotifier<ThemeToggle>
     }
 
     private Icon getDefaultIcon() {
-        Icon icon = VaadinIcon.ADJUST.create();
+        Icon icon = VaadinIcon.CONTRAST.create();
         icon.getElement().getStyle().set("rotate", "180deg");
         return icon;
     }
@@ -363,7 +363,7 @@ export class ThemeToggle extends Button {
 
             storageKey: {
                 type: String,
-                value: 'jmix.flowui.theme',
+                value: 'jmix.app.theme',
                 observer: '_onStorageKeyChanged'
             }
         };
@@ -374,7 +374,11 @@ export class ThemeToggle extends Button {
 
         this.addEventListener('click', () => this.toggleTheme());
         this.addEventListener('click', () => {
-            const customEvent = new CustomEvent('theme-changed', {detail: {value: this.getCurrentTheme()}});
+            const customEvent = new CustomEvent('theme-changed', {
+                detail: {value: this.getCurrentTheme()},
+                bubbles: true,
+                composed: true
+            });
             this.dispatchEvent(customEvent);
         });
     }
@@ -404,11 +408,12 @@ export class ThemeToggle extends Button {
 
     toggleTheme() {
         const theme = this.getCurrentTheme();
-        this.applyTheme(theme === "dark" ? "" : "dark");
+        this.applyTheme(theme === "dark" ? "light" : "dark");
     }
 
     applyTheme(theme) {
         document.documentElement.setAttribute("theme", theme);
+        document.documentElement.style.colorScheme = theme;
         localStorage.setItem(this.storageKey, theme);
     }
 

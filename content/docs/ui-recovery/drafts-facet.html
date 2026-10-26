@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drafts Facet :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Drafts Facet</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>drafts</code> facet saves unsaved changes of a view as a draft and offers to restore the draft when the user opens the view again. See <a class="xref page" href="index.html#how-it-works">How It Works</a> for an overview.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-facet"><a class="anchor" href="#adding-facet"></a>Adding the Facet</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Declare the add-on namespace in the view descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:uirec="http://jmix.io/schema/uirecovery/ui"
+      title="msg://OrderDetailView.title"
+      focusComponent="form"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then add the <code>uirec:drafts</code> element to the <code>facets</code> element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+    &lt;uirec:drafts id="draftsFacet"/&gt;
+&lt;/facets&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In Jmix Studio, you can add the facet from the <strong>Facets</strong> section of the component palette.</p>
+</div>
+<div class="paragraph">
+<p>The facet works in any view that has a <a class="xref page" href="../flow-ui/data/data-context.html">DataContext</a> and saves the changes registered in it. In a detail view, the draft belongs to the edited record. In other views, for example in a list view with an editable data grid, the view has one draft.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can view and edit facet attributes in Jmix Studio using the <strong>Jmix UI</strong> inspector panel.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="attributes"><a class="anchor" href="#attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can change the behavior of the facet in a particular view with the following attributes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;facets&gt;
+    &lt;dataLoadCoordinator auto="true"/&gt;
+    &lt;uirec:drafts id="draftsFacet" restoreMode="AUTO" minSaveInterval="10s"/&gt;
+&lt;/facets&gt;</code></pre>
+</div>
+</div>
+<div class="dlist" id="minSaveInterval">
+<dl>
+<dt class="hdlist1"><code>minSaveInterval</code></dt>
+<dd>
+<p>The minimum time between two saves of the draft of the view, for example <code>5s</code> or <code>1m</code>. Changes made during this time are saved when the interval ends. The default value is set by the <a class="xref page" href="app-properties.html#jmix.uirecovery.drafts.default-min-save-interval">jmix.uirecovery.drafts.default-min-save-interval</a> property.</p>
+</dd>
+</dl>
+</div>
+<div class="dlist" id="restoreMode">
+<dl>
+<dt class="hdlist1"><code>restoreMode</code></dt>
+<dd>
+<p>How a draft is restored when the view is opened: <code>ASK</code> or <code>AUTO</code>. See <a href="#restore-modes">Restore Modes</a>. The default value is set by the <a class="xref page" href="app-properties.html#jmix.uirecovery.drafts.default-restore-mode">jmix.uirecovery.drafts.default-restore-mode</a> property.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="saving-and-deleting"><a class="anchor" href="#saving-and-deleting"></a>Saving and Deleting Drafts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The facet saves a draft after the user changes data in the view, but not more often than <a href="#minSaveInterval">minSaveInterval</a> allows. When the view is detached, for example because the user closed the browser tab, the facet saves the remaining changes at once.</p>
+</div>
+<div class="paragraph">
+<p>The facet deletes the draft when:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The user saves the changes.</p>
+</li>
+<li>
+<p>The user closes the view and confirms that the changes should be discarded.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If saving a draft fails, the error is written to the log and the view keeps working.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="saving-typed-values"><a class="anchor" href="#saving-typed-values"></a>Saving Typed Values</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, a text field sends its value to the server when the field loses focus or the user presses <strong>Enter</strong>. Until then, the typed value is not in the data model and cannot be saved in a draft. If the user types a long text into a single field, a failure can lose all of it.</p>
+</div>
+<div class="paragraph">
+<p>To send the value while the user types, set the <a class="xref page" href="../flow-ui/vc/common-attributes.html#valueChangeMode">valueChangeMode</a> attribute of the field to <code>LAZY</code> or <code>TIMEOUT</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;textArea id="commentField" property="comment" height="9.5em"
+          valueChangeMode="LAZY" valueChangeTimeout="1000"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the text area sends its value when the user stops typing for one second. The value is then saved in the next draft. Each sent value is a request to the server, so use this setting for fields where users type a lot of text.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="restore-modes"><a class="anchor" href="#restore-modes"></a>Restore Modes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When the view is opened and a draft is found for it, the facet restores the draft according to the <a href="#restoreMode">restore mode</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="ask-mode"><a class="anchor" href="#ask-mode"></a>ASK</h3>
+<div class="paragraph">
+<p>This is the default mode. The facet shows a dialog with the date of the draft:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="restore dialog" src="_images/restore-dialog.png" width="425"/>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Restore</strong> puts the changes from the draft into the view. The changes are not saved to the database until the user saves the view.</p>
+</li>
+<li>
+<p><strong>Discard</strong> deletes the draft.</p>
+</li>
+<li>
+<p><strong>Not now</strong> closes the dialog and keeps the draft. The dialog is shown again the next time the user opens the view.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the record was changed by another user after the draft was saved, the dialog warns that restoring the draft will overwrite those changes:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="restore dialog version differs" src="_images/restore-dialog-version-differs.png" width="560"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The warning is shown for entities with optimistic locking, that is entities with a version attribute.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="auto-mode"><a class="anchor" href="#auto-mode"></a>AUTO</h3>
+<div class="paragraph">
+<p>The facet restores the draft without asking and shows a notification. The draft is kept in the database until the user saves the view or discards the changes. If the work is interrupted again before that, the draft is still available.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="restoring-details"><a class="anchor" href="#restoring-details"></a>What Is Restored</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The facet restores only the attributes that the user changed. Other attributes keep their current values.</p>
+</div>
+<div class="paragraph">
+<p>The facet skips the parts of a draft that can no longer be applied and restores the rest. For example, it skips:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>An attribute that was removed from the entity in a new version of the application.</p>
+</li>
+<li>
+<p>A record that was deleted after the draft was saved.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the draft cannot be read at all, the facet deletes it and the view opens without restoring anything. The user is not notified. Details are written to the log.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="custom-restore"><a class="anchor" href="#custom-restore"></a>Custom Restore Logic</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To decide in code whether and how a draft is restored, set a restore delegate. The facet calls it before the standard restore. The delegate receives a <code>DraftRestoreContext</code> object with the found draft and the view. If the delegate calls <code>preventRestore()</code>, the facet does not restore the draft and does not show the dialog.</p>
+</div>
+<div class="paragraph">
+<p>In the following example, the view does not offer drafts older than one day and deletes them:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DraftsFacet draftsFacet;
+
+@Autowired
+private TimeSource timeSource;
+
+@Install(to = "draftsFacet", subject = "restoreDelegate")
+private void draftsFacetRestoreDelegate(final DraftRestoreContext context) {
+    OffsetDateTime draftDate = context.getDraft().getCreatedDate();
+    OffsetDateTime minDate = timeSource.now().toOffsetDateTime().minus(Duration.ofDays(1));
+    if (draftDate.isBefore(minDate)) {
+        context.preventRestore(); <i class="conum" data-value="1"></i><b>(1)</b>
+        draftsFacet.deleteDrafts(); <i class="conum" data-value="2"></i><b>(2)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The facet doesn’t restore the draft and doesn’t show the dialog.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Deletes the draft of the current view and record.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="draft-restored-event"><a class="anchor" href="#draft-restored-event"></a>DraftRestoredEvent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The facet sends <code>DraftRestoredEvent</code> after it restores a draft. The event is sent in both restore modes. At this moment, the restored values are in the view, so you can update the UI or check the data. Changes that you make in the event handler are saved in the next draft.</p>
+</div>
+<div class="paragraph">
+<p>The <code>getDraft()</code> method of the event returns the restored draft, and <code>getRestoredEntities()</code> returns the entity instances that were changed by restoring.</p>
+</div>
+<div class="paragraph">
+<p>The event is not sent if the user discarded the draft or postponed the decision, if the restore delegate prevented the restore, or if nothing from the draft could be restored.</p>
+</div>
+<div class="paragraph">
+<p>In the following example, the view validates the restored values and shows the validation errors:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private JmixFormLayout form;
+
+@Autowired
+private ViewValidation viewValidation;
+
+@Subscribe("draftsFacet")
+public void onDraftRestored(final DraftsFacet.DraftRestoredEvent event) {
+    ValidationErrors errors = viewValidation.validateUiComponents(form);
+    if (!errors.isEmpty()) {
+        viewValidation.showValidationErrors(errors);
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="methods"><a class="anchor" href="#methods"></a>Methods</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>DraftsFacet</code> interface has the following methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>saveDraftNow()</code> saves the draft immediately, without waiting for the <a href="#minSaveInterval">minSaveInterval</a>.</p>
+</li>
+<li>
+<p><code>deleteDrafts()</code> deletes the draft of the current view and record.</p>
+</li>
+<li>
+<p><code>setMinSaveInterval()</code> and <code>setRestoreMode()</code> change the values of the <a href="#attributes">attributes</a>.</p>
+</li>
+<li>
+<p><code>setRestoreDelegate()</code> sets the <a href="#custom-restore">restore delegate</a>.</p>
+</li>
+<li>
+<p><code>addDraftRestoredListener()</code> adds a <a href="#draft-restored-event">DraftRestoredEvent</a> listener.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

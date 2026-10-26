@@ -24,7 +24,7 @@ the engine performs a depth-first search through the process graph
 and will return once it has reached <a href="#waiting-states">waiting states</a> on every branch of execution.
 This is illustrated in the following picture:</p>
 </div>
-<div class="imageblock">
+<div class="imageblock light-background">
 <div class="content">
 <img alt="transactions 1" src="../_images/transactions/transactions-1.png" width="500"/>
 </div>
@@ -92,7 +92,7 @@ in order to be able to scope logical units of work.
 This is where <strong>asynchronous continuations</strong> come into play.
 Consider the following process (fragment):</p>
 </div>
-<div class="imageblock">
+<div class="imageblock light-background">
 <div class="content">
 <img alt="transactions 2" src="../_images/transactions/transactions-2.png" width="800"/>
 </div>
@@ -112,49 +112,67 @@ Behind the scenes, when we reach the "generate invoice" task, we are creating a 
 to continue the process later and persisting it into the database.
 This job is then picked up by the job executor and executed.</p>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
 <div class="paragraph">
-<p>To use this feature, set the <strong>Asynchronous</strong> property <code>true</code> for the corresponding element. This property is applicable to:</p>
+<p>To use this feature, set the <code>flowable:async</code> <a href="#asynchronous-execution-properties">attribute</a> of the element.
+In the modeler, select the <strong>Asynchronous</strong> checkbox in the element properties, for example, of a <a class="xref page" href="bpmn-service-task.html#properties">service task</a>.</p>
+</div>
+<div class="paragraph">
+<p>For details, see <a href="https://www.flowable.com/open-source/docs/bpmn/ch07b-BPMN-Constructs#asynchronous-continuations" rel="noopener" target="_blank">Asynchronous Continuations</a> in the Flowable documentation.</p>
+</div>
+<div class="sect2">
+<h3 id="asynchronous-execution-properties"><a class="anchor" href="#asynchronous-execution-properties"></a>Asynchronous Execution Properties</h3>
+<div class="paragraph">
+<p>The process engine supports the following attributes for activities, gateways, and events.
+In the modeler, you can set them in the <strong>Asynchronous execution</strong> section of the element properties:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a class="xref page" href="bpmn-service-task.html">Service Task</a></p>
+<p><strong>Asynchronous</strong> (<code>flowable:async</code>) — the process engine commits the current transaction before the element. Then the job executor executes the element and continues the process in a new transaction.</p>
 </li>
 <li>
-<p><a class="xref page" href="bpmn-script-task.html">Script Task</a></p>
+<p><strong>Exclusive</strong> (<code>flowable:exclusive</code>) — the job created for <strong>Asynchronous</strong> is <a href="#exclusive-jobs">exclusive</a>: the job executor doesn’t execute it concurrently with other exclusive jobs of the same process instance. Selected by default. Enabled only when <strong>Asynchronous</strong> is selected.</p>
 </li>
 <li>
-<p><a class="xref page" href="bpmn-business-rule-task.html">Business Rule Task</a></p>
+<p><strong>Asynchronous leave</strong> (<code>flowable:asyncLeave</code>) — the element is executed in the current transaction. The process engine commits the transaction before leaving the element. Then the job executor completes the element and continues the process in a new transaction.</p>
 </li>
 <li>
-<p><a class="xref page" href="jmix-email-task.html">Email Sending Task</a></p>
-</li>
-<li>
-<p><a class="xref page" href="bpmn-subprocesses.html#embedded-subprocess">Embedded subprocess</a></p>
-</li>
-<li>
-<p><a class="xref page" href="bpmn-subprocesses.html#call-activity">Call activity</a></p>
+<p><strong>Asynchronous leave exclusive</strong> (<code>flowable:asyncLeaveExclusive</code>) — the same as <strong>Exclusive</strong>, for the job created for <strong>Asynchronous leave</strong>. Selected by default. Enabled only when <strong>Asynchronous leave</strong> is selected.</p>
 </li>
 </ul>
 </div>
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
-<p>In the XML, it is presented by the attribute <code>flowable:async="true"</code>.</p>
+<p>For example, the following service task has both <code>flowable:async</code> and <code>flowable:asyncLeave</code>, so it is executed in its own transaction, separately from the preceding and following parts of the process:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="Activity_0pzv18b" name="Generate invoice"
- flowable:async="true" /&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="generateInvoiceTask" name="Generate invoice"
+    flowable:async="true"
+    flowable:asyncLeave="true" /&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="exclusive-jobs"><a class="anchor" href="#exclusive-jobs"></a>Exclusive Jobs</h3>
+<div class="paragraph">
+<p>By default, asynchronous jobs are exclusive: the job executor does not execute exclusive jobs of the same process instance concurrently.
+Jobs of different process instances are executed concurrently.</p>
+</div>
+<div class="paragraph">
+<p>To allow the job executor to execute a job concurrently with other jobs of the same process instance, set <code>flowable:exclusive</code> or <code>flowable:asyncLeaveExclusive</code> to <code>false</code>.
+For example, the following service task is on one of the parallel paths after a <a class="xref page" href="bpmn-gateways.html#parallel-gateway">parallel gateway</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;serviceTask id="reserveStockTask" name="Reserve stock"
+    flowable:async="true"
+    flowable:exclusive="false" /&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When parallel paths with non-exclusive jobs arrive at the joining gateway at the same time, one of the transactions can fail with an optimistic locking exception, and the job executor retries the failed job.
+So, make jobs non-exclusive only if the work of the element can be safely repeated.
+For details, see <a href="https://www.flowable.com/open-source/docs/bpmn/ch07b-BPMN-Constructs#exclusive-jobs" rel="noopener" target="_blank">Exclusive Jobs</a> in the Flowable documentation.</p>
 </div>
 </div>
 </div>

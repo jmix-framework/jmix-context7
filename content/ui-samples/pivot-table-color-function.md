@@ -121,7 +121,7 @@ public class TemperatureData {
     private UUID id;
 
     @Column(name = "TEMPERATURE", nullable = false)
-    private Integer temperature;
+    private Double temperature;
 
     @Column(name = "CITY", nullable = false)
     private String city;
@@ -137,11 +137,11 @@ public class TemperatureData {
         this.id = id;
     }
 
-    public Integer getTemperature() {
+    public Double getTemperature() {
         return temperature;
     }
 
-    public void setTemperature(Integer temperature) {
+    public void setTemperature(Double temperature) {
         this.temperature = temperature;
     }
 

@@ -1,16 +1,19 @@
 <Path>Components > Badge > Simple Badge</Path>
 
-badge is a special theme variant available to all HTML container components.
+`Badge` is a component for displaying a small piece of information – a status, a count or a label.
+
+Theme variants set the color: `success`, `warning` and `error`. Without a variant the badge uses the theme accent color.
+
+
 
 badge-simple.xml
 
 <view xmlns="http://jmix.io/schema/flowui/view">
     <layout classNames="horizontal-layout">
-        <span text="Pending" themeNames="badge normal"/>
-        <span text="Confirmed" themeNames="badge success"/>
-        <span text="Warning" themeNames="badge warning"/>
-        <span text="Denied" themeNames="badge error"/>
-        <span text="On hold" themeNames="badge contrast"/>
+        <badge id="pendingBadge" text="Pending"/>
+        <badge id="confirmedBadge" text="Confirmed" themeNames="success"/>
+        <badge id="warningBadge" text="Warning" themeNames="warning"/>
+        <badge id="deniedBadge" text="Denied" themeNames="error"/>
     </layout>
 </view>
 

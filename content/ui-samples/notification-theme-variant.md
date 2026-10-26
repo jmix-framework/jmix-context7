@@ -59,7 +59,7 @@ notification-theme-variant.xml
                     <comboBox id="themeVariantField" label="ThemeVariant" clearButtonVisible="true"/>
                     <comboBox id="typeField" label="Type" clearButtonVisible="true"/>
                 </formLayout>
-                <span text="Be attentive. Some of the settings overlap each other." themeNames="badge"/>
+                <badge text="Be attentive. Some of the settings overlap each other."/>
             </vbox>
         </details>
     </layout>

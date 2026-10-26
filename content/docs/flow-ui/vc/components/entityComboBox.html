@@ -283,15 +283,32 @@ If the expected number of items is large, such as thousands or more, or if makin
 </div>
 </div>
 <div class="paragraph">
+<p>A JPQL query specifies the items to load.</p>
+</div>
+<div class="paragraph">
 <p>The <code>pageSize</code> attribute defines the batch size when loading data from the database. It is 50 by default.</p>
 </div>
 <div class="paragraph">
-<p>Attributes in the <code>itemsQuery</code> provide control over the fetching process. They are as follows:
-    *  <code>class</code> – specifies a full qualified name of the entity class which instances will be fetched.
-    *  <code>searchStringFormat</code> – a string that contains a variable placeholder, which is subsequently replaced with an actual value.
-    * <code>escapeValueForLike</code> – specifies whether to search for values containing special symbols. By default, this value is <code>false</code>.
-    * <code>fetchPlan</code> – and optional descriptor of inline fetch plan.
-A JPQL query specifies the items to load.</p>
+<p>Attributes in the <code>itemsQuery</code> provide control over the fetching process. They are as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>class</code> – specifies a full qualified name of the entity class which instances will be fetched.</p>
+</li>
+<li>
+<p><code>searchStringFormat</code> – a string that contains a variable placeholder, which is subsequently replaced with an actual value.</p>
+</li>
+<li>
+<p><code>escapeValueForLike</code> – specifies whether to search for values containing special symbols. By default, this value is <code>false</code>.</p>
+</li>
+<li>
+<p><code>fetchPlan</code> – and optional descriptor of inline fetch plan.</p>
+</li>
+<li>
+<p><code>byInstanceName</code> – if <code>true</code>, the items are found by the instance name, and a JPQL query is not needed. See below.</p>
+</li>
+</ul>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -306,6 +323,26 @@ A JPQL query specifies the items to load.</p>
 </td>
 </tr>
 </table>
+</div>
+<div class="sect2">
+<h3 id="items-query-by-instance-name"><a class="anchor" href="#items-query-by-instance-name"></a>Query by Instance Name</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>To find items by the <a class="xref page" href="../../../data-model/entities.html#instance-name">instance name</a>, set the <code>byInstanceName</code> attribute to <code>true</code> and omit the query:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;entityComboBox metaClass="User"&gt;
+    &lt;itemsQuery class="com.company.onboarding.entity.User"
+                byInstanceName="true"/&gt;
+&lt;/entityComboBox&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The component finds the instances whose instance name attributes of the <code>String</code> type contain the entered text, ignoring case. This works with any data store, including DTO entities in custom data stores. The <code>searchStringFormat</code> and <code>escapeValueForLike</code> attributes are not used in this mode. The default fetch plan is <code>_instance_name</code>.</p>
+</div>
 </div>
 </div>
 </div>

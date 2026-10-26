@@ -16,7 +16,7 @@ scatter-series-simple.xml
     </facets>
     <layout>
         <charts:chart id="chart" width="100%" height="100%" minHeight="30em">
-            <charts:title text="Scatter chart"/>
+            <charts:title text="Scatter chart" left="0" top="0"/>
 
             <charts:axisPointer show="true" type="LINE"/>
 

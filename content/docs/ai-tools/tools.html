@@ -102,14 +102,14 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># Hide the User entity from the AI
-jmix.aitools.dataload.exclude-entities[0]=User
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"># Hide the Step entity from the AI
+jmix.aitools.dataload.exclude-entities[0]=Step
 # Default number of rows returned when a generated query does not specify one
 jmix.aitools.dataload.jpql-execution-max-result=50</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Inclusion and exclusion rules are evaluated per entity. The <code>exclude-<strong></strong></code> properties hide entities. The <code>include-</code> properties are additive and add entities to the default set, including entities hidden by default, such as framework or system-level entities. <code>exclude-entities</code> still takes precedence over any include. See <a class="xref page" href="properties.html#dataload">Data-load properties</a> for the full list of options, including how to cap the number of rows that a single query can return.</p>
+<p>Inclusion and exclusion rules are evaluated per entity. The <code>exclude-<strong></strong></code> properties hide entities. The <code>include-</code> properties are additive and add entities to the default set, including entities hidden by default, such as framework or system-level entities. <code>exclude-entities</code> still takes precedence over any include. Since Jmix 3.1, attributes that refer to a hidden entity are hidden too, for example, the <code>step</code> attribute of <code>UserStep</code> in the configuration above. To hide an entity or an attribute so that no property can expose it, use the <a href="#exclude-from-ai">@ExcludeFromAi</a> annotation. See <a class="xref page" href="properties.html#dataload">Data-load properties</a> for the full list of options, including how to cap the number of rows that a single query can return.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -119,6 +119,51 @@ jmix.aitools.dataload.jpql-execution-max-result=50</code></pre>
 </td>
 <td class="content">
 Filtering by configuration changes only which entities are offered to the model. Regardless of configuration, every query still runs under the current user’s <a class="xref page" href="../security/index.html">data access</a> permissions. A query over an entity the user cannot read is rejected, and attributes the user cannot read are removed from the result. A user can never read data they are not allowed to see.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="exclude-from-ai"><a class="anchor" href="#exclude-from-ai"></a>Excluding Data with @ExcludeFromAi</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>The <code>jmix.aitools.dataload.*</code> properties can be changed at deployment time, for example, by an environment variable. For data that the assistant must never see, such as credentials or personal data, use the <code>io.jmix.aitools.ExcludeFromAi</code> annotation. It is set in the entity code, and no property can override it. The annotation affects only the Data Load tools. Views, the REST API and other parts of the application work with the data as before.</p>
+</div>
+<div class="paragraph">
+<p>You can put the annotation on an entity class or on an attribute:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>On an entity class, it hides the whole entity. The Data Load tools do not return the entity, and validation rejects a generated query that uses it, as if the entity did not exist. Subclasses of the entity are hidden too, and queries over its ancestor entities do not return its records.</p>
+</li>
+<li>
+<p>On an attribute, it hides only this attribute. The Data Load tools do not return the attribute, validation rejects a generated query that uses it, and the returned rows never contain its value.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the following example, the assistant can load users but does not see their email addresses:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ExcludeFromAi
+@Email
+@Column(name = "EMAIL")
+protected String email;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The predefined Data Load tools and the <code>AvailableEntityService</code> bean apply the annotation. If <a href="#custom-tools">your own tool</a> loads data through <code>DataManager</code>, it can still return the hidden data to the model.
 </td>
 </tr>
 </table>

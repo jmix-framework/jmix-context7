@@ -10,7 +10,7 @@ funnel-alignment.xml
         <charts:chart id="chart" height="100%" width="100%" minHeight="30em">
             <charts:title text="Funnel Comapre" left="left" top="bottom"/>
             <charts:tooltip trigger="ITEM" formatter="{a} &lt;br/&gt;{b} : {c}%"/>
-            <charts:legend orientation="VERTICAL" left="left"/>
+            <charts:legend orientation="VERTICAL" left="left" top="0"/>
 
             <charts:series>
                 <charts:funnel name="Pyramid"

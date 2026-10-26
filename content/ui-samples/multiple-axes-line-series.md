@@ -20,7 +20,7 @@ multiple-axes-line-series.xml
             <charts:tooltip trigger="AXIS">
                 <charts:axisPointer type="CROSS"/>
             </charts:tooltip>
-            <charts:legend/>
+            <charts:legend top="0"/>
 
             <charts:xAxes>
                 <charts:xAxis/>

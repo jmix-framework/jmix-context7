@@ -8,7 +8,7 @@ donut-series.xml
       xmlns:charts="http://jmix.io/schema/charts/ui">
     <layout>
         <charts:chart id="chart" width="100%" height="100%" minHeight="30em">
-            <charts:title text="Donut chart"/>
+            <charts:title text="Donut chart" left="0" top="0"/>
             <charts:legend top="0"/>
             <charts:tooltip trigger="ITEM" formatter="{b}: {d}%"/>
 

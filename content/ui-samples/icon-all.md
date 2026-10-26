@@ -1,6 +1,9 @@
 <Path>Components > Icon > All icons</Path>
 
-All available icons that included in Vaadin and Lumo icon set.
+All available icons of the `Vaadin`, `Lumo` and `Jmix` icon sets.
+
+The `Jmix` set contains Jmix's own icons that are not in the Vaadin and Lumo sets: icons of standard actions, dialogs, filters and other components. These are font icons from the `JmixFontIcon` enum. In XML, an icon name without a prefix, e.g. `icon="CREATE_ACTION"`, refers to `JmixFontIcon`, and a name with a prefix, e.g. `icon="vaadin:plus"`, refers to the Vaadin or Lumo set. The glyph of each icon is defined by a CSS variable, e.g. `--jmix-font-icon-create-action`, so an icon can be replaced in the application theme.
+
 
 icon-all.xml
 
@@ -39,8 +42,10 @@ import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.radiobuttongroup.JmixRadioButtonGroup;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.theme.StyleUtility;
 import io.jmix.flowui.view.*;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @ViewController("icon-all")
@@ -89,6 +94,8 @@ public class IconAllSample extends StandardView {
             initVaadinIconSet(content, searchValue);
         } else if ("Lumo".equals(iconSetRadioButtonGroup.getValue())) {
             initLumoIconSet(content, searchValue);
+        } else if ("Jmix".equals(iconSetRadioButtonGroup.getValue())) {
+            initJmixIconSet(content, searchValue);
         }
 
         scroller.setContent(content);
@@ -114,12 +121,35 @@ public class IconAllSample extends StandardView {
         }
     }
 
+    protected void initJmixIconSet(HorizontalLayout content, String searchValue) {
+        for (JmixFontIcon icon : JmixFontIcon.values()) {
+            if (isVaadinOrLumoIcon(icon)) {
+                continue;
+            }
+
+            if (Strings.isNullOrEmpty(searchValue)) {
+                content.add(createIconInfo(icon.create(), icon.name(), null));
+            } else if (icon.name().toLowerCase().contains(searchValue.toLowerCase())) {
+                content.add(createIconInfo(icon.create(), icon.name(), null));
+            }
+        }
+    }
+
+    protected boolean isVaadinOrLumoIcon(JmixFontIcon icon) {
+        return EnumUtils.isValidEnum(VaadinIcon.class, icon.name())
+                || EnumUtils.isValidEnum(LumoIcon.class, icon.name());
+    }
+
     protected Component createIconInfo(IconFactory icon, String name) {
+        Icon vaadinIcon = icon.create();
+        return createIconInfo(vaadinIcon, name, vaadinIcon.getElement().getAttribute(ICON_ATTRIBUTE_NAME));
+    }
+
+    protected Component createIconInfo(Component icon, String name, String fqn) {
         Div div = uiComponents.create(Div.class);
         div.setClassName(ICON_INFO_CLASS_NAME);
 
-        Icon vaadinIcon = icon.create();
-        vaadinIcon.setClassName(ICON_SIZE_CLASS_NAME);
+        icon.addClassName(ICON_SIZE_CLASS_NAME);
 
         Div infoDiv = uiComponents.create(Div.class);
         infoDiv.setClassName(ICON_DESCRIPTION_CLASS_NAME);
@@ -127,19 +157,21 @@ public class IconAllSample extends StandardView {
         Span iconName = uiComponents.create(Span.class);
         iconName.setClassName(ICON_NAME_TEXT_CLASS_NAME);
         iconName.setText(name);
+        infoDiv.add(iconName);
 
-        Span iconFqn = uiComponents.create(Span.class);
-        iconFqn.setClassName(ICON_FQN_TEXT_CLASS_NAME);
-        iconFqn.setText(vaadinIcon.getElement().getAttribute(ICON_ATTRIBUTE_NAME));
+        if (fqn != null) {
+            Span iconFqn = uiComponents.create(Span.class);
+            iconFqn.setClassName(ICON_FQN_TEXT_CLASS_NAME);
+            iconFqn.setText(fqn);
+            infoDiv.add(iconFqn);
+        }
 
-        infoDiv.add(iconName, iconFqn);
-
-        div.add(vaadinIcon, infoDiv);
+        div.add(icon, infoDiv);
         return div;
     }
 
     protected void initIconSetRadioGroupButton() {
-        iconSetRadioButtonGroup.setItems("Vaadin", "Lumo");
+        iconSetRadioButtonGroup.setItems("Vaadin", "Lumo", "Jmix");
         iconSetRadioButtonGroup.setValue("Vaadin");
 
         iconSetRadioButtonGroup.addValueChangeListener(e -> doSearch());

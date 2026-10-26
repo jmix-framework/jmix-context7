@@ -299,7 +299,7 @@ import java.util.Collection;
 public class DataGridCustomerGradeAggregation implements AggregationStrategy<CustomerGrade, String> {
 
     @Autowired
-    public Messages messages;
+    private Messages messages;
 
     @Override
     public String aggregate(Collection<CustomerGrade> propertyValues) {

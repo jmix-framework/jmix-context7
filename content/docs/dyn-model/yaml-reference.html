@@ -58,6 +58,28 @@
 </tbody>
 </table>
 <div class="sect2">
+<h3 id="writing-yaml"><a class="anchor" href="#writing-yaml"></a>Writing YAML by Hand</h3>
+<div class="paragraph">
+<p>The visual editor always writes text values in quotes. If you edit the YAML in the <strong>Code</strong> presentation, the following rules apply:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A text value is read exactly as written, even without quotes. For example, <code>id: 007</code> is the text <code>007</code>, and <code>en: no</code> is the text <code>no</code>.</p>
+</li>
+<li>
+<p>Boolean fields, such as <code>lob</code>, <code>required</code>, <code>unique</code>, <code>instanceName</code> and <code>collection</code>, accept only <code>true</code> and <code>false</code>. Values like <code>yes</code>, <code>no</code>, <code>on</code>, <code>off</code>, <code>1</code> and <code>0</code> are rejected.</p>
+</li>
+<li>
+<p>In fields that contain any YAML values, such as <code>templateParams</code> and constraint <code>parameters</code>, numbers and <code>true</code>/<code>false</code> keep their types. <code>yes</code>, <code>no</code>, <code>on</code> and <code>off</code> are read as text.</p>
+</li>
+<li>
+<p>A duplicate key is rejected in any place of the model.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
 <h3 id="names-and-resolution"><a class="anchor" href="#names-and-resolution"></a>Names and Resolution</h3>
 <div class="paragraph">
 <p>Entity definitions are matched by Jmix entity name:</p>
@@ -431,7 +453,7 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>length</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">integer</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Length for strings, URI values, byte arrays, and string-ID enums.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length for strings, URI values, <code>FileRef</code> values, byte arrays, and string-ID enums.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>lob</code></p></td>
@@ -455,7 +477,7 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>instanceName</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Marks the attribute as an instance-name property. If several attributes are marked, the first one is used and later ones are ignored with a warning.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Marks the attribute as the instance name property. An entity can have one instance name attribute. If several attributes are marked, the first one is used and later ones are ignored with a warning. A calculated attribute can be the instance name.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>collection</code></p></td>
@@ -480,6 +502,18 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock">object</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Attribute view/modify grants.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lookup</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UI component for selecting a single-valued reference. See <a href="#lookup">Lookup Field</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>searchable</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Indexes the attribute for full-text search. Requires the Search add-on. See <a class="xref page" href="search.html">Full-Text Search</a>.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>messages</code></p></td>
@@ -516,6 +550,11 @@
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.net.URI</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>URI</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar(1024)</code>; <code>length</code> overrides size</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>io.jmix.core.FileRef</code> (since Jmix 3.1)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FileRef</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar(1024)</code>; <code>length</code> overrides size</p></td>
 </tr>
 <tr>
@@ -609,6 +648,9 @@
 <p>The serializer stores Java <code>Class#getName()</code> values. For a byte array this is <code>[B</code>; copy the serialized value if unsure.</p>
 </li>
 <li>
+<p>A <code>FileRef</code> value is stored as the result of <code>FileRef#toString()</code> and read back with <code>FileRef.fromString()</code>.</p>
+</li>
+<li>
 <p>Other Java classes are not supported by Dynamic Model storage unless DB type mapping is extended.</p>
 </li>
 </ul>
@@ -645,7 +687,7 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>char(32)</code></p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code>, <code>FileRef</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar(n)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar(n)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>varchar(n)</code></p></td>
@@ -712,6 +754,11 @@
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- name: "loyaltyLevel"
   entityName: "LoyaltyLevel"
+  lookup:
+    type: "DROPDOWN"
+    actions:
+      - "entity_lookup"
+      - "entity_clear"
   messages:
     en: "Loyalty level"</code></pre>
 </div>
@@ -734,6 +781,67 @@
 <p>Owner and target must be in the same physical store.</p>
 </li>
 </ul>
+</div>
+<div class="sect3">
+<h4 id="lookup"><a class="anchor" href="#lookup"></a>Lookup Field</h4>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>The <code>lookup</code> object sets the UI component that generated views use for a single-valued reference:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">lookup:
+  type: "DROPDOWN"
+  actions:
+    - "entity_lookup"
+    - "entity_clear"</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DROPDOWN</code> for an <code>entityComboBox</code> with items loaded by the instance name, or <code>VIEW</code> for an <code>entityPicker</code> that opens a lookup view.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>actions</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Field actions: <code>entity_lookup</code>, <code>entity_open</code>, <code>entity_clear</code>. Without actions, a <code>VIEW</code> field gets the lookup and clear actions.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>lookup</code> is supported only for single-valued references. It is rejected for datatype, enumeration, collection and calculated attributes.</p>
+</li>
+<li>
+<p>If the instance name of the referenced entity is not based on string attributes, a <code>DROPDOWN</code> field uses a lookup view instead.</p>
+</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -911,7 +1019,7 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>parameters</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">map</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">YAML scalar/list/object values. Parameter names depend on the constraint. Missing becomes an empty map.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">YAML scalar/list/object values. Parameter names depend on the constraint. Missing becomes an empty map. When the model is applied, <code>inclusive</code> must be a boolean, and <code>min</code>, <code>max</code>, <code>integer</code> and <code>fraction</code> must be numbers.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>groups</code></p></td>
@@ -1287,7 +1395,7 @@
 <h2 id="resource-roles"><a class="anchor" href="#resource-roles"></a>Resource Roles</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Dynamic <code>resourceRoles</code> declarations create additive resource policies at runtime. Omitted declarations do not grant access. Roles listed in <a class="xref page" href="app-properties.html#jmix.dynmodel.security.full-access-roles">jmix.dynmodel.security.full-access-roles</a> grant full access to all dynamic model resources; the default is <code>system-full-access</code>.</p>
+<p>Dynamic <code>resourceRoles</code> declarations create additive resource policies at runtime. Omitted declarations do not grant access. Roles listed in <a class="xref page" href="app-properties.html#jmix.dynmodel.security.full-access-roles">jmix.dynmodel.security.full-access-roles</a> grant full access to all dynamic model resources; the default is <code>system-full-access</code>. A role code also grants access to the users whose assigned role has this role as a base role. See <a class="xref page" href="defining-model.html#inherited-roles">Inherited Roles</a>.</p>
 </div>
 <div class="paragraph">
 <p>Role codes must be non-blank. Missing role codes are logged and do not grant access.</p>
@@ -1348,6 +1456,7 @@
     menuItem:
       parentMenu: "application"
       insertBefore: "Customer.list"
+      icon: "vaadin:star"
       title:
         en: "Loyalty levels"
       resourceRoles:
@@ -1383,6 +1492,7 @@
     menuItem:
       parentMenu: "application"
       insertBefore: "Customer.list"
+      icon: "vaadin:star"
       title:
         en: "Loyalty levels"
       resourceRoles:
@@ -1415,7 +1525,7 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>type</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">dynamic entities</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>list</code> or <code>detail</code>. Case-insensitive during deserialization. Required for dynamic entity views. Static entity views can infer it from the registered base view.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>list</code>, <code>detail</code> or <code>read</code>. Case-insensitive during deserialization. Required for dynamic entity views. Static entity views can infer it from the registered base view.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewId</code></p></td>
@@ -1427,7 +1537,7 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewRoute</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic entity route segment. Defaults to a slug made from <code>viewId</code>; detail views append <code>/:id</code>. Static entity views do not support this field.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic entity route segment. Defaults to a slug made from <code>viewId</code>; detail views append <code>/:id</code>, read views append <code>/:id/read</code>. Static entity views do not support this field.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewTitle</code></p></td>
@@ -1457,7 +1567,7 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>descriptor</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">object</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">static entities</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Descriptor declaration. Dynamic entity views can omit it to use the default template. Static entity views must provide <code>descriptor.source</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Descriptor declaration. Dynamic entity views can omit it to use the default template. Static entity views must provide <code>descriptor.source</code>, unless the declaration has <code>handlers</code>.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>lookupComponentId</code></p></td>
@@ -1471,17 +1581,29 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic detail view edited entity container ID. Default is <code>entityDc</code>. Static entity views do not support this field.</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>readEntityContainerId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic read view container ID of the shown entity. Default is <code>entityDc</code>. Takes effect only with a custom descriptor that declares a container with this ID. Static entity views do not support this field.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>handlers</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UI handlers of the view. See <a href="#handlers">Handlers</a>.</p></td>
+</tr>
 </tbody>
 </table>
 <div class="sect2">
-<h3 id="_dynamic_entity_views"><a class="anchor" href="#_dynamic_entity_views"></a>Dynamic Entity Views</h3>
+<h3 id="dynamic-entity-views"><a class="anchor" href="#dynamic-entity-views"></a>Dynamic Entity Views</h3>
 <div class="paragraph">
 <p>Rules:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>type</code> must be <code>list</code> or <code>detail</code>.</p>
+<p><code>type</code> must be <code>list</code>, <code>detail</code> or <code>read</code>.</p>
 </li>
 <li>
 <p><code>viewId</code> must be set explicitly and must be unique.</p>
@@ -1490,10 +1612,13 @@
 <p>If <code>viewRoute</code> is omitted, it is generated from <code>viewId</code> by lowercasing and replacing non-alphanumeric sequences with <code>-</code>.</p>
 </li>
 <li>
-<p>Detail routes automatically append <code>/:id</code>; therefore <code>viewRoute</code> itself must not end with <code>/:id</code>.</p>
+<p>Detail routes automatically append <code>/:id</code>; therefore <code>viewRoute</code> itself must not end with <code>/:id</code>. Read routes append <code>/:id/read</code>.</p>
 </li>
 <li>
 <p>The first declared list view becomes the primary list view for the dynamic entity. The first declared detail view becomes the primary detail view.</p>
+</li>
+<li>
+<p>A read view cannot have a <code>menuItem</code>.</p>
 </li>
 <li>
 <p><code>descriptor</code> may be omitted, use <code>template: "default"</code>, use a custom template resource path, or provide literal <code>source</code>.</p>
@@ -1518,7 +1643,10 @@
 <p><code>io/jmix/flowui/view/template/list-view.ftl</code> for list views;</p>
 </li>
 <li>
-<p><code>io/jmix/flowui/view/template/detail-template.ftl</code> for detail views.</p>
+<p><code>io/jmix/flowui/view/template/detail-view.ftl</code> for detail views;</p>
+</li>
+<li>
+<p><code>io/jmix/flowui/view/template/read-view.ftl</code> for read views.</p>
 </li>
 </ul>
 </div>
@@ -1534,7 +1662,7 @@
 </div>
 </div>
 <div class="sect2">
-<h3 id="_static_entity_view_overrides"><a class="anchor" href="#_static_entity_view_overrides"></a>Static Entity View Overrides</h3>
+<h3 id="static-entity-view-overrides"><a class="anchor" href="#static-entity-view-overrides"></a>Static Entity View Overrides</h3>
 <div class="paragraph">
 <p>Static entity view declarations override the XML descriptor of an already registered view:</p>
 </div>
@@ -1568,10 +1696,10 @@
 <p><code>type</code> may be omitted; it is inferred from the controller class.</p>
 </li>
 <li>
-<p>Only <code>descriptor.source</code> is supported.</p>
+<p>Only <code>descriptor.source</code> is supported. The <code>descriptor</code> can be omitted if the declaration has <code>handlers</code>; the view XML is not changed in this case.</p>
 </li>
 <li>
-<p><code>descriptor.template</code>, <code>viewRoute</code>, <code>viewTitle</code>, <code>templateParams</code>, <code>resourceRoles</code>, <code>menuItem</code>, <code>lookupComponentId</code>, and <code>editedEntityContainerId</code> are rejected.</p>
+<p><code>descriptor.template</code>, <code>viewRoute</code>, <code>viewTitle</code>, <code>templateParams</code>, <code>resourceRoles</code>, <code>menuItem</code>, <code>lookupComponentId</code>, <code>editedEntityContainerId</code>, and <code>readEntityContainerId</code> are rejected.</p>
 </li>
 <li>
 <p>The generated controller subclasses the current registered controller and preserves its route.</p>
@@ -1580,7 +1708,7 @@
 </div>
 </div>
 <div class="sect2">
-<h3 id="_descriptor"><a class="anchor" href="#_descriptor"></a>Descriptor</h3>
+<h3 id="descriptor"><a class="anchor" href="#descriptor"></a>Descriptor</h3>
 <div class="paragraph">
 <p><code>descriptor</code> must contain exactly one of:</p>
 </div>
@@ -1651,6 +1779,12 @@
 <td class="tableblock halign-left valign-top"><p class="tableblock">Defaults to the view title when omitted.</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>icon</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Icon ID, for example <code>vaadin:star</code>. If the icon cannot be found, the menu item is shown without an icon.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>resourceRoles</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">list</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
@@ -1659,8 +1793,72 @@
 </tbody>
 </table>
 <div class="paragraph">
-<p>Detail view menu items receive the route parameter <code>id=new</code>.</p>
+<p>Detail view menu items receive the route parameter <code>id=new</code>. Read views cannot have menu items.</p>
 </div>
+</div>
+<div class="sect2">
+<h3 id="handlers"><a class="anchor" href="#handlers"></a>Handlers</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>UI handlers are declared under <code>entities[].views[].handlers</code>. See <a class="xref page" href="handlers.html">UI Handlers</a> for the events and the objects that expressions can use.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">handlers:
+  - event: "initEntity"
+    expression: "entity.name = 'New level'"
+  - event: "valueChange"
+    componentId: "discountField"
+    expression: "components.setRequired('descriptionField', event.value != null)"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Handler fields:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Required</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Handler name, unique in the view. Required if <code>event</code> is omitted.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>event</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">no</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>click</code>, <code>valueChange</code>, <code>init</code>, <code>initEntity</code>, <code>beforeShow</code> or <code>ready</code>. A handler without an event runs only when a confirmation dialog calls it by name.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>componentId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">for component events</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ID of the component. Required for <code>click</code> and <code>valueChange</code>, not allowed for other events.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>expression</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A single SpEL expression.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>

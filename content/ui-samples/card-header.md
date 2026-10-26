@@ -29,7 +29,7 @@ card-header.xml
                 </flexLayout>
             </header>
             <headerSuffix>
-                <span text="Fullstack" themeNames="badge success"/>
+                <badge text="Fullstack" themeNames="success"/>
             </headerSuffix>
         </card>
     </layout>

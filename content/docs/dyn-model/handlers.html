@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Handlers :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">UI Handlers</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>A UI handler adds behavior to a view without Java code and without a redeploy. It connects a UI event, such as a button click, a field value change or a view lifecycle event, to a short expression. The expression can read and change the edited entity, change the state of components, show notifications and dialogs, open other views, and call application methods that a developer has made available.</p>
+</div>
+<div class="paragraph">
+<p>Handlers are declared in the <code>handlers</code> list of a view declaration, in YAML or on the <strong>Handlers</strong> tab of the view dialog. They can be added to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>a view of a dynamic entity;</p>
+</li>
+<li>
+<p>an override of a static entity view;</p>
+</li>
+<li>
+<p>a static entity view declaration that has only <code>handlers</code> and no <code>descriptor</code>. This adds behavior to an existing application view without changing its XML.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="declaring-handlers"><a class="anchor" href="#declaring-handlers"></a>Declaring Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Each handler has an <code>event</code>, a <code>componentId</code> for component events, and one <code>expression</code>. The example below adds handlers to the generated detail view of the <code>LoyaltyLevel</code> dynamic entity. The first handler sets a default name for a new instance. The second one makes the <code>description</code> field required when a discount is entered:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">handlers:
+  - event: "initEntity"
+    expression: "entity.name = 'New level'"
+  - event: "valueChange"
+    componentId: "discountField"
+    expression: "components.setRequired('descriptionField', event.value != null)"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Components of a view generated from a template have IDs made from the attribute name plus <code>Field</code>, for example <code>discountField</code>.</p>
+</div>
+<div class="paragraph">
+<p>The next example adds handlers to the <code>Customer.detail</code> view of the application. The declaration has no <code>descriptor</code>, so the view XML is not changed:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">- viewId: "Customer.detail"
+  handlers:
+    - event: "beforeShow"
+      expression: "components.setReadOnly('nameField', !isNew())"
+    - event: "click"
+      componentId: "checkNameButton"
+      expression: "dialogs.confirm('Check name', 'Check that no other customer has this name?', 'doCheckName')"
+    - name: "doCheckName"
+      expression: "notifications.show(services.call('checkCustomerName', entity))"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>beforeShow</code> handler makes the name field read-only for existing customers. A click on <code>checkNameButton</code> opens a confirmation dialog. When the user clicks <strong>Yes</strong>, the dialog runs the <code>doCheckName</code> handler, which calls the <code>checkCustomerName</code> application operation and shows the result. See <a href="#operations">Calling Application Code</a> for how the operation is defined.</p>
+</div>
+<div class="paragraph">
+<p>Several handlers can use the same event and component. They run in the order in which they are declared.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="events"><a class="anchor" href="#events"></a>Events</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 50%;"/>
+<col style="width: 25%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Event</th>
+<th class="tableblock halign-left valign-top">When the handler runs</th>
+<th class="tableblock halign-left valign-top"><code>componentId</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>click</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The component is clicked.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">required</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>valueChange</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The user changes the value of the component.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">required</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>init</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The view is initialized.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">not allowed</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>initEntity</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A detail view initializes a new entity. Runs only when an entity is created.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">not allowed</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>beforeShow</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Before the view is shown.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">not allowed</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ready</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">After the view is shown.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">not allowed</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>A handler without an <code>event</code> must have a <code>name</code>. It is not connected to any event and runs only when a confirmation dialog of the same view calls it. See <code>dialogs.confirm()</code> below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="expressions"><a class="anchor" href="#expressions"></a>Expressions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The expression is a single <a href="https://docs.spring.io/spring-framework/reference/7.0/core/expressions.html" rel="noopener" target="_blank">SpEL</a> expression. To do two things, declare two handlers.</p>
+</div>
+<div class="paragraph">
+<p>An expression can use the following objects:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Members</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>entity</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The edited entity of a detail view, or the single selected row of a list view. Attributes can be read and written: <code>entity.discount</code>, <code>entity.customer.name</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>isNew()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code> if the current entity is new and not saved yet.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>components</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>setVisible(id, boolean)</code>, <code>setEnabled(id, boolean)</code>, <code>setRequired(id, boolean)</code>, <code>setReadOnly(id, boolean)</code>, <code>getValue(id)</code>, <code>setValue(id, value)</code>, <code>focus(id)</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>notifications</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>show(text)</code>, <code>show(title, message)</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>dialogs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>message(header, text)</code> shows a message. <code>confirm(header, text, handlerName)</code> shows a confirmation dialog; the <strong>Yes</strong> button runs the handler with the given name in the same view.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>navigation</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>navigate(viewId)</code>, <code>navigateToDetail(entity)</code>, <code>close()</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>services</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call(operationName, args…​)</code> calls an application operation. See <a href="#operations">Calling Application Code</a>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>state</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>put(key, value)</code>, <code>get(key)</code>, <code>remove(key)</code>. Values are kept while the view is open, for example to pass a value to a handler called from a confirmation dialog.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>event</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For <code>valueChange</code>: <code>event.value</code> and <code>event.oldValue</code>. For other events: <code>null</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Nothing else can be used in an expression. Spring beans, static methods, constructors and other Java methods are not available.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="operations"><a class="anchor" href="#operations"></a>Calling Application Code</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The only way for a handler to call application code is <code>services.call()</code>. A developer makes a method available for handlers by adding the <code>@DynamicModelOperation</code> annotation with the operation name:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class CustomerOperations {
+
+    private final DataManager dataManager;
+
+    public CustomerOperations(DataManager dataManager) {
+        this.dataManager = dataManager;
+    }
+
+    @DynamicModelOperation("checkCustomerName")
+    public String checkCustomerName(Customer customer) {
+        long count = dataManager.loadValue(
+                        "select count(e) from Customer e where e.name = :name and e.id &lt;&gt; :id", Long.class)
+                .parameter("name", customer.getName())
+                .parameter("id", customer.getId())
+                .one();
+        return count == 0 ? "The name is not used" : "Another customer has this name";
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rules for operations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The method must be public and belong to a Spring bean.</p>
+</li>
+<li>
+<p>Operation names must be unique. A blank or duplicate name stops the application at startup.</p>
+</li>
+<li>
+<p>Arguments are converted to the declared parameter types. For example, <code>services.call('checkCustomerName', entity)</code> passes the edited <code>Customer</code> instance to the method above.</p>
+</li>
+<li>
+<p>An operation runs in the session of the current user. Everything it does follows the user’s permissions, including row-level security.</p>
+</li>
+<li>
+<p>The returned value can be used in the expression. You can read properties of returned numbers, strings, entities, DTOs and collections, but you cannot call methods on them.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="handlers-tab"><a class="anchor" href="#handlers-tab"></a>Editing Handlers in the Admin UI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Handlers are edited on the <strong>Handlers</strong> tab of the view dialog. The handler dialog has the following fields:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Event</strong> – one of the <a href="#events">events</a>. <code>initEntity</code> is available only for detail views.</p>
+</li>
+<li>
+<p><strong>Component ID</strong> – a drop-down list of the view components, with the ID and the XML element of each component. The list contains only components that the selected event can use: clickable components for <code>click</code>, and components with a value for <code>valueChange</code>. You can also type an ID that is not in the list. The field is enabled only for <code>click</code> and <code>valueChange</code>.</p>
+</li>
+<li>
+<p><strong>Name</strong> – an optional handler name, unique in the view. It is required for a handler without an event.</p>
+</li>
+<li>
+<p><strong>Expression</strong> – a code editor with code completion. It suggests the objects and members listed in <a href="#expressions">Expressions</a>, entity attributes after <code>entity.</code>, component IDs in <code>components</code> methods, operation names in <code>services.call()</code>, and handler names in <code>dialogs.confirm()</code>. Completion opens after a dot or when you press <strong>Ctrl+Space</strong>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In the handlers grid, handlers of the same event and component are kept together. Use the up and down buttons to change their order in the group.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="checks"><a class="anchor" href="#checks"></a>Checks and Errors</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Handlers are checked when the model is applied. The apply is refused, and the message explains the error, in the following cases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>the expression is empty or cannot be parsed;</p>
+</li>
+<li>
+<p>the component ID is missing, or is set for an event that does not allow it;</p>
+</li>
+<li>
+<p>a component with this ID does not exist in the view. This is checked only if the view declaration has an XML <code>source</code>;</p>
+</li>
+<li>
+<p>a handler has neither an event nor a name;</p>
+</li>
+<li>
+<p>two handlers in the view have the same name;</p>
+</li>
+<li>
+<p><code>dialogs.confirm()</code> refers to a handler name that does not exist in the view;</p>
+</li>
+<li>
+<p><code>services.call()</code> refers to an unknown operation.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For a view generated from a template, and for a static view declaration without a <code>descriptor</code>, a wrong component ID is not found at apply time. It is reported in the application log when the view is opened.</p>
+</div>
+<div class="paragraph">
+<p>If an expression fails when it runs, the user sees a notification that the operation failed, and the view keeps working. The application log contains the view ID, the handler, and the cause of the error.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

@@ -128,6 +128,80 @@ premiumRepoPass=abcdefabcdef</code></pre>
 <div class="paragraph">
 <p>UI component policies are applied at the end of the view opening process, after sending the <a class="xref page" href="../flow-ui/views/view-events.html#ready-event">ReadyEvent</a>. By this moment, all view initialization is complete and other policies are applied.</p>
 </div>
+<div class="paragraph">
+<p>Policies also apply to the content of a <a class="xref page" href="../flow-ui/vc/layouts/tabSheet.html#lazy-tabs">lazy tab</a> when it is first selected. For other components created after the view opens, apply the policies <a href="#runtime-content">programmatically</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="checking-policies"><a class="anchor" href="#checking-policies"></a>Checking UI Component Policies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use <code>UiComponentPolicyContext</code> with the <code>AccessManager</code> bean to check whether the current user’s UI component policies permit showing or editing a component or action. Pass the view ID and the component path in the same format as the <a href="#component-ids">componentIds</a> attribute, for example <code>emailField</code>, <code>addressFragment.streetField</code>, or <code>userGrid.edit</code>.</p>
+</div>
+<div class="paragraph">
+<p>The following example checks whether the policies permit showing and editing <code>emailField</code> in the <code>Customer.detail</code> view:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private AccessManager accessManager;
+private boolean isEmailFieldEditable() {
+    UiComponentPolicyContext context =
+            new UiComponentPolicyContext("Customer.detail", "emailField");
+    accessManager.applyRegisteredConstraints(context);
+    return context.isVisiblePermitted() &amp;&amp; context.isEnabledPermitted();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After calling <code>applyRegisteredConstraints()</code>, use <code>isVisiblePermitted()</code> and <code>isEnabledPermitted()</code> to read the permissions. Both are <code>true</code> initially; a component not mentioned by any policy is permitted unless another registered constraint denies access.</p>
+</div>
+<div class="paragraph">
+<p>The context checks policy permissions, not the component’s current state or its entity attribute permissions. A permitted result does not make a component visible or editable if it was hidden, disabled, or made read-only for another reason.</p>
+</div>
+<div class="paragraph">
+<p>The built-in <code>UiComponentPolicyConstraint</code> evaluates the current user’s effective policies. <code>UiComponentPolicyApplier</code> uses the same context when applying them. An application can register an <code>AccessConstraint&lt;UiComponentPolicyContext&gt;</code> to restrict access further, using <code>setVisibleDenied()</code> or <code>setEnabledDenied()</code>. Denied checks are recorded by <code>AccessLogger</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="runtime-content"><a class="anchor" href="#runtime-content"></a>Applying Policies to Dynamic Content</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For components created after a view opens, inject <code>UiComponentPolicyApplier</code> and call <code>applyUiComponentPolicies(view, content)</code> after adding the content to the view. This applies the view’s policies to the component and its children. Components and actions must have IDs matching their policy paths.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private UiComponentPolicyApplier uiComponentPolicyApplier;
+private void addRuntimeContent(Component content) {
+    getContent().add(content);
+    uiComponentPolicyApplier.applyUiComponentPolicies(this, content);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The single-argument <code>applyUiComponentPolicies(content)</code> method finds the owning view through the component tree. If it cannot find the view, no policies are applied.</p>
+</div>
+<div class="paragraph">
+<p>For content installed into a <code>tabSheet</code> tab, use the two-argument <code>applyUiComponentPolicies(view, content)</code> method. <code>JmixTabSheet</code> keeps only the selected tab’s content in the component tree and attaches it before the client response, so the single-argument method cannot reliably find the owning view there.</p>
+</div>
+<div class="sect2">
+<h3 id="tab-selection"><a class="anchor" href="#tab-selection"></a>Tab Selection</h3>
+<div class="paragraph">
+<p>By default, the add-on applies policies to a tab’s content when the tab is selected. This includes components and actions in <code>&lt;tab lazy="true"&gt;</code>, whose content is created only at that moment. Lazy tabs require no application code to apply policies.</p>
+</div>
+<div class="paragraph">
+<p>Each content component is processed once. Selecting the same tab again does not reapply policies over changes the application has made to its components. Content passed to <code>applyUiComponentPolicies()</code> is also marked as processed for tab selection.</p>
+</div>
+<div class="paragraph">
+<p>If a policy hides the selected tab, another tab may become selected while the user is working with the view.</p>
+</div>
+<div class="paragraph">
+<p>To disable automatic policy application on tab selection, set <a href="#jmix.uiconstraints.apply-policies-on-tab-selection">jmix.uiconstraints.apply-policies-on-tab-selection</a> to <code>false</code>. This leaves content created after view opening, including lazy tab content, without automatic policy application.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -242,6 +316,26 @@ The <code>ALLOW</code> effect cannot show or enable a component that was hidden 
 </td>
 </tr>
 </table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="application-properties"><a class="anchor" href="#application-properties"></a>Application Properties</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="jmix.uiconstraints.apply-policies-on-tab-selection"><a class="anchor" href="#jmix.uiconstraints.apply-policies-on-tab-selection"></a>jmix.uiconstraints.apply-policies-on-tab-selection</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>Controls whether UI component policies are applied to tab content when a tab is selected, including content created for lazy tabs. See <a href="#tab-selection">Tab Selection</a>.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code>.</p>
+</div>
+<div class="paragraph">
+<p>Set to <code>false</code> to disable this handling. Policies are still applied when the view opens, and can be applied programmatically using <code>UiComponentPolicyApplier</code>.</p>
 </div>
 </div>
 </div>

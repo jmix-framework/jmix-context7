@@ -224,6 +224,47 @@ private void openLookupViewDialog() {
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="opening-read-views"><a class="anchor" href="#opening-read-views"></a>Opening Read Views</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="../flow-ui/actions/list-actions.html#list_read">list_read</a> standard action opens a <a class="xref page" href="../flow-ui/views/view-classes.html#standard-read-view">read view</a> in the current tab, and the <a class="xref page" href="../flow-ui/actions/entity-picker-actions.html#entity_read">entity_read</a> action opens it in a dialog. To open a read view from your code, use the <code>read()</code> method and provide the entity instance to show using the <code>readEntity()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewBuilders viewBuilders;
+
+private void openReadView(User user) {
+    viewBuilders.read(this, User.class)
+            .readEntity(user)
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To show an entity selected in a list data component, such as a <code>dataGrid</code>, or set to an entity picker, pass the component to the <code>read()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private DataGrid&lt;User&gt; usersDataGrid;
+
+@Autowired
+private ViewBuilders viewBuilders;
+
+private void openReadViewDataGrid() {
+    viewBuilders.read(usersDataGrid)
+            .open();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also specify the view id or class as the last parameter of the <code>read()</code> method.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -464,7 +505,7 @@ private void openViewWithCloseAction() {
 <h2 id="view-inference-conventions"><a class="anchor" href="#view-inference-conventions"></a>View Inference Conventions</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A lookup view or a detail view can be inferred from the entity class.</p>
+<p>A lookup view, a detail view, or a read view can be inferred from the entity class.</p>
 </div>
 <div class="paragraph">
 <p>When opening a list view for lookup using <code>viewBuilders.lookup(this, SomeEntity.class)</code>, the framework selects a view according to the following order:</p>
@@ -497,6 +538,28 @@ private void openViewWithCloseAction() {
 <p>A view with the <code>SomeEntity.detail</code> id.</p>
 </li>
 </ol>
+</div>
+<div class="paragraph">
+<p>When opening a read view using <code>viewBuilders.read(this, SomeEntity.class)</code>, the framework selects a view according to the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>A view annotated with <code>@PrimaryReadView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with the <code>SomeEntity.read</code> id.</p>
+</li>
+<li>
+<p>A view annotated with <code>@PrimaryDetailView(SomeEntity.class)</code>.</p>
+</li>
+<li>
+<p>A view with the <code>SomeEntity.detail</code> id.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>If the framework selects a detail view, it opens the view in read-only mode.</p>
 </div>
 </div>
 </div>

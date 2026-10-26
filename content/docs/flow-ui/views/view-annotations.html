@@ -11,7 +11,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Annotations on view classes provide information about the views to the framework. Some annotations are applicable to any type of view, some of them can be used only on entity list or detail views.</p>
+<p>Annotations on view classes provide information about the views to the framework. Some annotations are applicable to any type of view, some of them can be used only on entity list, detail, or read views.</p>
 </div>
 </div>
 </div>
@@ -23,7 +23,8 @@
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewController("MyOnboardingView")
 @ViewDescriptor("my-onboarding-view.xml")
 @Route(value = "my-onboarding", layout = MainView.class)
-@DialogMode(width = "50em", height = "40em", modality = DialogModalityMode.STRICT)
+@DialogMode(width = "50em", height = "40em", modality = DialogModalityMode.STRICT,
+        resizable = true, maximizable = true)
 public class MyOnboardingView extends StandardView {</code></pre>
 </div>
 </div>
@@ -39,7 +40,7 @@ public class MyOnboardingView extends StandardView {</code></pre>
 <p><code>@com.vaadin.flow.router.Route</code> defines a URL path for navigation to this view. As long as the view should be opened inside the main view, the <code>layout</code> attribute specifies the main view class.</p>
 </li>
 <li>
-<p><code>@DialogMode</code> annotation defines size, position, modality, and other parameters of the dialog window when the view is opened as a dialog.</p>
+<p><code>@DialogMode</code> annotation defines size, position, modality, and other parameters of the dialog window when the view is opened as a dialog. Set <code>maximizable = true</code> to show a button for <a class="xref page" href="opening-views.html#maximizing-dialog-windows">maximizing and restoring the dialog</a>. Its default value is <code>false</code>.</p>
 </li>
 <li>
 <p><code>@com.vaadin.flow.server.auth.AnonymousAllowed</code> makes the view available without authentication. By default, only the login view is available to the anonymous (not authenticated) session.</p>
@@ -110,6 +111,36 @@ public class DepartmentDetailView extends StandardDetailView&lt;Department&gt; {
 </li>
 <li>
 <p><code>@PrimaryDetailView</code> annotation indicates that this view is the default detail view for the specified entity. The annotation has greater priority than the <code>{entity_name}.detail</code> <a class="xref page" href="opening-views.html#view-inference-conventions">name convention</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="read-view-annotations"><a class="anchor" href="#read-view-annotations"></a>Read View Annotations</h2>
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// common annotations
+@ViewController("Department.read")
+@ViewDescriptor("department-read-view.xml")
+@Route(value = "departments/:id/read", layout = MainView.class)
+// read view annotations
+@ReadEntityContainer("departmentDc")
+@PrimaryReadView(Department.class)
+public class DepartmentReadView extends StandardReadView&lt;Department&gt; {</code></pre>
+</div>
+</div>
+<div class="ulist" id="read-entity-container">
+<ul>
+<li>
+<p><code>@ReadEntityContainer</code> annotation specifies a data container that contains the shown entity. The container must have an instance loader.</p>
+</li>
+<li>
+<p><code>@PrimaryReadView</code> annotation indicates that this view is the default read view for the specified entity. The annotation has greater priority than the <code>{entity_name}.read</code> <a class="xref page" href="opening-views.html#view-inference-conventions">name convention</a>.</p>
 </li>
 </ul>
 </div>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attachments :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Attachments</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A message can carry files. The message input collects them, the application stores them, the message list renders them, and a click brings them back out of storage. Attachments span <a class="xref page" href="aiChat.html">aiChat</a>, <a class="xref page" href="aiMessageInput.html">aiMessageInput</a>, and <a class="xref page" href="aiMessageList.html">aiMessageList</a>, so they are described here rather than on any one of those pages.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="enabling"><a class="anchor" href="#enabling"></a>Enabling Attachments</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Attachments are off by default. Turn them on and set the limits on the chat, or on the message input if you are using it standalone:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiChat id="chat"
+               dataContainer="messagesDc"
+               autoSave="true"
+               width="100%"
+               height="100%"
+               attachmentsEnabled="true"
+               maxFiles="3"
+               maxFileSize="5242880"
+               acceptedFileExtensions=".png,.jpg,.pdf,.txt"
+               uploadDropZoneEnabled="true"&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>maxFiles</code> and <code>maxFileSize</code> bound how much can be attached to one message, and <code>acceptedFileExtensions</code> or <code>acceptedMimeTypes</code> bound what kind. Both are enforced in the browser and on the server. <code>uploadDropZoneEnabled</code> controls whether files can be dropped onto the message input.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Each entry of <code>acceptedFileExtensions</code> must start with a dot: <code>.png</code>, not <code>png</code>. A value without one is rejected while the view is opening, so the user gets an error dialog instead of the chat.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="choosing-files"><a class="anchor" href="#choosing-files"></a>Choosing Files</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>With the drop zone enabled, files can be dropped anywhere on the message input’s box, which highlights while a file is over it.</p>
+</div>
+<div class="paragraph">
+<p>For a click-to-pick affordance, place an <code>aiUploadTrigger</code>. It is a separate component because a browser only opens a file picker from a real user gesture. It is commonly added to the dropdown menu:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:inputPrefix&gt;
+    &lt;dropdownButton id="attachMenuButton" icon="PLUS"&gt;
+        &lt;items&gt;
+            &lt;componentItem id="attachItem"&gt;
+                &lt;aichat:aiUploadTrigger id="menuAttachTrigger"
+                                        aiChatId="chat"
+                                        icon="PAPERCLIP"
+                                        themeNames="menu-item"
+                                        text="msg://menuAttachTrigger.text"/&gt;
+            &lt;/componentItem&gt;
+        &lt;/items&gt;
+    &lt;/dropdownButton&gt;
+&lt;/aichat:inputPrefix&gt;</code></pre>
+</div>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="The attach menu open in the message input" src="_images/aichat-upload-trigger-menu.png" width="868"/>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>menu-item</code> theme variant styles the trigger as a row of the menu rather than a button inside it: it drops its own background, padding, and visible border, and aligns its content to the start. Activating it with the keyboard works too. Open the menu and press <strong>Enter</strong>, and the file picker opens, because a menu item carries the same user activation a button does.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>A trigger inside a <code>componentItem</code> must name its chat with <code>aiChatId</code>, even when the menu itself sits inside that chat. The automatic lookup walks the component tree while the descriptor is loaded, and the item’s children are not part of the chat at that point.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A trigger placed directly in the chat, in <code>inputPrefix</code> or <code>inputSuffix</code> rather than inside a menu, needs no <code>aiChatId</code> at all: it finds the chat around it. Outside a chat it can live anywhere in the view, naming its chat by id.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Files attached to a message" src="_images/aichat-composer-attachments.png" width="700"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Attached files appear as chips above the input row, a thumbnail for an image and an icon for anything else. Each chip has a button to remove it before sending. The trigger disables itself when the chat it belongs to has attachments turned off.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="rejected"><a class="anchor" href="#rejected"></a>Rejected Files</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A file that breaks one of the limits is refused before it is added. To tell the user why, listen for the rejection:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("chat")
+public void onChatAttachmentRejected(
+        final AttachmentRejectedEvent&lt;ChatMessage&gt; event) {
+    notifications.show(messageBundle.formatMessage("attachmentRejected.notification",
+            event.getFileName(), event.getReason().name()));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The reason is one of <code>TOO_MANY_FILES</code>, <code>FILE_TOO_LARGE</code>, or <code>INCORRECT_FILE_TYPE</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="storing"><a class="anchor" href="#storing"></a>Storing the Files</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The component hands the application the raw bytes and lets it decide where they go. On the zero-configuration path the add-on writes them to the default file storage itself, but a chat bound to your own entity needs a message factory that does it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "chat", subject = "messageFactory")
+private ChatMessage messageFactory(final AiChatMessageContext context) {
+    ChatMessage message = dataManager.create(ChatMessage.class);
+    message.setRole(context.getRole());
+    message.setContent(context.getContent());
+
+    FileStorage fileStorage = fileStorageLocator.getDefault();
+    List&lt;FileRef&gt; refs = new ArrayList&lt;&gt;();
+    for (AIAttachment attachment : context.getAttachments()) {
+        refs.add(fileStorage.saveStream(attachment.name(),
+                new ByteArrayInputStream(attachment.data())));
+    }
+    message.setAttachments(refs);
+
+    return message;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The entity holds the results as a list of <code>FileRef</code>. See <a class="xref page" href="aiChat.html#data">Messages and Data</a> for the entity itself.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Name the attachments in the fetch plan:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;fetchPlan extends="_base"&gt;
+    &lt;property name="attachments"/&gt;
+&lt;/fetchPlan&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>An attachment collection is not part of <code>_base</code>. Without this the files are saved correctly and then render nowhere when the conversation is loaded again. The bytes are in storage and the rows are in the database, but the message list shows no attachment and nothing is logged.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="sending-to-the-model"><a class="anchor" href="#sending-to-the-model"></a>Sending Files to the Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Storing a file does not show it to the model. The chat passes the attachments to the provider, and forwarding them to the model is the provider’s job.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The model must accept the files. A model that handles text only refuses the whole request, so the chat shows its error banner and no answer is produced.</p>
+</div>
+<div class="paragraph">
+<p>This applies to every attachment, not only images: Spring AI sends any attachment as multimodal data regardless of its type, so a plain text file fails on a text-only model exactly as a photograph does. To try the example below, point the application at a multimodal model.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The request carries the attachments beside the message text. This provider forwards them, and supplies wording for the case where a message carries files and no text at all:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Install(to = "chat", subject = "llmProvider")
+private Flux&lt;String&gt; llmProvider(final LLMProvider.LLMRequest request) {
+    String userMessage = request.userMessage();
+    if (userMessage == null || userMessage.isBlank()) { <i class="conum" data-value="1"></i><b>(1)</b>
+        userMessage = "Describe the attached files.";
+    }
+    String text = userMessage;
+
+    Media[] media = request.attachments().stream() <i class="conum" data-value="2"></i><b>(2)</b>
+            .map(attachment -&gt; Media.builder()
+                    .name(attachment.name())
+                    .mimeType(MimeTypeUtils.parseMimeType(attachment.mimeType()))
+                    .data(new ByteArrayResource(attachment.data()))
+                    .build())
+            .toArray(Media[]::new);
+
+    return chatClient.prompt()
+            .user(spec -&gt; spec.text(text).media(media))
+            .stream()
+            .content();
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A message with an attachment and no text is valid, but <code>ChatClient.user(String)</code> rejects blank text and fails before the model is reached. Supply wording for that case.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The attachments travel on the request beside the text. Mapping them into <code>Media</code> sends them to the model.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="downloading"><a class="anchor" href="#downloading"></a>Downloading from the Conversation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Attachments stay in the message list across reloads, images as thumbnails and other files as chips. Clicking one tells the application which file was clicked, and Jmix’s downloader does the rest:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Subscribe("chat")
+public void onChatAttachmentClick(
+        final AttachmentClickEvent&lt;ChatMessage&gt; event) {
+    FileRef fileRef = event.getFileRef();
+    if (fileRef != null) {
+        downloader.download(fileRef);
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="upload-trigger-reference"><a class="anchor" href="#upload-trigger-reference"></a>aiUploadTrigger</h2>
+<div class="sectionbody">
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aiUploadTrigger</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AiUploadTrigger</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following attributes are specific to <code>aiUploadTrigger</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="aiChatId"></a><code>aiChatId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Identifies the chat the trigger attaches files to. Required unless the trigger is placed directly inside the chat. See <a href="#choosing-files">Choosing Files</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="triggerIcon"></a><code>icon</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the icon of the trigger.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="text"></a><code>text</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the label of the trigger.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="triggerThemeNames"></a><code>themeNames</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applies theme variants. <code>menu-item</code> styles the trigger as a row of a dropdown menu rather than a button inside one.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>aiUploadTrigger</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-attributes.html#id">id</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#ariaLabel">ariaLabel</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#ariaLabelledBy">ariaLabelledBy</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#css">css</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#enabled">enabled</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#focusShortcut">focusShortcut</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#height">height</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#tabIndex">tabIndex</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#width">width</a></p>
+</div>
+<div class="paragraph">
+<p>The trigger disables itself when the chat it belongs to has attachments turned off, on top of whatever <code>enabled</code> says.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="aiChat.html#data">Messages and Data</a>: the entity that holds the attachments.</p>
+</li>
+<li>
+<p><a class="xref page" href="aiMessageInput.html">aiMessageInput</a>: the message input that collects them.</p>
+</li>
+<li>
+<p><a class="xref page" href="aiMessageList.html">aiMessageList</a>: the message list that renders them.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

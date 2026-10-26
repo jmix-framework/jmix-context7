@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aiCodeBlock :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">aiCodeBlock</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>aiCodeBlock</code> component displays a fragment of source code with syntax highlighting, an optional language label, and actions for copying and wrapping the code.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>aiCodeBlock</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AiCodeBlock</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Use it anywhere an application shows code. Inside a conversation it is also used automatically: <a class="xref page" href="aiMessageList.html">aiMessageList</a> renders every fenced code block of an assistant message as an <code>aiCodeBlock</code>, so code in a chat looks and behaves the same as code elsewhere in the application.</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Code block" src="_images/aichat-code-block-overview.png" width="413"/>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Declare the <code>aichat</code> namespace in the view’s XML descriptor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:aichat="http://jmix.io/schema/aichat/ui"
+      title="msg://CodeBlockView.title"&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Studio adds the namespace automatically when you add the component using the <strong>Add Component</strong> action in the top actions panel. See <a class="xref page" href="../studio/view-designer.html#component-palette">Component Palette</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Then declare a block and put the source in a nested <code>code</code> element:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">            &lt;aichat:aiCodeBlock id="basicsBlock" language="sql"&gt;
+                &lt;aichat:code&gt;&lt;![CDATA[select c.name, count(o.id) as order_count
+from CUSTOMER c
+    left join ORDER_ o on o.customer_id = c.id
+group by c.name
+order by order_count desc]]&gt;&lt;/aichat:code&gt;
+            &lt;/aichat:aiCodeBlock&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Write the nested element with the <code>aichat</code> prefix, as <code>&lt;aichat:code&gt;</code>. The default view namespace has an element named <code>code</code> as well, so an unprefixed <code>&lt;code&gt;</code> inside <code>aiCodeBlock</code> is a different component rather than this element, and the view may load without reporting an error.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A block takes the width of its content and never exceeds the width of its container.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="declaring-code"><a class="anchor" href="#declaring-code"></a>Code</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are two ways to provide the code.</p>
+</div>
+<div class="paragraph">
+<p>A nested <code>code</code> element holds multi-line source. Wrap it in <code>CDATA</code> so that the source arrives verbatim, as in the example <a href="#basics">above</a>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>code</code> attribute holds a single line and accepts a message key, which is useful when the source is kept in a <a class="xref page" href="../localization/message-bundles.html">message bundle</a>:</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;aichat:aiCodeBlock id="bundleBlock"
+                    language="bash"
+                    code="msg://runCommand.code"/&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Message bundle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo.view.codeblock/runCommand.code=./gradlew -Pvaadin.productionMode=true bootJar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When both are present, the nested element wins. A <code>code</code> element that is present but empty fails the view load, so that it cannot silently shadow the code declared in the attribute.</p>
+</div>
+<div class="paragraph">
+<p>Both may be omitted. The block then renders empty, which is the normal state of a block the controller fills later.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setting-language"><a class="anchor" href="#setting-language"></a>Language</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>language</code> attribute does two things: it puts a label in the block’s header, and it tells the highlighter which grammar to apply.</p>
+</div>
+<div class="paragraph">
+<p><code>AiCodeBlockLanguage</code> holds the common language ids as constants:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">AiCodeBlock codeBlock = uiComponents.create(AiCodeBlock.class);
+codeBlock.setLanguage(AiCodeBlockLanguage.JAVA);
+codeBlock.setCode("""
+        @Autowired
+        private Notifications notifications;
+
+        @Subscribe("saveButton")
+        public void onSaveButtonClick(final ClickEvent&lt;JmixButton&gt; event) {
+            notifications.show("Saved");
+        }""");
+
+programmaticBox.add(codeBlock);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The constants are a convenience, not the accepted set: the attribute takes any string. A value the highlighter does not recognize is not an error; the code renders as plain text.</p>
+</div>
+<div class="paragraph">
+<p>Without a language, the block has no header row at all. The actions float over the top-trailing corner of the code instead, and the code is inset so that nothing renders underneath them:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img alt="Code block without a language" src="_images/aichat-code-block-no-language.png" width="501"/>
+</div>
+</div>
+<div class="paragraph">
+<p>Highlighting requires a language, but the two settings are not interchangeable. Setting <code>highlight="false"</code> on a block that has a language keeps the header and the label and renders the code plain; omitting the language removes the header as well.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="actions"><a class="anchor" href="#actions"></a>Copy and Wrap Actions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The copy action copies the source of the block to the clipboard, always the raw source and never the highlighted markup, and briefly confirms it.</p>
+</div>
+<div class="paragraph">
+<p>The wrap action switches the block between horizontal scrolling and soft wrapping. Its icon and tooltip describe what the next click does rather than the current state. Replacing the code of a block resets wrapping to its declared value.</p>
+</div>
+<div class="paragraph">
+<p>Either action can be removed with <code>copyActionEnabled</code> or <code>wrapActionEnabled</code>. A disabled action is not rendered at all:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">            &lt;aichat:aiCodeBlock id="actionsDisabledBlock"
+                                language="properties"
+                                copyActionEnabled="false"
+                                wrapActionEnabled="false"&gt;
+                &lt;aichat:code&gt;&lt;![CDATA[main.datasource.url=jdbc:postgresql://localhost:5432/demo
+main.datasource.username=demo
+jmix.core.available-locales=en,de]]&gt;&lt;/aichat:code&gt;
+            &lt;/aichat:aiCodeBlock&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The copy action fails silently when the browser refuses the clipboard write: nothing is copied, and nothing tells the user. The common cause is serving the application over plain HTTP, because browsers restrict clipboard access to secure contexts. Copying works over HTTPS and on <code>localhost</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="localization"><a class="anchor" href="#localization"></a>Localization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The labels of the copy and wrap actions come from the add-on’s message bundle, under the <code>aiCodeBlock.i18n.*</code> keys: <code>copy</code>, <code>copied</code>, <code>wrapOn</code>, and <code>wrapOff</code>. Override these keys in the application’s message bundle to re-word the actions everywhere.</p>
+</div>
+<div class="paragraph">
+<p>To re-word the actions of a single block, add a nested <code>i18n</code> element:</p>
+</div>
+<div class="listingblock">
+<div class="title">XML</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">            &lt;aichat:aiCodeBlock id="i18nBlock" language="yaml"&gt;
+                &lt;aichat:code&gt;&lt;![CDATA[name: demo
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_PASSWORD: demo]]&gt;&lt;/aichat:code&gt;
+                &lt;aichat:i18n copy="msg://i18nBlock.copy"
+                             copied="msg://i18nBlock.copied"/&gt;
+            &lt;/aichat:aiCodeBlock&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Message bundle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">com.company.demo.view.codeblock/i18nBlock.copy=Copy the compose file
+com.company.demo.view.codeblock/i18nBlock.copied=Compose file copied</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the example above the wrap action keeps its standard labels. See <a class="xref page" href="localization.html#precedence">Precedence</a> for how the two levels combine.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="styling"><a class="anchor" href="#styling"></a>Styling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The block exposes its internals as shadow parts, addressable with the <code>::part()</code> selector.</p>
+</div>
+<div class="paragraph">
+<p>The following style properties can be used in CSS stylesheets to customize the appearance of this component.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;"/>
+<col style="width: 60%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-background</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Background of the block.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-border-radius</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Corner radius of the block.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-font-family</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Font family of the code.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-font-size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Font size of the code.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-actions-gap</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gap between the action buttons.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-action-icon-size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Size of the action icons.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-text</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of code that carries no syntax role.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-keyword</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of language keywords.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-string</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of string literals.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of numeric literals.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-comment</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of comments.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-title</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of declaration names, such as functions and classes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of type names.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-built-in</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of built-in identifiers of the language.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-attr</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of attribute and property names.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-tag</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of markup tags.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-meta</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of metadata such as annotations and preprocessor directives.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-color-success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Color of the check mark that confirms a copy.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-icon-copy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph of the copy action.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-icon-check</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph shown while a copy is confirmed.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-icon-wrap</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph of the wrap action while wrapping is off.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jmix-ai-code-block-icon-no-wrap</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Glyph of the wrap action while wrapping is on.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The icon properties hold an image applied as a mask, so overriding one replaces that glyph.</p>
+</div>
+<div class="paragraph">
+<p>The components are styled for both Jmix themes, Aura and Lumo, and follow the theme’s own tokens for focus rings, borders, radii, and spacing, which is why the properties above have no single default value. Dark mode, high-contrast mode, and reduced motion are handled, and layout is expressed in direction-agnostic properties, so the components follow the text direction of the document.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>aiCodeBlock</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="code"></a><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the code as a single-line value, directly or from a message bundle. A nested <a href="#code-element">code</a> element takes precedence. See <a href="#declaring-code">Code</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="codeWrapped"></a><code>codeWrapped</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether the code is soft-wrapped instead of scrolled horizontally. See <a href="#actions">Copy and Wrap Actions</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="copyActionEnabled"></a><code>copyActionEnabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether the block has a copy action.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="highlight"></a><code>highlight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether syntax highlighting is applied. Highlighting also requires <a href="#language">language</a> to be set.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="language"></a><code>language</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the language of the code, which is shown as a label and used for highlighting. Any string is accepted. See <a href="#setting-language">Language</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="wrapActionEnabled"></a><code>wrapActionEnabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether the block has a wrap action.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>aiCodeBlock</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-attributes.html#id">id</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#css">css</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#height">height</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxHeight">maxHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#maxWidth">maxWidth</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minHeight">minHeight</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#minWidth">minWidth</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#visible">visible</a> -
+<a class="xref page" href="../flow-ui/vc/common-attributes.html#width">width</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>aiCodeBlock</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../flow-ui/vc/common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../flow-ui/vc/common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An <code>aiCodeBlock</code> can include <a href="#code-element">code</a> and <a href="#i18n-element">i18n</a> as its nested elements.</p>
+</div>
+<div class="sect2">
+<h3 id="code-element"><a class="anchor" href="#code-element"></a>code</h3>
+<div class="paragraph">
+<p>The <code>code</code> element holds the source of the block. Its content is taken verbatim, so it can span several lines. See <a href="#declaring-code">Code</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="i18n-element"><a class="anchor" href="#i18n-element"></a>i18n</h3>
+<div class="paragraph">
+<p>The <code>i18n</code> element re-words the actions of this block. It supports the <code>copy</code>, <code>copied</code>, <code>wrapOn</code>, and <code>wrapOff</code> attributes, each accepting a message key. Omitted attributes keep their values from the message bundle. See <a href="#localization">Localization</a>.</p>
+</div>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

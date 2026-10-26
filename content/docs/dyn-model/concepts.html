@@ -51,7 +51,7 @@
 <h2 id="versioning-and-deployment"><a class="anchor" href="#versioning-and-deployment"></a>Versioning and Deployment</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The model definition is stored in the database as a set of versioned configurations. Only one version is active at a time. Keeping previous versions lets you review changes over time and roll back by activating an earlier version.</p>
+<p>The model definition is stored in the database as a set of versioned configurations. Each apply saves a new version, and only one version is active at a time. Previous versions are kept, and you can see them in the <a class="xref page" href="defining-model.html#model-history">model history</a>. To return to an earlier model, copy its YAML from the history and apply it again.</p>
 </div>
 <div class="paragraph">
 <p>On application startup, the framework can automatically apply the active version so that the running application reflects the latest deployed model. This behavior is controlled by the <a class="xref page" href="app-properties.html#jmix.dynmodel.deploy-on-app-start">jmix.dynmodel.deploy-on-app-start</a> property.</p>
@@ -69,6 +69,49 @@
 </div>
 <div class="paragraph">
 <p>Already open views are not switched over automatically; they pick up the changes after a reload.</p>
+</div>
+<div class="paragraph">
+<p>The framework also checks that nobody applied another model after you opened the model for editing. If someone did, your apply is refused, so that it does not silently discard the other changes. In this case, reload the model settings and repeat your changes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="cluster"><a class="anchor" href="#cluster"></a>Cluster</h2>
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>Dynamic Model can work in an application cluster. When cluster support is enabled:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A model applied on one node is applied on all other nodes, without a restart.</p>
+</li>
+<li>
+<p>Only one apply can run at a time in the whole cluster. If a user tries to apply the model while it is being applied on another node, the apply is refused with a message that names the user who is applying it. Try again after the other apply is finished.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To enable cluster support:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Set the <a class="xref page" href="app-properties.html#jmix.dynmodel.cluster.enabled">jmix.dynmodel.cluster.enabled</a> property to <code>true</code>.</p>
+</li>
+<li>
+<p>Add the <a class="xref page" href="../pessimistic-lock/index.html">Pessimistic Lock</a> add-on to the project. It holds the apply lock for the cluster. If cluster support is enabled and the add-on is missing, the application does not start.</p>
+</li>
+<li>
+<p>Configure cluster communication between the nodes as described in <a class="xref page" href="../features/cluster-communication.html">Cluster Communication</a>. Both the messages about applied models and the apply lock need it. Without it, a model applied on one node reaches the other nodes only when they restart.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The <a class="xref page" href="app-properties.html#jmix.dynmodel.cluster.apply-lock-timeout-sec">jmix.dynmodel.cluster.apply-lock-timeout-sec</a> property sets when the lock left by a node that stopped during an apply expires. Set it to a value greater than the longest apply in your application.</p>
 </div>
 </div>
 </div>
@@ -93,6 +136,27 @@
 </div>
 <div class="paragraph">
 <p>The table-name prefixes are configurable; see <a class="xref page" href="yaml-reference.html">YAML Reference</a> and <a class="xref page" href="app-properties.html">Application Properties</a> for the relevant settings.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="data-tools"><a class="anchor" href="#data-tools"></a>Data Tools</h2>
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>Dynamic entities and dynamic attributes are shown in the views of the <a class="xref page" href="../data-tools/index.html">Data Tools</a> add-on:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <a class="xref page" href="../data-tools/data-model.html">Data model</a> view lists dynamic entities with their data store and table, and dynamic attributes of static entities with their side table columns. Calculated and collection attributes are listed without a column. The diagram shows which entities and attributes are dynamic.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../data-tools/entity-inspector.html">Entity inspector</a> lets you browse, create, edit and delete instances of dynamic entities, and edit dynamic attributes of static entities. You can filter and sort by dynamic attributes in the generic filter.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

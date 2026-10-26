@@ -8,6 +8,8 @@
 <body>
 <article class="doc">
 <h1 class="page">UI Integration Tests</h1>
+<div id="preamble">
+<div class="sectionbody">
 <div class="paragraph">
 <p>Jmix allows you to write tests for the UI layer. In these tests, you can open views, load data, verify the contents of UI components, make modifications, and simulate user actions such as button clicks.</p>
 </div>
@@ -171,6 +173,54 @@ public class UserUiTest {
 <td>The method executed after each test case can be used for test data cleanup.</td>
 </tr>
 </table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="opened-dialog-view"><a class="anchor" href="#opened-dialog-view"></a>Getting a View Opened in a Dialog Window</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>UiTestUtils.getCurrentView()</code> method returns the view opened by navigation. If an action opens a view in a dialog window, for example with <code>OpenMode.DIALOG</code>, use <code>DialogWindows.getOpenedDialogWindows()</code>.</p>
+</div>
+<div class="paragraph">
+<p>In the following example, the test clicks the order creation button and obtains the detail view opened in a dialog window:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Autowired
+private ViewNavigators viewNavigators;
+
+@Autowired
+private DialogWindows dialogWindows;
+
+@Test
+void test_openCustomerDetailViewInDialog() {
+    viewNavigators.view(UiTestUtils.getCurrentView(), CustomerListView.class)
+            .navigate();
+
+    CustomerListView listView = UiTestUtils.getCurrentView();
+    JmixButton createDialogBtn = getComponent(listView, "createDialogBtn");
+    createDialogBtn.click();
+
+    CustomerDetailView detailView = dialogWindows.getOpenedDialogWindows()
+            .getDialogs()
+            .stream()
+            .filter(CustomerDetailView.class::isInstance)
+            .map(CustomerDetailView.class::cast)
+            .reduce((previous, current) -&gt; current)
+            .orElseThrow();
+
+    Assertions.assertNotNull(detailView);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>getDialogs()</code> method returns dialog views of the current UI. To get dialogs of a specific UI, use <code>getDialogs(UI)</code>. Views are added to the list in the order they are opened, so the last opened dialog is the last item in the list.</p>
+</div>
+<div class="paragraph">
+<p>For more information about the dialog window API, see <a class="xref page" href="../flow-ui/views/opening-views.html#opened-dialog-windows">Getting Opened Dialog Windows</a>.</p>
+</div>
+</div>
 </div>
 
 </article>

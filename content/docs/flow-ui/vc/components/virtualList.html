@@ -83,8 +83,8 @@ protected Renderer&lt;Customer&gt; virtualListRenderer() {
         infoLayout.addClassNames("info-layout");
 
         H4 customerName = new H4(customer.getInstanceName());
-        Span gradeSpan = createGradeSpan(customer.getGrade());
-        infoLayout.add(customerName, gradeSpan);
+        Badge gradeBadge = createGradeBadge(customer.getGrade());
+        infoLayout.add(customerName, gradeBadge);
 
         HorizontalLayout infoLine = createHorizontalLayout();
         infoLine.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -125,20 +125,16 @@ protected HorizontalLayout createHorizontalLayout() {
     return layout;
 }
 
-protected Span createGradeSpan(@Nullable CustomerGrade grade) {
-    Span gradeSpan = new Span(metadataTools.format(grade));
+protected Badge createGradeBadge(@Nullable CustomerGrade grade) {
+    Badge gradeBadge = new Badge(metadataTools.format(grade));
 
-    if (grade != null) {
-        ThemeList gradeThemeList = gradeSpan.getElement().getThemeList();
-
-        switch (grade) {
-            case STANDARD -&gt; gradeThemeList.add("badge contrast");
-            case PREMIUM -&gt; gradeThemeList.add("badge primary");
-            default -&gt; gradeThemeList.add("badge");
-        }
+    if (grade == CustomerGrade.HIGH) {
+        gradeBadge.addThemeVariants(BadgeVariant.SUCCESS);
+    } else if (grade == CustomerGrade.PREMIUM) {
+        gradeBadge.addThemeVariants(BadgeVariant.FILLED);
     }
 
-    return gradeSpan;
+    return gradeBadge;
 }</code></pre>
 </div>
 </div>

@@ -128,6 +128,9 @@ public void onInit(final InitEvent event) {
 <li>
 <p><code>setAiAvatarIconSupplier(SerializableSupplier&lt;Component&gt;)</code> – customizes the assistant avatar.</p>
 </li>
+<li>
+<p><code>setTitleMode(AiConversationTitleMode)</code> – selects how the title of a new conversation is set. When unset or <code>null</code>, the mode comes from the <a class="xref page" href="properties.html#jmix.aitools.ui.conversation-title-mode">jmix.aitools.ui.conversation-title-mode</a> application property. See <a href="#conversation-titles">Conversation Titles</a>.</p>
+</li>
 </ul>
 </div>
 </div>
@@ -245,6 +248,61 @@ public void onInit(final InitEvent event) {
 <h3 id="icon-provider"><a class="anchor" href="#icon-provider"></a>Icon Provider</h3>
 <div class="paragraph">
 <p>The brand icon shown on the hub and the assistant avatar is supplied by the <code>AiIconProvider</code> bean. Replace this bean to change the add-on’s iconography globally, or override it per fragment with the icon supplier setters shown above.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="conversation-titles"><a class="anchor" href="#conversation-titles"></a>Conversation Titles</h2>
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>A new conversation has the default title <code>New AI Conversation</code>. The <a class="xref page" href="properties.html#jmix.aitools.ui.conversation-title-mode">jmix.aitools.ui.conversation-title-mode</a> application property defines which title it gets when the user sends the first message.</p>
+</div>
+<table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 75%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Mode</th>
+<th class="tableblock halign-left valign-top">Title</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FIRST_MESSAGE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The first user message. A message longer than 255 characters is cut at a word boundary. The model is not called. This is the default mode.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GENERATED</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A short title that the model generates from the first user message, in the language of the current user’s locale. The model is called in the background. Until the generated title is ready, or if no title is generated, the conversation has the first-message title.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NONE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The conversation keeps its default title.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The generated title is saved even if the user leaves the conversation before it is ready. It does not replace a title that the user has entered in the meantime.</p>
+</div>
+<div class="paragraph">
+<p>If your view gives a conversation its own title before the first message, call <code>setTitleMode(AiConversationTitleMode.NONE)</code> on the <a href="#ai-chat-fragment">AiChatFragment</a>. Otherwise, the first message replaces this title.</p>
+</div>
+<div class="sect2">
+<h3 id="title-generation"><a class="anchor" href="#title-generation"></a>Customizing Title Generation</h3>
+<div class="paragraph">
+<p>In the <code>GENERATED</code> mode, the title comes from the <code>AiConversationTitleGenerator</code> bean. The default implementation from <code>jmix-aitools-flowui-data-starter</code> sends the first user message to the <a class="xref page" href="getting-started.html#configure-model">configured model</a>. With only <code>jmix-aitools-flowui-starter</code>, the generator returns no title.</p>
+</div>
+<div class="paragraph">
+<p>To generate titles in another way, register a bean that implements <code>io.jmix.aitoolsflowui.service.AiConversationTitleGenerator</code>. Its <code>generateTitle(String firstUserMessage)</code> method returns the title or an empty <code>Optional</code>. The method runs in a background thread with the current user’s authentication. The returned title is saved as is, so keep it within 255 characters.</p>
+</div>
+<div class="paragraph">
+<p>To change only the system prompt of the default generator, register a bean that implements <code>io.jmix.aitoolsflowuidata.service.prompt.AiConversationTitleSystemPromptProvider</code> and returns your template. The template can use the <code>{responseLanguage}</code> parameter, which contains the language of the current user’s locale, for example, <code>German / Deutsch (de)</code>.</p>
 </div>
 </div>
 </div>

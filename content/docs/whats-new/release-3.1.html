@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Release 3.1 :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">Release 3.1</h1>
+<div class="sect1">
+<h2 id="upgrade"><a class="anchor" href="#upgrade"></a>How To Upgrade</h2>
+<div class="sectionbody">
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To create new projects with Jmix 3.1 or to upgrade an existing project, you need Studio 3.1 or newer, so <a class="xref page" href="../studio/update.html">update</a> your Jmix Studio plugin first.</p>
+</div>
+<div class="paragraph">
+<p>Jmix Studio 3.1 requires IntelliJ IDEA 2026.1 or newer.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>See <a class="xref page" href="../studio/project.html#upgrading-project">Upgrading Project</a> section for how to upgrade your project using Studio. The automatic migration procedure makes the following changes in your project:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Updates the version of Jmix BOM which in turn defines versions of all dependencies.</p>
+</li>
+<li>
+<p>Updates the version of Jmix Gradle plugin.</p>
+</li>
+<li>
+<p>Updates Gradle wrapper to 9.8.0</p>
+</li>
+<li>
+<p>Adds the following properties to <code>application.properties</code> to keep the previous behavior of the add-ons:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>jmix.uiconstraints.apply-policies-on-tab-selection = false</code> if the UI Constraints add-on is installed. Policies are not applied to the content of lazy tabs, as before. See <a href="#ui-constraints">UI Constraints Add-on</a>.</p>
+</li>
+<li>
+<p><code>jmix.maps.ui.feature-modify-includes-delete = true</code> if the Maps add-on is installed. Modify mode also enables deletion of map objects, as before. See <a href="#maps-breaking-changes">Maps Add-on</a>.</p>
+</li>
+<li>
+<p><code>jmix.aitools.ui.conversation-title-mode = NONE</code> if the AI Tools add-on is installed. A new conversation keeps its default title, as before. See <a href="#ai-tools-breaking-changes">AI Tools Add-on</a>.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can remove these properties later to get the new behavior.</p>
+</div>
+<div class="paragraph">
+<p>See also the full list of <a href="#breaking-changes">breaking changes</a> that can affect your project after the upgrade.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="updated-dependencies"><a class="anchor" href="#updated-dependencies"></a>Updated Dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following major dependencies have been updated:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Spring Boot 4.1</p>
+</li>
+<li>
+<p>Vaadin 25.3</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="new-features"><a class="anchor" href="#new-features"></a>New Features and Improvements</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="jmix-cli"><a class="anchor" href="#jmix-cli"></a>Jmix CLI</h3>
+<div class="paragraph">
+<p><a href="https://github.com/jmix-framework/jmix-cli" rel="noopener" target="_blank">Jmix CLI</a> is a new command-line tool that creates Jmix projects without an IDE: in a terminal, in a script, or by an AI coding agent. It uses the same project templates as Studio and adds the Jmix Agent Toolkit to the created project. See <a class="xref page" href="../setup.html#jmix-cli">Using Jmix CLI</a> for how to install and use it.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="studio-improvements"><a class="anchor" href="#studio-improvements"></a>Studio Improvements</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The <a class="xref page" href="../studio/view-wizard.html#creating-entity-based-views">view creation wizard</a> has a new step for list and master-detail views where you select how users filter the data: <a class="xref page" href="../flow-ui/vc/components/genericFilter.html">genericFilter</a> (the default), a set of <a class="xref page" href="../flow-ui/vc/components/propertyFilter.html">propertyFilter</a> components for the attributes you select, <a class="xref page" href="../flow-ui/vc/components/fullTextFilter.html">fullTextFilter</a> if the Search add-on is included in the project, or no filter.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../studio/entity-designer.html">entity designer</a> lets you define the <a class="xref page" href="../data-model/entities.html#lookup-field">@LookupField</a> annotation for an entity and for its reference attributes. The view creation wizard takes this annotation into account when it generates components for references.</p>
+</li>
+<li>
+<p>The new <strong>Views with Attribute</strong> action of the entity designer shows the view components bound to an entity attribute and opens the view descriptor at the selected component. It also lets you add the attribute to the views of the entity. The action is available on the attributes table toolbar and in each attribute row.</p>
+</li>
+<li>
+<p>The new <strong>Copy View</strong> action creates a copy of a view with its controller, descriptor and messages.</p>
+</li>
+<li>
+<p>The <strong>New → Advanced → Custom Component</strong> action creates the files of a <a class="xref page" href="../flow-ui/vc/creating-components/creating-web-component.html">custom UI component</a>: the component class, its XML loader and the Spring configuration for the loader registration. It can also create an XSD schema for the component’s XML element, Studio metadata for the view designer and a JavaScript file with a Lit web component.</p>
+</li>
+<li>
+<p>The dialog that lists Liquibase changelogs not yet applied to the database now shows the content of the selected changelog. You can use it to review changelogs that come from add-ons.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../studio/jpql-designer.html">JPQL designer</a> can be opened from the gutter icon for queries in <code>LoadContext.Query</code> and in the <code>setQueryString()</code> method.</p>
+</li>
+<li>
+<p>Studio inspections check the structure of reports defined in Java code that have a <a class="xref page" href="../reports/creation/bands.html#streaming-bands">streaming band</a>. They report a structure that the reporting engine does not support, for example, a second streaming band, a child band of a streaming band or a dataset that is not SQL or JPQL.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ai-chat"><a class="anchor" href="#ai-chat"></a>New AI Chat Add-on</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../ai-chat/index.html">AI Chat</a> add-on provides UI components for building AI chat interfaces. The answers come from an <code>LLMProvider</code> that the application implements, so the components work with Spring AI, a vendor SDK, or your own service.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../ai-chat/aiChat.html">aiChat</a> is a complete chat with streaming answers, Markdown messages, file attachments and per-message actions. It can be bound to a collection container of your own message entity to save the conversation.</p>
+</li>
+<li>
+<p><a class="xref page" href="../ai-chat/aiMessageList.html">aiMessageList</a> and <a class="xref page" href="../ai-chat/aiMessageInput.html">aiMessageInput</a> can be used on their own to build a chat that <code>aiChat</code> does not cover.</p>
+</li>
+<li>
+<p><a class="xref page" href="../ai-chat/aiCodeBlock.html">aiCodeBlock</a> shows source code in chat messages and in any other view.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ui-recovery"><a class="anchor" href="#ui-recovery"></a>New UI Recovery Add-on</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../ui-recovery/index.html">UI Recovery</a> add-on keeps unsaved changes of views when the server node restarts, the HTTP session expires, or the browser closes. It saves the changes to the database as a draft while the user works, and offers to restore the draft when the user opens the view again. Drafts are available in a cluster and after a full restart of the application.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="dynamic-model"><a class="anchor" href="#dynamic-model"></a>Dynamic Model Add-on</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../dyn-model/index.html">Dynamic Model</a> add-on is no longer experimental. It has the following new features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../dyn-model/handlers.html">UI handlers</a> add behavior to views: short expressions that run on button clicks, value changes and view events, and can call application methods marked with <code>@DynamicModelOperation</code>.</p>
+</li>
+<li>
+<p><a class="xref page" href="../dyn-model/search.html">Full-text search</a> indexes dynamic attributes marked as searchable.</p>
+</li>
+<li>
+<p><a class="xref page" href="../dyn-model/concepts.html#cluster">Cluster support</a>: a model applied on one node is applied on all other nodes.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../dyn-model/defining-model.html#safe-modify-role">Dynamic model: modify settings without data loss</a> role lets users apply only changes that cannot lose stored data.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../dyn-model/defining-model.html#model-history">model history</a> shows all applied versions of the model.</p>
+</li>
+<li>
+<p>You can change the <a class="xref page" href="../dyn-model/defining-model.html#attribute-order">order of attributes</a>.</p>
+</li>
+<li>
+<p>You can set the <a class="xref page" href="../dyn-model/defining-model.html#lookup-field">lookup field type and actions</a> for reference attributes.</p>
+</li>
+<li>
+<p>Menu items of dynamic views can have an <a class="xref page" href="../dyn-model/views.html#menu-items">icon</a>.</p>
+</li>
+<li>
+<p>The <strong>Generate XML</strong> button <a class="xref page" href="../dyn-model/views.html#generate-xml">renders a view template into XML</a> that you can edit.</p>
+</li>
+<li>
+<p>Access granted to a role in the model also applies to the users whose role has this role as a base role. See <a class="xref page" href="../dyn-model/defining-model.html#inherited-roles">Inherited Roles</a>.</p>
+</li>
+<li>
+<p>Dynamic entities and attributes are shown in the <a class="xref page" href="../dyn-model/concepts.html#data-tools">Data Tools</a> views.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ai-tools"><a class="anchor" href="#ai-tools"></a>AI Tools Add-on</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../ai-tools/index.html">AI Tools</a> add-on has the following new features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The new <a class="xref page" href="../ai-tools/tools.html#exclude-from-ai">@ExcludeFromAi</a> annotation hides an entity or an attribute from the Data Load tools at the code level. Unlike the <code>jmix.aitools.dataload.*</code> include and exclude properties, the annotation cannot be overridden at deployment time, so the hidden data can be exposed only by changing the code and rebuilding the application.</p>
+</li>
+<li>
+<p>The chat UI <a class="xref page" href="../ai-tools/ui.html#conversation-titles">sets conversation titles automatically</a>. By default, the first user message becomes the title. With the new <a class="xref page" href="../ai-tools/properties.html#jmix.aitools.ui.conversation-title-mode">jmix.aitools.ui.conversation-title-mode</a> property, the model can generate a short title instead, or the conversation can keep the default title.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="bpm"><a class="anchor" href="#bpm"></a>BPM Add-on</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../bpm/index.html">BPM</a> add-on has the following new features in the <a class="xref page" href="../bpm/menu-views/modeler-web.html">BPMN modeler</a>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You can edit the <strong>History level</strong> of a process along with other <a class="xref page" href="../bpm/bpmn/bpmn-process.html#properties">process properties</a>. The selected level overrides the <a class="xref page" href="../bpm/history.html#history-levels">history level</a> of the process engine.</p>
+</li>
+<li>
+<p>You can set the <code>flowable:exclusive</code>, <code>flowable:asyncLeave</code>, and <code>flowable:asyncLeaveExclusive</code> attributes for tasks, embedded subprocesses, call activities, gateways, and most events. For user tasks, gateways, and events, <code>flowable:async</code> is now available as well. See <a class="xref page" href="../bpm/bpmn/transactions.html#asynchronous-execution-properties">Asynchronous Execution Properties</a>.</p>
+</li>
+<li>
+<p>You can add <a class="xref page" href="../bpm/bpmn/bpmn-events.html#escalation-events">escalation events</a> to processes, set their properties, and manage <strong>Escalation definitions</strong> in the <a class="xref page" href="../bpm/bpmn/bpmn-process.html#escalation-definition">process properties</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="reports"><a class="anchor" href="#reports"></a>Reports Add-on</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../reports/index.html">Reports</a> add-on has the following new features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A report band can now be <a class="xref page" href="../reports/creation/bands.html#streaming-bands">streaming</a>: its rows are read from a database cursor and written to the XLSX document one by one instead of being loaded into memory. To make a band streaming, select its <strong>Streaming</strong> checkbox in the report detail view or set <code>streaming = true</code> in the <code>@BandDef</code> annotation.</p>
+</li>
+<li>
+<p>The new <a class="xref page" href="../reports/creation/bands.html#structure_llm">AI-generated JPQL</a> dataset type lets you describe band data in natural language. In the report detail view, an LLM generates a JPQL query from the prompt, and the view stores it in the report definition. A report run executes the stored query through <code>DataManager</code> and applies the data access permissions of the current user.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ui-constraints"><a class="anchor" href="#ui-constraints"></a>UI Constraints Add-on</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../uiconstraints/index.html">UI Constraints</a> add-on provides <code>UiComponentPolicyContext</code> for <a class="xref page" href="../uiconstraints/index.html#checking-policies">checking component permissions</a> and new <code>UiComponentPolicyApplier</code> methods for <a class="xref page" href="../uiconstraints/index.html#runtime-content">content created after a view opens</a>.</p>
+</div>
+<div class="paragraph">
+<p>Components and actions inside lazy tabs now obey UI component policies when the tab is selected. Hiding a tab may also select another tab while the view is open. Automatic policy application on tab selection is enabled by default and can be disabled with <a class="xref page" href="../uiconstraints/index.html#jmix.uiconstraints.apply-policies-on-tab-selection">jmix.uiconstraints.apply-policies-on-tab-selection</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="grouping-data-grid"><a class="anchor" href="#grouping-data-grid"></a>Grouping Data Grid Add-on</h3>
+<div class="paragraph">
+<p>You can preserve the applied <a class="xref page" href="../flow-ui/vc/components/groupDataGrid.html#column-filtering">column header filters</a> in URL query parameters by adding the <a class="xref page" href="../flow-ui/facets/urlQueryParameters.html#groupDataGridFilter"><code>groupDataGridFilter</code></a> element to the <a class="xref page" href="../flow-ui/facets/urlQueryParameters.html"><code>urlQueryParameters</code></a> facet.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="email"><a class="anchor" href="#email"></a>Email Sending Add-on</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../email/index.html">Email Sending</a> add-on simplifies setting up <a class="xref page" href="../email/authentication.html#oauth2-authentication">OAuth2 authentication</a> with Google and Microsoft mail servers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The new <a class="xref page" href="../email/menu-views/email-connection.html">Email connection</a> view replaces the <strong>OAuth2 token</strong> view. It connects a mailbox account using the authorization code flow or, for Microsoft, the device code flow, and stores the refresh token. The view also shows the connection parameters and tests the connection to the mail server.</p>
+</li>
+<li>
+<p>The new <a class="xref page" href="../email/configuration.html#jmix.email.oauth2.redirect-uri">jmix.email.oauth2.redirect-uri</a> property sets the redirect URI of the authorization code flow, for example, when the application runs behind a reverse proxy.</p>
+</li>
+<li>
+<p>The add-on sets the <code>XOAUTH2</code> authentication mechanism itself, so you don’t need to add it to <code>spring.mail.properties.*</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="read-views"><a class="anchor" href="#read-views"></a>Read Views</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../flow-ui/views/view-classes.html#standard-read-view">read views</a> show an entity instance that users cannot edit. A read view extends <code>StandardReadView</code>, loads the entity by its id, and always has a read-only <code>DataContext</code>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You can create read views in Studio using the <strong>Entity read view</strong> and <strong>DTO entity read view</strong> templates of the <a class="xref page" href="../studio/view-wizard.html#creating-entity-based-views">view creation wizard</a>.</p>
+</li>
+<li>
+<p>You can open read views using the <a class="xref page" href="../flow-ui/views/opening-views.html#navigation">ViewNavigators</a> and <a class="xref page" href="../flow-ui/views/opening-views.html#reading-entities">DialogWindows</a> beans, and using the <a class="xref page" href="../tabbed-mode/opening-views.html#opening-read-views">ViewBuilders</a> bean of the Tabbed Application Mode add-on.</p>
+</li>
+<li>
+<p>If an entity has a read view, the <a class="xref page" href="../flow-ui/actions/list-actions.html#list_read">list_read</a> action opens it instead of the detail view in read-only mode. The new <a class="xref page" href="../flow-ui/actions/entity-picker-actions.html#entity_read">entity_read</a> action shows the entity selected in an entity picker.</p>
+</li>
+<li>
+<p>The <a class="xref page" href="../flow-ui/views/view-templates.html#read-view-template">@ReadViewTemplate</a> annotation generates a read view for an entity at runtime. The Dynamic Model add-on generates read views for dynamic entities that declare a view of the <a class="xref page" href="../dyn-model/yaml-reference.html#dynamic-entity-views">read type</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="resizable-side-panel"><a class="anchor" href="#resizable-side-panel"></a>Resizable Side Panel</h3>
+<div class="paragraph">
+<p>Users can now <a class="xref page" href="../flow-ui/vc/layouts/sidePanelLayout.html#resizing">resize the <code>sidePanelLayout</code> component</a> at runtime by dragging the handle on the side panel’s inner edge. Resizing works for horizontal and vertical positions and respects the configured minimum and maximum sizes. The <a class="xref page" href="../flow-ui/facets/settings.html"><code>settings</code></a> facet can save and restore the size selected by the current user.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="svg-component"><a class="anchor" href="#svg-component"></a>SVG Component</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../flow-ui/vc/components/svg.html">svg</a> component renders SVG markup directly in the view. The markup can be set in the nested <code>content</code> element, loaded from a file using the <code>file</code> attribute, or set in the view controller.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="popover-component"><a class="anchor" href="#popover-component"></a>Popover Component</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../flow-ui/vc/components/popover.html">popover</a> component is an overlay that opens next to a target component and can contain any components. You can declare it in a view or fragment descriptor and set the <code>target</code> attribute to the id of a component. The popover can open on a click, on hover or on focus, or from the view controller, and it can be modal.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="popover-renderer"><a class="anchor" href="#popover-renderer"></a>Popover Renderer for Data Grid</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../flow-ui/vc/components/dataGrid.html#popover-renderer">popover renderer</a> shows long text in a <code>dataGrid</code> column. The cell text is cut with an ellipsis if it does not fit, and a click on the cell shows the full text in a popover. Add the <code>popoverRenderer</code> element to a column in XML or create <code>PopoverRenderer</code> in Java.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="sliders"><a class="anchor" href="#sliders"></a>Slider Components</h3>
+<div class="paragraph">
+<p>New components let users select a number or a range of numbers by dragging handles along a track:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a class="xref page" href="../flow-ui/vc/components/integerSlider.html">integerSlider</a> and <a class="xref page" href="../flow-ui/vc/components/decimalSlider.html">decimalSlider</a> select an <code>Integer</code> or a <code>Double</code> value. Like other fields, they can be bound to an entity attribute and support validators.</p>
+</li>
+<li>
+<p><a class="xref page" href="../flow-ui/vc/components/integerRangeSlider.html">integerRangeSlider</a> and <a class="xref page" href="../flow-ui/vc/components/decimalRangeSlider.html">decimalRangeSlider</a> select a range of values, for example, to filter data.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="badge-component"><a class="anchor" href="#badge-component"></a>Badge Component</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../flow-ui/vc/components/badge.html">badge</a> component displays a small piece of information, such as a status, a count or a label. A badge can show text, an icon and a number, and theme variants set its color and size. You can bind a badge to an entity attribute using the <code>dataContainer</code> and <code>property</code> attributes to show the attribute value.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="lookup-field"><a class="anchor" href="#lookup-field"></a>Lookup Field Annotation</h3>
+<div class="paragraph">
+<p>The new <a class="xref page" href="../data-model/entities.html#lookup-field">@LookupField</a> entity annotation defines the component that the framework generates for selecting a reference: an <code>entityComboBox</code> with a drop-down list or an <code>entityPicker</code> that opens a lookup view. It is used in <code>genericFilter</code> and <code>propertyFilter</code> parameters, editable <code>dataGrid</code> cells and runtime view templates. Put it on an entity class to apply it to all references to the entity, or on a reference attribute to apply it to this attribute only. You can also set the actions of the component and load the drop-down items in pages while the user types, using a JPQL query or a search by the instance name.</p>
+</div>
+<div class="paragraph">
+<p>The <code>itemsQuery</code> element of <code>entityComboBox</code> has the new <a class="xref page" href="../flow-ui/vc/components/entityComboBox.html#items-query-by-instance-name">byInstanceName</a> attribute that finds items by the instance name without a JPQL query.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="annotated-base-roles"><a class="anchor" href="#annotated-base-roles"></a>Base Roles of Annotated Roles</h3>
+<div class="paragraph">
+<p>Annotated resource and row-level role interfaces now keep the role interfaces they extend as their base roles. The <strong>Base roles</strong> tab of such a role in the security views lists them in read-only mode. The permissions of users do not change.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="breaking-changes"><a class="anchor" href="#breaking-changes"></a>Breaking Changes</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="vaadin-25-3"><a class="anchor" href="#vaadin-25-3"></a>Vaadin 25.3</h3>
+<div class="paragraph">
+<p>The update to Vaadin 25.3 brings the following changes (see <a href="https://github.com/jmix-framework/jmix/issues/5720" rel="noopener" target="_blank">#5720</a>):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <a class="xref page" href="../flow-ui/vc/html-components/image.html">image</a> component can’t contain other components anymore. <code>JmixImage</code> doesn’t have the <code>setText()</code>/<code>getText()</code>, <code>setWhiteSpace()</code>, <code>setEnabled()</code>/<code>isEnabled()</code>, <code>add()</code> and <code>remove()</code> methods. In XML, the <code>enabled</code>, <code>text</code> and <code>whiteSpace</code> attributes and nested components of <code>image</code> are ignored.</p>
+</li>
+<li>
+<p>The protected <code>JmixMenuBarRootItem.updateClassName()</code> method is removed.</p>
+</li>
+<li>
+<p><code>InMemoryUploadHandler</code> and <code>FileTemporaryStorageUploadHandler</code> now extend Vaadin’s <code>AbstractUploadHandler</code> instead of <code>TransferProgressAwareHandler</code>. <code>FileTemporaryStorageUploadHandler</code> deletes the temporary file when an upload fails or is rejected, and its <code>getFileInfo()</code> method returns <code>null</code> until the current upload creates the file.</p>
+</li>
+<li>
+<p>In the <a class="xref page" href="../tabbed-mode/index.html">Tabbed Application Mode</a> add-on, the <code>@Push</code> configuration of the app shell is applied before <code>UIInitListener</code> listeners are called, so a listener can override it.</p>
+</li>
+<li>
+<p><code>Anchor.setHref()</code> and <code>IFrame.setSrc()</code>, as well as the <code>href</code> and <code>src</code> XML attributes of <code>anchor</code> and <code>iframe</code>, throw <code>IllegalArgumentException</code> for a URL scheme that Vaadin doesn’t consider safe, for example <code>javascript:</code>. Add the scheme to the Vaadin <code>safeUrlSchemes</code> configuration parameter, or use <code>setUnsafeHref()</code> and <code>setUnsafeSrc()</code> in code.</p>
+</li>
+<li>
+<p><code>addThemeName("")</code> throws <code>IllegalArgumentException</code>.</p>
+</li>
+<li>
+<p><code>TreeGrid</code> methods <code>expand()</code>, <code>collapse()</code>, <code>expandRecursively()</code> and <code>collapseRecursively()</code> now take <code>Collection&lt;? extends T&gt;</code> and <code>Stream&lt;? extends T&gt;</code> parameters. Update the signatures of these methods if you override them in a <code>TreeDataGrid</code> subclass.</p>
+</li>
+<li>
+<p>Many <code>VaadinIcon</code> constants and the corresponding <code>JmixFontIcon</code> constants are deprecated. <code>setRole()</code> of <code>JmixSideDialog</code> is deprecated in favor of <code>setAriaRole()</code>, and <code>withOverlayRole()</code> of <code>Dialogs.SideDialogBuilder</code> is deprecated in favor of <code>withAriaRole()</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ai-tools-breaking-changes"><a class="anchor" href="#ai-tools-breaking-changes"></a>AI Tools Add-on</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Rows of <code>JpqlExecutionResult.getRows()</code> and <code>EntityDataLoadResult.getRows()</code> now contain <code>null</code> for a column that has no value (see <a href="https://github.com/jmix-framework/jmix/issues/5598" rel="noopener" target="_blank">#5598</a>). Before, such a column contained an empty string. The rows that tools return to the model also contain <code>null</code> instead of an empty string. The method signatures are the same, so the compiler doesn’t show the places to fix. Check the values for <code>null</code> when you read the rows:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">EntityDataLoadResult result = aiDataLoadService.loadData("customers with their email");
+for (Map&lt;String, Object&gt; row : result.getRows()) {
+    Object email = row.get("email");
+    String text = email != null ? email.toString() : ""; // email can be null
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>EntityDataLoadResult.getQuery()</code> now returns the query that was actually executed or failed validation (see <a href="https://github.com/jmix-framework/jmix/issues/5749" rel="noopener" target="_blank">#5749</a>). If the generated query was repaired, the method returns the repaired query, and its explanation, warnings, <code>maxResults</code> and <code>firstResult</code> come from the repair. The original query generated by the LLM isn’t available from the result.</p>
+</li>
+<li>
+<p>The <code>AiChatMessageService</code> interface has a new <code>loadLatestMessages()</code> method (see <a href="https://github.com/jmix-framework/jmix/issues/5649" rel="noopener" target="_blank">#5649</a>). If you have your own implementation of this interface, implement the method. The chat hub now orders and groups conversations by the time of the last message instead of the creation time.</p>
+</li>
+<li>
+<p>A new conversation now gets the first user message as its title (see <a href="https://github.com/jmix-framework/jmix/issues/5648" rel="noopener" target="_blank">#5648</a>). Before, it kept the <code>New AI Conversation</code> title. If your code gives a conversation its own title before the first message, the first message replaces this title. To keep your title, call <code>setTitleMode(AiConversationTitleMode.NONE)</code> on the <code>AiChatFragment</code> that shows the conversation. To keep the previous behavior in the whole application, set the <a class="xref page" href="../ai-tools/properties.html#jmix.aitools.ui.conversation-title-mode">jmix.aitools.ui.conversation-title-mode</a> property to <code>NONE</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="charts-breaking-changes"><a class="anchor" href="#charts-breaking-changes"></a>Charts Add-on</h3>
+<div class="paragraph">
+<p>The <a class="xref page" href="../charts/index.html">Charts</a> add-on now uses Apache ECharts 6.1 instead of 5.4 (see <a href="https://github.com/jmix-framework/jmix/issues/5699" rel="noopener" target="_blank">#5699</a>). Existing views work without code changes, but charts may look different:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The default theme has a new color palette and spacing. The legend is at the bottom center, and the title is at the top center. To get a look closer to the previous version, set <code>colorPalette="#5470c6, #91cc75, #fac858, #ee6666, #73c0de, #3ba272, #fc8452, #9a60b4, #ea7ccc"</code> on <code>charts:chart</code>, <code>top="0"</code> on <code>charts:legend</code>, and <code>left="0" top="0"</code> on <code>charts:title</code>. Check charts that have components at the top or at the bottom, for example a slider <code>dataZoom</code>: they may overlap the title or the legend.</p>
+</li>
+<li>
+<p>Axis labels and names are kept inside the chart, and axis names are moved so that they don’t overlap axis labels. To return to the previous behavior, set <code>outerBoundsMode="NONE"</code> on <code>charts:gridItem</code> or <code>nameMoveOverlap="false"</code> on the axis.</p>
+</li>
+<li>
+<p>Rich text styles inherit the font and text shadow settings of the plain label. To return to the previous behavior, add <code>"richInheritPlainLabel": false</code> to <code>nativeJson</code>.</p>
+</li>
+<li>
+<p>Bar, pictorialBar, candlestick and boxplot shapes don’t go outside the grid anymore. To return to the previous behavior, set <code>containShape="false"</code> on the axis.</p>
+</li>
+<li>
+<p>The second argument of a tooltip <code>valueFormatter</code> function is now the index in the original series data, not the index after <code>dataZoom</code> filtering. Update your JavaScript functions that use it.</p>
+</li>
+<li>
+<p><code>Grid.containLabel</code> is deprecated. Use <code>outerBoundsMode="SAME"</code> together with <code>outerBoundsContain="AXIS_LABEL"</code> instead. When <code>containLabel</code> is enabled, the <code>outerBounds*</code> options are ignored.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="email-breaking-changes"><a class="anchor" href="#email-breaking-changes"></a>Email Sending Add-on</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>OAuth2 token</strong> view is replaced with the new connection view, and its id is changed from <code>email_tokenView</code> to <code>email_connectionView</code> (see <a href="https://github.com/jmix-framework/jmix/issues/5546" rel="noopener" target="_blank">#5546</a>). The old <code>email/token</code> route still works. Replace the old view id in:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>menu.xml</code>, if your application uses the single menu mode. Otherwise, the main view fails with <code>NoSuchViewException</code>.</p>
+</li>
+<li>
+<p><code>@ViewPolicy</code> and <code>@MenuPolicy</code> annotations of your resource roles. Otherwise, users lose access to the view.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The add-on doesn’t define the <code>mailSendTaskExecutor</code> bean anymore (see <a href="https://github.com/jmix-framework/jmix/issues/5703" rel="noopener" target="_blank">#5703</a>). Before, Vaadin could use this bean for its asynchronous work, and the application failed to start if it had another <code>TaskExecutor</code> bean. Now:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Code that injects the <code>mailSendTaskExecutor</code> bean by name fails at startup with <code>NoSuchBeanDefinitionException</code>. Remove such injections.</p>
+</li>
+<li>
+<p>Your own bean named <code>mailSendTaskExecutor</code> doesn’t replace the email sending pool anymore. The add-on ignores it and logs a warning at startup.</p>
+</li>
+<li>
+<p><code>@Async</code> methods and Vaadin asynchronous tasks run on the <code>applicationTaskExecutor</code> bean of Spring Boot instead of the email sending pool. This pool has a different size and an unbounded queue.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>When OAuth2 authentication is enabled, the add-on checks the configuration more strictly (see <a href="https://github.com/jmix-framework/jmix/issues/5539" rel="noopener" target="_blank">#5539</a>):</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>spring.mail.password</code> property is ignored, and the add-on logs a warning. Before, a password set together with OAuth2 authentication made the add-on use basic authentication.</p>
+</li>
+<li>
+<p>The application fails to start if <code>spring.mail.username</code>, <code>jmix.email.oauth2.client-id</code> or <code>jmix.email.oauth2.secret</code> is not set. Before, these errors appeared only when an email was sent.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="maps-breaking-changes"><a class="anchor" href="#maps-breaking-changes"></a>Maps Add-on</h3>
+<div class="paragraph">
+<p>Deleting map objects is now controlled separately from modify mode by the <code>featureDeleteEnabled</code> attribute of a vector source (see <a href="https://github.com/jmix-framework/jmix/issues/5576" rel="noopener" target="_blank">#5576</a> and <a class="xref page" href="../maps/editing-geometries.html#delete-mode">Delete Mode</a>):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A source with <code>featureModifyEnabled="true"</code> doesn’t show the <strong>Delete</strong> action by default anymore. Set <code>featureDeleteEnabled="true"</code> on the source, or set the <a class="xref page" href="../maps/editing-geometries.html#jmix.maps.ui.feature-modify-includes-delete">jmix.maps.ui.feature-modify-includes-delete</a> application property to <code>true</code> to keep the previous behavior for all sources that don’t set <code>featureDeleteEnabled</code>.</p>
+</li>
+<li>
+<p><code>SourceFeatureDeleteEvent</code> and <code>addSourceFeatureDeleteListener()</code> are moved from <code>HasFeatureModify</code> to <code>HasFeatureDelete</code>. Replace <code>HasFeatureModify.SourceFeatureDeleteEvent</code> with <code>HasFeatureDelete.SourceFeatureDeleteEvent</code> in your code.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="oidc-saml-breaking-changes"><a class="anchor" href="#oidc-saml-breaking-changes"></a>OIDC and SAML Add-ons</h3>
+<div class="paragraph">
+<p>The following elements of the auto-configuration are renamed (see <a href="https://github.com/jmix-framework/jmix/issues/5484" rel="noopener" target="_blank">#5484</a>):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>OidcAutoConfiguration.DefaulOidcVaadinWebSecurity</code> → <code>DefaultOidcVaadinWebSecurity</code></p>
+</li>
+<li>
+<p><code>SamlAutoConfiguration.DefaulSamlVaadinWebSecurity</code> → <code>DefaultSamlVaadinWebSecurity</code></p>
+</li>
+<li>
+<p>The <code>claimsRoleMapper</code> bean in <code>SamlAutoConfiguration</code> → <code>samlAssertionRolesMapper</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Update the code that extends these classes or refers to the bean by name.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="reports-breaking-changes"><a class="anchor" href="#reports-breaking-changes"></a>Reports Add-on</h3>
+<div class="paragraph">
+<p>Unused code that came from the YARG library is removed from the <a class="xref page" href="../reports/index.html">Reports</a> add-on (see <a href="https://github.com/jmix-framework/jmix/issues/2774" rel="noopener" target="_blank">#2774</a>):</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>io.jmix.reports.yarg.loaders.impl.GroovyDataLoader</code> class. The add-on uses <code>JmixGroovyDataLoader</code> for the <code>groovy</code> loader type. Unlike the removed class, it checks the <code>jmix.core.unsafe-runtime-features-enabled</code> and <code>jmix.reports.groovy-enabled</code> properties.</p>
+</li>
+<li>
+<p>The <code>InitializationException</code> and <code>ReportingXmlException</code> classes from the <code>io.jmix.reports.yarg.exception</code> package.</p>
+</li>
+<li>
+<p>The <code>update()</code> and <code>batch()</code> methods of <code>io.jmix.reports.yarg.util.db.QueryRunner</code>. Use Spring <code>JdbcTemplate</code> or JDBC instead.</p>
+</li>
+<li>
+<p>The <code>commitAndClose()</code>, <code>commitAndCloseQuietly()</code>, <code>rollback()</code>, <code>rollbackAndClose()</code>, <code>rollbackAndCloseQuietly()</code>, <code>loadDriver()</code>, <code>printStackTrace()</code> and <code>printWarnings()</code> methods of <code>io.jmix.reports.yarg.util.db.DbUtils</code>.</p>
+</li>
+<li>
+<p>The <code>UnoConverter.createAny(Object)</code> method. Use <code>new Any(new Type(XCell.class), value)</code> instead.</p>
+</li>
+<li>
+<p>The <code>AbstractFormatter.SIMPLE_ALIAS_REGEXP</code> and <code>DataExtractorImpl.EMPTY_MAP</code> fields.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The add-on doesn’t change the XML processors of the whole application anymore (see <a href="https://github.com/jmix-framework/jmix/issues/5755" rel="noopener" target="_blank">#5755</a>). Before, Xalan 2.7.3 and Xerces 2.12.2 from the add-on dependencies became the default JAXP <code>TransformerFactory</code> and <code>SchemaFactory</code>, and because of this an application with Hazelcast failed to start. Now the application gets these factories from the JDK. This can cause the following problems:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Code that relies on Xalan-specific XSLT features may fail.</p>
+</li>
+<li>
+<p>Processing of XML that exceeds the JDK processing limits may fail.</p>
+</li>
+<li>
+<p>On Java 21, validation of a <code>StAXSource</code> with an empty CDATA section fails because of the <a href="https://bugs.openjdk.org/browse/JDK-8349516" rel="noopener" target="_blank">JDK-8349516</a> bug. For example, BPM can’t deploy such a DMN file (see <a href="https://github.com/jmix-framework/jmix/issues/5778" rel="noopener" target="_blank">#5778</a>).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To keep the previous factories, set the system properties before the application starts, for example in the <code>main()</code> method before <code>SpringApplication.run()</code>. In this case, an application with Hazelcast fails to start, as before.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">System.setProperty("javax.xml.transform.TransformerFactory",
+        "org.apache.xalan.processor.TransformerFactoryImpl");
+System.setProperty("javax.xml.validation.SchemaFactory:" + XMLConstants.W3C_XML_SCHEMA_NS_URI,
+        "org.apache.xerces.jaxp.validation.XMLSchemaFactory");</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="dynamic-model-yaml"><a class="anchor" href="#dynamic-model-yaml"></a>Dynamic Model Add-on</h3>
+<div class="paragraph">
+<p>The Dynamic Model add-on now reads the YAML model definition strictly (see <a href="https://github.com/jmix-framework/jmix/issues/5731" rel="noopener" target="_blank">#5731</a>). The rules are described in <a class="xref page" href="../dyn-model/yaml-reference.html#writing-yaml">Writing YAML by Hand</a>.</p>
+</div>
+<div class="paragraph">
+<p>This affects only models that were written or edited by hand in the <strong>Code</strong> presentation. Models saved from the visual editor always have quoted values and are read as before.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="entity-reference-loaded-state"><a class="anchor" href="#entity-reference-loaded-state"></a>Loaded State of Entity References</h3>
+<div class="paragraph">
+<p>An entity instance returned by <code>DataManager.getReference()</code> now reports as loaded only its id and the attributes set on it later (see <a href="https://github.com/jmix-framework/jmix/issues/5660" rel="noopener" target="_blank">#5660</a>). Before, <code>EntityStates.isLoaded()</code> returned <code>true</code> for every attribute of such an instance.</p>
+</div>
+<div class="paragraph">
+<p>Now for a reference:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>isLoaded()</code> returns <code>false</code> for all attributes except the id and the attributes set after creation.</p>
+</li>
+<li>
+<p><code>isLoadedSafe()</code> returns <code>YES</code> or <code>NO</code> and doesn’t call getters.</p>
+</li>
+<li>
+<p><code>isLoadedWithFetchPlan()</code> returns <code>false</code> for a fetch plan that contains other attributes.</p>
+</li>
+<li>
+<p><code>getCurrentFetchPlan()</code> returns a fetch plan with the id and the attributes set after creation.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This has the following visible effects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A reference is serialized (in REST, BPM process variables, etc.) with only its id and the attributes set on it.</p>
+</li>
+<li>
+<p>A reference doesn’t have the default values assigned on creation in <code>@PostConstruct</code> methods or field initializers.</p>
+</li>
+<li>
+<p><code>DataContext.merge()</code> of a reference into a context that has the loaded instance doesn’t replace loaded values with nulls.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If your code relied on a reference reporting all attributes as loaded, update it.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="ui-tests-breaking-changes"><a class="anchor" href="#ui-tests-breaking-changes"></a>UI Integration Tests</h3>
+<div class="paragraph">
+<p><code>JmixUiTestExtension</code>, which runs <a class="xref page" href="../testing/ui-integration-tests.html">UI integration tests</a> marked with <code>@UiTest</code>, now destroys the Vaadin servlet, service and servlet context after each test (see <a href="https://github.com/jmix-framework/jmix/issues/5794" rel="noopener" target="_blank">#5794</a>). Before, they were never destroyed and kept closed Spring application contexts in memory until the end of the test run. This has the following effects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ServiceDestroyListener</code> listeners are called after each test. If such a listener, for example one added in a <code>VaadinServiceInitListener</code>, shuts down shared resources such as executors or beans, it now does it after the first test, and the next tests that use the same Spring context work with closed resources.</p>
+</li>
+<li>
+<p>After each test, <code>UI.getCurrent()</code>, <code>VaadinSession.getCurrent()</code>, <code>VaadinService.getCurrent()</code> and <code>RequestContextHolder.getRequestAttributes()</code> return <code>null</code>. This affects <code>@AfterAll</code> methods, JUnit extensions registered before <code>@UiTest</code>, and the <code>afterTestMethod()</code> method of Spring test execution listeners. <code>@AfterEach</code> methods of the test class still get these objects.</p>
+</li>
+<li>
+<p><code>JmixUiTestExtension</code> is now annotated with <code>@NullMarked</code>. In Kotlin, code that calls <code>getViewBasePackages()</code> without a null check may fail to compile. The same applies to subclasses of the extension that use the <code>ui</code>, <code>vaadinSession</code>, <code>uiTestAuthenticator</code>, <code>initialView</code> or <code>viewBasePackages</code> fields as non-null, or override its methods with nullable return types.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="changelog"><a class="anchor" href="#changelog"></a>Changelog</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Resolved issues in Jmix Framework:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/jmix-framework/jmix/issues?q=is%3Aclosed+milestone%3A3.1.0" rel="noopener" target="_blank">3.1.0</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Resolved issues in Jmix Studio:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://youtrack.jmix.io/issues/JST?q=Fixed%20in%20builds:%203.1.0,-3.0.*%20Affected%20versions:%20-SNAPSHOT" rel="noopener" target="_blank">3.1.0</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>

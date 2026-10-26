@@ -230,7 +230,7 @@ order-detail-view.xml
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout>
-        <div id="infoPanel" themeNames="badge success" text="msg://infoPanel.text.noChanges" height="2em" alignSelf="CENTER"/>
+        <badge id="infoPanel" themeNames="success" text="msg://infoPanel.text.noChanges" alignSelf="CENTER"/>
         <formLayout id="form" dataContainer="orderDc">
             <responsiveSteps>
                 <responsiveStep minWidth="0" columns="1"/>
@@ -287,7 +287,7 @@ OrderDetailView.java
 
 package io.jmix.uisamples.view.flowui.cookbook.composition7;
 
-import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.badge.Badge;
 import io.jmix.flowui.model.DataContext;
 import io.jmix.flowui.view.*;
 import io.jmix.uisamples.entity.Order;
@@ -298,7 +298,7 @@ import io.jmix.uisamples.entity.Order;
 public class OrderDetailView extends StandardDetailView<Order> {
 
     @ViewComponent
-    private Div infoPanel;
+    private Badge infoPanel;
     @ViewComponent
     private MessageBundle messageBundle;
 

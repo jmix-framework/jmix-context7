@@ -318,6 +318,68 @@ You can find examples of various template types in the <a class="xref page" href
 </tr>
 </table>
 </div>
+<div class="sect3">
+<h4 id="template_xlsx_streaming"><a class="anchor" href="#template_xlsx_streaming"></a>Templates with a Streaming Band</h4>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>A report with a <a class="xref page" href="bands.html#streaming-bands">streaming band</a> is rendered by the streaming XLSX formatter. It writes the document from top to bottom: bands are output in the order of their named regions on the sheet, and rows outside named regions are copied to the result in their place. The template of such a report must follow these rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The template has one sheet.</p>
+</li>
+<li>
+<p>Named regions of different bands do not share rows, so bands cannot be placed side by side.</p>
+</li>
+<li>
+<p>The named region of the streaming band does not contain merged cells.</p>
+</li>
+<li>
+<p>A formula in a band does not refer to rows below the band.</p>
+</li>
+<li>
+<p>A formula outside named regions does not refer to bands or rows below the formula. Whole-column references, such as <code>=SUM(C:C)</code>, are allowed and are not changed.</p>
+</li>
+<li>
+<p>Fields do not use <a class="xref page" href="value-formats.html">value formats</a> that insert images or HTML, such as <code>${image:WxH}</code> and <code>${html}</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the template breaks these rules, the report fails with an error that describes the problem.</p>
+</div>
+<div class="paragraph">
+<p>To calculate a total, put the formula into a row below the streaming band that is outside any named region, and refer to the band cells as a range, for example, <code>=SUM(C2:C2)</code> if the band takes row 2. The formatter extends the range to all output rows of the band. A single-cell reference, such as <code>=C2</code>, points to the last output row. A formula inside a band, for example, in a <code>Total</code> band, keeps its references to other bands unchanged, so such a total does not cover the streamed rows.</p>
+</div>
+<div class="paragraph">
+<p>The formatter does not calculate formula values. The XLSX document asks the spreadsheet application to recalculate all formulas when the file is opened.</p>
+</div>
+<div class="paragraph">
+<p>CSV output is converted from the XLSX document without loading it into memory, and formula cells in it are empty. PDF and HTML output load the whole XLSX document into memory and pass it to LibreOffice. The result cannot have more than 1,048,576 rows, the row limit of the XLSX format.</p>
+</div>
+<div class="paragraph">
+<p>The following template features are lost or work differently:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Charts, pivot tables, and hyperlinks are not copied to the result.</p>
+</li>
+<li>
+<p>Cells that use theme colors get the default Office colors. Use RGB colors instead.</p>
+</li>
+<li>
+<p>Print areas and data validation keep their template cell ranges and are not extended to the output rows.</p>
+</li>
+<li>
+<p>The <code>hint_rowAutoHeight</code> named region sets a fixed height for each row and slows down rendering of large reports.</p>
+</li>
+</ul>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="template_csv"><a class="anchor" href="#template_csv"></a>CSV Templates</h3>

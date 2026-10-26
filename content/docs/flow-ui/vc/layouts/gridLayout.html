@@ -229,21 +229,18 @@ private String getPropertyCaption(Customer customer, String property) {
 }
 
 private Component createGradeBadge(Customer customer) {
-    Span span = uiComponents.create(Span.class);
-    CustomerGrade gradeValue = customer.getGrade();
-    String gradeCaption = metadataTools.format(gradeValue);
+    CustomerGrade gradeValue = Objects.requireNonNull(customer.getGrade());
 
-    span.setText(gradeCaption);
-    span.getElement().getThemeList().add("badge " + getGradeColor(Objects.requireNonNull(gradeValue)));
-    return span;
-}
+    Badge badge = uiComponents.create(Badge.class);
+    badge.setText(metadataTools.format(gradeValue));
 
-private String getGradeColor(CustomerGrade customerGrade) {
-    return switch (customerGrade) {
-        case STANDARD -&gt; "contrast";
-        case HIGH -&gt; "success";
-        case PREMIUM -&gt; "primary";
-    };
+    if (gradeValue == CustomerGrade.HIGH) {
+        badge.addThemeVariants(BadgeVariant.SUCCESS);
+    } else if (gradeValue == CustomerGrade.PREMIUM) {
+        badge.addThemeVariants(BadgeVariant.FILLED);
+    }
+
+    return badge;
 }</code></pre>
 </div>
 </div>

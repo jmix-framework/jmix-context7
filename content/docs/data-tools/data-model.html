@@ -33,12 +33,36 @@
 <h2 id="data-model-diagram"><a class="anchor" href="#data-model-diagram"></a>PlantUML Diagram</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Click <strong>Diagram</strong> to open a new browser tab with a PlantUML diagram that includes entities currently filtered in the view. By default, the diagram is rendered using a public PlantUML server at <a class="bare" href="https://www.plantuml.com">https://www.plantuml.com</a>. You can switch to a self-hosted server by setting the application property:</p>
+<p>Click <strong>Diagram</strong> to open a new browser tab with a PlantUML diagram that includes entities currently filtered in the view. By default, the diagram is rendered using a public PlantUML server at <a class="bare" href="https://www.plantuml.com">https://www.plantuml.com</a>. You can render it on a <a href="#self-hosted-server">self-hosted server</a> instead.</p>
 </div>
-<div class="listingblock">
-<div class="title">application.properties</div>
-<div class="content">
-<pre>jmix.datatools.data-model-diagram.host=&lt;self-hosted-server&gt;</pre>
+<div class="sect2">
+<h3 id="self-hosted-server"><a class="anchor" href="#self-hosted-server"></a>Using a Self-Hosted Server</h3>
+<div class="paragraph">
+<p>The diagram is requested from <code>{host}/{path}/png/&lt;encoded diagram&gt;</code>. To render the diagram on your own PlantUML server, set its host and path with the following application properties.</p>
+</div>
+<div class="dlist" id="jmix.datatools.data-model-diagram.host">
+<dl>
+<dt class="hdlist1"><code>jmix.datatools.data-model-diagram.host</code></dt>
+<dd>
+<p>The address of the PlantUML server. When it is set, the public server is not used.</p>
+</dd>
+</dl>
+</div>
+<div class="dlist" id="jmix.datatools.data-model-diagram.path">
+<dl>
+<dt class="hdlist1"><code>jmix.datatools.data-model-diagram.path</code></dt>
+<dd>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>The path under which the PlantUML server is available. Set an empty value if the server is available at the host address without a path, or if the host already includes the path.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>plantuml</code></p>
+</div>
+</dd>
+</dl>
 </div>
 </div>
 <div class="sect2">
@@ -46,8 +70,29 @@
 <div class="paragraph">
 <p>Rendering the diagram on the public PlantUML server sends your application’s entity schema to an external service. To prevent this, set the <code>jmix.datatools.data-model-diagram.public-server-enabled</code> application property to <code>false</code>:</p>
 </div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre>jmix.datatools.data-model-diagram.public-server-enabled=false</pre>
+</div>
+</div>
 <div class="paragraph">
-<p>When no private host is configured via <code>jmix.datatools.data-model-diagram.host</code>, the public server is used only if both this property and the global <a class="xref page" href="../app-properties.html#jmix.core.unsafe-runtime-features-enabled">jmix.core.unsafe-runtime-features-enabled</a> switch are enabled. A configured private host always works regardless of these toggles.</p>
+<p>When no private host is configured via <code>jmix.datatools.data-model-diagram.host</code>, the public server is used only if both this property and the global <a class="xref page" href="../app-properties.html#jmix.core.unsafe-runtime-features-enabled">jmix.core.unsafe-runtime-features-enabled</a> switch are enabled. A configured private host always works regardless of these toggles. If no host is set and the public server is not allowed, the <strong>Diagram</strong> button is hidden.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>true</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="jmix.datatools.data-model-diagram.read-timeout"><a class="anchor" href="#jmix.datatools.data-model-diagram.read-timeout"></a>Rendering Timeout</h3>
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>The <code>jmix.datatools.data-model-diagram.read-timeout</code> application property sets the maximum time to wait for a response from the PlantUML server, for example <code>30s</code>. Rendering a large data model may take longer than the default.</p>
+</div>
+<div class="paragraph">
+<p>Default value: <code>10s</code></p>
 </div>
 </div>
 </div>

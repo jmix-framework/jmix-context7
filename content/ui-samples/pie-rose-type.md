@@ -22,7 +22,7 @@ pie-rose-type.xml
     </facets>
     <layout>
         <charts:chart id="chart" width="100%" height="100%" minHeight="30em">
-            <charts:title text="Liters" subtext="By countries"/>
+            <charts:title text="Liters" subtext="By countries" left="0" top="0"/>
             <charts:legend top="0"/>
             <charts:tooltip trigger="ITEM"/>
 

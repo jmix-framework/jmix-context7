@@ -28,7 +28,7 @@
 <p>For more details see <a href="https://openlayers.org/en/v8.2.0/apidoc/module-ol_layer_Tile-TileLayer.html" rel="noopener" target="_blank">TileLayer documentation</a>.</p>
 </div>
 <div class="paragraph">
-<p><code>TileLayer</code> supports three sources:</p>
+<p><code>TileLayer</code> supports the following sources:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -40,6 +40,9 @@
 </li>
 <li>
 <p><a href="#wms-source">WmsSource</a></p>
+</li>
+<li>
+<p><a href="#wmts-source">WmtsSource</a></p>
 </li>
 </ul>
 </div>
@@ -116,6 +119,140 @@
 &lt;/maps:geoMap&gt;</code></pre>
 </div>
 </div>
+</div>
+<div class="sect2">
+<h3 id="wmts-source"><a class="anchor" href="#wmts-source"></a>WmtsSource</h3>
+<div class="paragraph">
+<p>Source for tile data from <a class="xref page" href="map-services.html#web-map-tile-service">WMTS</a> (Web Map Tile Service) servers. For more details see <a href="https://openlayers.org/en/v8.2.0/apidoc/module-ol_source_WMTS-WMTS.html" rel="noopener" target="_blank">WMTS documentation</a>.</p>
+</div>
+<div class="paragraph">
+<p>WMTS services publish pre-rendered tiles using a tile matrix set. To configure <code>WmtsSource</code>, specify the service URL and layer identifier, then choose one of the supported tile grid configuration modes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>tileGrid</code> - defines resolutions, matrix identifiers, origin and tile size explicitly.</p>
+</li>
+<li>
+<p><code>webMercatorTileGrid</code> - creates a standard <code>EPSG:3857</code> tile grid automatically.</p>
+</li>
+<li>
+<p><code>capabilities</code> - downloads the WMTS <code>GetCapabilities</code> document and derives the source configuration from it.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following example demonstrates a <code>WmtsSource</code> with an explicitly configured tile grid:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="mapWmts"
+             width="100%"
+             height="100%"&gt;
+    &lt;maps:mapView centerX="0" centerY="0" zoom="2"/&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:wmtsSource url="https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/wmts.cgi"
+                             layer="BlueMarble_ShadedRelief_Bathymetry"
+                             matrixSet="GoogleMapsCompatible_Level8"
+                             format="image/jpeg"
+                             style="default"
+                             requestEncoding="KVP"&gt;
+                &lt;maps:projection code="EPSG:3857"/&gt;
+                &lt;maps:tileGrid resolutions="156543.03392804097, 78271.51696402048, 39135.75848201024"
+                               matrixIds="0, 1, 2"&gt;
+                    &lt;maps:origin x="-20037508.342789244" y="20037508.342789244"/&gt;
+                    &lt;maps:tileSize width="256" height="256"/&gt;
+                &lt;/maps:tileGrid&gt;
+            &lt;/maps:wmtsSource&gt;
+        &lt;/maps:tile&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For Web Mercator services, use <code>webMercatorTileGrid</code> to avoid listing all resolutions and matrix identifiers manually:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="mapWmtsWebMercator"
+             width="100%"
+             height="100%"&gt;
+    &lt;maps:mapView centerX="0" centerY="0" zoom="4"/&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:wmtsSource url="https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/wmts.cgi"
+                             layer="BlueMarble_ShadedRelief_Bathymetry"
+                             matrixSet="GoogleMapsCompatible_Level8"
+                             format="image/jpeg"
+                             style="default"&gt;
+                &lt;maps:webMercatorTileGrid maxZoom="8"
+                                          numericMatrixIds="true"/&gt;
+            &lt;/maps:wmtsSource&gt;
+        &lt;/maps:tile&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, <code>webMercatorTileGrid</code> generates matrix identifiers in the <code>{matrixSet}:{zoom}</code> format, for example <code>EPSG:900913:0</code>. If your WMTS server uses numeric matrix identifiers such as <code>0</code>, <code>1</code>, <code>2</code>, set <code>numericMatrixIds="true"</code>.</p>
+</div>
+<div class="paragraph">
+<p>To configure the source from the WMTS capabilities document, add the <code>capabilities</code> element. If the capabilities document cannot be derived from the source URL, specify it explicitly using the <code>url</code> attribute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;maps:geoMap id="mapWmtsCapabilities"
+             width="100%"
+             height="100%"&gt;
+    &lt;maps:mapView centerX="0" centerY="0" zoom="4"/&gt;
+    &lt;maps:layers&gt;
+        &lt;maps:tile&gt;
+            &lt;maps:wmtsSource url="https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/wmts.cgi"
+                             layer="BlueMarble_ShadedRelief_Bathymetry"&gt;
+                &lt;maps:capabilities url="https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml"/&gt;
+            &lt;/maps:wmtsSource&gt;
+        &lt;/maps:tile&gt;
+    &lt;/maps:layers&gt;
+&lt;/maps:geoMap&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>capabilities</code> mode loads the document asynchronously while the view opens. If the document cannot be loaded or the specified layer is not found, the error is written to the log and the map view remains available without this source.</p>
+</div>
+<div class="paragraph">
+<p>The following application properties affect only the <code>capabilities</code> mode:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 16.6666%;"/>
+<col style="width: 50.0002%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.maps.ui.wmts-capabilities-timeout</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Duration</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10s</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Timeout for downloading a WMTS <code>GetCapabilities</code> document.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jmix.maps.ui.wmts-capabilities-cache-ttl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Duration</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>10m</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">How long a downloaded <code>GetCapabilities</code> document is cached per URL. Set to <code>0</code> to disable caching.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>

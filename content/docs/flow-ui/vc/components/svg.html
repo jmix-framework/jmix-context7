@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>svg :: Jmix Documentation</title>
+</head>
+<body>
+<article class="doc">
+<h1 class="page">svg</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph since">
+<p>Since Jmix 3.1</p>
+</div>
+<div class="paragraph">
+<p>The <code>svg</code> component renders SVG markup directly in the view.</p>
+</div>
+<table class="tableblock frame-none grid-none fit-content">
+<colgroup>
+<col/>
+<col/>
+</colgroup>
+<tbody>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">XML Element</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>svg</code></p></td>
+</tr>
+<tr>
+<th class="tableblock halign-left valign-top"><p class="tableblock">Java Class</p></th>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Svg</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basics"><a class="anchor" href="#basics"></a>Basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Add the markup to the nested <code>content</code> element and wrap it in a CDATA section:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;svg id="statusSvg" css="color: seagreen"&gt;
+    &lt;content&gt;&lt;![CDATA[
+        &lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round"&gt;
+            &lt;circle cx="12" cy="12" r="10"/&gt;
+            &lt;path d="m9 12 2 2 4-4"/&gt;
+        &lt;/svg&gt;
+    ]]&gt;&lt;/content&gt;
+&lt;/svg&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The CDATA section is required. Without it, the XML parser reads the SVG tags as elements of the view descriptor, and the view fails to open with a <code>GuiDevelopmentException</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The component renders the markup as is. If the SVG comes from an untrusted source, such as a file uploaded by a user, sanitize it before passing it to the component. Otherwise, it can lead to cross-site scripting attacks.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The component has no size attributes. The size of the image is defined by the <code>width</code>, <code>height</code>, and <code>viewBox</code> attributes of the root <code>&lt;svg&gt;</code> element in the markup.</p>
+</div>
+<div class="paragraph">
+<p>The markup becomes part of the page, so the styles of the page apply to it. If the markup uses <code>currentColor</code> for strokes and fills, as in the example above, the image takes the text color of the component, and you can change it with CSS. The <a class="xref page" href="../html-components/image.html">image</a> and <a class="xref page" href="../../icons/custom-icons.html#standalone-svg-images">svgIcon</a> components work differently. They display an SVG file by URL, and the page styles do not apply inside the image.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="about-file"><a class="anchor" href="#about-file"></a>Content from a File</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use the <code>file</code> attribute to load the markup from a file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;svg id="workflowSvg" file="com/company/onboarding/view/component/svg/workflow.svg"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The path is resolved by the <a class="xref page" href="../../../features/resources.html">Resources</a> interface. By default, the file is loaded from the classpath. You can also use the <code>classpath:</code> prefix, a URL, or a path to a file in the configuration directory. See <a class="xref page" href="../../../features/resources.html#resource-locations">Resource Locations</a> for details.</p>
+</div>
+<div class="paragraph">
+<p>If the file is not found, the view fails to open with a <code>GuiDevelopmentException</code>. If both <code>content</code> and <code>file</code> are set, the component uses <code>content</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="programmatic"><a class="anchor" href="#programmatic"></a>Setting Content Programmatically</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Declare the component without <code>content</code> and <code>file</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;svg id="dotSvg" css="color: orange"/&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then set the markup in the view controller using the <code>setSvg()</code> method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@ViewComponent
+private Svg dotSvg;
+
+@Subscribe
+public void onInit(final InitEvent event) {
+    dotSvg.setSvg("""
+            &lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"&gt;
+                &lt;circle cx="8" cy="8" r="6" fill="currentColor"/&gt;
+            &lt;/svg&gt;
+            """);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>setSvg()</code> method also accepts an <code>InputStream</code>, for example, to read the markup from a file.</p>
+</div>
+<div class="paragraph">
+<p>The markup must contain an <code>&lt;svg&gt;</code> element. An XML declaration and a document type declaration before it are removed. If the markup does not contain <code>&lt;svg&gt;</code>, the method throws an <code>IllegalArgumentException</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_attributes"><a class="anchor" href="#_attributes"></a>Attributes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following attributes are specific to <code>svg</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;"/>
+<col style="width: 62.5%;"/>
+<col style="width: 12.5%;"/>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a id="file"></a><code>file</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the path to a file with the SVG markup. See <a href="#about-file">Content from a File</a>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following shared attributes are supported by <code>svg</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-attributes.html#id">id</a> -
+<a class="xref page" href="../common-attributes.html#alignSelf">alignSelf</a> -
+<a class="xref page" href="../common-attributes.html#classNames">classNames</a> -
+<a class="xref page" href="../common-attributes.html#colspan">colspan</a> -
+<a class="xref page" href="../common-attributes.html#css">css</a> -
+<a class="xref page" href="../common-attributes.html#justifySelf">justifySelf</a> -
+<a class="xref page" href="../common-attributes.html#visible">visible</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_handlers"><a class="anchor" href="#_handlers"></a>Handlers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following shared handlers are supported by <code>svg</code>:</p>
+</div>
+<div class="paragraph">
+<p><a class="xref page" href="../common-handlers.html#AttachEvent">AttachEvent</a> -
+<a class="xref page" href="../common-handlers.html#DetachEvent">DetachEvent</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elements"><a class="anchor" href="#_elements"></a>Elements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An <code>svg</code> component can include a <code>content</code> element with the SVG markup wrapped in a CDATA section. See <a href="#basics">Basics</a>.</p>
+</div>
+</div>
+</div>
+
+</article>
+</body>
+</html>
